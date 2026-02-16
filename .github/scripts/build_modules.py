@@ -93,8 +93,10 @@ def find_modules() -> list[Path]:
 def parse_module_toml(toml_path: Path) -> dict:
     """module.toml 파싱 → 메타데이터 딕셔너리 반환"""
     if tomllib is not None:
-        with open(toml_path, "rb") as f:
-            data = tomllib.load(f)
+        raw = toml_path.read_bytes()
+        if raw.startswith(b"\xef\xbb\xbf"):
+            raw = raw[3:]  # UTF-8 BOM 제거
+        data = tomllib.loads(raw.decode("utf-8"))
         module = data.get("module", {})
     else:
         # tomllib / tomli 모두 없을 때 간이 파서

@@ -1,0 +1,115 @@
+# ═══════════════════════════════════════════════════════════
+# saba-chan-modules — Build & Release Workflow
+# ═══════════════════════════════════════════════════════════
+#
+# 모듈 디렉토리를 push하면 자동으로:
+#   1. 각 모듈의 module.toml을 파싱하여 버전 추출
+#   2. manifest.json 생성 (업데이터가 참조)
+#   3. 각 모듈을 zip으로 압축
+#   4. GitHub Release로 배포
+#
+# 업데이터(saba-chan)는 이 릴리즈의 manifest.json을 읽어
+# 로컬 모듈 버전과 비교 후 필요한 모듈만 다운로드합니다.
+
+name: Build & Release Modules
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*/module.toml'
+      - '*/lifecycle.py'
+      - '*/i18n.py'
+      - '*/locales/**'
+      - '*/icon.png'
+      - '**/*.ini'
+      - '**/*.properties'
+  workflow_dispatch:
+    inputs:
+      force_release:
+        description: '버전 변경이 없어도 릴리즈를 강제 생성합니다'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ──────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── Python 설정 ──────────────────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # ── 이전 릴리즈의 manifest 다운로드 (비교용) ─────
+      - name: Download previous manifest
+        id: prev
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p .prev
+          gh release download --pattern "manifest.json" --dir .prev 2>/dev/null \
+            && echo "found=true" >> "$GITHUB_OUTPUT" \
+            || echo "found=false" >> "$GITHUB_OUTPUT"
+
+      # ── 빌드: manifest 생성 + zip 압축 ──────────────
+      - name: Build manifest & package modules
+        id: build
+        run: python .github/scripts/build_modules.py
+        env:
+          FORCE_RELEASE: ${{ inputs.force_release || 'false' }}
+          PREV_MANIFEST: ${{ steps.prev.outputs.found == 'true' && '.prev/manifest.json' || '' }}
+
+      # ── 기존 릴리즈 삭제 ─────────────────────────────
+      - name: Delete previous releases
+        if: steps.build.outputs.should_release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🗑️ Cleaning up old releases..."
+          gh release list --limit 100 --json tagName -q '.[].tagName' | while read -r tag; do
+            echo "  Deleting release: $tag"
+            gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+          done
+
+      # ── 릴리즈 생성 ─────────────────────────────────
+      - name: Create GitHub Release
+        if: steps.build.outputs.should_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.build.outputs.tag }}
+          name: ${{ steps.build.outputs.release_name }}
+          body_path: dist/RELEASE_BODY.md
+          files: |
+            dist/manifest.json
+            dist/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 결과 요약 ───────────────────────────────────
+      - name: Summary
+        if: always()
+        run: |
+          echo "### 📦 Module Build Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.build.outputs.should_release }}" == "true" ]; then
+            echo "✅ Release created: \`${{ steps.build.outputs.tag }}\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Module | Version |" >> "$GITHUB_STEP_SUMMARY"
+            echo "|--------|---------|" >> "$GITHUB_STEP_SUMMARY"
+            cat dist/summary_table.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          else
+            echo "⏭️ No release needed (no version changes detected)" >> "$GITHUB_STEP_SUMMARY"
+          fi

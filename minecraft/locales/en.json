@@ -1,0 +1,184 @@
+{
+  "module": {
+    "display_name": "Minecraft",
+    "description": "Minecraft server management module with full lifecycle control"
+  },
+  "settings": {
+    "executable_path": { "label": "Server JAR Path", "description": "Path to server.jar file" },
+    "java_path": { "label": "Java Path", "description": "Path to Java executable (auto-detected if blank)" },
+    "ram": { "label": "Memory (RAM)", "description": "Maximum memory allocation (e.g. 2G, 4G)" },
+    "port": { "label": "Server Port", "description": "Game server port" },
+    "difficulty": { "label": "Difficulty", "description": "Game difficulty" },
+    "gamemode": { "label": "Game Mode", "description": "Default game mode" },
+    "max_players": { "label": "Max Players", "description": "Maximum number of players" },
+    "motd": { "label": "MOTD", "description": "Server list description" },
+    "online_mode": { "label": "Online Mode", "description": "Require Mojang authentication" },
+    "pvp": { "label": "PVP", "description": "Allow player vs player" },
+    "view_distance": { "label": "View Distance", "description": "Maximum view distance (chunks)" },
+    "simulation_distance": { "label": "Simulation Distance", "description": "Maximum simulation distance (chunks)" },
+    "spawn_protection": { "label": "Spawn Protection", "description": "Spawn protection radius" },
+    "allow_flight": { "label": "Allow Flight", "description": "Allow flying in survival" },
+    "allow_nether": { "label": "Allow Nether", "description": "Allow Nether travel" },
+    "enable_command_block": { "label": "Command Blocks", "description": "Enable command blocks" },
+    "hardcore": { "label": "Hardcore", "description": "Enable hardcore mode" },
+    "white_list": { "label": "Whitelist", "description": "Only allow whitelisted players" },
+    "level_name": { "label": "World Name", "description": "Name of the world folder" },
+    "level_seed": { "label": "World Seed", "description": "Seed for world generation" },
+    "level_type": { "label": "World Type", "description": "World generation type" },
+    "max_world_size": { "label": "Max World Size", "description": "Maximum world border radius" },
+    "use_aikar_flags": { "label": "Aikar's Flags", "description": "Use recommended JVM GC flags" }
+  },
+  "commands": {
+    "say": {
+      "label": "Send Chat Message",
+      "description": "Broadcast a message to the server",
+      "inputs": { "message": { "label": "Message", "placeholder": "Enter message to send" } }
+    },
+    "give": {
+      "label": "Give Item",
+      "description": "Give an item to a player",
+      "inputs": {
+        "player": { "label": "Player Name", "placeholder": "Player nickname" },
+        "item": { "label": "Item ID", "placeholder": "e.g. diamond, iron_ore" },
+        "amount": { "label": "Amount" }
+      }
+    },
+    "save-all": { "label": "Save World", "description": "Save the game world" },
+    "list": { "label": "Player List", "description": "View list of connected players" },
+    "weather": {
+      "label": "Change Weather",
+      "description": "Change the server weather",
+      "inputs": { "type": { "label": "Weather" }, "duration": { "label": "Duration (seconds)" } }
+    },
+    "difficulty": {
+      "label": "Change Difficulty",
+      "description": "Change the game difficulty",
+      "inputs": { "level": { "label": "Difficulty" } }
+    },
+    "gamemode": {
+      "label": "Change Game Mode",
+      "description": "Change a player's game mode",
+      "inputs": { "mode": { "label": "Game Mode" }, "player": { "label": "Player Name" } }
+    },
+    "time": {
+      "label": "Set Time",
+      "description": "Change the time of day",
+      "inputs": { "value": { "label": "Time" } }
+    },
+    "tp": {
+      "label": "Teleport",
+      "description": "Teleport a player",
+      "inputs": { "player": { "label": "Player" }, "target": { "label": "Destination" } }
+    },
+    "kick": {
+      "label": "Kick Player",
+      "description": "Kick a player from the server",
+      "inputs": { "player": { "label": "Player Name" }, "reason": { "label": "Reason" } }
+    },
+    "ban": {
+      "label": "Ban Player",
+      "description": "Ban a player from the server",
+      "inputs": { "player": { "label": "Player Name" }, "reason": { "label": "Reason" } }
+    },
+    "pardon": {
+      "label": "Unban Player",
+      "description": "Remove a player's ban",
+      "inputs": { "player": { "label": "Player Name" } }
+    },
+    "op": {
+      "label": "Op Player",
+      "description": "Give operator permissions",
+      "inputs": { "player": { "label": "Player Name" } }
+    },
+    "deop": {
+      "label": "Deop Player",
+      "description": "Remove operator permissions",
+      "inputs": { "player": { "label": "Player Name" } }
+    },
+    "whitelist": {
+      "label": "Whitelist",
+      "description": "Manage the server whitelist",
+      "inputs": { "action": { "label": "Action" }, "player": { "label": "Player Name" } }
+    },
+    "seed": { "label": "Show Seed", "description": "Display the world seed" },
+    "stop": { "label": "Stop Server", "description": "Gracefully stop the server" }
+  },
+  "errors": {
+    "server_jar_not_specified": "server_jar not specified in instance configuration. Please add the path to server.jar",
+    "server_jar_not_found": "Server jar not found: {{path}}. Please check the path in instance settings.",
+    "failed_to_start": "Failed to start: {{error}}",
+    "no_pid_provided": "No PID provided",
+    "failed_to_kill": "Failed to kill process: {{error}}",
+    "failed_to_stop": "Failed to stop: {{error}}",
+    "daemon_connection_error": "Daemon connection error: {{error}}",
+    "invalid_json_response": "Invalid JSON response from daemon: {{error}}",
+    "daemon_error": "Daemon error: {{error}}",
+    "no_working_dir": "Working directory not configured. Please set a working directory for this instance.",
+    "no_settings": "No settings provided",
+    "properties_write_failed": "Failed to write server.properties",
+    "eula_write_failed": "Failed to write eula.txt",
+    "working_dir_error": "Cannot create working directory: {{path}}",
+    "server_reset_partial": "Some items could not be deleted: {{errors}}",
+    "detect": {
+      "java_not_found": "Java is not installed or not found in PATH",
+      "java_version_too_old": "Java {{current}} is too old. Minecraft requires Java {{required}} or newer.",
+      "eula_not_accepted": "Minecraft EULA has not been accepted",
+      "port_in_use": "Port {{port}} is already in use by another application",
+      "out_of_memory": "Insufficient memory — Java ran out of heap space",
+      "world_corrupt": "World data appears to be corrupted",
+      "invalid_jar": "The server jar file is invalid or corrupt",
+      "permission_denied": "Permission denied — cannot access required files",
+      "server_overloaded": "Server is overloaded and cannot keep up with tick rate"
+    },
+    "solutions": {
+      "java_not_found": "Install Java 17+ (recommended: Adoptium Temurin) from https://adoptium.net/ and ensure it's in your PATH, or set the Java path in instance settings.",
+      "java_version_too_old": "Install Java {{required}}+ from https://adoptium.net/ — current Minecraft versions require modern Java.",
+      "server_jar_not_specified": "Set the path to your server.jar in instance settings.",
+      "server_jar_not_found": "Download the official Minecraft server from https://www.minecraft.net/download/server or check the path in settings.",
+      "eula_not_accepted": "Accept the Minecraft EULA by clicking 'Accept EULA' in server settings, or manually set eula=true in eula.txt.",
+      "port_in_use": "Port {{port}} is already in use. Stop the other application or change the server port in settings.",
+      "out_of_memory": "Increase the RAM allocation in server settings (e.g. 4G or 8G), or close other applications to free memory.",
+      "world_corrupt": "Restore the world from a backup, or delete the world folder to generate a new one.",
+      "invalid_jar": "Re-download the server jar from the official source. The current file may be incomplete or corrupted.",
+      "permission_denied": "Run saba-chan as administrator, or change file permissions to allow read/write access.",
+      "working_dir_error": "Create the directory manually or choose a different location with write permissions.",
+      "server_overloaded": "Reduce view-distance and simulation-distance, decrease max-players, or allocate more RAM."
+    }
+  },
+  "messages": {
+    "starting_server": "Starting server: {{command}}",
+    "working_directory": "Working directory: {{path}}",
+    "server_starting": "Minecraft server starting with PID {{pid}}",
+    "shutdown_signal_sent": "Sent shutdown signal to PID {{pid}}",
+    "force_killed": "Force killed PID {{pid}}",
+    "signal_sent": "Sent signal {{signal}} to PID {{pid}}",
+    "no_process_running": "No process running",
+    "would_send_command": "Would send to PID {{pid}}: {{command}}",
+    "failed_send_command": "Failed to send command: {{error}}",
+    "executing_command": "Executing command via daemon: {{command}} with args: {{args}}",
+    "daemon_rcon_response": "Daemon RCON response: {{result}}",
+    "server_online": "Server is online and responding",
+    "server_starting_no_response": "Process is running but server is not yet responding to queries",
+    "graceful_stop": "Server stopped gracefully (PID {{pid}})",
+    "graceful_stop_timeout": "Graceful shutdown timed out, proceeding to force stop",
+    "properties_updated": "server.properties updated successfully",
+    "properties_reset": "server.properties has been reset to defaults",
+    "properties_using_defaults": "server.properties does not exist — showing defaults",
+    "eula_accepted": "Minecraft EULA accepted successfully",
+    "server_reset_complete": "Server reset complete",
+    "server_reset_deleted": "{{count}} items deleted",
+    "rcon_disabled_managed": "RCON disabled — managed mode uses stdin for server control",
+    "rcon_enabled_native": "RCON enabled — required for server control in non-managed mode",
+    "rcon_password_generated": "Auto-generated RCON password (no password was set)"
+  },
+  "rcon": {
+    "connecting": "Connecting to {{host}}:{{port}}...",
+    "connected": "Connected!",
+    "authentication_failed": "Authentication failed",
+    "authenticated": "Authenticated!",
+    "connection_failed": "Connection failed: {{error}}",
+    "sending_command": "Sending command: {{command}}",
+    "response_received": "Response received: {{response}}",
+    "command_failed": "Command failed: {{error}}"
+  }
+}

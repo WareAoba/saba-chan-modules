@@ -1,0 +1,184 @@
+{
+  "module": {
+    "display_name": "Minecraft",
+    "description": "Module de gestion de serveur Minecraft avec contrôle complet du cycle de vie"
+  },
+  "settings": {
+    "executable_path": { "label": "Chemin du JAR serveur", "description": "Chemin vers le fichier server.jar" },
+    "java_path": { "label": "Chemin Java", "description": "Chemin vers l'exécutable Java (détection automatique si vide)" },
+    "ram": { "label": "Mémoire (RAM)", "description": "Allocation mémoire maximale (ex. 2G, 4G)" },
+    "port": { "label": "Port du serveur", "description": "Port du serveur de jeu" },
+    "difficulty": { "label": "Difficulté", "description": "Difficulté du jeu" },
+    "gamemode": { "label": "Mode de jeu", "description": "Mode de jeu par défaut" },
+    "max_players": { "label": "Joueurs max", "description": "Nombre maximum de joueurs" },
+    "motd": { "label": "MOTD", "description": "Description dans la liste des serveurs" },
+    "online_mode": { "label": "Mode en ligne", "description": "Exiger l'authentification Mojang" },
+    "pvp": { "label": "PVP", "description": "Autoriser le joueur contre joueur" },
+    "view_distance": { "label": "Distance de vue", "description": "Distance de vue maximale (chunks)" },
+    "simulation_distance": { "label": "Distance de simulation", "description": "Distance de simulation maximale (chunks)" },
+    "spawn_protection": { "label": "Protection du spawn", "description": "Rayon de protection du spawn" },
+    "allow_flight": { "label": "Autoriser le vol", "description": "Autoriser le vol en survie" },
+    "allow_nether": { "label": "Autoriser le Nether", "description": "Autoriser le voyage vers le Nether" },
+    "enable_command_block": { "label": "Blocs de commande", "description": "Activer les blocs de commande" },
+    "hardcore": { "label": "Hardcore", "description": "Activer le mode hardcore" },
+    "white_list": { "label": "Liste blanche", "description": "N'autoriser que les joueurs de la liste blanche" },
+    "level_name": { "label": "Nom du monde", "description": "Nom du dossier du monde" },
+    "level_seed": { "label": "Graine du monde", "description": "Graine pour la génération du monde" },
+    "level_type": { "label": "Type de monde", "description": "Type de génération du monde" },
+    "max_world_size": { "label": "Taille max du monde", "description": "Rayon maximum de la bordure du monde" },
+    "use_aikar_flags": { "label": "Flags d'Aikar", "description": "Utiliser les flags JVM GC recommandées" }
+  },
+  "commands": {
+    "say": {
+      "label": "Envoyer un message",
+      "description": "Diffuser un message sur le serveur",
+      "inputs": { "message": { "label": "Message", "placeholder": "Entrez le message à envoyer" } }
+    },
+    "give": {
+      "label": "Donner un objet",
+      "description": "Donner un objet à un joueur",
+      "inputs": {
+        "player": { "label": "Nom du joueur", "placeholder": "Pseudo du joueur" },
+        "item": { "label": "ID de l'objet", "placeholder": "Ex: diamond, iron_ore" },
+        "amount": { "label": "Quantité" }
+      }
+    },
+    "save-all": { "label": "Sauvegarder le monde", "description": "Sauvegarder le monde du jeu" },
+    "list": { "label": "Liste des joueurs", "description": "Voir la liste des joueurs connectés" },
+    "weather": {
+      "label": "Changer la météo",
+      "description": "Changer la météo du serveur",
+      "inputs": { "type": { "label": "Météo" }, "duration": { "label": "Durée (secondes)" } }
+    },
+    "difficulty": {
+      "label": "Changer la difficulté",
+      "description": "Changer la difficulté du jeu",
+      "inputs": { "level": { "label": "Difficulté" } }
+    },
+    "gamemode": {
+      "label": "Changer le mode de jeu",
+      "description": "Changer le mode de jeu d'un joueur",
+      "inputs": { "mode": { "label": "Mode de jeu" }, "player": { "label": "Nom du joueur" } }
+    },
+    "time": {
+      "label": "Régler l'heure",
+      "description": "Changer l'heure du jour",
+      "inputs": { "value": { "label": "Heure" } }
+    },
+    "tp": {
+      "label": "Téléporter",
+      "description": "Téléporter un joueur",
+      "inputs": { "player": { "label": "Joueur" }, "target": { "label": "Destination" } }
+    },
+    "kick": {
+      "label": "Expulser un joueur",
+      "description": "Expulser un joueur du serveur",
+      "inputs": { "player": { "label": "Nom du joueur" }, "reason": { "label": "Raison" } }
+    },
+    "ban": {
+      "label": "Bannir un joueur",
+      "description": "Bannir un joueur du serveur",
+      "inputs": { "player": { "label": "Nom du joueur" }, "reason": { "label": "Raison" } }
+    },
+    "pardon": {
+      "label": "Débannir un joueur",
+      "description": "Lever le bannissement d'un joueur",
+      "inputs": { "player": { "label": "Nom du joueur" } }
+    },
+    "op": {
+      "label": "Donner OP au joueur",
+      "description": "Accorder les permissions d'opérateur",
+      "inputs": { "player": { "label": "Nom du joueur" } }
+    },
+    "deop": {
+      "label": "Retirer OP au joueur",
+      "description": "Retirer les permissions d'opérateur",
+      "inputs": { "player": { "label": "Nom du joueur" } }
+    },
+    "whitelist": {
+      "label": "Liste blanche",
+      "description": "Gérer la liste blanche du serveur",
+      "inputs": { "action": { "label": "Action" }, "player": { "label": "Nom du joueur" } }
+    },
+    "seed": { "label": "Afficher la graine", "description": "Afficher la graine du monde" },
+    "stop": { "label": "Arrêter le serveur", "description": "Arrêter le serveur proprement" }
+  },
+  "errors": {
+    "server_jar_not_specified": "server_jar non spécifié dans la configuration de l'instance. Veuillez ajouter le chemin vers server.jar",
+    "server_jar_not_found": "Fichier jar du serveur non trouvé: {{path}}. Veuillez vérifier le chemin dans les paramètres d'instance.",
+    "failed_to_start": "Échec du démarrage: {{error}}",
+    "no_pid_provided": "Aucun PID fourni",
+    "failed_to_kill": "Échec de la terminaison du processus: {{error}}",
+    "failed_to_stop": "Échec de l'arrêt: {{error}}",
+    "daemon_connection_error": "Erreur de connexion au daemon: {{error}}",
+    "invalid_json_response": "Réponse JSON invalide du daemon: {{error}}",
+    "daemon_error": "Erreur du daemon: {{error}}",
+    "no_working_dir": "Répertoire de travail non configuré. Veuillez définir un répertoire de travail pour cette instance.",
+    "no_settings": "Aucun paramètre fourni",
+    "properties_write_failed": "Échec de l'écriture de server.properties",
+    "eula_write_failed": "Échec de l'écriture de eula.txt",
+    "working_dir_error": "Impossible de créer le répertoire de travail: {{path}}",
+    "server_reset_partial": "Certains éléments n'ont pas pu être supprimés : {{errors}}",
+    "detect": {
+      "java_not_found": "Java n'est pas installé ou n'est pas trouvé dans le PATH",
+      "java_version_too_old": "Java {{current}} est trop ancien. Minecraft nécessite Java {{required}} ou plus récent.",
+      "eula_not_accepted": "Le CLUF (EULA) de Minecraft n'a pas été accepté",
+      "port_in_use": "Le port {{port}} est déjà utilisé par une autre application",
+      "out_of_memory": "Mémoire insuffisante — Java a épuisé l'espace du tas",
+      "world_corrupt": "Les données du monde semblent être corrompues",
+      "invalid_jar": "Le fichier jar du serveur est invalide ou corrompu",
+      "permission_denied": "Permission refusée — impossible d'accéder aux fichiers nécessaires",
+      "server_overloaded": "Le serveur est surchargé et ne peut pas maintenir le taux de ticks"
+    },
+    "solutions": {
+      "java_not_found": "Installez Java 17+ (recommandé: Adoptium Temurin) depuis https://adoptium.net/ et vérifiez qu'il est dans votre PATH, ou définissez le chemin Java dans les paramètres d'instance.",
+      "java_version_too_old": "Installez Java {{required}}+ depuis https://adoptium.net/ — les versions actuelles de Minecraft nécessitent un Java moderne.",
+      "server_jar_not_specified": "Définissez le chemin vers votre server.jar dans les paramètres d'instance.",
+      "server_jar_not_found": "Téléchargez le serveur Minecraft officiel depuis https://www.minecraft.net/download/server ou vérifiez le chemin dans les paramètres.",
+      "eula_not_accepted": "Acceptez le CLUF Minecraft en cliquant sur 'Accepter le CLUF' dans les paramètres du serveur, ou définissez manuellement eula=true dans eula.txt.",
+      "port_in_use": "Le port {{port}} est déjà utilisé. Arrêtez l'autre application ou changez le port du serveur dans les paramètres.",
+      "out_of_memory": "Augmentez l'allocation de RAM dans les paramètres du serveur (ex. 4G ou 8G), ou fermez d'autres applications pour libérer de la mémoire.",
+      "world_corrupt": "Restaurez le monde depuis une sauvegarde, ou supprimez le dossier du monde pour en générer un nouveau.",
+      "invalid_jar": "Retéléchargez le jar du serveur depuis la source officielle. Le fichier actuel peut être incomplet ou corrompu.",
+      "permission_denied": "Lancez saba-chan en tant qu'administrateur, ou modifiez les permissions des fichiers pour autoriser l'accès en lecture/écriture.",
+      "working_dir_error": "Créez le répertoire manuellement ou choisissez un autre emplacement avec les permissions d'écriture.",
+      "server_overloaded": "Réduisez la distance de vue et la distance de simulation, diminuez le nombre maximum de joueurs, ou allouez plus de RAM."
+    }
+  },
+  "messages": {
+    "starting_server": "Démarrage du serveur: {{command}}",
+    "working_directory": "Répertoire de travail: {{path}}",
+    "server_starting": "Serveur Minecraft démarrant avec PID {{pid}}",
+    "shutdown_signal_sent": "Signal d'arrêt envoyé au PID {{pid}}",
+    "force_killed": "PID {{pid}} tué de force",
+    "signal_sent": "Signal {{signal}} envoyé au PID {{pid}}",
+    "no_process_running": "Aucun processus en cours d'exécution",
+    "would_send_command": "Enverrait au PID {{pid}}: {{command}}",
+    "failed_send_command": "Échec de l'envoi de la commande: {{error}}",
+    "executing_command": "Exécution de la commande via daemon: {{command}} avec args: {{args}}",
+    "daemon_rcon_response": "Réponse RCON du daemon: {{result}}",
+    "server_online": "Le serveur est en ligne et répond",
+    "server_starting_no_response": "Le processus est en cours d'exécution mais le serveur ne répond pas encore aux requêtes",
+    "graceful_stop": "Le serveur s'est arrêté correctement (PID {{pid}})",
+    "graceful_stop_timeout": "Délai d'attente de l'arrêt propre dépassé, passage à l'arrêt forcé",
+    "properties_updated": "server.properties mis à jour avec succès",
+    "properties_reset": "server.properties a été réinitialisé aux valeurs par défaut",
+    "properties_using_defaults": "server.properties n'existe pas — affichage des valeurs par défaut",
+    "eula_accepted": "EULA Minecraft acceptée avec succès",
+    "server_reset_complete": "Réinitialisation du serveur terminée",
+    "server_reset_deleted": "{{count}} éléments supprimés",
+    "rcon_disabled_managed": "RCON désactivé — le mode géré utilise stdin pour contrôler le serveur",
+    "rcon_enabled_native": "RCON activé — nécessaire pour le contrôle du serveur en mode non géré",
+    "rcon_password_generated": "Mot de passe RCON généré automatiquement (aucun mot de passe n'était défini)"
+  },
+  "rcon": {
+    "connecting": "Connexion à {{host}}:{{port}}...",
+    "connected": "Connecté !",
+    "authentication_failed": "Échec de l'authentification",
+    "authenticated": "Authentifié !",
+    "connection_failed": "Échec de la connexion: {{error}}",
+    "sending_command": "Envoi de la commande: {{command}}",
+    "response_received": "Réponse reçue: {{response}}",
+    "command_failed": "Échec de la commande: {{error}}"
+  }
+}

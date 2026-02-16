@@ -1,0 +1,184 @@
+{
+  "module": {
+    "display_name": "Minecraft",
+    "description": "具有完整生命週期控制的Minecraft伺服器管理模組"
+  },
+  "settings": {
+    "executable_path": { "label": "伺服器JAR路徑", "description": "server.jar檔案路徑" },
+    "java_path": { "label": "Java路徑", "description": "Java執行檔路徑（留空則自動偵測）" },
+    "ram": { "label": "記憶體（RAM）", "description": "最大記憶體分配（如 2G、4G）" },
+    "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },
+    "difficulty": { "label": "難度", "description": "遊戲難度" },
+    "gamemode": { "label": "遊戲模式", "description": "預設遊戲模式" },
+    "max_players": { "label": "最大玩家數", "description": "最大玩家數量" },
+    "motd": { "label": "MOTD", "description": "伺服器列表描述" },
+    "online_mode": { "label": "線上模式", "description": "要求Mojang身分驗證" },
+    "pvp": { "label": "PVP", "description": "允許玩家對戰" },
+    "view_distance": { "label": "視距", "description": "最大視距（區塊）" },
+    "simulation_distance": { "label": "模擬距離", "description": "最大模擬距離（區塊）" },
+    "spawn_protection": { "label": "重生點保護", "description": "重生點保護半徑" },
+    "allow_flight": { "label": "允許飛行", "description": "允許在生存模式中飛行" },
+    "allow_nether": { "label": "允許地獄", "description": "允許前往地獄" },
+    "enable_command_block": { "label": "命令方塊", "description": "啟用命令方塊" },
+    "hardcore": { "label": "極限模式", "description": "啟用極限模式" },
+    "white_list": { "label": "白名單", "description": "僅允許白名單中的玩家" },
+    "level_name": { "label": "世界名稱", "description": "世界資料夾名稱" },
+    "level_seed": { "label": "世界種子", "description": "世界生成種子" },
+    "level_type": { "label": "世界類型", "description": "世界生成類型" },
+    "max_world_size": { "label": "最大世界大小", "description": "世界邊界最大半徑" },
+    "use_aikar_flags": { "label": "Aikar標誌", "description": "使用推薦的JVM GC標誌" }
+  },
+  "commands": {
+    "say": {
+      "label": "傳送聊天訊息",
+      "description": "向伺服器廣播訊息",
+      "inputs": { "message": { "label": "訊息", "placeholder": "輸入要傳送的訊息" } }
+    },
+    "give": {
+      "label": "給予物品",
+      "description": "給予玩家物品",
+      "inputs": {
+        "player": { "label": "玩家名稱", "placeholder": "玩家暱稱" },
+        "item": { "label": "物品ID", "placeholder": "例: diamond, iron_ore" },
+        "amount": { "label": "數量" }
+      }
+    },
+    "save-all": { "label": "儲存世界", "description": "儲存遊戲世界" },
+    "list": { "label": "玩家清單", "description": "檢視已連線的玩家清單" },
+    "weather": {
+      "label": "變更天氣",
+      "description": "變更伺服器天氣",
+      "inputs": { "type": { "label": "天氣" }, "duration": { "label": "持續時間（秒）" } }
+    },
+    "difficulty": {
+      "label": "變更難度",
+      "description": "變更遊戲難度",
+      "inputs": { "level": { "label": "難度" } }
+    },
+    "gamemode": {
+      "label": "變更遊戲模式",
+      "description": "變更玩家的遊戲模式",
+      "inputs": { "mode": { "label": "遊戲模式" }, "player": { "label": "玩家名稱" } }
+    },
+    "time": {
+      "label": "設定時間",
+      "description": "變更一天中的時間",
+      "inputs": { "value": { "label": "時間" } }
+    },
+    "tp": {
+      "label": "傳送",
+      "description": "傳送玩家",
+      "inputs": { "player": { "label": "玩家" }, "target": { "label": "目的地" } }
+    },
+    "kick": {
+      "label": "踢出玩家",
+      "description": "將玩家踢出伺服器",
+      "inputs": { "player": { "label": "玩家名稱" }, "reason": { "label": "原因" } }
+    },
+    "ban": {
+      "label": "封鎖玩家",
+      "description": "將玩家從伺服器封鎖",
+      "inputs": { "player": { "label": "玩家名稱" }, "reason": { "label": "原因" } }
+    },
+    "pardon": {
+      "label": "解除封鎖",
+      "description": "解除玩家的封鎖",
+      "inputs": { "player": { "label": "玩家名稱" } }
+    },
+    "op": {
+      "label": "給予OP權限",
+      "description": "授予管理員權限",
+      "inputs": { "player": { "label": "玩家名稱" } }
+    },
+    "deop": {
+      "label": "移除OP權限",
+      "description": "移除管理員權限",
+      "inputs": { "player": { "label": "玩家名稱" } }
+    },
+    "whitelist": {
+      "label": "白名單",
+      "description": "管理伺服器白名單",
+      "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名稱" } }
+    },
+    "seed": { "label": "顯示種子", "description": "顯示世界種子" },
+    "stop": { "label": "停止伺服器", "description": "正常停止伺服器" }
+  },
+  "errors": {
+    "server_jar_not_specified": "實例設定中未指定server_jar。請新增server.jar的路徑",
+    "server_jar_not_found": "找不到伺服器jar：{{path}}。請檢查實例設定中的路徑。",
+    "failed_to_start": "啟動失敗：{{error}}",
+    "no_pid_provided": "未提供PID",
+    "failed_to_kill": "程序終止失敗：{{error}}",
+    "failed_to_stop": "停止失敗：{{error}}",
+    "daemon_connection_error": "守護程序連線錯誤：{{error}}",
+    "invalid_json_response": "來自守護程序的無效JSON回應：{{error}}",
+    "daemon_error": "守護程序錯誤：{{error}}",
+    "no_working_dir": "未設定工作目錄。請為此實例設定工作目錄。",
+    "no_settings": "未提供設定",
+    "properties_write_failed": "寫入server.properties失敗",
+    "eula_write_failed": "寫入eula.txt失敗",
+    "working_dir_error": "無法建立工作目錄：{{path}}",
+    "server_reset_partial": "部分項目無法刪除：{{errors}}",
+    "detect": {
+      "java_not_found": "Java未安裝或在PATH中未找到",
+      "java_version_too_old": "Java {{current}} 版本過舊。Minecraft需要Java {{required}}或更新版本。",
+      "eula_not_accepted": "Minecraft EULA尚未接受",
+      "port_in_use": "連接埠 {{port}} 已被其他應用程式佔用",
+      "out_of_memory": "記憶體不足 ─ Java堆積空間耗盡",
+      "world_corrupt": "世界資料似乎已損壞",
+      "invalid_jar": "伺服器jar檔案無效或已損壞",
+      "permission_denied": "權限被拒絕 ─ 無法存取所需檔案",
+      "server_overloaded": "伺服器過載，無法維持正常刻速率"
+    },
+    "solutions": {
+      "java_not_found": "從 https://adoptium.net/ 安裝Java 17+（推薦：Adoptium Temurin），確保已新增至PATH，或在實例設定中設定Java路徑。",
+      "java_version_too_old": "從 https://adoptium.net/ 安裝Java {{required}}+ ─ 目前的Minecraft版本需要較新的Java。",
+      "server_jar_not_specified": "在實例設定中設定server.jar的路徑。",
+      "server_jar_not_found": "從 https://www.minecraft.net/download/server 下載官方Minecraft伺服器，或檢查設定中的路徑。",
+      "eula_not_accepted": "在伺服器設定中點選「接受EULA」來接受Minecraft EULA，或在eula.txt中手動設定eula=true。",
+      "port_in_use": "連接埠 {{port}} 已被佔用。停止其他應用程式或在設定中變更伺服器連接埠。",
+      "out_of_memory": "在伺服器設定中增加RAM分配（如4G或8G），或關閉其他應用程式以釋放記憶體。",
+      "world_corrupt": "從備份還原世界，或刪除世界資料夾以產生新世界。",
+      "invalid_jar": "從官方來源重新下載伺服器jar。目前的檔案可能不完整或已損壞。",
+      "permission_denied": "以管理員身分執行saba-chan，或變更檔案權限以允許讀寫存取。",
+      "working_dir_error": "手動建立目錄或選擇具有寫入權限的其他位置。",
+      "server_overloaded": "減少視距和模擬距離，降低最大玩家數，或分配更多RAM。"
+    }
+  },
+  "messages": {
+    "starting_server": "啟動伺服器：{{command}}",
+    "working_directory": "工作目錄：{{path}}",
+    "server_starting": "Minecraft伺服器啟動，PID為{{pid}}",
+    "shutdown_signal_sent": "向PID {{pid}}傳送關閉訊號",
+    "force_killed": "強制終止PID {{pid}}",
+    "signal_sent": "向PID {{pid}}傳送訊號{{signal}}",
+    "no_process_running": "沒有執行中的程序",
+    "would_send_command": "將向PID {{pid}}傳送：{{command}}",
+    "failed_send_command": "傳送命令失敗：{{error}}",
+    "executing_command": "透過守護程序執行命令：{{command}}，參數：{{args}}",
+    "daemon_rcon_response": "守護程序RCON回應：{{result}}",
+    "server_online": "伺服器在線並正在回應",
+    "server_starting_no_response": "程序正在執行，但伺服器尚未回應查詢",
+    "graceful_stop": "伺服器已正常停止（PID {{pid}}）",
+    "graceful_stop_timeout": "正常關閉逾時，正在執行強制停止",
+    "properties_updated": "server.properties更新成功",
+    "properties_reset": "server.properties已重設為預設值",
+    "properties_using_defaults": "server.properties不存在 ─ 顯示預設值",
+    "eula_accepted": "Minecraft EULA已成功接受",
+    "server_reset_complete": "伺服器重設完成",
+    "server_reset_deleted": "已刪除 {{count}} 個項目",
+    "rcon_disabled_managed": "RCON 已停用 — 管理模式使用 stdin 控制伺服器",
+    "rcon_enabled_native": "RCON 已啟用 — 非管理模式下 RCON 是唯一的控制方式",
+    "rcon_password_generated": "RCON 密碼已自動產生（未設定密碼）"
+  },
+  "rcon": {
+    "connecting": "正在連線 {{host}}:{{port}}...",
+    "connected": "已連線！",
+    "authentication_failed": "身分驗證失敗",
+    "authenticated": "已驗證！",
+    "connection_failed": "連線失敗：{{error}}",
+    "sending_command": "傳送命令：{{command}}",
+    "response_received": "收到回應：{{response}}",
+    "command_failed": "命令失敗：{{error}}"
+  }
+}

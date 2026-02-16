@@ -1,0 +1,184 @@
+{
+  "module": {
+    "display_name": "Майнкрафт",
+    "description": "Модуль управления сервером Minecraft с полным контролем жизненного цикла"
+  },
+  "settings": {
+    "executable_path": { "label": "Путь к JAR серверу", "description": "Путь к файлу server.jar" },
+    "java_path": { "label": "Путь к Java", "description": "Путь к исполняемому файлу Java (автоопределение, если пусто)" },
+    "ram": { "label": "Память (RAM)", "description": "Максимальный объем выделяемой памяти (напр. 2G, 4G)" },
+    "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },
+    "difficulty": { "label": "Сложность", "description": "Сложность игры" },
+    "gamemode": { "label": "Режим игры", "description": "Режим игры по умолчанию" },
+    "max_players": { "label": "Макс. игроков", "description": "Максимальное количество игроков" },
+    "motd": { "label": "MOTD", "description": "Описание в списке серверов" },
+    "online_mode": { "label": "Онлайн-режим", "description": "Требовать аутентификацию Mojang" },
+    "pvp": { "label": "PVP", "description": "Разрешить бой игрок-против-игрока" },
+    "view_distance": { "label": "Дальность прорисовки", "description": "Максимальная дальность прорисовки (чанки)" },
+    "simulation_distance": { "label": "Дистанция симуляции", "description": "Максимальная дистанция симуляции (чанки)" },
+    "spawn_protection": { "label": "Защита спавна", "description": "Радиус защиты спавна" },
+    "allow_flight": { "label": "Разрешить полет", "description": "Разрешить полет в режиме выживания" },
+    "allow_nether": { "label": "Разрешить Nether", "description": "Разрешить перемещение в Nether" },
+    "enable_command_block": { "label": "Командные блоки", "description": "Включить командные блоки" },
+    "hardcore": { "label": "Хардкор", "description": "Включить хардкорный режим" },
+    "white_list": { "label": "Белый список", "description": "Разрешить только игроков из белого списка" },
+    "level_name": { "label": "Название мира", "description": "Название папки мира" },
+    "level_seed": { "label": "Сид мира", "description": "Сид для генерации мира" },
+    "level_type": { "label": "Тип мира", "description": "Тип генерации мира" },
+    "max_world_size": { "label": "Макс. размер мира", "description": "Максимальный радиус границы мира" },
+    "use_aikar_flags": { "label": "Флаги Aikar", "description": "Использовать рекомендуемые JVM GC флаги" }
+  },
+  "commands": {
+    "say": {
+      "label": "Отправить сообщение в чат",
+      "description": "Транслировать сообщение на сервер",
+      "inputs": { "message": { "label": "Сообщение", "placeholder": "Введите сообщение для отправки" } }
+    },
+    "give": {
+      "label": "Выдать предмет",
+      "description": "Выдать предмет игроку",
+      "inputs": {
+        "player": { "label": "Имя игрока", "placeholder": "Никнейм игрока" },
+        "item": { "label": "ID предмета", "placeholder": "Напр: diamond, iron_ore" },
+        "amount": { "label": "Количество" }
+      }
+    },
+    "save-all": { "label": "Сохранить мир", "description": "Сохранить игровой мир" },
+    "list": { "label": "Список игроков", "description": "Посмотреть список подключенных игроков" },
+    "weather": {
+      "label": "Изменить погоду",
+      "description": "Изменить погоду на сервере",
+      "inputs": { "type": { "label": "Погода" }, "duration": { "label": "Продолжительность (секунды)" } }
+    },
+    "difficulty": {
+      "label": "Изменить сложность",
+      "description": "Изменить сложность игры",
+      "inputs": { "level": { "label": "Сложность" } }
+    },
+    "gamemode": {
+      "label": "Изменить режим игры",
+      "description": "Изменить режим игры игрока",
+      "inputs": { "mode": { "label": "Режим игры" }, "player": { "label": "Имя игрока" } }
+    },
+    "time": {
+      "label": "Установить время",
+      "description": "Изменить время суток",
+      "inputs": { "value": { "label": "Время" } }
+    },
+    "tp": {
+      "label": "Телепортировать",
+      "description": "Телепортировать игрока",
+      "inputs": { "player": { "label": "Игрок" }, "target": { "label": "Место назначения" } }
+    },
+    "kick": {
+      "label": "Кикнуть игрока",
+      "description": "Выгнать игрока с сервера",
+      "inputs": { "player": { "label": "Имя игрока" }, "reason": { "label": "Причина" } }
+    },
+    "ban": {
+      "label": "Забанить игрока",
+      "description": "Забанить игрока на сервере",
+      "inputs": { "player": { "label": "Имя игрока" }, "reason": { "label": "Причина" } }
+    },
+    "pardon": {
+      "label": "Разбанить игрока",
+      "description": "Снять бан с игрока",
+      "inputs": { "player": { "label": "Имя игрока" } }
+    },
+    "op": {
+      "label": "Выдать OP игроку",
+      "description": "Выдать права оператора",
+      "inputs": { "player": { "label": "Имя игрока" } }
+    },
+    "deop": {
+      "label": "Снять OP с игрока",
+      "description": "Снять права оператора",
+      "inputs": { "player": { "label": "Имя игрока" } }
+    },
+    "whitelist": {
+      "label": "Белый список",
+      "description": "Управление белым списком сервера",
+      "inputs": { "action": { "label": "Действие" }, "player": { "label": "Имя игрока" } }
+    },
+    "seed": { "label": "Показать сид", "description": "Отобразить сид мира" },
+    "stop": { "label": "Остановить сервер", "description": "Корректно остановить сервер" }
+  },
+  "errors": {
+    "server_jar_not_specified": "server_jar не указан в конфигурации экземпляра. Пожалуйста добавьте путь к server.jar",
+    "server_jar_not_found": "Файл jar сервера не найден: {{path}}. Пожалуйста проверьте путь в настройках экземпляра.",
+    "failed_to_start": "Ошибка запуска: {{error}}",
+    "no_pid_provided": "PID не предоставлен",
+    "failed_to_kill": "Ошибка завершения процесса: {{error}}",
+    "failed_to_stop": "Ошибка остановки: {{error}}",
+    "daemon_connection_error": "Ошибка подключения демона: {{error}}",
+    "invalid_json_response": "Недействительный JSON ответ от демона: {{error}}",
+    "daemon_error": "Ошибка демона: {{error}}",
+    "no_working_dir": "Рабочий каталог не настроен. Пожалуйста укажите рабочий каталог для этого экземпляра.",
+    "no_settings": "Настройки не предоставлены",
+    "properties_write_failed": "Не удалось записать server.properties",
+    "eula_write_failed": "Не удалось записать eula.txt",
+    "working_dir_error": "Невозможно создать рабочий каталог: {{path}}",
+    "server_reset_partial": "Некоторые элементы не удалось удалить: {{errors}}",
+    "detect": {
+      "java_not_found": "Java не установлена или не найдена в PATH",
+      "java_version_too_old": "Java {{current}} устарела. Minecraft требует Java {{required}} или новее.",
+      "eula_not_accepted": "Лицензионное соглашение (EULA) Minecraft не принято",
+      "port_in_use": "Порт {{port}} уже используется другим приложением",
+      "out_of_memory": "Недостаточно памяти — Java исчерпала пространство кучи (heap)",
+      "world_corrupt": "Данные мира, по всей видимости, повреждены",
+      "invalid_jar": "Файл jar сервера недействительный или поврежденный",
+      "permission_denied": "Доступ запрещён — невозможно получить доступ к необходимым файлам",
+      "server_overloaded": "Сервер перегружен и не может поддерживать нормальную частоту тиков"
+    },
+    "solutions": {
+      "java_not_found": "Установите Java 17+ (рекомендуется: Adoptium Temurin) с https://adoptium.net/ и убедитесь, что она в PATH, или укажите путь к Java в настройках экземпляра.",
+      "java_version_too_old": "Установите Java {{required}}+ с https://adoptium.net/ — текущие версии Minecraft требуют современную Java.",
+      "server_jar_not_specified": "Укажите путь к вашему server.jar в настройках экземпляра.",
+      "server_jar_not_found": "Скачайте официальный сервер Minecraft с https://www.minecraft.net/download/server или проверьте путь в настройках.",
+      "eula_not_accepted": "Примите EULA Minecraft, нажав «Принять EULA» в настройках сервера, или вручную установите eula=true в eula.txt.",
+      "port_in_use": "Порт {{port}} уже используется. Остановите другое приложение или измените порт сервера в настройках.",
+      "out_of_memory": "Увеличьте объем выделяемой RAM в настройках сервера (напр. 4G или 8G) или закройте другие приложения для освобождения памяти.",
+      "world_corrupt": "Восстановите мир из резервной копии или удалите папку мира для генерации нового.",
+      "invalid_jar": "Повторно скачайте jar сервера из официального источника. Текущий файл может быть неполным или поврежденным.",
+      "permission_denied": "Запустите saba-chan от имени администратора или измените права доступа к файлам для разрешения чтения/записи.",
+      "working_dir_error": "Создайте каталог вручную или выберите другое расположение с правами на запись.",
+      "server_overloaded": "Уменьшите дальность прорисовки и дистанцию симуляции, снизьте максимальное количество игроков или выделите больше RAM."
+    }
+  },
+  "messages": {
+    "starting_server": "Запуск сервера: {{command}}",
+    "working_directory": "Рабочий каталог: {{path}}",
+    "server_starting": "Сервер Minecraft запускается с PID {{pid}}",
+    "shutdown_signal_sent": "Сигнал выключения отправлен на PID {{pid}}",
+    "force_killed": "PID {{pid}} принудительно завершен",
+    "signal_sent": "Сигнал {{signal}} отправлен на PID {{pid}}",
+    "no_process_running": "Нет запущенных процессов",
+    "would_send_command": "Отправит на PID {{pid}}: {{command}}",
+    "failed_send_command": "Ошибка отправки команды: {{error}}",
+    "executing_command": "Выполнение команды через демон: {{command}} с аргументами: {{args}}",
+    "daemon_rcon_response": "RCON ответ демона: {{result}}",
+    "server_online": "Сервер в сети и отвечает",
+    "server_starting_no_response": "Процесс запущен, но сервер ещё не отвечает на запросы",
+    "graceful_stop": "Сервер корректно остановлен (PID {{pid}})",
+    "graceful_stop_timeout": "Время ожидания корректной остановки истекло, переход к принудительной остановке",
+    "properties_updated": "server.properties успешно обновлен",
+    "properties_reset": "server.properties сброшен к значениям по умолчанию",
+    "properties_using_defaults": "server.properties не существует — отображаются значения по умолчанию",
+    "eula_accepted": "EULA Minecraft успешно принято",
+    "server_reset_complete": "Сброс сервера завершён",
+    "server_reset_deleted": "{{count}} элементов удалено",
+    "rcon_disabled_managed": "RCON отключён — управляемый режим использует stdin для контроля сервера",
+    "rcon_enabled_native": "RCON включён — необходим для управления сервером в неуправляемом режиме",
+    "rcon_password_generated": "Пароль RCON сгенерирован автоматически (пароль не был задан)"
+  },
+  "rcon": {
+    "connecting": "Подключение к {{host}}:{{port}}...",
+    "connected": "Подключено!",
+    "authentication_failed": "Ошибка аутентификации",
+    "authenticated": "Аутентификация успешна!",
+    "connection_failed": "Ошибка подключения: {{error}}",
+    "sending_command": "Отправка команды: {{command}}",
+    "response_received": "Ответ получен: {{response}}",
+    "command_failed": "Ошибка команды: {{error}}"
+  }
+}

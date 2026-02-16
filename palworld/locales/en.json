@@ -1,0 +1,188 @@
+{
+  "module": {
+    "display_name": "Palworld",
+    "description": "Palworld server management module"
+  },
+  "settings": {
+    "executable_path": { "label": "Server Executable Path", "description": "Path to the server executable" },
+    "port": { "label": "Server Port", "description": "Game server port" },
+    "rcon_port": { "label": "RCON Port", "description": "RCON port" },
+    "rcon_password": { "label": "RCON Password", "description": "Remote command execution password" },
+    "rest_host": { "label": "REST API Host", "description": "REST API host (default 127.0.0.1)" },
+    "rest_port": { "label": "REST API Port", "description": "REST API port (default 8212)" },
+    "rest_password": { "label": "REST Password", "description": "REST Basic Auth password" },
+    "server_name": { "label": "Server Name", "description": "Name displayed in the server browser" },
+    "server_description": { "label": "Server Description", "description": "Server description" },
+    "server_password": { "label": "Server Password", "description": "Password required to join the server" },
+    "admin_password": { "label": "Admin Password", "description": "Administrator access password" },
+    "max_players": { "label": "Max Players", "description": "Maximum number of players (1-32)" },
+    "coop_max_players": { "label": "Co-op Max Players", "description": "Maximum number of players in co-op party" },
+    "public_ip": { "label": "Public IP", "description": "Public IP address (leave empty for auto)" },
+    "rcon_enabled": { "label": "RCON Enabled", "description": "Enable RCON remote command execution" },
+    "difficulty": { "label": "Difficulty", "description": "Overall game difficulty" },
+    "is_pvp": { "label": "PvP", "description": "Enable Player vs Player combat" },
+    "death_penalty": { "label": "Death Penalty", "description": "What drops on player death" },
+    "exp_rate": { "label": "EXP Rate", "description": "Experience gain multiplier (0.1-20.0)" },
+    "day_time_speed_rate": { "label": "Day Time Speed", "description": "Daytime duration multiplier (0.1-5.0)" },
+    "night_time_speed_rate": { "label": "Night Time Speed", "description": "Nighttime duration multiplier (0.1-5.0)" },
+    "pal_capture_rate": { "label": "Pal Capture Rate", "description": "Pal capture chance multiplier (0.5-2.0)" },
+    "pal_spawn_num_rate": { "label": "Pal Spawn Rate", "description": "Pal spawn count multiplier (0.5-3.0)" },
+    "pal_damage_rate_attack": { "label": "Pal Attack Damage", "description": "Pal attack damage multiplier (0.1-5.0)" },
+    "pal_damage_rate_defense": { "label": "Pal Defense", "description": "Pal damage received multiplier (0.1-5.0)" },
+    "pal_stomach_decrease_rate": { "label": "Pal Hunger Rate", "description": "Pal hunger decrease multiplier (0.1-5.0)" },
+    "pal_stamina_decrease_rate": { "label": "Pal Stamina Rate", "description": "Pal stamina decrease multiplier (0.1-5.0)" },
+    "pal_auto_hp_regen_rate": { "label": "Pal HP Regen", "description": "Pal HP auto-regeneration multiplier (0.1-5.0)" },
+    "pal_auto_hp_regen_rate_in_sleep": { "label": "Pal Sleep HP Regen", "description": "Pal HP regeneration during sleep multiplier (0.1-5.0)" },
+    "player_damage_rate_attack": { "label": "Player Attack Damage", "description": "Player attack damage multiplier (0.1-5.0)" },
+    "player_damage_rate_defense": { "label": "Player Defense", "description": "Player damage received multiplier (0.1-5.0)" },
+    "player_stomach_decrease_rate": { "label": "Player Hunger Rate", "description": "Player hunger decrease multiplier (0.1-5.0)" },
+    "player_stamina_decrease_rate": { "label": "Player Stamina Rate", "description": "Player stamina decrease multiplier (0.1-5.0)" },
+    "player_auto_hp_regen_rate": { "label": "Player HP Regen", "description": "Player HP auto-regeneration multiplier (0.1-5.0)" },
+    "player_auto_hp_regen_rate_in_sleep": { "label": "Player Sleep HP Regen", "description": "Player HP regeneration during sleep multiplier (0.1-5.0)" },
+    "build_object_damage_rate": { "label": "Structure Damage Rate", "description": "Damage dealt to structures multiplier (0.5-3.0)" },
+    "build_object_deterioration_damage_rate": { "label": "Structure Decay Rate", "description": "Structure deterioration/aging damage multiplier (0-10)" },
+    "drop_item_max_num": { "label": "Drop Item Max", "description": "Maximum number of dropped items in the world (0-3000)" },
+    "collection_drop_rate": { "label": "Gathering Drop Rate", "description": "Gathering item drop multiplier (0.5-3.0)" },
+    "collection_object_hp_rate": { "label": "Gathering Object HP", "description": "Gathering object HP multiplier (0.5-3.0)" },
+    "collection_object_respawn_speed_rate": { "label": "Gathering Respawn Speed", "description": "Gathering object respawn speed multiplier (0.5-3.0)" },
+    "enemy_drop_item_rate": { "label": "Enemy Drop Rate", "description": "Enemy item drop multiplier (0.5-3.0)" },
+    "pal_egg_default_hatching_time": { "label": "Egg Hatching Time", "description": "Default egg hatching time in hours (0-240)" },
+    "enable_invader_enemy": { "label": "Raid Events", "description": "Enable base raid events" },
+    "guild_player_max_num": { "label": "Guild Max Players", "description": "Maximum number of players in a guild (1-100)" },
+    "enable_player_to_player_damage": { "label": "Player vs Player Damage", "description": "Allow players to damage each other" },
+    "enable_friendly_fire": { "label": "Friendly Fire", "description": "Allow guild members to damage each other" },
+    "base_camp_worker_max_num": { "label": "Base Camp Workers", "description": "Maximum number of Pals working at a base (1-20)" },
+    "base_camp_max_num": { "label": "Max Base Camps", "description": "Maximum number of base camps that can be built" },
+    "work_speed_rate": { "label": "Work Speed Rate", "description": "Work speed multiplier" }
+  },
+  "commands": {
+    "announce": {
+      "label": "Send Announcement",
+      "description": "Broadcast a message to the server",
+      "inputs": {
+        "message": { "label": "Announcement Message", "placeholder": "Enter announcement message" }
+      }
+    },
+    "info": { "label": "Server Info", "description": "View server information" },
+    "players": { "label": "Player List", "description": "List currently connected players" },
+    "save": { "label": "Save World", "description": "Save the game world" },
+    "shutdown": {
+      "label": "Shutdown Server",
+      "description": "Shutdown the server (with optional delay)",
+      "inputs": {
+        "waittime": { "label": "Shutdown Delay (seconds)" },
+        "message": { "label": "Shutdown Message", "placeholder": "Server shutdown announcement" }
+      }
+    },
+    "kick": {
+      "label": "Kick Player",
+      "description": "Kick a player from the server",
+      "inputs": {
+        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" },
+        "message": { "label": "Kick Message", "placeholder": "Optional: kick message" }
+      }
+    },
+    "ban": {
+      "label": "Ban Player",
+      "description": "Permanently ban a player",
+      "inputs": {
+        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" },
+        "message": { "label": "Ban Message", "placeholder": "Optional: ban message" }
+      }
+    },
+    "unban": {
+      "label": "Unban Player",
+      "description": "Unban a banned player",
+      "inputs": {
+        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" }
+      }
+    }
+  },
+  "errors": {
+    "failed_to_start": "Failed to start: {{error}}",
+    "no_pid_provided": "No PID provided",
+    "failed_to_kill": "Failed to kill process: {{error}}",
+    "failed_to_stop": "Failed to stop: {{error}}",
+    "failed_to_stop_process": "Failed to stop process: {{error}}",
+    "daemon_connection_error": "Daemon connection error: {{error}}",
+    "invalid_json_response": "Invalid JSON response from daemon: {{error}}",
+    "daemon_error": "Daemon error: {{error}}",
+    "player_list_failed": "Failed to get player list: {{error}}",
+    "server_info_failed": "Failed to get server info: {{error}}",
+    "no_executable": "server_executable not specified in instance configuration. Please add the path to PalServer.exe",
+    "executable_not_found": "Executable not found: {{path}}. Please check the path in instance settings.",
+    "no_executable_specified": "No executable specified",
+    "status_unknown": "Could not determine status: {{error}}",
+    "failed_to_get_status": "Failed to get status: {{error}}",
+    "no_settings": "No settings provided.",
+    "no_server_dir": "Cannot determine server directory. Set working_dir or server_executable.",
+    "settings_write_failed": "Failed to write settings file.",
+    "settings_not_found": "Settings file not found. Start the server once to generate it."
+  },
+  "messages": {
+    "starting_server": "Starting server: {{command}}",
+    "working_directory": "Working directory: {{path}}",
+    "server_starting": "Palworld server starting with PID {{pid}}",
+    "shutdown_signal_sent": "Sent shutdown signal to PID {{pid}}",
+    "force_killed": "Force killed PID {{pid}}",
+    "signal_sent": "Sent signal {{signal}} to PID {{pid}}",
+    "no_process_running": "No process running",
+    "executing_command": "Executing command via daemon: {{command}} with args: {{args}}",
+    "daemon_rcon_response": "Daemon RCON response: {{result}}",
+    "broadcast_message": "Broadcast message: {{message}}",
+    "save_triggered": "Server save triggered",
+    "shutdown_initiated": "Server shutdown initiated ({{seconds}}s countdown)",
+    "rest_api_forced_on": "[Policy] REST API force-enabled",
+    "rcon_forced_off": "[Policy] RCON force-disabled (deprecated)",
+    "admin_password_generated": "[Policy] AdminPassword auto-generated for REST API auth",
+    "terminated": "Terminated {{name}}",
+    "process_running": "{{name}} is running",
+    "process_not_running": "{{name}} is not running",
+    "settings_updated": "Settings updated successfully.",
+    "using_defaults": "Using defaults from DefaultPalWorldSettings.ini (server not yet configured).",
+    "no_eula_needed": "Palworld does not require separate EULA acceptance.",
+    "install_via_steamcmd": "Palworld dedicated server must be installed via SteamCMD.",
+    "versions_via_steam": "Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Use SteamCMD to install or update.",
+    "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update."
+  },
+  "rcon": {
+    "connecting": "Connecting to {{host}}:{{port}}...",
+    "connected": "Connected!",
+    "authentication_failed": "Authentication failed",
+    "authenticated": "Authenticated!",
+    "connection_failed": "Connection failed: {{error}}",
+    "sending_command": "Sending command: {{command}}",
+    "response_received": "Response received: {{response}}",
+    "command_failed": "Command failed: {{error}}",
+    "invalid_password": "Invalid password",
+    "receiving_response": "Receiving response...",
+    "partial_response": "Partial response received ({{bytes}} bytes)",
+    "response_complete": "Response complete ({{bytes}} bytes total)",
+    "closed": "RCON connection closed"
+  },
+  "commands": {
+    "info": "Server Info",
+    "showplayers": "Show Players",
+    "kick": "Kick Player",
+    "ban": "Ban Player",
+    "broadcast": "Broadcast Message",
+    "save": "Save World",
+    "shutdown": "Shutdown Server"
+  },
+  "reset": {
+    "no_path": "Cannot determine server directory. Set working_dir or server_executable.",
+    "not_found": "Settings file not found. Start the server once to generate it.",
+    "settings_success": "All server settings have been reset to factory defaults. World data has been preserved.",
+    "settings_failed": "Failed to write default settings to the configuration file."
+  },
+  "validate": {
+    "no_executable": "Server executable path not specified.",
+    "no_executable_hint": "Set the path to PalServer.exe in instance settings.",
+    "executable_not_found": "Executable not found: {{path}}",
+    "executable_not_found_hint": "Check the executable path or reinstall the server.",
+    "cannot_create_dir": "Cannot create working directory: {{path}}",
+    "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
+    "port_in_use": "Port {{port}} is already in use.",
+    "port_in_use_hint": "Stop the other process using port {{port}} or change the port."
+  }
+}

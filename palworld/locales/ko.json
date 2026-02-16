@@ -1,0 +1,116 @@
+{
+  "module": {
+    "display_name": "팰월드",
+    "description": "팰월드 서버 관리 모듈"
+  },
+  "settings": {
+    "executable_path": { "label": "서버 실행 파일 경로", "description": "서버 실행 파일의 경로" },
+    "port": { "label": "서버 포트", "description": "게임 서버 포트" },
+    "rcon_port": { "label": "RCON 포트", "description": "RCON 포트" },
+    "rcon_password": { "label": "RCON 비밀번호", "description": "원격 명령어 실행 비밀번호" },
+    "rest_host": { "label": "REST API 호스트", "description": "REST API 호스트 (기본 127.0.0.1)" },
+    "rest_port": { "label": "REST API 포트", "description": "REST API 포트 (기본 8212)" },
+    "rest_password": { "label": "REST 비밀번호", "description": "REST Basic Auth 비밀번호" }
+  },
+  "commands": {
+    "announce": {
+      "label": "공지사항 전송",
+      "description": "서버 전체에 메시지 브로드캐스트",
+      "inputs": {
+        "message": { "label": "공지 메시지", "placeholder": "공지할 내용을 입력하세요" }
+      }
+    },
+    "info": { "label": "서버 정보", "description": "서버 정보 조회" },
+    "players": { "label": "플레이어 목록", "description": "현재 접속 중인 플레이어 목록" },
+    "save": { "label": "월드 저장", "description": "게임 월드 저장" },
+    "shutdown": {
+      "label": "서버 종료",
+      "description": "서버 종료 (대기 시간 설정 가능)",
+      "inputs": {
+        "waittime": { "label": "종료까지 대기 시간 (초)" },
+        "message": { "label": "종료 메시지", "placeholder": "서버 종료 공지 메시지" }
+      }
+    },
+    "kick": {
+      "label": "플레이어 강제 퇴장",
+      "description": "플레이어를 서버에서 강제 퇴장",
+      "inputs": {
+        "userid": { "label": "플레이어 (닉네임 또는 SteamID)", "placeholder": "플레이어 닉네임 또는 steam_xxxxxxxxx" },
+        "message": { "label": "퇴장 메시지", "placeholder": "선택사항: 퇴장 메시지" }
+      }
+    },
+    "ban": {
+      "label": "플레이어 차단",
+      "description": "플레이어를 영구 차단",
+      "inputs": {
+        "userid": { "label": "플레이어 (닉네임 또는 SteamID)", "placeholder": "플레이어 닉네임 또는 steam_xxxxxxxxx" },
+        "message": { "label": "차단 메시지", "placeholder": "선택사항: 차단 메시지" }
+      }
+    },
+    "unban": {
+      "label": "플레이어 차단 해제",
+      "description": "차단된 플레이어 해제",
+      "inputs": {
+        "userid": { "label": "플레이어 (닉네임 또는 SteamID)", "placeholder": "플레이어 닉네임 또는 steam_xxxxxxxxx" }
+      }
+    }
+  },
+  "errors": {
+    "failed_to_start": "시작 실패: {{error}}",
+    "no_pid_provided": "PID가 제공되지 않았습니다",
+    "failed_to_kill": "프로세스 종료 실패: {{error}}",
+    "failed_to_stop": "중지 실패: {{error}}",
+    "daemon_connection_error": "데몬 연결 오류: {{error}}",
+    "invalid_json_response": "데몬의 잘못된 JSON 응답: {{error}}",
+    "daemon_error": "데몬 오류: {{error}}",
+    "player_list_failed": "플레이어 목록 가져오기 실패: {{error}}",
+    "server_info_failed": "서버 정보 가져오기 실패: {{error}}"
+  },
+  "messages": {
+    "starting_server": "서버 시작 중: {{command}}",
+    "working_directory": "작업 디렉토리: {{path}}",
+    "server_starting": "팰월드 서버가 PID {{pid}}로 시작 중입니다",
+    "shutdown_signal_sent": "PID {{pid}}에 종료 신호를 전송했습니다",
+    "force_killed": "PID {{pid}}를 강제 종료했습니다",
+    "signal_sent": "PID {{pid}}에 신호 {{signal}}를 전송했습니다",
+    "no_process_running": "실행 중인 프로세스가 없습니다",
+    "executing_command": "데몬을 통해 명령 실행 중: {{command}}, 인자: {{args}}",
+    "daemon_rcon_response": "데몬 RCON 응답: {{result}}",
+    "broadcast_message": "브로드캐스트 메시지: {{message}}",
+    "save_triggered": "서버 저장 실행됨",
+    "shutdown_initiated": "서버 종료 시작됨 ({{seconds}}초 카운트다운)",
+    "rest_api_forced_on": "[정책] REST API가 강제 활성화되었습니다",
+    "rcon_forced_off": "[정책] RCON이 강제 비활성화되었습니다 (지원 중단)",
+    "admin_password_generated": "[정책] REST API 인증용 AdminPassword가 자동 생성되었습니다"
+  },
+  "rcon": {
+    "connecting": "{{host}}:{{port}}에 연결 중...",
+    "connected": "연결됨!",
+    "authentication_failed": "인증 실패",
+    "authenticated": "인증됨!",
+    "connection_failed": "연결 실패: {{error}}",
+    "sending_command": "명령 전송 중: {{command}}",
+    "response_received": "응답 수신: {{response}}",
+    "command_failed": "명령 실패: {{error}}",
+    "invalid_password": "잘못된 비밀번호",
+    "receiving_response": "응답 수신 중...",
+    "partial_response": "부분 응답 수신됨 ({{bytes}} 바이트)",
+    "response_complete": "응답 완료 (총 {{bytes}} 바이트)",
+    "closed": "RCON 연결이 닫혔습니다"
+  },
+  "commands": {
+    "info": "서버 정보",
+    "showplayers": "플레이어 목록",
+    "kick": "플레이어 추방",
+    "ban": "플레이어 차단",
+    "broadcast": "브로드캐스트 메시지",
+    "save": "월드 저장",
+    "shutdown": "서버 종료"
+  },
+  "reset": {
+    "no_path": "서버 디렉토리를 확인할 수 없습니다. working_dir 또는 server_executable을 설정하세요.",
+    "not_found": "설정 파일을 찾을 수 없습니다. 서버를 한 번 실행하여 생성하세요.",
+    "settings_success": "모든 서버 설정이 초기값으로 복원되었습니다. 월드 데이터는 보존됩니다.",
+    "settings_failed": "기본 설정을 구성 파일에 쓰는 데 실패했습니다."
+  }
+}

@@ -1,0 +1,97 @@
+# ════════════════════════════════════════════════════════════
+# Minecraft Server 대표 로그 샘플 — 하이라이팅 규칙 설계용
+# ════════════════════════════════════════════════════════════
+
+# ── 1. 서버 시작 시퀀스 ───────────────────────────────────
+[17:23:01] [main/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[17:23:02] [main/INFO]: Loaded 7 recipes
+[17:23:02] [main/INFO]: Loaded 1271 advancements
+[17:23:03] [Server thread/INFO]: Starting minecraft server version 1.21.4
+[17:23:03] [Server thread/INFO]: Loading properties
+[17:23:03] [Server thread/INFO]: Default game type: SURVIVAL
+[17:23:03] [Server thread/INFO]: Generating keypair
+[17:23:04] [Server thread/INFO]: Starting Minecraft server on *:25565
+[17:23:04] [Server thread/INFO]: Using epoll channel type
+[17:23:04] [Server thread/INFO]: Preparing level "world"
+[17:23:05] [Server thread/INFO]: Preparing start region for dimension minecraft:overworld
+[17:23:06] [Worker-Main-1/INFO]: Preparing spawn area: 0%
+[17:23:07] [Worker-Main-3/INFO]: Preparing spawn area: 4%
+[17:23:08] [Worker-Main-2/INFO]: Preparing spawn area: 18%
+[17:23:09] [Worker-Main-1/INFO]: Preparing spawn area: 52%
+[17:23:10] [Worker-Main-4/INFO]: Preparing spawn area: 83%
+[17:23:11] [Server thread/INFO]: Time elapsed: 6542 ms
+[17:23:11] [Server thread/INFO]: Done (8.234s)! For help, type "help"
+
+# ── 2. 플레이어 접속·퇴장 ─────────────────────────────────
+[17:24:15] [User Authenticator #1/INFO]: UUID of player Steve is 069a79f4-44e9-4726-a5be-fca90e38aaf5
+[17:24:15] [Server thread/INFO]: Steve[/192.168.1.100:54321] logged in with entity id 42 at (-12.5, 64.0, 283.7)
+[17:24:15] [Server thread/INFO]: Steve joined the game
+[17:30:22] [Server thread/INFO]: Alex[/10.0.0.5:49152] logged in with entity id 87 at (100.0, 72.0, -50.5)
+[17:30:22] [Server thread/INFO]: Alex joined the game
+[17:45:00] [Server thread/INFO]: Steve lost connection: Disconnected
+[17:45:00] [Server thread/INFO]: Steve left the game
+[18:10:33] [Server thread/INFO]: Alex lost connection: Timed out
+[18:10:33] [Server thread/INFO]: Alex left the game
+
+# ── 3. 플레이어 채팅 ──────────────────────────────────────
+[17:25:00] [Server thread/INFO]: <Steve> Hello everyone!
+[17:25:05] [Server thread/INFO]: <Alex> Hey Steve!
+[17:25:10] [Server thread/INFO]: <Steve> Let's go mining
+[17:26:00] [Server thread/INFO]: [Steve: Set own game mode to Creative Mode]
+
+# ── 4. 서버 명령어 실행 ───────────────────────────────────
+[17:27:00] [Server thread/INFO]: [Server] Welcome to the server!
+[17:27:30] [Server thread/INFO]: Gave 64 [Diamond] to Steve
+[17:28:00] [Server thread/INFO]: Set the time to 0
+[17:28:30] [Server thread/INFO]: Set the weather to clear
+[17:29:00] [Server thread/INFO]: Teleported Steve to 0.0, 100.0, 0.0
+[17:29:30] [Server thread/INFO]: There are 2 of a max of 20 players online: Steve, Alex
+[17:30:00] [Server thread/INFO]: Opped Steve
+[17:30:30] [Server thread/INFO]: Banned player Alex
+[17:31:00] [Server thread/INFO]: [Steve: Killed Alex]
+
+# ── 5. 경고 (WARN) ───────────────────────────────────────
+[17:35:00] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 5023ms or 100 ticks behind
+[17:35:30] [Server thread/WARN]: Fetching addridge packet for removed entity qirp3kd
+[17:36:00] [Server thread/WARN]: Alex moved too quickly! -23.5, -1.2, 45.6
+[17:38:00] [Server thread/WARN]: [Rcon] Failed rcon authentication from /127.0.0.1
+
+# ── 6. 에러 (ERROR) ──────────────────────────────────────
+[17:40:00] [Server thread/ERROR]: Encountered an unexpected exception
+net.minecraft.util.crash.CrashException: Ticking entity
+    at net.minecraft.server.MinecraftServer.tickServer(MinecraftServer.java:923)
+    at net.minecraft.server.MinecraftServer.runServer(MinecraftServer.java:807)
+    at net.minecraft.server.MinecraftServer.lambda$spin$0(MinecraftServer.java:316)
+    at java.lang.Thread.run(Thread.java:840)
+Caused by: java.lang.NullPointerException: Cannot invoke method on null
+    at net.minecraft.world.entity.Entity.tick(Entity.java:429)
+    ... 4 more
+[17:40:01] [Server thread/ERROR]: This crash report has been saved to: ./crash-reports/crash-2026-02-16_174001-server.txt
+
+# ── 7. RCON 연결 ──────────────────────────────────────────
+[17:42:00] [RCON Listener #1/INFO]: RCON running on 0.0.0.0:25575
+[17:42:05] [RCON Client /127.0.0.1 #1/INFO]: Thread RCON Client /127.0.0.1 #1 started
+
+# ── 8. 디버그 (DEBUG) — log4j를 DEBUG로 설정했을 때 ───────
+[17:43:00] [Server thread/DEBUG]: Chunk loaded at [12, -5]
+[17:43:01] [Server thread/DEBUG]: Entity spawned: minecraft:zombie at 100.5, 64.0, -200.3
+
+# ── 9. 서버 종료 시퀀스 ───────────────────────────────────
+[18:00:00] [Server thread/INFO]: Stopping the server
+[18:00:00] [Server thread/INFO]: Stopping server
+[18:00:01] [Server thread/INFO]: Saving players
+[18:00:01] [Server thread/INFO]: Saving worlds
+[18:00:02] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[18:00:03] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[18:00:04] [Server thread/INFO]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[18:00:05] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[18:00:05] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[18:00:05] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+
+# ── 10. 기타 패턴 ────────────────────────────────────────
+[17:50:00] [Server thread/INFO]: Steve has made the advancement [Getting an Upgrade]
+[17:50:30] [Server thread/INFO]: Steve has completed the challenge [Adventuring Time]
+[17:51:00] [Server thread/INFO]: Steve was slain by Zombie
+[17:51:30] [Server thread/INFO]: Alex drowned
+[17:52:00] [Server thread/INFO]: Steve fell from a high place
+[17:53:00] [Server thread/FATAL]: Failed to start the minecraft server

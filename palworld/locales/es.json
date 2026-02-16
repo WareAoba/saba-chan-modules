@@ -1,0 +1,92 @@
+{
+  "module": {
+    "display_name": "Palworld",
+    "description": "Módulo de gestión de servidor Palworld"
+  },
+  "settings": {
+    "executable_path": { "label": "Ruta del ejecutable del servidor", "description": "Ruta al archivo ejecutable del servidor" },
+    "port": { "label": "Puerto del servidor", "description": "Puerto del servidor de juego" },
+    "rcon_port": { "label": "Puerto RCON", "description": "Puerto RCON" },
+    "rcon_password": { "label": "Contraseña RCON", "description": "Contraseña de ejecución de comandos remotos" },
+    "rest_host": { "label": "Host de REST API", "description": "Host de REST API (por defecto 127.0.0.1)" },
+    "rest_port": { "label": "Puerto de REST API", "description": "Puerto de REST API (por defecto 8212)" },
+    "rest_password": { "label": "Contraseña REST", "description": "Contraseña REST Basic Auth" }
+  },
+  "commands": {
+    "announce": {
+      "label": "Enviar anuncio",
+      "description": "Transmitir un mensaje al servidor",
+      "inputs": {
+        "message": { "label": "Mensaje de anuncio", "placeholder": "Ingrese el mensaje de anuncio" }
+      }
+    },
+    "info": { "label": "Información del servidor", "description": "Ver información del servidor" },
+    "players": { "label": "Lista de jugadores", "description": "Listar jugadores conectados actualmente" },
+    "save": { "label": "Guardar mundo", "description": "Guardar el mundo del juego" },
+    "shutdown": {
+      "label": "Apagar servidor",
+      "description": "Apagar el servidor (con retraso opcional)",
+      "inputs": {
+        "waittime": { "label": "Retraso de apagado (segundos)" },
+        "message": { "label": "Mensaje de apagado", "placeholder": "Anuncio de apagado del servidor" }
+      }
+    },
+    "kick": {
+      "label": "Expulsar jugador",
+      "description": "Expulsar a un jugador del servidor",
+      "inputs": {
+        "userid": { "label": "Jugador (apodo o SteamID)", "placeholder": "Apodo del jugador o steam_xxxxxxxxx" },
+        "message": { "label": "Mensaje de expulsión", "placeholder": "Opcional: mensaje de expulsión" }
+      }
+    },
+    "ban": {
+      "label": "Banear jugador",
+      "description": "Banear permanentemente a un jugador",
+      "inputs": {
+        "userid": { "label": "Jugador (apodo o SteamID)", "placeholder": "Apodo del jugador o steam_xxxxxxxxx" },
+        "message": { "label": "Mensaje de baneo", "placeholder": "Opcional: mensaje de baneo" }
+      }
+    },
+    "unban": {
+      "label": "Desbanear jugador",
+      "description": "Desbanear a un jugador baneado",
+      "inputs": {
+        "userid": { "label": "Jugador (apodo o SteamID)", "placeholder": "Apodo del jugador o steam_xxxxxxxxx" }
+      }
+    }
+  },
+  "errors": {
+    "failed_to_start": "Falló al iniciar: {{error}}",
+    "no_pid_provided": "No se proporcionó PID",
+    "failed_to_kill": "Falló al terminar el proceso: {{error}}",
+    "failed_to_stop": "Falló al detener: {{error}}",
+    "daemon_connection_error": "Error de conexión al daemon: {{error}}",
+    "invalid_json_response": "Respuesta JSON inválida del daemon: {{error}}",
+    "daemon_error": "Error del daemon: {{error}}",
+    "player_list_failed": "Falló al obtener lista de jugadores: {{error}}",
+    "server_info_failed": "Falló al obtener información del servidor: {{error}}"
+  },
+  "messages": {
+    "starting_server": "Iniciando servidor: {{command}}",
+    "working_directory": "Directorio de trabajo: {{path}}",
+    "server_starting": "Servidor Palworld iniciándose con PID {{pid}}",
+    "shutdown_signal_sent": "Señal de apagado enviada al PID {{pid}}",
+    "force_killed": "PID {{pid}} terminado forzosamente",
+    "signal_sent": "Señal {{signal}} enviada al PID {{pid}}",
+    "no_process_running": "Ningún proceso en ejecución",
+    "executing_command": "Ejecutando comando via daemon: {{command}} con args: {{args}}",
+    "daemon_rcon_response": "Respuesta RCON del daemon: {{result}}",
+    "broadcast_message": "Mensaje de difusión: {{message}}",
+    "save_triggered": "Guardado del servidor activado",
+    "shutdown_initiated": "Apagado del servidor iniciado (cuenta regresiva de {{seconds}}s)",
+    "rest_api_forced_on": "[Pol\u00edtica] REST API forzada a activar",
+    "rcon_forced_off": "[Pol\u00edtica] RCON forzado a desactivar (obsoleto)",
+    "admin_password_generated": "[Pol\u00edtica] AdminPassword generada autom\u00e1ticamente para autenticaci\u00f3n REST API"
+  },
+  "reset": {
+    "no_path": "No se puede determinar el directorio del servidor. Configure working_dir o server_executable.",
+    "not_found": "Archivo de configuración no encontrado. Inicie el servidor una vez para generarlo.",
+    "settings_success": "Todas las configuraciones del servidor han sido restablecidas a los valores de fábrica. Los datos del mundo se han preservado.",
+    "settings_failed": "Error al escribir la configuración predeterminada en el archivo de configuración."
+  }
+}

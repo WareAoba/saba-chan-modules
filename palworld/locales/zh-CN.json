@@ -1,0 +1,92 @@
+{
+  "module": {
+    "display_name": "幻兽帕鲁",
+    "description": "幻兽帕鲁服务器管理模块"
+  },
+  "settings": {
+    "executable_path": { "label": "服务器可执行文件路径", "description": "服务器可执行文件的路径" },
+    "port": { "label": "服务器端口", "description": "游戏服务器端口" },
+    "rcon_port": { "label": "RCON端口", "description": "RCON端口" },
+    "rcon_password": { "label": "RCON密码", "description": "远程命令执行密码" },
+    "rest_host": { "label": "REST API主机", "description": "REST API主机（默认127.0.0.1）" },
+    "rest_port": { "label": "REST API端口", "description": "REST API端口（默认8212）" },
+    "rest_password": { "label": "REST密码", "description": "REST Basic Auth密码" }
+  },
+  "commands": {
+    "announce": {
+      "label": "发送公告",
+      "description": "向服务器广播消息",
+      "inputs": {
+        "message": { "label": "公告消息", "placeholder": "输入公告内容" }
+      }
+    },
+    "info": { "label": "服务器信息", "description": "查看服务器信息" },
+    "players": { "label": "玩家列表", "description": "当前连接的玩家列表" },
+    "save": { "label": "保存世界", "description": "保存游戏世界" },
+    "shutdown": {
+      "label": "关闭服务器",
+      "description": "关闭服务器（可设置延迟）",
+      "inputs": {
+        "waittime": { "label": "关闭延迟（秒）" },
+        "message": { "label": "关闭消息", "placeholder": "服务器关闭公告" }
+      }
+    },
+    "kick": {
+      "label": "踢出玩家",
+      "description": "将玩家踢出服务器",
+      "inputs": {
+        "userid": { "label": "玩家（昵称或SteamID）", "placeholder": "玩家昵称或steam_xxxxxxxxx" },
+        "message": { "label": "踢出消息", "placeholder": "可选：踢出消息" }
+      }
+    },
+    "ban": {
+      "label": "封禁玩家",
+      "description": "永久封禁玩家",
+      "inputs": {
+        "userid": { "label": "玩家（昵称或SteamID）", "placeholder": "玩家昵称或steam_xxxxxxxxx" },
+        "message": { "label": "封禁消息", "placeholder": "可选：封禁消息" }
+      }
+    },
+    "unban": {
+      "label": "解除封禁",
+      "description": "解除被封禁的玩家",
+      "inputs": {
+        "userid": { "label": "玩家（昵称或SteamID）", "placeholder": "玩家昵称或steam_xxxxxxxxx" }
+      }
+    }
+  },
+  "errors": {
+    "failed_to_start": "启动失败：{{error}}",
+    "no_pid_provided": "未提供PID",
+    "failed_to_kill": "进程终止失败：{{error}}",
+    "failed_to_stop": "停止失败：{{error}}",
+    "daemon_connection_error": "守护程序连接错误：{{error}}",
+    "invalid_json_response": "来自守护程序的无效JSON响应：{{error}}",
+    "daemon_error": "守护程序错误：{{error}}",
+    "player_list_failed": "获取玩家列表失败：{{error}}",
+    "server_info_failed": "获取服务器信息失败：{{error}}"
+  },
+  "messages": {
+    "starting_server": "启动服务器：{{command}}",
+    "working_directory": "工作目录：{{path}}",
+    "server_starting": "Palworld服务器启动，PID为{{pid}}",
+    "shutdown_signal_sent": "向PID {{pid}}发送关闭信号",
+    "force_killed": "强制终止PID {{pid}}",
+    "signal_sent": "向PID {{pid}}发送信号{{signal}}",
+    "no_process_running": "没有运行的进程",
+    "executing_command": "通过守护程序执行命令：{{command}}，参数：{{args}}",
+    "daemon_rcon_response": "守护程序RCON响应：{{result}}",
+    "broadcast_message": "广播消息：{{message}}",
+    "save_triggered": "服务器保存已触发",
+    "shutdown_initiated": "服务器关闭已启动（{{seconds}}秒倒计时）",
+    "rest_api_forced_on": "[策略] REST API 已强制启用",
+    "rcon_forced_off": "[策略] RCON 已强制禁用（已弃用）",
+    "admin_password_generated": "[策略] 已自动生成 AdminPassword 用于 REST API 认证"
+  },
+  "reset": {
+    "no_path": "无法确定服务器目录。请设置 working_dir 或 server_executable。",
+    "not_found": "未找到设置文件。请先启动一次服务器以生成该文件。",
+    "settings_success": "所有服务器设置已重置为出厂默认值。世界数据已保留。",
+    "settings_failed": "将默认设置写入配置文件失败。"
+  }
+}

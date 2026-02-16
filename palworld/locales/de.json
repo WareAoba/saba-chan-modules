@@ -1,0 +1,92 @@
+{
+  "module": {
+    "display_name": "Palworld",
+    "description": "Palworld-Server-Verwaltungsmodul"
+  },
+  "settings": {
+    "executable_path": { "label": "Server-Programmpfad", "description": "Pfad zur ausführbaren Serverdatei" },
+    "port": { "label": "Server-Port", "description": "Spielserver-Port" },
+    "rcon_port": { "label": "RCON-Port", "description": "RCON-Port" },
+    "rcon_password": { "label": "RCON-Passwort", "description": "Passwort für Fernbefehlsausführung" },
+    "rest_host": { "label": "REST-API-Host", "description": "REST-API-Host (Standard 127.0.0.1)" },
+    "rest_port": { "label": "REST-API-Port", "description": "REST-API-Port (Standard 8212)" },
+    "rest_password": { "label": "REST-Passwort", "description": "REST Basic Auth Passwort" }
+  },
+  "commands": {
+    "announce": {
+      "label": "Ankündigung senden",
+      "description": "Nachricht an den Server senden",
+      "inputs": {
+        "message": { "label": "Ankündigungsnachricht", "placeholder": "Ankündigungsnachricht eingeben" }
+      }
+    },
+    "info": { "label": "Serverinformationen", "description": "Serverinformationen anzeigen" },
+    "players": { "label": "Spielerliste", "description": "Aktuell verbundene Spieler auflisten" },
+    "save": { "label": "Welt speichern", "description": "Die Spielwelt speichern" },
+    "shutdown": {
+      "label": "Server herunterfahren",
+      "description": "Server herunterfahren (mit optionaler Verzögerung)",
+      "inputs": {
+        "waittime": { "label": "Abschaltverzögerung (Sekunden)" },
+        "message": { "label": "Abschaltnachricht", "placeholder": "Server-Abschaltankündigung" }
+      }
+    },
+    "kick": {
+      "label": "Spieler kicken",
+      "description": "Einen Spieler vom Server kicken",
+      "inputs": {
+        "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" },
+        "message": { "label": "Kick-Nachricht", "placeholder": "Optional: Kick-Nachricht" }
+      }
+    },
+    "ban": {
+      "label": "Spieler bannen",
+      "description": "Einen Spieler dauerhaft bannen",
+      "inputs": {
+        "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" },
+        "message": { "label": "Ban-Nachricht", "placeholder": "Optional: Ban-Nachricht" }
+      }
+    },
+    "unban": {
+      "label": "Spieler entbannen",
+      "description": "Einen gebannten Spieler entbannen",
+      "inputs": {
+        "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" }
+      }
+    }
+  },
+  "errors": {
+    "failed_to_start": "Start fehlgeschlagen: {{error}}",
+    "no_pid_provided": "Keine PID angegeben",
+    "failed_to_kill": "Prozess beendigung fehlgeschlagen: {{error}}",
+    "failed_to_stop": "Stopp fehlgeschlagen: {{error}}",
+    "daemon_connection_error": "Daemon-Verbindungsfehler: {{error}}",
+    "invalid_json_response": "Ungültige JSON-Antwort vom Daemon: {{error}}",
+    "daemon_error": "Daemon-Fehler: {{error}}",
+    "player_list_failed": "Fehler beim Abrufen der Spielerliste: {{error}}",
+    "server_info_failed": "Fehler beim Abrufen der Serverinformationen: {{error}}"
+  },
+  "messages": {
+    "starting_server": "Server wird gestartet: {{command}}",
+    "working_directory": "Arbeitsverzeichnis: {{path}}",
+    "server_starting": "Palworld-Server startet mit PID {{pid}}",
+    "shutdown_signal_sent": "Shutdown-Signal an PID {{pid}} gesendet",
+    "force_killed": "PID {{pid}} erzwungen beendet",
+    "signal_sent": "Signal {{signal}} an PID {{pid}} gesendet",
+    "no_process_running": "Kein Prozess läuft",
+    "executing_command": "Befehl wird über Daemon ausgeführt: {{command}} mit Argumenten: {{args}}",
+    "daemon_rcon_response": "Daemon RCON-Antwort: {{result}}",
+    "broadcast_message": "Rundfunk-Nachricht: {{message}}",
+    "save_triggered": "Serverspeicherung ausgelöst",
+    "shutdown_initiated": "Server-Herunterfahren eingeleitet ({{seconds}}s Countdown)",
+    "rest_api_forced_on": "[Richtlinie] REST API erzwungen aktiviert",
+    "rcon_forced_off": "[Richtlinie] RCON erzwungen deaktiviert (veraltet)",
+    "admin_password_generated": "[Richtlinie] AdminPassword automatisch f\u00fcr REST API-Authentifizierung generiert"
+  },
+  "reset": {
+    "no_path": "Server-Verzeichnis kann nicht ermittelt werden. Setzen Sie working_dir oder server_executable.",
+    "not_found": "Einstellungsdatei nicht gefunden. Starten Sie den Server einmal, um sie zu generieren.",
+    "settings_success": "Alle Servereinstellungen wurden auf die Werkseinstellungen zurückgesetzt. Weltdaten bleiben erhalten.",
+    "settings_failed": "Schreiben der Standardeinstellungen in die Konfigurationsdatei fehlgeschlagen."
+  }
+}

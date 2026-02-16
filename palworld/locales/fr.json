@@ -1,0 +1,92 @@
+{
+  "module": {
+    "display_name": "Palworld",
+    "description": "Module de gestion de serveur Palworld"
+  },
+  "settings": {
+    "executable_path": { "label": "Chemin de l'exécutable du serveur", "description": "Chemin vers l'exécutable du serveur" },
+    "port": { "label": "Port du serveur", "description": "Port du serveur de jeu" },
+    "rcon_port": { "label": "Port RCON", "description": "Port RCON" },
+    "rcon_password": { "label": "Mot de passe RCON", "description": "Mot de passe d'exécution de commandes à distance" },
+    "rest_host": { "label": "Hôte REST API", "description": "Hôte REST API (par défaut 127.0.0.1)" },
+    "rest_port": { "label": "Port REST API", "description": "Port REST API (par défaut 8212)" },
+    "rest_password": { "label": "Mot de passe REST", "description": "Mot de passe REST Basic Auth" }
+  },
+  "commands": {
+    "announce": {
+      "label": "Envoyer une annonce",
+      "description": "Diffuser un message sur le serveur",
+      "inputs": {
+        "message": { "label": "Message d'annonce", "placeholder": "Saisissez le message d'annonce" }
+      }
+    },
+    "info": { "label": "Informations du serveur", "description": "Afficher les informations du serveur" },
+    "players": { "label": "Liste des joueurs", "description": "Lister les joueurs actuellement connectés" },
+    "save": { "label": "Sauvegarder le monde", "description": "Sauvegarder le monde du jeu" },
+    "shutdown": {
+      "label": "Arrêter le serveur",
+      "description": "Arrêter le serveur (avec délai optionnel)",
+      "inputs": {
+        "waittime": { "label": "Délai d'arrêt (secondes)" },
+        "message": { "label": "Message d'arrêt", "placeholder": "Annonce d'arrêt du serveur" }
+      }
+    },
+    "kick": {
+      "label": "Expulser un joueur",
+      "description": "Expulser un joueur du serveur",
+      "inputs": {
+        "userid": { "label": "Joueur (pseudo ou SteamID)", "placeholder": "Pseudo du joueur ou steam_xxxxxxxxx" },
+        "message": { "label": "Message d'expulsion", "placeholder": "Optionnel : message d'expulsion" }
+      }
+    },
+    "ban": {
+      "label": "Bannir un joueur",
+      "description": "Bannir définitivement un joueur",
+      "inputs": {
+        "userid": { "label": "Joueur (pseudo ou SteamID)", "placeholder": "Pseudo du joueur ou steam_xxxxxxxxx" },
+        "message": { "label": "Message de bannissement", "placeholder": "Optionnel : message de bannissement" }
+      }
+    },
+    "unban": {
+      "label": "Débannir un joueur",
+      "description": "Débannir un joueur banni",
+      "inputs": {
+        "userid": { "label": "Joueur (pseudo ou SteamID)", "placeholder": "Pseudo du joueur ou steam_xxxxxxxxx" }
+      }
+    }
+  },
+  "errors": {
+    "failed_to_start": "Échec du démarrage: {{error}}",
+    "no_pid_provided": "Aucun PID fourni",
+    "failed_to_kill": "Échec de la terminaison du processus: {{error}}",
+    "failed_to_stop": "Échec de l'arrêt: {{error}}",
+    "daemon_connection_error": "Erreur de connexion au daemon: {{error}}",
+    "invalid_json_response": "Réponse JSON invalide du daemon: {{error}}",
+    "daemon_error": "Erreur du daemon: {{error}}",
+    "player_list_failed": "Échec de la récupération de la liste des joueurs: {{error}}",
+    "server_info_failed": "Échec de la récupération des informations du serveur: {{error}}"
+  },
+  "messages": {
+    "starting_server": "Démarrage du serveur: {{command}}",
+    "working_directory": "Répertoire de travail: {{path}}",
+    "server_starting": "Serveur Palworld démarrant avec PID {{pid}}",
+    "shutdown_signal_sent": "Signal d'arrêt envoyé au PID {{pid}}",
+    "force_killed": "PID {{pid}} tué de force",
+    "signal_sent": "Signal {{signal}} envoyé au PID {{pid}}",
+    "no_process_running": "Aucun processus en cours d'exécution",
+    "executing_command": "Exécution de la commande via daemon: {{command}} avec args: {{args}}",
+    "daemon_rcon_response": "Réponse RCON du daemon: {{result}}",
+    "broadcast_message": "Message de diffusion: {{message}}",
+    "save_triggered": "Sauvegarde du serveur déclenchée",
+    "shutdown_initiated": "Arrêt du serveur initié (compte à rebours {{seconds}}s)",
+    "rest_api_forced_on": "[Politique] REST API forcée à activée",
+    "rcon_forced_off": "[Politique] RCON forcé à désactivé (obsolète)",
+    "admin_password_generated": "[Politique] AdminPassword généré automatiquement pour l'authentification REST API"
+  },
+  "reset": {
+    "no_path": "Impossible de déterminer le répertoire du serveur. Définissez working_dir ou server_executable.",
+    "not_found": "Fichier de paramètres introuvable. Démarrez le serveur une fois pour le générer.",
+    "settings_success": "Tous les paramètres du serveur ont été réinitialisés aux valeurs d'usine. Les données du monde ont été préservées.",
+    "settings_failed": "Échec de l'écriture des paramètres par défaut dans le fichier de configuration."
+  }
+}

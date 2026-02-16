@@ -1,0 +1,184 @@
+{
+  "module": {
+    "display_name": "マインクラフト",
+    "description": "完全なライフサイクル制御を備えたマインクラフトサーバー管理モジュール"
+  },
+  "settings": {
+    "executable_path": { "label": "サーバーJARパス", "description": "server.jarファイルのパス" },
+    "java_path": { "label": "Javaパス", "description": "Java実行ファイルのパス（空白の場合は自動検出）" },
+    "ram": { "label": "メモリ（RAM）", "description": "最大メモリ割り当て（例: 2G, 4G）" },
+    "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },
+    "difficulty": { "label": "難易度", "description": "ゲームの難易度" },
+    "gamemode": { "label": "ゲームモード", "description": "デフォルトのゲームモード" },
+    "max_players": { "label": "最大プレイヤー数", "description": "最大プレイヤー数" },
+    "motd": { "label": "MOTD", "description": "サーバーリストの説明文" },
+    "online_mode": { "label": "オンラインモード", "description": "Mojang認証を要求する" },
+    "pvp": { "label": "PVP", "description": "プレイヤー対プレイヤーを許可" },
+    "view_distance": { "label": "描画距離", "description": "最大描画距離（チャンク）" },
+    "simulation_distance": { "label": "シミュレーション距離", "description": "最大シミュレーション距離（チャンク）" },
+    "spawn_protection": { "label": "スポーン保護", "description": "スポーン保護の半径" },
+    "allow_flight": { "label": "飛行許可", "description": "サバイバルでの飛行を許可する" },
+    "allow_nether": { "label": "ネザー許可", "description": "ネザーへの移動を許可する" },
+    "enable_command_block": { "label": "コマンドブロック", "description": "コマンドブロックを有効にする" },
+    "hardcore": { "label": "ハードコア", "description": "ハードコアモードを有効にする" },
+    "white_list": { "label": "ホワイトリスト", "description": "ホワイトリストのプレイヤーのみ許可" },
+    "level_name": { "label": "ワールド名", "description": "ワールドフォルダの名前" },
+    "level_seed": { "label": "ワールドシード", "description": "ワールド生成のシード値" },
+    "level_type": { "label": "ワールドタイプ", "description": "ワールド生成タイプ" },
+    "max_world_size": { "label": "最大ワールドサイズ", "description": "ワールド境界の最大半径" },
+    "use_aikar_flags": { "label": "Aikarフラグ", "description": "推奨JVM GCフラグを使用する" }
+  },
+  "commands": {
+    "say": {
+      "label": "チャットメッセージ送信",
+      "description": "サーバーにメッセージをブロードキャストします",
+      "inputs": { "message": { "label": "メッセージ", "placeholder": "送信するメッセージを入力" } }
+    },
+    "give": {
+      "label": "アイテム付与",
+      "description": "プレイヤーにアイテムを付与します",
+      "inputs": {
+        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのニックネーム" },
+        "item": { "label": "アイテムID", "placeholder": "例: diamond, iron_ore" },
+        "amount": { "label": "個数" }
+      }
+    },
+    "save-all": { "label": "ワールド保存", "description": "ゲームワールドを保存します" },
+    "list": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧を表示します" },
+    "weather": {
+      "label": "天気変更",
+      "description": "サーバーの天気を変更します",
+      "inputs": { "type": { "label": "天気" }, "duration": { "label": "持続時間（秒）" } }
+    },
+    "difficulty": {
+      "label": "難易度変更",
+      "description": "ゲームの難易度を変更します",
+      "inputs": { "level": { "label": "難易度" } }
+    },
+    "gamemode": {
+      "label": "ゲームモード変更",
+      "description": "プレイヤーのゲームモードを変更します",
+      "inputs": { "mode": { "label": "ゲームモード" }, "player": { "label": "プレイヤー名" } }
+    },
+    "time": {
+      "label": "時間設定",
+      "description": "時刻を変更します",
+      "inputs": { "value": { "label": "時間" } }
+    },
+    "tp": {
+      "label": "テレポート",
+      "description": "プレイヤーをテレポートします",
+      "inputs": { "player": { "label": "プレイヤー" }, "target": { "label": "移動先" } }
+    },
+    "kick": {
+      "label": "プレイヤーをキック",
+      "description": "プレイヤーをサーバーからキックします",
+      "inputs": { "player": { "label": "プレイヤー名" }, "reason": { "label": "理由" } }
+    },
+    "ban": {
+      "label": "プレイヤーをBAN",
+      "description": "プレイヤーをサーバーからBANします",
+      "inputs": { "player": { "label": "プレイヤー名" }, "reason": { "label": "理由" } }
+    },
+    "pardon": {
+      "label": "BAN解除",
+      "description": "プレイヤーのBANを解除します",
+      "inputs": { "player": { "label": "プレイヤー名" } }
+    },
+    "op": {
+      "label": "OP権限付与",
+      "description": "オペレーター権限を付与します",
+      "inputs": { "player": { "label": "プレイヤー名" } }
+    },
+    "deop": {
+      "label": "OP権限剥奪",
+      "description": "オペレーター権限を剥奪します",
+      "inputs": { "player": { "label": "プレイヤー名" } }
+    },
+    "whitelist": {
+      "label": "ホワイトリスト",
+      "description": "サーバーのホワイトリストを管理します",
+      "inputs": { "action": { "label": "操作" }, "player": { "label": "プレイヤー名" } }
+    },
+    "seed": { "label": "シード表示", "description": "ワールドのシード値を表示します" },
+    "stop": { "label": "サーバー停止", "description": "サーバーを正常に停止します" }
+  },
+  "errors": {
+    "server_jar_not_specified": "インスタンス設定で server_jar が指定されていません。server.jar のパスを追加してください",
+    "server_jar_not_found": "サーバー jar が見つかりません: {{path}}。インスタンス設定でパスを確認してください。",
+    "failed_to_start": "起動に失敗しました: {{error}}",
+    "no_pid_provided": "PID が指定されていません",
+    "failed_to_kill": "プロセスの終了に失敗しました: {{error}}",
+    "failed_to_stop": "停止に失敗しました: {{error}}",
+    "daemon_connection_error": "デーモン接続エラー: {{error}}",
+    "invalid_json_response": "デーモンからの無効な JSON 応答: {{error}}",
+    "daemon_error": "デーモンエラー: {{error}}",
+    "no_working_dir": "作業ディレクトリが設定されていません。このインスタンスの作業ディレクトリを設定してください。",
+    "no_settings": "設定が提供されていません",
+    "properties_write_failed": "server.properties の書き込みに失敗しました",
+    "eula_write_failed": "eula.txt の書き込みに失敗しました",
+    "working_dir_error": "作業ディレクトリを作成できません: {{path}}",
+    "server_reset_partial": "一部のアイテムを削除できませんでした: {{errors}}",
+    "detect": {
+      "java_not_found": "Javaがインストールされていないか、PATHに見つかりません",
+      "java_version_too_old": "Java {{current}} は古すぎます。Minecraftには Java {{required}} 以降が必要です。",
+      "eula_not_accepted": "Minecraft EULA が同意されていません",
+      "port_in_use": "ポート {{port}} は他のアプリケーションで使用されています",
+      "out_of_memory": "メモリ不足 — Javaのヒープ領域が不足しています",
+      "world_corrupt": "ワールドデータが破損しているようです",
+      "invalid_jar": "サーバーJARファイルが無効または破損しています",
+      "permission_denied": "アクセスが拒否されました — 必要なファイルにアクセスできません",
+      "server_overloaded": "サーバーが過負荷状態でティックレートを維持できません"
+    },
+    "solutions": {
+      "java_not_found": "Java 17+（推奨: Adoptium Temurin）を https://adoptium.net/ からインストールし、PATHに追加してください。またはインスタンス設定でJavaのパスを設定してください。",
+      "java_version_too_old": "https://adoptium.net/ から Java {{required}}+ をインストールしてください — 現在のMinecraftバージョンにはモダンなJavaが必要です。",
+      "server_jar_not_specified": "インスタンス設定で server.jar のパスを設定してください。",
+      "server_jar_not_found": "https://www.minecraft.net/download/server から公式Minecraftサーバーをダウンロードするか、設定でパスを確認してください。",
+      "eula_not_accepted": "サーバー設定の「EULA同意」をクリックしてMinecraft EULAに同意するか、eula.txt で手動で eula=true を設定してください。",
+      "port_in_use": "ポート {{port}} は既に使用されています。他のアプリケーションを停止するか、設定でサーバーポートを変更してください。",
+      "out_of_memory": "サーバー設定でRAM割り当てを増やしてください（例: 4G または 8G）。または他のアプリケーションを閉じてメモリを解放してください。",
+      "world_corrupt": "バックアップからワールドを復元するか、ワールドフォルダを削除して新しいワールドを生成してください。",
+      "invalid_jar": "公式ソースからサーバーJARを再ダウンロードしてください。現在のファイルが不完全または破損している可能性があります。",
+      "permission_denied": "saba-chanを管理者として実行するか、ファイルのアクセス権を変更して読み書きアクセスを許可してください。",
+      "working_dir_error": "ディレクトリを手動で作成するか、書き込み権限のある別の場所を選択してください。",
+      "server_overloaded": "描画距離とシミュレーション距離を減らし、最大プレイヤー数を減らすか、より多くのRAMを割り当ててください。"
+    }
+  },
+  "messages": {
+    "starting_server": "サーバーを起動しています: {{command}}",
+    "working_directory": "作業ディレクトリ: {{path}}",
+    "server_starting": "Minecraft サーバーが PID {{pid}} で起動しています",
+    "shutdown_signal_sent": "PID {{pid}} にシャットダウンシグナルを送信しました",
+    "force_killed": "PID {{pid}} を強制終了しました",
+    "signal_sent": "PID {{pid}} にシグナル {{signal}} を送信しました",
+    "no_process_running": "実行中のプロセスがありません",
+    "would_send_command": "PID {{pid}} に送信します: {{command}}",
+    "failed_send_command": "コマンド送信失敗: {{error}}",
+    "executing_command": "デーモン経由でコマンドを実行しています: {{command}} (引数: {{args}})",
+    "daemon_rcon_response": "デーモン RCON レスポンス: {{result}}",
+    "server_online": "サーバーはオンラインで応答しています",
+    "server_starting_no_response": "プロセスは実行中ですが、サーバーはまだクエリに応答していません",
+    "graceful_stop": "サーバーが正常に停止しました (PID {{pid}})",
+    "graceful_stop_timeout": "正常なシャットダウンがタイムアウトしました。強制停止に移行します",
+    "properties_updated": "server.properties が正常に更新されました",
+    "properties_reset": "server.properties がデフォルトにリセットされました",
+    "properties_using_defaults": "server.properties が存在しません — デフォルト値を表示しています",
+    "eula_accepted": "Minecraft EULA が正常に同意されました",
+    "server_reset_complete": "サーバーリセット完了",
+    "server_reset_deleted": "{{count}}個のアイテムを削除",
+    "rcon_disabled_managed": "RCON無効化 — マネージドモードではstdinでサーバーを制御します",
+    "rcon_enabled_native": "RCON有効化 — 非マネージドモードではRCONが唯一の制御手段です",
+    "rcon_password_generated": "RCONパスワードを自動生成しました（パスワードが設定されていませんでした）"
+  },
+  "rcon": {
+    "connecting": "{{host}}:{{port}} に接続中...",
+    "connected": "接続されました!",
+    "authentication_failed": "認証に失敗しました",
+    "authenticated": "認証されました!",
+    "connection_failed": "接続に失敗しました: {{error}}",
+    "sending_command": "コマンドを送信しています: {{command}}",
+    "response_received": "レスポンスを受信しました: {{response}}",
+    "command_failed": "コマンド失敗: {{error}}"
+  }
+}

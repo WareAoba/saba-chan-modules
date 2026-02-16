@@ -1,0 +1,116 @@
+{
+  "module": {
+    "display_name": "パルワールド",
+    "description": "パルワールドサーバー管理モジュール"
+  },
+  "settings": {
+    "executable_path": { "label": "サーバー実行ファイルパス", "description": "サーバー実行ファイルのパス" },
+    "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },
+    "rcon_port": { "label": "RCONポート", "description": "RCONポート" },
+    "rcon_password": { "label": "RCONパスワード", "description": "リモートコマンド実行パスワード" },
+    "rest_host": { "label": "REST APIホスト", "description": "REST APIホスト（デフォルト127.0.0.1）" },
+    "rest_port": { "label": "REST APIポート", "description": "REST APIポート（デフォルト8212）" },
+    "rest_password": { "label": "RESTパスワード", "description": "REST Basic Auth パスワード" }
+  },
+  "commands": {
+    "announce": {
+      "label": "お知らせ送信",
+      "description": "サーバーにメッセージをブロードキャスト",
+      "inputs": {
+        "message": { "label": "お知らせメッセージ", "placeholder": "お知らせ内容を入力" }
+      }
+    },
+    "info": { "label": "サーバー情報", "description": "サーバー情報を表示" },
+    "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧" },
+    "save": { "label": "ワールド保存", "description": "ゲームワールドを保存" },
+    "shutdown": {
+      "label": "サーバーシャットダウン",
+      "description": "サーバーをシャットダウン（遅延設定可能）",
+      "inputs": {
+        "waittime": { "label": "シャットダウン遅延（秒）" },
+        "message": { "label": "シャットダウンメッセージ", "placeholder": "サーバーシャットダウンのお知らせ" }
+      }
+    },
+    "kick": {
+      "label": "プレイヤーキック",
+      "description": "プレイヤーをサーバーから退出させる",
+      "inputs": {
+        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" },
+        "message": { "label": "キックメッセージ", "placeholder": "任意：キックメッセージ" }
+      }
+    },
+    "ban": {
+      "label": "プレイヤーBAN",
+      "description": "プレイヤーを永久BAN",
+      "inputs": {
+        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" },
+        "message": { "label": "BANメッセージ", "placeholder": "任意：BANメッセージ" }
+      }
+    },
+    "unban": {
+      "label": "プレイヤーBAN解除",
+      "description": "BANされたプレイヤーを解除",
+      "inputs": {
+        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" }
+      }
+    }
+  },
+  "errors": {
+    "failed_to_start": "起動に失敗しました: {{error}}",
+    "no_pid_provided": "PID が指定されていません",
+    "failed_to_kill": "プロセスの終了に失敗しました: {{error}}",
+    "failed_to_stop": "停止に失敗しました: {{error}}",
+    "daemon_connection_error": "デーモン接続エラー: {{error}}",
+    "invalid_json_response": "デーモンからの無効な JSON 応答: {{error}}",
+    "daemon_error": "デーモンエラー: {{error}}",
+    "player_list_failed": "プレイヤーリストの取得に失敗しました: {{error}}",
+    "server_info_failed": "サーバー情報の取得に失敗しました: {{error}}"
+  },
+  "messages": {
+    "starting_server": "サーバーを起動しています: {{command}}",
+    "working_directory": "作業ディレクトリ: {{path}}",
+    "server_starting": "Palworld サーバーが PID {{pid}} で起動しています",
+    "shutdown_signal_sent": "PID {{pid}} にシャットダウンシグナルを送信しました",
+    "force_killed": "PID {{pid}} を強制終了しました",
+    "signal_sent": "PID {{pid}} にシグナル {{signal}} を送信しました",
+    "no_process_running": "実行中のプロセスがありません",
+    "executing_command": "デーモン経由でコマンドを実行しています: {{command}} (引数: {{args}})",
+    "daemon_rcon_response": "デーモン RCON レスポンス: {{result}}",
+    "broadcast_message": "ブロードキャストメッセージ: {{message}}",
+    "save_triggered": "サーバーセーブがトリガーされました",
+    "shutdown_initiated": "サーバーシャットダウンが開始されました ({{seconds}}秒カウントダウン)",
+    "rest_api_forced_on": "[ポリシー] REST APIが強制有効化されました",
+    "rcon_forced_off": "[ポリシー] RCONが強制無効化されました（非推奨）",
+    "admin_password_generated": "[ポリシー] REST API認証用のAdminPasswordが自動生成されました"
+  },
+  "rcon": {
+    "connecting": "{{host}}:{{port}} に接続中...",
+    "connected": "接続されました!",
+    "authentication_failed": "認証に失敗しました",
+    "authenticated": "認証されました!",
+    "connection_failed": "接続に失敗しました: {{error}}",
+    "sending_command": "コマンドを送信しています: {{command}}",
+    "response_received": "レスポンスを受信しました: {{response}}",
+    "command_failed": "コマンド失敗: {{error}}",
+    "invalid_password": "無効なパスワード",
+    "receiving_response": "レスポンスを受信中...",
+    "partial_response": "部分的なレスポンスを受信しました ({{bytes}} バイト)",
+    "response_complete": "レスポンス完了 (合計 {{bytes}} バイト)",
+    "closed": "RCON 接続が閉じられました"
+  },
+  "commands": {
+    "info": "サーバー情報",
+    "showplayers": "プレイヤーを表示",
+    "kick": "プレイヤーをキック",
+    "ban": "プレイヤーをバン",
+    "broadcast": "ブロードキャストメッセージ",
+    "save": "ワールドを保存",
+    "shutdown": "サーバーをシャットダウン"
+  },
+  "reset": {
+    "no_path": "サーバーディレクトリを特定できません。working_dirまたはserver_executableを設定してください。",
+    "not_found": "設定ファイルが見つかりません。一度サーバーを起動して生成してください。",
+    "settings_success": "すべてのサーバー設定が初期値にリセットされました。ワールドデータは保持されます。",
+    "settings_failed": "デフォルト設定の書き込みに失敗しました。"
+  }
+}

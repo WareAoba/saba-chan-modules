@@ -1,0 +1,654 @@
+﻿[module]
+name = "palworld"
+version = "0.1.0"
+description = "Palworld server management module"
+game_name = "Palworld"
+display_name = "Palworld"
+entry = "lifecycle.py"
+icon = "icon.png"
+log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
+
+# 모듈 업데이트 설정 — 모듈은 별도 GitHub 레포지토리에서 관리됩니다
+[update]
+github_repo = "saba-chan-module-palworld"  # github_owner는 본체 설정에서 상속
+
+[protocols]
+supported = ["rest"]
+default = "rest"
+interaction_mode = "commands"  # console: stdin 지원, 콘솔 UI 표시 | commands: 정해진 명령어만 실행
+
+[config]
+executable_path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\PalServer\\PalServer.exe"
+server_executable = "PalServer.exe"
+process_name = "PalServer-Win64-Shipping-Cmd"
+default_port = 8211
+stop_command = "Shutdown"  # stdin으로 전송하는 graceful 종료 명령어
+
+[detection]
+process_patterns = ["PalServer-Win64-Shipping-Cmd", "PalServer", "PalServer-Win64"]
+common_paths = [
+    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\PalServer",
+    "D:\\SteamLibrary\\steamapps\\common\\PalServer",
+    "C:\\Games\\Palworld\\server"
+]
+
+[settings]
+
+# ========== saba-chan 전용 설정 (PalWorldSettings.ini 아님) ==========
+
+[[settings.fields]]
+name = "executable_path"
+type = "file"
+label = "Server Executable Path"
+description = "Path to the server executable"
+required = true
+group = "saba-chan"
+
+[[settings.fields]]
+name = "rest_host"
+type = "text"
+label = "REST API Host"
+description = "REST API host (default 127.0.0.1)"
+default = "127.0.0.1"
+group = "saba-chan"
+
+[[settings.fields]]
+name = "rest_port"
+type = "number"
+label = "REST API Port"
+description = "REST API port (default 8212)"
+default = 8212
+min = 1
+max = 65535
+group = "saba-chan"
+
+[[settings.fields]]
+name = "rest_password"
+type = "password"
+label = "REST Password"
+description = "REST Basic Auth password"
+required = false
+group = "saba-chan"
+
+# ========== PalWorldSettings.ini - 기본 설정 ==========
+
+[[settings.fields]]
+name = "server_name"
+type = "text"
+label = "Server Name"
+description = "Name displayed in the server browser"
+default = "Default Palworld Server"
+
+[[settings.fields]]
+name = "server_description"
+type = "text"
+label = "Server Description"
+description = "Server description"
+default = ""
+
+[[settings.fields]]
+name = "server_password"
+type = "password"
+label = "Server Password"
+description = "Password required to join the server"
+default = ""
+
+[[settings.fields]]
+name = "admin_password"
+type = "password"
+label = "Admin Password"
+description = "Administrator access password"
+default = ""
+
+[[settings.fields]]
+name = "max_players"
+type = "number"
+label = "Max Players"
+description = "Maximum number of players (1-32)"
+default = 32
+min = 1
+max = 32
+
+[[settings.fields]]
+name = "coop_max_players"
+type = "number"
+label = "Co-op Max Players"
+description = "Maximum number of players in co-op party"
+default = 4
+min = 1
+max = 32
+
+[[settings.fields]]
+name = "port"
+type = "number"
+label = "Server Port"
+description = "Game server port"
+default = 8211
+min = 1024
+max = 65535
+
+[[settings.fields]]
+name = "public_ip"
+type = "text"
+label = "Public IP"
+description = "Public IP address (leave empty for auto)"
+default = ""
+
+[[settings.fields]]
+name = "difficulty"
+type = "select"
+label = "Difficulty"
+description = "Overall game difficulty"
+options = ["None", "Casual", "Normal", "Hard"]
+default = "None"
+
+[[settings.fields]]
+name = "is_pvp"
+type = "boolean"
+label = "PvP"
+description = "Enable Player vs Player combat"
+default = false
+
+[[settings.fields]]
+name = "death_penalty"
+type = "select"
+label = "Death Penalty"
+description = "What drops on player death"
+options = ["None", "Item", "ItemAndEquipment", "All"]
+default = "All"
+
+[[settings.fields]]
+name = "exp_rate"
+type = "number"
+label = "EXP Rate"
+description = "Experience gain multiplier (0.1-20.0)"
+default = 1.0
+min = 0.1
+max = 20.0
+step = 0.1
+
+[[settings.fields]]
+name = "day_time_speed_rate"
+type = "number"
+label = "Day Time Speed"
+description = "Daytime duration multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+
+[[settings.fields]]
+name = "night_time_speed_rate"
+type = "number"
+label = "Night Time Speed"
+description = "Nighttime duration multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+
+# ========== PalWorldSettings.ini - 고급 설정 ==========
+
+[[settings.fields]]
+name = "pal_capture_rate"
+type = "number"
+label = "Pal Capture Rate"
+description = "Pal capture chance multiplier (0.5-2.0)"
+default = 1.0
+min = 0.5
+max = 2.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "pal_spawn_num_rate"
+type = "number"
+label = "Pal Spawn Rate"
+description = "Pal spawn count multiplier (0.5-3.0)"
+default = 1.0
+min = 0.5
+max = 3.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "pal_damage_rate_attack"
+type = "number"
+label = "Pal Attack Damage"
+description = "Pal attack damage multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "pal_damage_rate_defense"
+type = "number"
+label = "Pal Defense"
+description = "Pal damage received multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "pal_stomach_decrease_rate"
+type = "number"
+label = "Pal Hunger Rate"
+description = "Pal hunger decrease multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "pal_stamina_decrease_rate"
+type = "number"
+label = "Pal Stamina Rate"
+description = "Pal stamina decrease multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "pal_auto_hp_regen_rate"
+type = "number"
+label = "Pal HP Regen"
+description = "Pal HP auto-regeneration multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "pal_auto_hp_regen_rate_in_sleep"
+type = "number"
+label = "Pal Sleep HP Regen"
+description = "Pal HP regeneration during sleep multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "player_damage_rate_attack"
+type = "number"
+label = "Player Attack Damage"
+description = "Player attack damage multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "player_damage_rate_defense"
+type = "number"
+label = "Player Defense"
+description = "Player damage received multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "player_stomach_decrease_rate"
+type = "number"
+label = "Player Hunger Rate"
+description = "Player hunger decrease multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "player_stamina_decrease_rate"
+type = "number"
+label = "Player Stamina Rate"
+description = "Player stamina decrease multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "player_auto_hp_regen_rate"
+type = "number"
+label = "Player HP Regen"
+description = "Player HP auto-regeneration multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "player_auto_hp_regen_rate_in_sleep"
+type = "number"
+label = "Player Sleep HP Regen"
+description = "Player HP regeneration during sleep multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "build_object_damage_rate"
+type = "number"
+label = "Structure Damage Rate"
+description = "Damage dealt to structures multiplier (0.5-3.0)"
+default = 1.0
+min = 0.5
+max = 3.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "build_object_deterioration_damage_rate"
+type = "number"
+label = "Structure Decay Rate"
+description = "Structure deterioration/aging damage multiplier (0-10)"
+default = 1.0
+min = 0.0
+max = 10.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "drop_item_max_num"
+type = "number"
+label = "Drop Item Max"
+description = "Maximum number of dropped items in the world (0-3000)"
+default = 3000
+min = 0
+max = 3000
+group = "advanced"
+
+[[settings.fields]]
+name = "collection_drop_rate"
+type = "number"
+label = "Gathering Drop Rate"
+description = "Gathering item drop multiplier (0.5-3.0)"
+default = 1.0
+min = 0.5
+max = 3.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "collection_object_hp_rate"
+type = "number"
+label = "Gathering Object HP"
+description = "Gathering object HP multiplier (0.5-3.0)"
+default = 1.0
+min = 0.5
+max = 3.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "collection_object_respawn_speed_rate"
+type = "number"
+label = "Gathering Respawn Speed"
+description = "Gathering object respawn speed multiplier (0.5-3.0)"
+default = 1.0
+min = 0.5
+max = 3.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "enemy_drop_item_rate"
+type = "number"
+label = "Enemy Drop Rate"
+description = "Enemy item drop multiplier (0.5-3.0)"
+default = 1.0
+min = 0.5
+max = 3.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "pal_egg_default_hatching_time"
+type = "number"
+label = "Egg Hatching Time"
+description = "Default egg hatching time in hours (0-240)"
+default = 72.0
+min = 0.0
+max = 240.0
+step = 1.0
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_invader_enemy"
+type = "boolean"
+label = "Raid Events"
+description = "Enable base raid events"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "guild_player_max_num"
+type = "number"
+label = "Guild Max Players"
+description = "Maximum number of players in a guild (1-100)"
+default = 20
+min = 1
+max = 100
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_player_to_player_damage"
+type = "boolean"
+label = "Player vs Player Damage"
+description = "Allow players to damage each other"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_friendly_fire"
+type = "boolean"
+label = "Friendly Fire"
+description = "Allow guild members to damage each other"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "base_camp_worker_max_num"
+type = "number"
+label = "Base Camp Workers"
+description = "Maximum number of Pals working at a base (1-20)"
+default = 15
+min = 1
+max = 20
+group = "advanced"
+
+[[settings.fields]]
+name = "base_camp_max_num"
+type = "number"
+label = "Max Base Camps"
+description = "Maximum number of base camps that can be built"
+default = 128
+min = 1
+max = 512
+group = "advanced"
+
+[[settings.fields]]
+name = "work_speed_rate"
+type = "number"
+label = "Work Speed Rate"
+description = "Work speed multiplier"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[commands]
+
+[[commands.fields]]
+name = "announce"
+label = "Send Announcement"
+description = "Broadcast a message to the server"
+method = "rest"
+http_method = "POST"
+endpoint_template = "/v1/api/announce"
+inputs = [
+    { name = "message", type = "text", label = "Announcement Message", required = true, placeholder = "Enter announcement message" }
+]
+
+[[commands.fields]]
+name = "info"
+label = "Server Info"
+description = "View server information"
+method = "rest"
+http_method = "GET"
+endpoint_template = "/v1/api/info"
+inputs = []
+
+[[commands.fields]]
+name = "players"
+label = "Player List"
+description = "List currently connected players"
+method = "rest"
+http_method = "GET"
+endpoint_template = "/v1/api/players"
+inputs = []
+
+[[commands.fields]]
+name = "save"
+label = "Save World"
+description = "Save the game world"
+method = "rest"
+http_method = "POST"
+endpoint_template = "/v1/api/save"
+inputs = []
+
+[[commands.fields]]
+name = "shutdown"
+label = "Shutdown Server"
+description = "Shutdown the server (with optional delay)"
+method = "rest"
+http_method = "POST"
+endpoint_template = "/v1/api/shutdown"
+inputs = [
+    { name = "waittime", type = "number", label = "Shutdown Delay (seconds)", required = true, default = 30, min = 0, max = 600 },
+    { name = "message", type = "text", label = "Shutdown Message", required = false, placeholder = "Server shutdown announcement" }
+]
+
+[[commands.fields]]
+name = "kick"
+label = "Kick Player"
+description = "Kick a player from the server"
+method = "rest"
+http_method = "POST"
+endpoint_template = "/v1/api/kick"
+inputs = [
+    { name = "userid", type = "text", label = "Player (Nickname or SteamID)", required = true, placeholder = "Player nickname or steam_xxxxxxxxx" },
+    { name = "message", type = "text", label = "Kick Message", required = false, placeholder = "Optional: kick message" }
+]
+
+[[commands.fields]]
+name = "ban"
+label = "Ban Player"
+description = "Permanently ban a player"
+method = "rest"
+http_method = "POST"
+endpoint_template = "/v1/api/ban"
+inputs = [
+    { name = "userid", type = "text", label = "Player (Nickname or SteamID)", required = true, placeholder = "Player nickname or steam_xxxxxxxxx" },
+    { name = "message", type = "text", label = "Ban Message", required = false, placeholder = "Optional: ban message" }
+]
+
+[[commands.fields]]
+name = "unban"
+label = "Unban Player"
+description = "Unban a banned player"
+method = "rest"
+http_method = "POST"
+endpoint_template = "/v1/api/unban"
+inputs = [
+    { name = "userid", type = "text", label = "Player (Nickname or SteamID)", required = true, placeholder = "Player nickname or steam_xxxxxxxxx" }
+]
+
+[errors]
+server_not_running = "Server is not running. Please start the server first"
+auth_failed = "Authentication failed: please check AdminPassword"
+player_not_found = "Player not found. Please check the nickname or SteamID"
+connection_refused = "Cannot connect to server. Please check server port and REST API settings"
+timeout = "Server response timeout. Please check server status"
+rest_api_disabled = "REST API is disabled. It will be auto-enabled on next server start."
+internal_server_error = "Internal server error occurred"
+
+[aliases]
+module_aliases = ["팰월드", "팔월드", "pw", "palworld"]
+
+[aliases.commands]
+start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
+stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
+status = { aliases = ["상태", "상황", "확인"], description = "Check server status" }
+announce = { aliases = ["공지", "공지사항", "알림"], description = "Send a broadcast announcement" }
+save = { aliases = ["저장"], description = "Save the game world" }
+info = { aliases = ["정보", "인포"], description = "View server information" }
+players = { aliases = ["플레이어", "접속자", "유저"], description = "List connected players" }
+shutdown = { aliases = ["종료", "셧다운"], description = "Shutdown the server" }
+kick = { aliases = ["킥", "강퇴", "추방"], description = "Kick a player" }
+ban = { aliases = ["밴", "차단", "영구밴"], description = "Ban a player" }
+unban = { aliases = ["언밴", "차단해제"], description = "Unban a player" }
+
+# ─── Console Syntax Highlighting ─────────────────────────
+# Palworld는 보통 commands 모드지만, managed_start 시 콘솔 출력이 표시될 수 있음
+
+[syntax_highlight]
+
+# 1. 로그 레벨
+[[syntax_highlight.rules]]
+name = "level_warning"
+pattern = '(?P<hl>Warning):'
+color = "warn"
+bold = true
+
+[[syntax_highlight.rules]]
+name = "level_error"
+pattern = '(?P<hl>Error|Fatal):'
+color = "error"
+bold = true
+
+[[syntax_highlight.rules]]
+name = "level_info"
+pattern = '(?P<hl>Info):'
+color = "info"
+
+# 2. IP 주소
+[[syntax_highlight.rules]]
+name = "ip_address"
+pattern = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?'
+color = "ip"
+
+# 3. UE 로그 카테고리 [LogXxx]
+[[syntax_highlight.rules]]
+name = "ue_log_category"
+pattern = '\[(?P<hl>Log\w+)\]'
+color = "dim"
+
+# 4. 파일 경로 (Windows/Linux)
+[[syntax_highlight.rules]]
+name = "file_path"
+pattern = '[A-Z]:\\[\w\\./\-]+'
+color = "path"
+
+[[syntax_highlight.rules]]
+name = "unix_path"
+pattern = '/[\w/.\-]+'
+color = "path"

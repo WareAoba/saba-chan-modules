@@ -1,0 +1,92 @@
+{
+  "module": {
+    "display_name": "Palworld",
+    "description": "Модуль управления сервером Palworld"
+  },
+  "settings": {
+    "executable_path": { "label": "Путь к исполняемому файлу сервера", "description": "Путь к исполняемому файлу сервера" },
+    "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },
+    "rcon_port": { "label": "Порт RCON", "description": "Порт RCON" },
+    "rcon_password": { "label": "Пароль RCON", "description": "Пароль для удалённого выполнения команд" },
+    "rest_host": { "label": "Хост REST API", "description": "Хост REST API (по умолчанию 127.0.0.1)" },
+    "rest_port": { "label": "Порт REST API", "description": "Порт REST API (по умолчанию 8212)" },
+    "rest_password": { "label": "Пароль REST", "description": "Пароль REST Basic Auth" }
+  },
+  "commands": {
+    "announce": {
+      "label": "Отправить объявление",
+      "description": "Транслировать сообщение на сервер",
+      "inputs": {
+        "message": { "label": "Сообщение объявления", "placeholder": "Введите сообщение объявления" }
+      }
+    },
+    "info": { "label": "Информация о сервере", "description": "Просмотр информации о сервере" },
+    "players": { "label": "Список игроков", "description": "Список подключённых игроков" },
+    "save": { "label": "Сохранить мир", "description": "Сохранить игровой мир" },
+    "shutdown": {
+      "label": "Выключить сервер",
+      "description": "Выключить сервер (с необязательной задержкой)",
+      "inputs": {
+        "waittime": { "label": "Задержка выключения (секунды)" },
+        "message": { "label": "Сообщение о выключении", "placeholder": "Объявление о выключении сервера" }
+      }
+    },
+    "kick": {
+      "label": "Кикнуть игрока",
+      "description": "Выгнать игрока с сервера",
+      "inputs": {
+        "userid": { "label": "Игрок (никнейм или SteamID)", "placeholder": "Никнейм игрока или steam_xxxxxxxxx" },
+        "message": { "label": "Сообщение кика", "placeholder": "Необязательно: сообщение кика" }
+      }
+    },
+    "ban": {
+      "label": "Забанить игрока",
+      "description": "Навсегда забанить игрока",
+      "inputs": {
+        "userid": { "label": "Игрок (никнейм или SteamID)", "placeholder": "Никнейм игрока или steam_xxxxxxxxx" },
+        "message": { "label": "Сообщение бана", "placeholder": "Необязательно: сообщение бана" }
+      }
+    },
+    "unban": {
+      "label": "Разбанить игрока",
+      "description": "Разбанить забаненного игрока",
+      "inputs": {
+        "userid": { "label": "Игрок (никнейм или SteamID)", "placeholder": "Никнейм игрока или steam_xxxxxxxxx" }
+      }
+    }
+  },
+  "errors": {
+    "failed_to_start": "Ошибка запуска: {{error}}",
+    "no_pid_provided": "PID не предоставлен",
+    "failed_to_kill": "Ошибка завершения процесса: {{error}}",
+    "failed_to_stop": "Ошибка остановки: {{error}}",
+    "daemon_connection_error": "Ошибка подключения демона: {{error}}",
+    "invalid_json_response": "Недействительный JSON ответ от демона: {{error}}",
+    "daemon_error": "Ошибка демона: {{error}}",
+    "player_list_failed": "Ошибка получения списка игроков: {{error}}",
+    "server_info_failed": "Ошибка получения информации о сервере: {{error}}"
+  },
+  "messages": {
+    "starting_server": "Запуск сервера: {{command}}",
+    "working_directory": "Рабочий каталог: {{path}}",
+    "server_starting": "Сервер Palworld запускается с PID {{pid}}",
+    "shutdown_signal_sent": "Сигнал выключения отправлен на PID {{pid}}",
+    "force_killed": "PID {{pid}} принудительно завершен",
+    "signal_sent": "Сигнал {{signal}} отправлен на PID {{pid}}",
+    "no_process_running": "Нет запущенных процессов",
+    "executing_command": "Выполнение команды через демон: {{command}} с аргументами: {{args}}",
+    "daemon_rcon_response": "RCON ответ демона: {{result}}",
+    "broadcast_message": "Трансляция сообщения: {{message}}",
+    "save_triggered": "Сохранение сервера инициировано",
+    "shutdown_initiated": "Выключение сервера инициировано ({{seconds}}s обратный отсчет)",
+    "rest_api_forced_on": "[Политика] REST API принудительно включен",
+    "rcon_forced_off": "[Политика] RCON принудительно отключен (устарел)",
+    "admin_password_generated": "[Политика] AdminPassword автоматически сгенерирован для аутентификации REST API"
+  },
+  "reset": {
+    "no_path": "Не удается определить каталог сервера. Установите working_dir или server_executable.",
+    "not_found": "Файл настроек не найден. Запустите сервер один раз для его создания.",
+    "settings_success": "Все настройки сервера сброшены до заводских значений. Данные мира сохранены.",
+    "settings_failed": "Не удалось записать настройки по умолчанию в файл конфигурации."
+  }
+}

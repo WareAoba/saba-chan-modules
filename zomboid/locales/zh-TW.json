@@ -1,0 +1,47 @@
+{
+  "module": {
+    "display_name": "Project Zomboid",
+    "description": "Project Zomboid 專用伺服器管理模組，提供完整的生命週期管理"
+  },
+  "settings": {
+    "executable_path": { "label": "可執行檔路徑", "description": "StartServer64.bat（Windows）或 start-server.sh（Linux）的路徑" },
+    "ram": { "label": "記憶體（RAM）", "description": "最大記憶體配置量（GB）" },
+    "server_name": { "label": "設定檔名稱", "description": "伺服器設定檔名稱" },
+    "rcon_port": { "label": "RCON 連接埠", "description": "遠端控制台 RCON 連接埠" },
+    "rcon_password": { "label": "RCON 密碼", "description": "RCON 認證密碼" },
+    "admin_password": { "label": "管理員密碼", "description": "管理員帳戶密碼" },
+    "public_name": { "label": "伺服器名稱", "description": "在瀏覽器中顯示的名稱" },
+    "public_description": { "label": "描述", "description": "在伺服器瀏覽器中可見的描述" },
+    "password": { "label": "伺服器密碼", "description": "連線伺服器所需的密碼" },
+    "max_players": { "label": "最大玩家數", "description": "最大玩家連線數" },
+    "port": { "label": "遊戲連接埠", "description": "主 UDP 遊戲連接埠" },
+    "pvp": { "label": "PVP", "description": "啟用玩家對戰" },
+    "open": { "label": "開放伺服器", "description": "對所有人開放（無白名單）" },
+    "pause_empty": { "label": "空服暫停", "description": "無玩家時暫停世界" },
+    "global_chat": { "label": "全域聊天", "description": "啟用全域聊天" },
+    "map": { "label": "地圖", "description": "遊戲地圖" },
+    "mods": { "label": "模組", "description": "分號分隔的模組 ID 清單" },
+    "workshop_items": { "label": "Workshop 物品", "description": "分號分隔的 Workshop ID 清單" }
+  },
+  "commands": {
+    "servermsg": { "label": "傳送訊息", "description": "傳送全體訊息", "inputs": { "message": { "label": "訊息", "placeholder": "輸入訊息" } } },
+    "players": { "label": "玩家清單", "description": "顯示在線玩家" },
+    "save": { "label": "儲存世界", "description": "儲存目前世界" },
+    "kick": { "label": "踢除玩家", "description": "將玩家踢出伺服器", "inputs": { "player": { "label": "玩家" }, "reason": { "label": "原因" } } },
+    "banuser": { "label": "封鎖玩家", "description": "封鎖玩家", "inputs": { "player": { "label": "玩家" }, "reason": { "label": "原因" } } },
+    "unbanuser": { "label": "解除封鎖", "description": "解除玩家封鎖", "inputs": { "player": { "label": "玩家" } } },
+    "quit": { "label": "關閉伺服器", "description": "儲存並安全關閉" }
+  },
+  "errors": {
+    "no_server_dir": "找不到伺服器安裝目錄。",
+    "executable_not_found": "找不到伺服器可執行檔。",
+    "java_not_found": "找不到內建 Java 執行環境。",
+    "server_not_running": "伺服器未執行。"
+  },
+  "messages": {
+    "server_online": "伺服器在線並正在回應",
+    "graceful_stop": "伺服器已正常停止（PID {{pid}}）",
+    "install_complete": "Project Zomboid 伺服器安裝成功",
+    "server_reset_complete": "伺服器世界資料已重置"
+  }
+}

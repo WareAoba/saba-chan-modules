@@ -10,6 +10,7 @@
     "rcon_password": { "label": "Mot de passe RCON", "description": "Mot de passe d'exécution de commandes à distance" },
     "rest_host": { "label": "Hôte REST API", "description": "Hôte REST API (par défaut 127.0.0.1)" },
     "rest_port": { "label": "Port REST API", "description": "Port REST API (par défaut 8212)" },
+    "rest_username": { "label": "Nom d'utilisateur REST", "description": "Nom d'utilisateur REST Basic Auth" },
     "rest_password": { "label": "Mot de passe REST", "description": "Mot de passe REST Basic Auth" }
   },
   "commands": {

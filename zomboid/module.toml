@@ -1,0 +1,1456 @@
+[module]
+name = "zomboid"
+version = "0.1.0"
+description = "Project Zomboid dedicated server management module"
+game_name = "Project Zomboid"
+display_name = "Project Zomboid"
+entry = "lifecycle.py"
+icon = "icon.png"
+log_pattern = '(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)'
+
+[update]
+github_repo = "saba-chan-modules"
+
+[protocols]
+supported = ["rcon", "stdin"]
+default = "rcon"
+interaction_mode = "console"
+
+[config]
+executable_path = ""
+server_executable = "StartServer64.bat"
+process_name = "java.exe"
+default_port = 16261
+rcon_port = 27015
+stop_command = "quit"
+
+[install]
+method = "steamcmd"
+app_id = 380870
+anonymous = true
+install_subdir = "server"
+platform = "windows"
+beta_branch = "unstable"
+
+[docker]
+image = "steamcmd/steamcmd:latest"
+working_dir = "/server"
+restart = "unless-stopped"
+entrypoint = "/bin/bash -c"
+command = "exec /server/start-server.sh -servername {server_name}"
+user = "1000:1000"
+ports = ["{port}:{port}/udp", "{direct_port}:{direct_port}/udp", "{rcon_port}:{rcon_port}/tcp"]
+volumes = ["./server:/server", "./data:/home/pzuser/Zomboid"]
+
+[docker.environment]
+PORT = "{port}"
+
+[detection]
+process_patterns = ["ProjectZomboid64", "zombie.network.GameServer", "start-server"]
+# cmd_patterns: java.exe 프로세스의 커맨드라인에서 Zomboid 서버를 식별하는 패턴
+# 같은 java.exe를 쓰는 다른 게임 서버(예: Minecraft)와 구분하기 위해 사용
+cmd_patterns = ["zombie.network.GameServer", "ProjectZomboid", "pzserver", "zomboid"]
+common_paths = [
+    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Project Zomboid Dedicated Server",
+    "C:\\PZServer",
+    "D:\\SteamLibrary\\steamapps\\common\\Project Zomboid Dedicated Server",
+]
+# dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴
+# 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
+dir_signatures = ["ProjectZomboid64.exe", "start-server.bat"]
+
+# ═══════════════════════════════════════════════════════════
+#                       SETTINGS
+# ═══════════════════════════════════════════════════════════
+
+[settings]
+
+# ========== saba-chan 전용 설정 ==========
+
+[[settings.fields]]
+name = "executable_path"
+type = "file"
+label = "Server Executable Path"
+description = "Path to StartServer64.bat (Windows) or start-server.sh (Linux)"
+required = true
+group = "saba-chan"
+
+[[settings.fields]]
+name = "ram"
+type = "number"
+label = "Memory (RAM)"
+description = "Maximum memory allocation in GB"
+default = 4
+min = 1
+max = 64
+step = 1
+group = "saba-chan"
+
+[[settings.fields]]
+name = "server_name"
+type = "text"
+label = "Server Profile Name"
+description = "Name of the server profile (determines INI filename, default: servertest)"
+default = "servertest"
+group = "saba-chan"
+
+[[settings.fields]]
+name = "rcon_port"
+type = "number"
+label = "RCON Port"
+description = "Port for RCON remote console (only used when Managed Start is disabled)"
+default = 27015
+min = 1
+max = 65535
+group = "advanced"
+
+[[settings.fields]]
+name = "rcon_password"
+type = "password"
+label = "RCON Password"
+description = "Password for RCON authentication (auto-managed when Managed Start is enabled)"
+required = false
+group = "advanced"
+
+[[settings.fields]]
+name = "admin_password"
+type = "password"
+label = "Admin Password"
+description = "Default admin account password (set on first launch)"
+required = false
+group = "saba-chan"
+
+[[settings.fields]]
+name = "no_steam"
+type = "boolean"
+label = "No Steam Mode"
+description = "Run server in non-Steam mode (allows GoG players to connect)"
+default = false
+group = "saba-chan"
+
+[[settings.fields]]
+name = "managed_start"
+type = "boolean"
+label = "Managed Start (Console)"
+description = "Start in managed mode with stdin/stdout console (RCON disabled). Disable for native mode (RCON auto-enabled)."
+default = true
+group = "saba-chan"
+
+[[settings.fields]]
+name = "graceful_stop"
+type = "boolean"
+label = "Graceful Stop"
+description = "Send 'save' + 'quit' commands and wait for server to shut down gracefully. Disable for immediate force-kill."
+default = true
+group = "saba-chan"
+
+# ========== servertest.ini - 기본 설정 ==========
+
+[[settings.fields]]
+name = "public_name"
+type = "text"
+label = "Server Name"
+description = "Name displayed in the server browser"
+default = "My PZ Server"
+
+[[settings.fields]]
+name = "public_description"
+type = "text"
+label = "Server Description"
+description = "Server description visible in the browser"
+default = ""
+
+[[settings.fields]]
+name = "password"
+type = "password"
+label = "Server Password"
+description = "Password required to join the server (leave empty for no password)"
+default = ""
+
+[[settings.fields]]
+name = "max_players"
+type = "number"
+label = "Max Players"
+description = "Maximum number of players allowed (1-100)"
+default = 16
+min = 1
+max = 100
+
+[[settings.fields]]
+name = "port"
+type = "number"
+label = "Game Port"
+description = "UDP port the game server listens on"
+default = 16261
+min = 1024
+max = 65535
+
+[[settings.fields]]
+name = "pvp"
+type = "boolean"
+label = "PVP"
+description = "Allow player vs player combat"
+default = true
+
+[[settings.fields]]
+name = "open"
+type = "boolean"
+label = "Open Server"
+description = "Open to all players (no whitelist required)"
+default = true
+
+[[settings.fields]]
+name = "public"
+type = "boolean"
+label = "Public Visibility"
+description = "Show server in the public Steam server browser"
+default = false
+
+[[settings.fields]]
+name = "pause_empty"
+type = "boolean"
+label = "Pause When Empty"
+description = "Pause the game world when no players are connected"
+default = true
+
+[[settings.fields]]
+name = "global_chat"
+type = "boolean"
+label = "Global Chat"
+description = "Enable global chat (/all command)"
+default = true
+
+[[settings.fields]]
+name = "map"
+type = "text"
+label = "Map"
+description = "Map to play on"
+default = "Muldraugh, KY"
+
+[[settings.fields]]
+name = "mods"
+type = "text"
+label = "Mods"
+description = "Semicolon-separated list of mod IDs to enable"
+default = ""
+
+[[settings.fields]]
+name = "workshop_items"
+type = "text"
+label = "Workshop Items"
+description = "Semicolon-separated list of Steam Workshop item IDs"
+default = ""
+
+[[settings.fields]]
+name = "announce_death"
+type = "boolean"
+label = "Announce Death"
+description = "Server-wide announcement when a character dies"
+default = false
+
+[[settings.fields]]
+name = "server_welcome_message"
+type = "text"
+label = "Welcome Message"
+description = "Welcome message displayed to players after connecting (use <LINE> for line breaks)"
+default = "Welcome to Project Zomboid Multiplayer!"
+
+[[settings.fields]]
+name = "auto_create_user_in_whitelist"
+type = "boolean"
+label = "Auto-Add to Whitelist"
+description = "Automatically add new players to the whitelist when they join"
+default = false
+
+[[settings.fields]]
+name = "display_user_name"
+type = "boolean"
+label = "Display Username"
+description = "Show player usernames above their heads and in local chat"
+default = true
+
+[[settings.fields]]
+name = "show_first_and_last_name"
+type = "boolean"
+label = "Show Character Name"
+description = "Display character's first and last name instead of username"
+default = false
+
+[[settings.fields]]
+name = "safety_system"
+type = "boolean"
+label = "Safety System"
+description = "Allow players to toggle PvP on/off (requires PVP enabled)"
+default = true
+
+[[settings.fields]]
+name = "sleep_allowed"
+type = "boolean"
+label = "Sleep Allowed"
+description = "Allow players to sleep"
+default = false
+
+[[settings.fields]]
+name = "sleep_needed"
+type = "boolean"
+label = "Sleep Needed"
+description = "Players will need to sleep when exhausted"
+default = false
+
+# ========== 고급 설정 ==========
+
+[[settings.fields]]
+name = "save_world_every_minutes"
+type = "number"
+label = "Auto-Save Interval"
+description = "Save world every N minutes (0 = disabled)"
+default = 0
+min = 0
+max = 1440
+group = "advanced"
+
+[[settings.fields]]
+name = "ping_limit"
+type = "number"
+label = "Ping Limit"
+description = "Ping limit before kick in ms (100 = disabled)"
+default = 400
+min = 100
+max = 2000
+group = "advanced"
+
+[[settings.fields]]
+name = "hours_for_loot_respawn"
+type = "number"
+label = "Loot Respawn Hours"
+description = "In-game hours before loot can respawn (0 = never)"
+default = 0
+min = 0
+max = 8760
+group = "advanced"
+
+[[settings.fields]]
+name = "max_items_for_loot_respawn"
+type = "number"
+label = "Loot Respawn Threshold"
+description = "Max items in container before loot can respawn"
+default = 4
+min = 0
+max = 100
+group = "advanced"
+
+[[settings.fields]]
+name = "no_fire"
+type = "boolean"
+label = "Disable Fire"
+description = "Disable all fire except campfires"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "player_safehouse"
+type = "boolean"
+label = "Player Safehouses"
+description = "Allow players to claim safehouses"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "safehouse_allow_trespass"
+type = "boolean"
+label = "Safehouse Trespassing"
+description = "Allow non-members to enter safehouses"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "safehouse_allow_loot"
+type = "boolean"
+label = "Safehouse Looting"
+description = "Allow non-members to take items from safehouses"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "safehouse_allow_respawn"
+type = "boolean"
+label = "Safehouse Respawn"
+description = "Players respawn in their safehouse after death"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "faction"
+type = "boolean"
+label = "Factions"
+description = "Allow creation and use of factions"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_destruction_by_sledgehammer"
+type = "boolean"
+label = "Sledgehammer Destruction"
+description = "Allow players to destroy world objects with sledgehammer"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "speed_limit"
+type = "number"
+label = "Speed Limit"
+description = "Vehicle speed limit"
+default = 70.0
+min = 10.0
+max = 200.0
+step = 5.0
+group = "advanced"
+
+[[settings.fields]]
+name = "do_lua_checksum"
+type = "boolean"
+label = "Lua Checksum"
+description = "Verify client Lua files match server (disable if using client-side mods)"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "steam_vac"
+type = "boolean"
+label = "Steam VAC"
+description = "Enable Valve Anti-Cheat"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "voice_enable"
+type = "boolean"
+label = "Voice Chat"
+description = "Enable in-game voice chat"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "minutes_per_page"
+type = "number"
+label = "Minutes Per Page"
+description = "In-game minutes needed to read a single page"
+default = 1.0
+min = 0.0
+max = 60.0
+step = 0.5
+group = "advanced"
+
+[[settings.fields]]
+name = "spawn_point"
+type = "text"
+label = "Spawn Point"
+description = "Custom spawn point (x,y,z) — leave as 0,0,0 for default"
+default = "0,0,0"
+group = "advanced"
+
+[[settings.fields]]
+name = "max_accounts_per_user"
+type = "number"
+label = "Max Accounts Per User"
+description = "Maximum accounts a single Steam user may create (0 = unlimited)"
+default = 0
+min = 0
+max = 20
+group = "advanced"
+
+# ========== Safety / PVP Combat ==========
+
+[[settings.fields]]
+name = "show_safety"
+type = "boolean"
+label = "Show Safety Icon"
+description = "Show skull icon when a player has PvP safety toggled off"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "safety_toggle_timer"
+type = "number"
+label = "Safety Toggle Timer"
+description = "Time in minutes to switch between PvP on and off"
+default = 2
+min = 0
+max = 60
+group = "advanced"
+
+[[settings.fields]]
+name = "safety_cooldown_timer"
+type = "number"
+label = "Safety Cooldown Timer"
+description = "Time in minutes before PvP safety can be toggled again"
+default = 3
+min = 0
+max = 60
+group = "advanced"
+
+[[settings.fields]]
+name = "pvp_melee_while_hit_reaction"
+type = "boolean"
+label = "PVP Melee While Hit Reaction"
+description = "Allow melee attacks during hit reaction in PVP"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "pvp_melee_damage_modifier"
+type = "number"
+label = "PVP Melee Damage %"
+description = "PVP melee damage modifier percentage"
+default = 30.0
+min = 0.0
+max = 500.0
+step = 5.0
+group = "advanced"
+
+[[settings.fields]]
+name = "pvp_firearm_damage_modifier"
+type = "number"
+label = "PVP Firearm Damage %"
+description = "PVP firearm damage modifier percentage"
+default = 50.0
+min = 0.0
+max = 500.0
+step = 5.0
+group = "advanced"
+
+# ========== Player Behavior ==========
+
+[[settings.fields]]
+name = "mouse_over_to_see_display_name"
+type = "boolean"
+label = "Mouse Over to See Name"
+description = "Require mouse hover to see player display names"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "hide_players_behind_you"
+type = "boolean"
+label = "Hide Players Behind You"
+description = "Hide players that are behind your character"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "player_bump_player"
+type = "boolean"
+label = "Player Collision"
+description = "Enable physical collision between players"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "player_respawn_with_self"
+type = "boolean"
+label = "Respawn at Death"
+description = "Allow players to respawn at their place of death"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "player_respawn_with_other"
+type = "boolean"
+label = "Respawn at Partner"
+description = "Allow spawning at a splitscreen partner's location"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "drop_off_whitelist_after_death"
+type = "boolean"
+label = "Remove from Whitelist on Death"
+description = "Remove a player from the whitelist if their character dies"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_non_ascii_username"
+type = "boolean"
+label = "Allow Non-ASCII Usernames"
+description = "Allow usernames with non-ASCII characters"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "chat_streams"
+type = "text"
+label = "Chat Streams"
+description = "Comma-separated list of enabled chat streams: s,r,a,w,y,sh,f,all"
+default = "s,r,a,w,y,sh,f,all"
+group = "advanced"
+
+[[settings.fields]]
+name = "player_save_on_damage"
+type = "boolean"
+label = "Save on Damage"
+description = "Auto-save when a player takes damage"
+default = true
+group = "advanced"
+
+# ========== Safehouse (extended) ==========
+
+[[settings.fields]]
+name = "admin_safehouse"
+type = "boolean"
+label = "Admin Safehouses"
+description = "Allow admins to claim safehouses"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "safehouse_allow_fire"
+type = "boolean"
+label = "Safehouse Fire Damage"
+description = "Allow fire to damage safehouses"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "safehouse_day_survived_to_claim"
+type = "number"
+label = "Days to Claim Safehouse"
+description = "Game-world days a player must survive before claiming a safehouse"
+default = 0
+min = 0
+max = 365
+group = "advanced"
+
+[[settings.fields]]
+name = "safehouse_removal_time"
+type = "number"
+label = "Safehouse Removal Hours"
+description = "Real-time hours before inactive members are removed from safehouse"
+default = 144
+min = 0
+max = 8760
+group = "advanced"
+
+[[settings.fields]]
+name = "disable_safehouse_when_player_connected"
+type = "boolean"
+label = "Disable Safehouse When Online"
+description = "Disable safehouse protection when any member is connected"
+default = false
+group = "advanced"
+
+# ========== Faction (extended) ==========
+
+[[settings.fields]]
+name = "faction_day_survived_to_create"
+type = "number"
+label = "Days to Create Faction"
+description = "Game-world days a player must survive to create a faction"
+default = 0
+min = 0
+max = 365
+group = "advanced"
+
+[[settings.fields]]
+name = "faction_players_required_for_tag"
+type = "number"
+label = "Players for Faction Tag"
+description = "Number of members required to display a faction tag"
+default = 1
+min = 1
+max = 100
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_trade_ui"
+type = "boolean"
+label = "Allow Trading"
+description = "Allow direct player-to-player trading"
+default = true
+group = "advanced"
+
+# ========== Loot / World Cleanup ==========
+
+[[settings.fields]]
+name = "construction_prevents_loot_respawn"
+type = "boolean"
+label = "Construction Blocks Loot Respawn"
+description = "Player constructions near containers prevent loot respawn"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "hours_for_world_item_removal"
+type = "number"
+label = "World Item Removal Hours"
+description = "In-game hours before dropped items/corpses disappear (0 = never)"
+default = 0.0
+min = 0.0
+max = 8760.0
+step = 1.0
+group = "advanced"
+
+[[settings.fields]]
+name = "world_item_removal_list"
+type = "text"
+label = "World Item Removal List"
+description = "Comma-separated list of items to auto-remove when placed on ground"
+default = "Base.Vest,Base.Shirt,Base.Blouse,Base.Skirt,Base.Shoes"
+group = "advanced"
+
+[[settings.fields]]
+name = "blood_splat_lifespan_days"
+type = "number"
+label = "Blood Splat Lifespan"
+description = "Days before blood splats fade away (0 = never)"
+default = 0
+min = 0
+max = 365
+group = "advanced"
+
+[[settings.fields]]
+name = "item_numbers_limit_per_container"
+type = "number"
+label = "Item Limit Per Container"
+description = "Maximum items allowed per container (0 = unlimited)"
+default = 0
+min = 0
+max = 10000
+group = "advanced"
+
+[[settings.fields]]
+name = "trash_delete_all"
+type = "boolean"
+label = "Delete All Trash"
+description = "Delete all trash items immediately"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "remove_player_corpses_on_corpse_removal"
+type = "boolean"
+label = "Remove Player Corpses"
+description = "Remove player corpses when corpse cleanup occurs"
+default = false
+group = "advanced"
+
+# ========== Network / Steam ==========
+
+[[settings.fields]]
+name = "ping_frequency"
+type = "number"
+label = "Ping Frequency"
+description = "How often the server checks connection to players (seconds)"
+default = 10
+min = 1
+max = 60
+group = "advanced"
+
+[[settings.fields]]
+name = "deny_login_on_overloaded_server"
+type = "boolean"
+label = "Deny Login When Overloaded"
+description = "Prevent new connections when server is overloaded"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "kick_fast_players"
+type = "boolean"
+label = "Kick Speed Hackers"
+description = "Kick players moving faster than possible (may be buggy)"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "steam_port1"
+type = "number"
+label = "Steam Port 1"
+description = "First Steam networking port"
+default = 8766
+min = 1024
+max = 65535
+group = "advanced"
+
+[[settings.fields]]
+name = "steam_port2"
+type = "number"
+label = "Steam Port 2"
+description = "Second Steam networking port"
+default = 8767
+min = 1024
+max = 65535
+group = "advanced"
+
+[[settings.fields]]
+name = "steam_scoreboard"
+type = "text"
+label = "Steam Scoreboard"
+description = "Show Steam names/avatars in player list (true/false/admin)"
+default = "true"
+group = "advanced"
+
+[[settings.fields]]
+name = "upnp"
+type = "boolean"
+label = "UPnP"
+description = "Enable UPnP for automatic port forwarding"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "upnp_lease_time"
+type = "number"
+label = "UPnP Lease Time"
+description = "UPnP port mapping lease time in seconds"
+default = 86400
+min = 0
+max = 604800
+group = "advanced"
+
+[[settings.fields]]
+name = "upnp_zero_lease_time_fallback"
+type = "boolean"
+label = "UPnP Zero Lease Fallback"
+description = "Fall back to zero lease time if specific lease fails"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "upnp_force"
+type = "boolean"
+label = "Force UPnP"
+description = "Force UPnP even if the router doesn't support it well"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "server_browser_announced_ip"
+type = "text"
+label = "Announced IP"
+description = "Custom IP to announce in the server browser (leave empty for auto)"
+default = ""
+group = "advanced"
+
+[[settings.fields]]
+name = "use_tcp_for_map_downloads"
+type = "boolean"
+label = "TCP Map Downloads"
+description = "Use TCP instead of UDP for map data downloads"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "physics_delay"
+type = "number"
+label = "Physics Delay"
+description = "Physics simulation delay in milliseconds"
+default = 500
+min = 0
+max = 5000
+group = "advanced"
+
+[[settings.fields]]
+name = "fast_forward_multiplier"
+type = "number"
+label = "Fast Forward Multiplier"
+description = "Speed multiplier when fast-forwarding time"
+default = 40.0
+min = 1.0
+max = 200.0
+step = 5.0
+group = "advanced"
+
+[[settings.fields]]
+name = "car_engine_attraction_modifier"
+type = "number"
+label = "Car Engine Attraction"
+description = "How much car engines attract zombies (multiplier)"
+default = 0.5
+min = 0.0
+max = 10.0
+step = 0.1
+group = "advanced"
+
+# ========== Co-op ==========
+
+[[settings.fields]]
+name = "coop_server_launch_timeout"
+type = "number"
+label = "Co-op Launch Timeout"
+description = "Timeout in seconds for co-op server launch"
+default = 20
+min = 5
+max = 120
+group = "advanced"
+
+[[settings.fields]]
+name = "coop_master_ping_timeout"
+type = "number"
+label = "Co-op Ping Timeout"
+description = "Timeout in seconds for co-op master ping"
+default = 60
+min = 10
+max = 300
+group = "advanced"
+
+# ========== Voice Chat ==========
+
+[[settings.fields]]
+name = "voice_complexity"
+type = "number"
+label = "Voice Complexity"
+description = "Opus voice codec complexity (1-10, higher = better quality)"
+default = 5
+min = 1
+max = 10
+group = "advanced"
+
+[[settings.fields]]
+name = "voice_period"
+type = "number"
+label = "Voice Period"
+description = "Voice frame period in milliseconds"
+default = 20
+min = 10
+max = 60
+group = "advanced"
+
+[[settings.fields]]
+name = "voice_sample_rate"
+type = "number"
+label = "Voice Sample Rate"
+description = "Voice sample rate in Hz"
+default = 24000
+min = 8000
+max = 48000
+group = "advanced"
+
+[[settings.fields]]
+name = "voice_buffering"
+type = "number"
+label = "Voice Buffering"
+description = "Voice buffering in milliseconds"
+default = 8000
+min = 1000
+max = 30000
+group = "advanced"
+
+[[settings.fields]]
+name = "voice_min_distance"
+type = "number"
+label = "Voice Min Distance"
+description = "Minimum distance for voice attenuation"
+default = 10.0
+min = 0.0
+max = 100.0
+step = 1.0
+group = "advanced"
+
+[[settings.fields]]
+name = "voice_max_distance"
+type = "number"
+label = "Voice Max Distance"
+description = "Maximum distance for hearing voice chat"
+default = 300.0
+min = 10.0
+max = 1000.0
+step = 10.0
+group = "advanced"
+
+[[settings.fields]]
+name = "voice_3d"
+type = "boolean"
+label = "3D Voice"
+description = "Enable 3D positional voice chat"
+default = true
+group = "advanced"
+
+# ========== Discord Integration ==========
+
+[[settings.fields]]
+name = "discord_enable"
+type = "boolean"
+label = "Discord Integration"
+description = "Enable built-in Discord bot integration"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "discord_token"
+type = "password"
+label = "Discord Token"
+description = "Discord bot token for integration"
+default = ""
+group = "advanced"
+
+[[settings.fields]]
+name = "discord_channel"
+type = "text"
+label = "Discord Channel"
+description = "Discord channel name for server messages"
+default = ""
+group = "advanced"
+
+[[settings.fields]]
+name = "discord_channel_id"
+type = "text"
+label = "Discord Channel ID"
+description = "Discord channel ID for server messages"
+default = ""
+group = "advanced"
+
+# ========== Radio Visibility ==========
+
+[[settings.fields]]
+name = "disable_radio_staff"
+type = "boolean"
+label = "Disable Radio (Staff)"
+description = "Hide radio frequency for staff members"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "disable_radio_admin"
+type = "boolean"
+label = "Disable Radio (Admin)"
+description = "Hide radio frequency for admins"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "disable_radio_gm"
+type = "boolean"
+label = "Disable Radio (GM)"
+description = "Hide radio frequency for game masters"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "disable_radio_overseer"
+type = "boolean"
+label = "Disable Radio (Overseer)"
+description = "Hide radio frequency for overseers"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "disable_radio_moderator"
+type = "boolean"
+label = "Disable Radio (Moderator)"
+description = "Hide radio frequency for moderators"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "disable_radio_invisible"
+type = "boolean"
+label = "Disable Radio (Invisible)"
+description = "Hide radio frequency for invisible players"
+default = true
+group = "advanced"
+
+# ========== Client Filter ==========
+
+[[settings.fields]]
+name = "client_command_filter"
+type = "text"
+label = "Client Command Filter"
+description = "Filter rules for client commands (prefix + to allow, - to deny)"
+default = "-vehicle.*;+vehicle.damageWindow;+vehicle.fixPart;+vehicle.installPart;+vehicle.uninstallPart"
+group = "advanced"
+
+# ========== Zombie Performance ==========
+
+[[settings.fields]]
+name = "zombie_update_max_high_priority"
+type = "number"
+label = "Zombie Max High Priority Updates"
+description = "Maximum number of high-priority zombie updates per tick"
+default = 50
+min = 1
+max = 500
+group = "advanced"
+
+[[settings.fields]]
+name = "zombie_update_delta"
+type = "number"
+label = "Zombie Update Delta"
+description = "Time delta between zombie updates"
+default = 0.5
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "zombie_update_radius_low_priority"
+type = "number"
+label = "Zombie Low Priority Radius"
+description = "Radius for low-priority zombie updates"
+default = 45.0
+min = 10.0
+max = 200.0
+step = 5.0
+group = "advanced"
+
+[[settings.fields]]
+name = "zombie_update_radius_high_priority"
+type = "number"
+label = "Zombie High Priority Radius"
+description = "Radius for high-priority zombie updates"
+default = 10.0
+min = 1.0
+max = 100.0
+step = 1.0
+group = "advanced"
+
+[[settings.fields]]
+name = "ban_kick_global_sound"
+type = "boolean"
+label = "Ban/Kick Sound"
+description = "Play a global sound when a player is banned or kicked"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "save_transaction_id"
+type = "boolean"
+label = "Save Transaction ID"
+description = "Save transaction ID for debugging"
+default = false
+group = "advanced"
+
+# ═══════════════════════════════════════════════════════════
+#                       COMMANDS
+# ═══════════════════════════════════════════════════════════
+
+[commands]
+
+[[commands.fields]]
+name = "servermsg"
+label = "Broadcast Message"
+description = "Broadcast a message to all connected players"
+method = "rcon"
+rcon_template = "servermsg \"{message}\""
+inputs = [
+    { name = "message", type = "text", label = "Message", required = true, placeholder = "Enter message to broadcast" }
+]
+
+[[commands.fields]]
+name = "players"
+label = "Player List"
+description = "View list of connected players"
+method = "rcon"
+rcon_template = "players"
+inputs = []
+
+[[commands.fields]]
+name = "save"
+label = "Save World"
+description = "Save the current game world"
+method = "rcon"
+rcon_template = "save"
+inputs = []
+
+[[commands.fields]]
+name = "kick"
+label = "Kick Player"
+description = "Kick a player from the server"
+method = "rcon"
+rcon_template = "kick \"{player}\" -r \"{reason}\""
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
+    { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional kick reason" }
+]
+
+[[commands.fields]]
+name = "banuser"
+label = "Ban Player"
+description = "Ban a player from the server"
+method = "rcon"
+rcon_template = "banuser \"{player}\" -r \"{reason}\""
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
+    { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional ban reason" }
+]
+
+[[commands.fields]]
+name = "unbanuser"
+label = "Unban Player"
+description = "Unban a previously banned player"
+method = "rcon"
+rcon_template = "unbanuser \"{player}\""
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" }
+]
+
+[[commands.fields]]
+name = "adduser"
+label = "Add User"
+description = "Add a new user to the whitelist"
+method = "rcon"
+rcon_template = "adduser \"{username}\" \"{password}\""
+inputs = [
+    { name = "username", type = "text", label = "Username", required = true, placeholder = "Account username" },
+    { name = "password", type = "password", label = "Password", required = true, placeholder = "Account password" }
+]
+
+[[commands.fields]]
+name = "setaccesslevel"
+label = "Set Access Level"
+description = "Set a player's access level"
+method = "rcon"
+rcon_template = "setaccesslevel \"{player}\" \"{level}\""
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
+    { name = "level", type = "select", label = "Access Level", required = true, options = ["admin", "moderator", "overseer", "gm", "observer", "none"] }
+]
+
+[[commands.fields]]
+name = "teleport"
+label = "Teleport"
+description = "Teleport to a player"
+method = "rcon"
+rcon_template = "teleport \"{player}\" \"{target}\""
+inputs = [
+    { name = "player", type = "text", label = "Player", required = true, placeholder = "Player to teleport" },
+    { name = "target", type = "text", label = "Target", required = true, placeholder = "Destination player" }
+]
+
+[[commands.fields]]
+name = "teleportto"
+label = "Teleport To Coords"
+description = "Teleport to specific coordinates"
+method = "rcon"
+rcon_template = "teleportto {coords}"
+inputs = [
+    { name = "coords", type = "text", label = "Coordinates", required = true, placeholder = "x,y,z (e.g. 10000,11000,0)" }
+]
+
+[[commands.fields]]
+name = "createhorde"
+label = "Create Horde"
+description = "Spawn a zombie horde near a player"
+method = "rcon"
+rcon_template = "createhorde {count} \"{player}\""
+inputs = [
+    { name = "count", type = "number", label = "Zombie Count", required = true, default = 50, min = 1, max = 500 },
+    { name = "player", type = "text", label = "Player (optional)", required = false, placeholder = "Target player" }
+]
+
+[[commands.fields]]
+name = "godmod"
+label = "God Mode"
+description = "Make a player invincible"
+method = "rcon"
+rcon_template = "godmod \"{player}\" -{value}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
+    { name = "value", type = "select", label = "Enabled", required = true, options = ["true", "false"] }
+]
+
+[[commands.fields]]
+name = "invisible"
+label = "Invisible"
+description = "Make a player invisible to zombies"
+method = "rcon"
+rcon_template = "invisible \"{player}\" -{value}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
+    { name = "value", type = "select", label = "Enabled", required = true, options = ["true", "false"] }
+]
+
+[[commands.fields]]
+name = "startrain"
+label = "Start Rain"
+description = "Start raining on the server"
+method = "rcon"
+rcon_template = "startrain"
+inputs = []
+
+[[commands.fields]]
+name = "stoprain"
+label = "Stop Rain"
+description = "Stop raining on the server"
+method = "rcon"
+rcon_template = "stoprain"
+inputs = []
+
+[[commands.fields]]
+name = "chopper"
+label = "Helicopter Event"
+description = "Trigger a helicopter event on a random player"
+method = "rcon"
+rcon_template = "chopper"
+inputs = []
+
+[[commands.fields]]
+name = "gunshot"
+label = "Gunshot Sound"
+description = "Place a gunshot sound on a random player"
+method = "rcon"
+rcon_template = "gunshot"
+inputs = []
+
+[[commands.fields]]
+name = "additem"
+label = "Give Item"
+description = "Give an item to a player"
+method = "rcon"
+rcon_template = "additem \"{player}\" \"{item}\" {count}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
+    { name = "item", type = "text", label = "Item ID", required = true, placeholder = "e.g. Base.Axe" },
+    { name = "count", type = "number", label = "Count", required = false, default = 1, min = 1, max = 1000 }
+]
+
+[[commands.fields]]
+name = "addxp"
+label = "Give XP"
+description = "Give experience to a player"
+method = "rcon"
+rcon_template = "addxp \"{player}\" {perk}={amount}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
+    { name = "perk", type = "text", label = "Perk Name", required = true, placeholder = "e.g. Woodwork, Cooking" },
+    { name = "amount", type = "number", label = "XP Amount", required = true, default = 100, min = 1, max = 100000 }
+]
+
+[[commands.fields]]
+name = "showoptions"
+label = "Show Server Options"
+description = "Display current server option values"
+method = "rcon"
+rcon_template = "showoptions"
+inputs = []
+
+[[commands.fields]]
+name = "reloadoptions"
+label = "Reload Options"
+description = "Reload server options from INI file"
+method = "rcon"
+rcon_template = "reloadoptions"
+inputs = []
+
+[[commands.fields]]
+name = "changeoption"
+label = "Change Option"
+description = "Change a server option at runtime"
+method = "rcon"
+rcon_template = "changeoption {option} \"{value}\""
+inputs = [
+    { name = "option", type = "text", label = "Option Name", required = true, placeholder = "e.g. MaxPlayers" },
+    { name = "value", type = "text", label = "New Value", required = true, placeholder = "New value" }
+]
+
+[[commands.fields]]
+name = "quit"
+label = "Shutdown Server"
+description = "Save and gracefully shut down the server"
+method = "rcon"
+rcon_template = "quit"
+inputs = []
+
+# ═══════════════════════════════════════════════════════════
+#                       ERRORS
+# ═══════════════════════════════════════════════════════════
+
+[errors]
+server_not_running = "Server is not running. Please start the server first"
+rcon_auth_failed = "RCON authentication failed: please check the RCON password"
+player_not_found = "Player not found. Please check the username"
+connection_refused = "Cannot connect to server. Please check that the server is running and the port is correct"
+timeout = "Server response timeout. Please check server status"
+java_not_found = "Could not find bundled Java — the server installation may be incomplete"
+
+[aliases]
+module_aliases = ["좀보이드", "프로젝트 좀보이드", "프좀", "pz", "zomboid", "project zomboid"]
+
+[aliases.commands]
+start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
+stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
+status = { aliases = ["상태", "상황", "확인"], description = "Check server status" }
+servermsg = { aliases = ["공지", "공지사항", "알림", "메시지"], description = "Broadcast a message" }
+save = { aliases = ["저장", "세이브"], description = "Save the game world" }
+players = { aliases = ["플레이어", "접속자", "유저"], description = "List connected players" }
+quit = { aliases = ["종료", "셧다운"], description = "Shutdown the server" }
+kick = { aliases = ["킥", "강퇴", "추방"], description = "Kick a player" }
+banuser = { aliases = ["밴", "차단", "영구밴"], description = "Ban a player" }
+unbanuser = { aliases = ["언밴", "차단해제"], description = "Unban a player" }
+adduser = { aliases = ["유저추가", "계정추가"], description = "Add a user" }
+
+# ═══════════════════════════════════════════════════════════
+#                   SYNTAX HIGHLIGHTING
+# ═══════════════════════════════════════════════════════════
+
+[syntax_highlight]
+
+[[syntax_highlight.rules]]
+name = "timestamp"
+pattern = '^\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}:\d{2}\.\d+'
+color = "timestamp"
+
+[[syntax_highlight.rules]]
+name = "level_error"
+pattern = '(?P<hl>ERROR|FATAL)'
+color = "error"
+bold = true
+
+[[syntax_highlight.rules]]
+name = "level_warning"
+pattern = '(?P<hl>WARN(ING)?)'
+color = "warn"
+bold = true
+
+[[syntax_highlight.rules]]
+name = "level_info"
+pattern = '(?P<hl>LOG|INFO)'
+color = "info"
+
+[[syntax_highlight.rules]]
+name = "level_debug"
+pattern = '(?P<hl>DEBUG)'
+color = "dim"
+
+[[syntax_highlight.rules]]
+name = "log_category"
+pattern = '> (?P<hl>\w+(\.\w+)+)'
+color = "keyword"
+
+[[syntax_highlight.rules]]
+name = "ip_address"
+pattern = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?'
+color = "ip"
+
+[[syntax_highlight.rules]]
+name = "player_connected"
+pattern = '(?P<hl>\w+)\s+(fully )?connected'
+color = "player"
+bold = true
+
+[[syntax_highlight.rules]]
+name = "player_disconnected"
+pattern = '(?P<hl>\w+)\s+disconnected'
+color = "player"
+
+[[syntax_highlight.rules]]
+name = "file_path_win"
+pattern = '[A-Z]:\\[\w\\./\-]+'
+color = "path"
+
+[[syntax_highlight.rules]]
+name = "file_path_unix"
+pattern = '/[\w/.\-]+'
+color = "path"
+
+[[syntax_highlight.rules]]
+name = "server_started"
+pattern = '(?P<hl>Server Started|SERVER STARTED)'
+color = "success"
+bold = true
+
+[[syntax_highlight.rules]]
+name = "steam_id"
+pattern = '(?P<hl>76\d{15})'
+color = "uuid"

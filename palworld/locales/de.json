@@ -10,6 +10,7 @@
     "rcon_password": { "label": "RCON-Passwort", "description": "Passwort für Fernbefehlsausführung" },
     "rest_host": { "label": "REST-API-Host", "description": "REST-API-Host (Standard 127.0.0.1)" },
     "rest_port": { "label": "REST-API-Port", "description": "REST-API-Port (Standard 8212)" },
+    "rest_username": { "label": "REST-Benutzername", "description": "REST Basic Auth Benutzername" },
     "rest_password": { "label": "REST-Passwort", "description": "REST Basic Auth Passwort" }
   },
   "commands": {

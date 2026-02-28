@@ -10,7 +10,7 @@ log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
 
 # 모듈 업데이트 설정 — 모듈은 별도 GitHub 레포지토리에서 관리됩니다
 [update]
-github_repo = "saba-chan-module-palworld"  # github_owner는 본체 설정에서 상속
+github_repo = "saba-chan-modules"  # github_owner는 본체 설정에서 상속
 
 [protocols]
 supported = ["rest"]
@@ -24,6 +24,27 @@ process_name = "PalServer-Win64-Shipping-Cmd"
 default_port = 8211
 stop_command = "Shutdown"  # stdin으로 전송하는 graceful 종료 명령어
 
+[install]
+method = "steamcmd"
+app_id = 2394010
+anonymous = true
+install_subdir = "server"
+platform = "windows"
+
+[docker]
+image = "steamcmd/steamcmd:latest"
+working_dir = "/server"
+restart = "unless-stopped"
+entrypoint = "/bin/bash -c"
+command = "exec /server/PalServer.sh -port={port} -RESTAPIEnabled=True -RCONEnabled=False"
+user = "1000:1000"
+ports = ["{port}:{port}/udp", "{rest_port}:{rest_port}/tcp"]
+volumes = ["./server:/server"]
+
+[docker.environment]
+PORT = "{port}"
+REST_API_PORT = "{rest_port}"
+
 [detection]
 process_patterns = ["PalServer-Win64-Shipping-Cmd", "PalServer", "PalServer-Win64"]
 common_paths = [
@@ -31,6 +52,9 @@ common_paths = [
     "D:\\SteamLibrary\\steamapps\\common\\PalServer",
     "C:\\Games\\Palworld\\server"
 ]
+# dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴
+# 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
+dir_signatures = ["PalServer.exe"]
 
 [settings]
 
@@ -60,6 +84,14 @@ description = "REST API port (default 8212)"
 default = 8212
 min = 1
 max = 65535
+group = "saba-chan"
+
+[[settings.fields]]
+name = "rest_username"
+type = "text"
+label = "REST Username"
+description = "REST Basic Auth username"
+required = false
 group = "saba-chan"
 
 [[settings.fields]]
@@ -584,7 +616,7 @@ inputs = [
 
 [errors]
 server_not_running = "Server is not running. Please start the server first"
-auth_failed = "Authentication failed: please check AdminPassword"
+auth_failed = "Authentication failed: please check REST API username/password"
 player_not_found = "Player not found. Please check the nickname or SteamID"
 connection_refused = "Cannot connect to server. Please check server port and REST API settings"
 timeout = "Server response timeout. Please check server status"

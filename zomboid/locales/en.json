@@ -1,0 +1,230 @@
+{
+  "module": {
+    "display_name": "Project Zomboid",
+    "description": "Project Zomboid dedicated server management module with full lifecycle control"
+  },
+  "settings": {
+    "executable_path": { "label": "Server Executable Path", "description": "Path to StartServer64.bat (Windows) or start-server.sh (Linux)" },
+    "ram": { "label": "Memory (RAM)", "description": "Maximum memory allocation in GB" },
+    "server_name": { "label": "Server Profile Name", "description": "Name of the server profile (determines INI file name)" },
+    "rcon_port": { "label": "RCON Port", "description": "Port for RCON remote console" },
+    "rcon_password": { "label": "RCON Password", "description": "Password for RCON authentication" },
+    "admin_password": { "label": "Admin Password", "description": "Default admin account password (set on first launch)" },
+    "no_steam": { "label": "No Steam Mode", "description": "Run server without Steam (allows GoG players)" },
+    "public_name": { "label": "Server Name", "description": "Name displayed in the server browser" },
+    "public_description": { "label": "Server Description", "description": "Server description visible in the browser" },
+    "password": { "label": "Server Password", "description": "Password required to join the server" },
+    "max_players": { "label": "Max Players", "description": "Maximum number of players allowed" },
+    "port": { "label": "Game Port", "description": "UDP port the game server listens on" },
+    "pvp": { "label": "PVP", "description": "Allow player vs player combat" },
+    "open": { "label": "Open Server", "description": "Open to all players (no whitelist)" },
+    "public": { "label": "Public Visibility", "description": "Show server in the Steam server browser" },
+    "pause_empty": { "label": "Pause When Empty", "description": "Pause world when no players are connected" },
+    "global_chat": { "label": "Global Chat", "description": "Enable global chat (/all command)" },
+    "map": { "label": "Map", "description": "Map to play on" },
+    "mods": { "label": "Mods", "description": "Semicolon-separated list of mod IDs" },
+    "workshop_items": { "label": "Workshop Items", "description": "Semicolon-separated list of Workshop item IDs" },
+    "announce_death": { "label": "Announce Death", "description": "Announce when a character dies" },
+    "safety_system": { "label": "Safety System", "description": "Allow PvP toggle per player" },
+    "sleep_allowed": { "label": "Sleep Allowed", "description": "Allow players to sleep" },
+    "sleep_needed": { "label": "Sleep Needed", "description": "Players need to sleep when exhausted" },
+    "save_world_every_minutes": { "label": "Auto-Save Interval", "description": "Auto-save interval in minutes" },
+    "ping_limit": { "label": "Ping Limit", "description": "Kick threshold in ms" },
+    "hours_for_loot_respawn": { "label": "Loot Respawn Hours", "description": "In-game hours before loot respawn" },
+    "max_items_for_loot_respawn": { "label": "Loot Respawn Threshold", "description": "Max items for loot respawn trigger" },
+    "no_fire": { "label": "Disable Fire", "description": "Disable all fire except campfires" },
+    "player_safehouse": { "label": "Player Safehouses", "description": "Allow safehouse claiming" },
+    "safehouse_allow_trespass": { "label": "Safehouse Trespassing", "description": "Allow non-members to enter" },
+    "safehouse_allow_loot": { "label": "Safehouse Looting", "description": "Allow non-members to loot" },
+    "safehouse_allow_respawn": { "label": "Safehouse Respawn", "description": "Respawn in safehouse after death" },
+    "faction": { "label": "Factions", "description": "Allow factions" },
+    "allow_destruction_by_sledgehammer": { "label": "Sledgehammer Destruction", "description": "Allow structure destruction" },
+    "speed_limit": { "label": "Speed Limit", "description": "Vehicle speed limit" },
+    "do_lua_checksum": { "label": "Lua Checksum", "description": "Verify client Lua files" },
+    "steam_vac": { "label": "Steam VAC", "description": "Enable Valve Anti-Cheat" },
+    "voice_enable": { "label": "Voice Chat", "description": "Enable in-game voice chat" },
+    "minutes_per_page": { "label": "Minutes Per Page", "description": "Reading speed" },
+    "spawn_point": { "label": "Spawn Point", "description": "Custom spawn coordinates" },
+    "max_accounts_per_user": { "label": "Max Accounts Per User", "description": "Account limit per Steam user" }
+  },
+  "commands": {
+    "servermsg": {
+      "label": "Broadcast Message",
+      "description": "Broadcast a message to all connected players",
+      "inputs": { "message": { "label": "Message", "placeholder": "Enter message to broadcast" } }
+    },
+    "players": { "label": "Player List", "description": "View list of connected players" },
+    "save": { "label": "Save World", "description": "Save the current game world" },
+    "kick": {
+      "label": "Kick Player",
+      "description": "Kick a player from the server",
+      "inputs": {
+        "player": { "label": "Player Name", "placeholder": "Player username" },
+        "reason": { "label": "Reason", "placeholder": "Optional reason" }
+      }
+    },
+    "banuser": {
+      "label": "Ban Player",
+      "description": "Ban a player from the server",
+      "inputs": {
+        "player": { "label": "Player Name", "placeholder": "Player username" },
+        "reason": { "label": "Reason", "placeholder": "Optional reason" }
+      }
+    },
+    "unbanuser": {
+      "label": "Unban Player",
+      "description": "Unban a previously banned player",
+      "inputs": { "player": { "label": "Player Name", "placeholder": "Player username" } }
+    },
+    "adduser": {
+      "label": "Add User",
+      "description": "Add a new user to the server",
+      "inputs": {
+        "username": { "label": "Username", "placeholder": "Account username" },
+        "password": { "label": "Password", "placeholder": "Account password" }
+      }
+    },
+    "setaccesslevel": {
+      "label": "Set Access Level",
+      "description": "Set a player's access level",
+      "inputs": {
+        "player": { "label": "Player Name", "placeholder": "Player username" },
+        "level": { "label": "Access Level" }
+      }
+    },
+    "teleport": {
+      "label": "Teleport",
+      "description": "Teleport to a player",
+      "inputs": {
+        "player": { "label": "Player", "placeholder": "Player to teleport" },
+        "target": { "label": "Target", "placeholder": "Destination player" }
+      }
+    },
+    "teleportto": {
+      "label": "Teleport To Coords",
+      "description": "Teleport to specific coordinates",
+      "inputs": { "coords": { "label": "Coordinates", "placeholder": "x,y,z" } }
+    },
+    "createhorde": {
+      "label": "Create Horde",
+      "description": "Spawn a zombie horde near a player",
+      "inputs": {
+        "count": { "label": "Zombie Count" },
+        "player": { "label": "Player (optional)", "placeholder": "Target player" }
+      }
+    },
+    "godmod": {
+      "label": "God Mode",
+      "description": "Make a player invincible",
+      "inputs": {
+        "player": { "label": "Player Name", "placeholder": "Player username" },
+        "value": { "label": "Enabled" }
+      }
+    },
+    "invisible": {
+      "label": "Invisible",
+      "description": "Make a player invisible to zombies",
+      "inputs": {
+        "player": { "label": "Player Name", "placeholder": "Player username" },
+        "value": { "label": "Enabled" }
+      }
+    },
+    "startrain": { "label": "Start Rain", "description": "Start raining on the server" },
+    "stoprain": { "label": "Stop Rain", "description": "Stop raining on the server" },
+    "chopper": { "label": "Helicopter Event", "description": "Trigger a helicopter event" },
+    "gunshot": { "label": "Gunshot Sound", "description": "Place a gunshot sound" },
+    "additem": {
+      "label": "Give Item",
+      "description": "Give an item to a player",
+      "inputs": {
+        "player": { "label": "Player Name", "placeholder": "Player username" },
+        "item": { "label": "Item ID", "placeholder": "e.g. Base.Axe" },
+        "count": { "label": "Count" }
+      }
+    },
+    "addxp": {
+      "label": "Give XP",
+      "description": "Give experience to a player",
+      "inputs": {
+        "player": { "label": "Player Name", "placeholder": "Player username" },
+        "perk": { "label": "Perk Name", "placeholder": "e.g. Woodwork" },
+        "amount": { "label": "XP Amount" }
+      }
+    },
+    "showoptions": { "label": "Show Server Options", "description": "Display current server settings" },
+    "reloadoptions": { "label": "Reload Options", "description": "Reload server options from INI" },
+    "changeoption": {
+      "label": "Change Option",
+      "description": "Change a server option at runtime",
+      "inputs": {
+        "option": { "label": "Option Name", "placeholder": "e.g. MaxPlayers" },
+        "value": { "label": "New Value", "placeholder": "New value" }
+      }
+    },
+    "quit": { "label": "Shutdown Server", "description": "Save and gracefully shut down" }
+  },
+  "errors": {
+    "no_server_dir": "Server installation directory not found. Please set the server executable path.",
+    "executable_not_found": "Server executable (StartServer64.bat or start-server.sh) not found in the server directory.",
+    "java_not_found": "Could not find bundled Java (jre64/bin/java). The server installation may be incomplete.",
+    "classpath_not_found": "Could not find Java class files (java/*.jar) in the server directory. The installation may be incomplete.",
+    "no_install_dir": "No installation directory specified. Please set a working directory.",
+    "steamcmd_not_found": "SteamCMD not found. Please install SteamCMD to download the server.",
+    "install_failed": "Server installation failed: {{error}}",
+    "install_timeout": "Server installation timed out after 10 minutes.",
+    "no_settings": "No settings provided",
+    "properties_write_failed": "Failed to write configuration: {{error}}",
+    "failed_to_kill": "Failed to kill process: {{error}}",
+    "server_not_running": "Server is not running. Please start the server first.",
+    "server_reset_partial": "Some items could not be deleted: {{errors}}",
+    "detect": {
+      "out_of_memory": "Server ran out of memory (OutOfMemoryError)",
+      "port_in_use": "Port {{port}} is already in use by another application",
+      "illegal_termination": "Illegal termination of worker thread — possible Build 41/42 conflict",
+      "permission_denied": "Permission denied — cannot access required files",
+      "server_crash": "The server has crashed",
+      "mod_error": "A mod error was detected in the server log",
+      "save_status": "Save operation status detected"
+    },
+    "solutions": {
+      "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
+      "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
+      "java_not_found": "The server should include a bundled JRE. Try reinstalling the server or verifying file integrity via SteamCMD.",
+      "classpath_not_found": "The java/ directory in the server folder should contain .jar files. Try verifying the installation via SteamCMD.",
+      "out_of_memory": "Increase the RAM allocation in server settings (Memory). Default is 4 GB; try 8 GB or more for larger servers.",
+      "port_in_use": "Port {{port}} is in use. Stop the conflicting application or change the port in settings.",
+      "illegal_termination": "This usually happens when upgrading from Build 41 to 42. Back up your settings and delete the %USERPROFILE%\\Zomboid folder, then restart the server.",
+      "permission_denied": "Run saba-chan as administrator, or change file permissions to allow read/write access to the server and data directories.",
+      "server_crash": "Check the console.txt log for details. Common causes: mod conflicts, corrupted world data, or insufficient memory.",
+      "mod_error": "A mod is causing errors. Try disabling recently added mods or check the Workshop page for compatibility updates.",
+      "save_status": "This is informational. If saves are failing, check disk space and file permissions.",
+      "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
+    }
+  },
+  "messages": {
+    "server_online": "Server is online and responding",
+    "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",
+    "no_process_running": "No process running",
+    "shutdown_signal_sent": "Sent shutdown signal to PID {{pid}}",
+    "force_killed": "Force killed PID {{pid}}",
+    "graceful_stop": "Server stopped gracefully (PID {{pid}})",
+    "graceful_stop_timeout": "Graceful shutdown timed out, proceeding to force stop",
+    "save_before_quit": "Saving world before shutdown...",
+    "properties_updated": "Server configuration updated successfully",
+    "properties_using_defaults": "Configuration file does not exist — showing defaults",
+    "no_mappable_settings": "No settings could be mapped to server configuration keys",
+    "install_complete": "Project Zomboid server installed successfully",
+    "server_reset_complete": "Server world data reset complete",
+    "rcon_password_generated": "Auto-generated RCON password (none was set)"
+  },
+  "rcon": {
+    "connecting": "Connecting to {{host}}:{{port}}...",
+    "connected": "Connected!",
+    "authentication_failed": "Authentication failed",
+    "authenticated": "Authenticated!",
+    "connection_failed": "Connection failed: {{error}}",
+    "sending_command": "Sending command: {{command}}",
+    "response_received": "Response received: {{response}}",
+    "command_failed": "Command failed: {{error}}"
+  }
+}

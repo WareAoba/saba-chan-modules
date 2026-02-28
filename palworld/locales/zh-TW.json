@@ -10,6 +10,7 @@
     "rcon_password": { "label": "RCON密碼", "description": "遠端命令執行密碼" },
     "rest_host": { "label": "REST API主機", "description": "REST API主機（預設127.0.0.1）" },
     "rest_port": { "label": "REST API連接埠", "description": "REST API連接埠（預設8212）" },
+    "rest_username": { "label": "REST使用者名稱", "description": "REST Basic Auth 使用者名稱" },
     "rest_password": { "label": "REST密碼", "description": "REST Basic Auth 密碼" }
   },
   "commands": {

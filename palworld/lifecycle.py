@@ -18,10 +18,13 @@ import urllib.error
 import urllib.parse
 from i18n import I18n
 
-# Shared RCON client
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from _shared.rcon import RconClient
-from _shared.ue4_ini import parse_option_settings, write_option_settings, OptionDict
+# PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+
+# RCON communication delegates to the Rust daemon's HTTP API
+from daemon_rcon import DaemonRconClient as RconClient
+# UE4 INI parser (shared extension)
+from extensions.ue4_ini import parse_option_settings, write_option_settings
 
 # Initialize i18n
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -31,10 +34,11 @@ i18n = I18n(MODULE_DIR)
 DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
 
 class PalworldRconClient:
-    """Palworld RCON client — delegates to shared RconClient."""
+    """Palworld RCON client — delegates to Rust daemon's RCON API."""
     
-    def __init__(self, host='127.0.0.1', port=25575, password=''):
-        self._client = RconClient(host, int(port), password)
+    def __init__(self, host='127.0.0.1', port=25575, password='', instance_id=None):
+        self._instance_id = instance_id
+        self._client = RconClient(instance_id or '', host, int(port), password)
     
     def connect(self):
         """Connect to RCON server"""
@@ -68,13 +72,13 @@ class PalworldRconClient:
 class PalworldRestClient:
     """Minimal REST client for Palworld built-in REST API."""
 
-    def __init__(self, host='127.0.0.1', port=8212, password='', timeout=5):
+    def __init__(self, host='127.0.0.1', port=8212, username='', password='', timeout=5):
         self.base_url = f"http://{host}:{port}/v1/api"
-        self.auth_header = self._build_auth(password) if password else None
+        self.auth_header = self._build_auth(username, password) if username or password else None
         self.timeout = timeout
 
-    def _build_auth(self, password):
-        token = base64.b64encode(f"admin:{password}".encode('utf-8')).decode('utf-8')
+    def _build_auth(self, username, password):
+        token = base64.b64encode(f"{username}:{password}".encode('utf-8')).decode('utf-8')
         return f"Basic {token}"
 
     def _request(self, method, path, payload=None):
@@ -155,6 +159,7 @@ def resolve_player_id(instance_id, player_input, config):
         # config에서 REST 설정 가져오기
         rest_host = config.get("rest_host", "127.0.0.1")
         rest_port = config.get("rest_port", 8212)
+        rest_username = config.get("rest_username", "")
         rest_password = config.get("rest_password", "")
         
         # 직접 Palworld 서버에 REST 요청 (Daemon을 거치지 않음 - 데드락 방지)
@@ -163,9 +168,9 @@ def resolve_player_id(instance_id, player_input, config):
         
         req = urllib.request.Request(palworld_url, method='GET')
         
-        # Basic Auth 설정 (Palworld는 username이 항상 "admin")
-        if rest_password:
-            credentials = f"admin:{rest_password}"
+        # Basic Auth 설정
+        if rest_username and rest_password:
+            credentials = f"{rest_username}:{rest_password}"
             encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
             req.add_header('Authorization', f'Basic {encoded_credentials}')
         
@@ -342,9 +347,6 @@ def _enforce_rest_policy(working_dir):
     if changes:
         _write_option_settings(ini_path, props)
         return {"changed": True, "changes": changes}
-
-    # Always re-write to fix quoting (e.g. ServerPassword="" not ServerPassword=)
-    _write_option_settings(ini_path, props)
     return {"changed": False}
 
 
@@ -539,17 +541,8 @@ def status(config):
 # ║            PalWorldSettings.ini Manager                   ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-# Keys that are string-typed in UE4 and MUST always be double-quoted,
-# even when the value is empty (e.g. ServerPassword="").
-# Derived from the official DefaultPalWorldSettings.ini.
-_PALWORLD_STRING_KEYS = {
-    "RandomizerSeed", "ServerName", "ServerDescription",
-    "AdminPassword", "ServerPassword", "PublicIP", "Region",
-    "BanListURL", "AdditionalDropItemWhenPlayerKillingInPvPMode",
-}
-
 # Default values from DefaultPalWorldSettings.ini
-_DEFAULT_PALWORLD_SETTINGS_RAW = {
+DEFAULT_PALWORLD_SETTINGS = {
     "Difficulty": "None",
     "RandomizerType": "None",
     "RandomizerSeed": "",
@@ -659,10 +652,6 @@ _DEFAULT_PALWORLD_SETTINGS_RAW = {
     "bAllowEnhanceStat_Weight": "True",
     "bAllowEnhanceStat_WorkSpeed": "True",
 }
-
-# Build OptionDict with correct _quoted_keys for use in reset/defaults
-DEFAULT_PALWORLD_SETTINGS = OptionDict(_DEFAULT_PALWORLD_SETTINGS_RAW)
-DEFAULT_PALWORLD_SETTINGS._quoted_keys = set(_PALWORLD_STRING_KEYS)
 
 # saba-chan key → PalWorldSettings.ini key (full mapping)
 _PALWORLD_KEY_MAP = {
@@ -806,7 +795,12 @@ def _get_settings_ini_path(config):
     if not working_dir:
         return None
 
-    if sys.platform == "win32":
+    # 컨테이너 모드: 서버가 Linux 컨테이너에서 실행되므로 항상 LinuxServer 경로 사용
+    ext_data = config.get("extension_data", {})
+    use_container = ext_data.get("docker_enabled", False) if isinstance(ext_data, dict) else config.get("use_docker", False)
+    if use_container:
+        platform_dir = "LinuxServer"
+    elif sys.platform == "win32":
         platform_dir = "WindowsServer"
     else:
         platform_dir = "LinuxServer"
@@ -815,16 +809,8 @@ def _get_settings_ini_path(config):
     return ini_path
 
 
-# UE4 INI parse/write delegated to _shared.ue4_ini
-
-
-def _parse_option_settings(ini_path):
-    """Parse INI and ensure Palworld string-typed keys are always marked as quoted."""
-    props = parse_option_settings(ini_path)
-    props._quoted_keys |= _PALWORLD_STRING_KEYS
-    return props
-
-
+# UE4 INI parse/write delegated to extensions.ue4_ini
+_parse_option_settings = parse_option_settings
 _write_option_settings = write_option_settings
 
 
@@ -890,22 +876,25 @@ def validate(config):
     """Validate prerequisites before starting Palworld server."""
     issues = []
     executable = config.get("server_executable")
+    ext_data = config.get("extension_data", {})
+    use_container = ext_data.get("docker_enabled", False) if isinstance(ext_data, dict) else config.get("use_docker", False)
 
-    # Executable check
-    if not executable:
-        issues.append({
-            "code": "NO_EXECUTABLE",
-            "severity": "critical",
-            "message": i18n.t("validate.no_executable", defaultValue="Server executable path not specified."),
-            "solution": i18n.t("validate.no_executable_hint", defaultValue="Set the path to PalServer.exe in instance settings."),
-        })
-    elif not os.path.isfile(executable):
-        issues.append({
-            "code": "EXECUTABLE_NOT_FOUND",
-            "severity": "critical",
-            "message": i18n.t("validate.executable_not_found", path=executable, defaultValue=f"Executable not found: {executable}"),
-            "solution": i18n.t("validate.executable_not_found_hint", defaultValue="Check the executable path or reinstall the server."),
-        })
+    # 실행 파일 검사 (컨테이너 모드에서는 컨테이너 내부에서 실행하므로 검사 불필요)
+    if not use_container:
+        if not executable:
+            issues.append({
+                "code": "NO_EXECUTABLE",
+                "severity": "critical",
+                "message": i18n.t("validate.no_executable", defaultValue="Server executable path not specified."),
+                "solution": i18n.t("validate.no_executable_hint", defaultValue="Set the path to PalServer.exe in instance settings."),
+            })
+        elif not os.path.isfile(executable):
+            issues.append({
+                "code": "EXECUTABLE_NOT_FOUND",
+                "severity": "critical",
+                "message": i18n.t("validate.executable_not_found", path=executable, defaultValue=f"Executable not found: {executable}"),
+                "solution": i18n.t("validate.executable_not_found_hint", defaultValue="Check the executable path or reinstall the server."),
+            })
 
     # Working directory
     working_dir = config.get("working_dir")
@@ -981,6 +970,45 @@ def configure(config):
     }
 
 
+def import_settings(config):
+    """Read PalWorldSettings.ini and return settings in saba-chan key format.
+
+    Used during migration to import existing server settings into saba-chan.
+    Returns {"success": True, "settings": { saba_key: value, ... }}
+    """
+    result = read_properties(config)
+    if not result.get("success"):
+        return result
+
+    ini_props = result.get("properties", {})
+    if not ini_props:
+        return {"success": True, "settings": {}, "message": "No properties found."}
+
+    # Build reverse map: INI key → saba-chan key
+    reverse_map = {v: k for k, v in _PALWORLD_KEY_MAP.items()}
+
+    settings = {}
+    for ini_key, raw_value in ini_props.items():
+        saba_key = reverse_map.get(ini_key)
+        if saba_key is None:
+            continue
+
+        # Type coercion: booleans, numbers, strings
+        val = str(raw_value).strip().strip('"')
+        if val.lower() == "true":
+            settings[saba_key] = True
+        elif val.lower() == "false":
+            settings[saba_key] = False
+        else:
+            try:
+                f = float(val)
+                settings[saba_key] = int(f) if f == int(f) else f
+            except (ValueError, OverflowError):
+                settings[saba_key] = val
+
+    return {"success": True, "settings": settings}
+
+
 def read_properties(config):
     """Read current PalWorldSettings.ini."""
     ini_path = _get_settings_ini_path(config)
@@ -1026,7 +1054,7 @@ def reset_properties(config):
     if not os.path.isfile(ini_path):
         return {"success": False, "message": i18n.t("reset.not_found")}
 
-    ok = _write_option_settings(ini_path, DEFAULT_PALWORLD_SETTINGS.copy())
+    ok = _write_option_settings(ini_path, dict(DEFAULT_PALWORLD_SETTINGS))
     return {
         "success": ok,
         "message": i18n.t("reset.settings_success") if ok else i18n.t("reset.settings_failed"),
@@ -1125,8 +1153,50 @@ def get_version_details(config):
 
 
 def install_server(config):
-    """Provide SteamCMD instructions for Palworld server installation."""
+    """Install Palworld dedicated server via SteamCMD extension.
+
+    Uses the saba-chan SteamCMD extension for portable, automatic
+    download.  Falls back to manual instructions when the extension
+    is unavailable.
+    """
     install_dir = config.get("install_dir", "")
+    if not install_dir:
+        working_dir = config.get("working_dir", "")
+        if working_dir:
+            install_dir = os.path.join(working_dir, "server")
+        else:
+            return {"success": False, "message": "No install_dir specified"}
+
+    os.makedirs(install_dir, exist_ok=True)
+
+    # ── SteamCMD extension 사용 시도 ──
+    try:
+        from extensions.steamcmd import SteamCMD
+
+        steam = SteamCMD()
+        steam.ensure_available()
+
+        result = steam.install(
+            app_id=2394010,
+            install_dir=install_dir,
+            anonymous=True,
+        )
+
+        if result.get("success"):
+            exe_name = "PalServer.exe" if sys.platform == "win32" else "PalServer.sh"
+            exe_path = os.path.join(install_dir, exe_name)
+            result["install_path"] = install_dir
+            result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
+
+        return result
+
+    except ImportError:
+        print("[Palworld] SteamCMD extension not available, returning instructions", file=sys.stderr)
+    except Exception as e:
+        print(f"[Palworld] SteamCMD install failed: {e}", file=sys.stderr)
+        return {"success": False, "message": f"SteamCMD install failed: {e}"}
+
+    # ── Fallback: 수동 설치 안내 ──
     return {
         "success": False,
         "message": i18n.t("messages.install_via_steamcmd", defaultValue="Palworld dedicated server must be installed via SteamCMD."),
@@ -1134,7 +1204,7 @@ def install_server(config):
         "steam_app_id": "2394010",
         "instructions": [
             "1. Download SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD",
-            "2. Run: steamcmd +login anonymous +force_install_dir \"{}\" +app_update 2394010 validate +quit".format(
+            "2. Run: steamcmd +force_install_dir \"{}\" +login anonymous +app_update 2394010 validate +quit".format(
                 install_dir or "<install_directory>"
             ),
             "3. Set the executable path in saba-chan to PalServer.exe in the installed directory.",
@@ -1276,6 +1346,7 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
     """직접 Palworld 서버에 REST API 요청 (Daemon을 거치지 않음)"""
     rest_host = config.get("rest_host", "127.0.0.1")
     rest_port = config.get("rest_port", 8212)
+    rest_username = config.get("rest_username", "")
     rest_password = config.get("rest_password", "")
     
     url = f"http://{rest_host}:{rest_port}{endpoint}"
@@ -1291,9 +1362,9 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
             req = urllib.request.Request(url, data=data, method=method)
             req.add_header('Content-Type', 'application/json')
         
-        # Basic Auth 설정 (Palworld는 username이 항상 "admin")
-        if rest_password:
-            credentials = f"admin:{rest_password}"
+        # Basic Auth 설정
+        if rest_username and rest_password:
+            credentials = f"{rest_username}:{rest_password}"
             encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
             req.add_header('Authorization', f'Basic {encoded_credentials}')
         

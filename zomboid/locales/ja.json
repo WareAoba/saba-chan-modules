@@ -1,0 +1,48 @@
+{
+  "module": {
+    "display_name": "Project Zomboid",
+    "description": "Project Zomboid 専用サーバー管理モジュール（完全なライフサイクル制御）"
+  },
+  "settings": {
+    "executable_path": { "label": "サーバー実行ファイルパス", "description": "StartServer64.bat (Windows) または start-server.sh (Linux) のパス" },
+    "ram": { "label": "メモリ (RAM)", "description": "最大メモリ割り当て量 (GB)" },
+    "server_name": { "label": "サーバープロファイル名", "description": "サーバープロファイル名（INIファイル名を決定）" },
+    "rcon_port": { "label": "RCONポート", "description": "RCONリモートコンソールのポート" },
+    "rcon_password": { "label": "RCONパスワード", "description": "RCON認証パスワード" },
+    "admin_password": { "label": "管理者パスワード", "description": "デフォルト管理者アカウントのパスワード（初回起動時に設定）" },
+    "no_steam": { "label": "非Steamモード", "description": "Steam無しでサーバーを実行（GoGプレイヤー接続可能）" },
+    "public_name": { "label": "サーバー名", "description": "サーバーブラウザに表示される名前" },
+    "public_description": { "label": "サーバー説明", "description": "ブラウザに表示されるサーバー説明" },
+    "password": { "label": "サーバーパスワード", "description": "サーバー接続に必要なパスワード" },
+    "max_players": { "label": "最大プレイヤー数", "description": "最大許容プレイヤー数" },
+    "port": { "label": "ゲームポート", "description": "ゲームサーバーが待ち受けるUDPポート" },
+    "pvp": { "label": "PVP", "description": "プレイヤー間戦闘を許可" },
+    "open": { "label": "オープンサーバー", "description": "全プレイヤーに公開（ホワイトリスト不要）" },
+    "pause_empty": { "label": "空のとき一時停止", "description": "プレイヤーがいない時にワールドを一時停止" },
+    "global_chat": { "label": "グローバルチャット", "description": "グローバルチャットを有効化" },
+    "map": { "label": "マップ", "description": "プレイするマップ" },
+    "mods": { "label": "Mod", "description": "セミコロンで区切られたMod IDリスト" },
+    "workshop_items": { "label": "ワークショップアイテム", "description": "セミコロンで区切られたワークショップアイテムID" }
+  },
+  "commands": {
+    "servermsg": { "label": "全体メッセージ送信", "description": "全プレイヤーにメッセージを送信", "inputs": { "message": { "label": "メッセージ", "placeholder": "送信するメッセージを入力" } } },
+    "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤーを表示" },
+    "save": { "label": "ワールド保存", "description": "現在のゲームワールドを保存" },
+    "kick": { "label": "プレイヤーキック", "description": "プレイヤーをサーバーからキック", "inputs": { "player": { "label": "プレイヤー名" }, "reason": { "label": "理由" } } },
+    "banuser": { "label": "プレイヤーBAN", "description": "プレイヤーをBANする", "inputs": { "player": { "label": "プレイヤー名" }, "reason": { "label": "理由" } } },
+    "unbanuser": { "label": "BAN解除", "description": "プレイヤーのBANを解除", "inputs": { "player": { "label": "プレイヤー名" } } },
+    "quit": { "label": "サーバーシャットダウン", "description": "保存して安全にシャットダウン" }
+  },
+  "errors": {
+    "no_server_dir": "サーバーインストールディレクトリが見つかりません。",
+    "executable_not_found": "サーバー実行ファイルが見つかりません。",
+    "java_not_found": "同梱のJavaが見つかりません。",
+    "server_not_running": "サーバーは実行されていません。"
+  },
+  "messages": {
+    "server_online": "サーバーはオンラインで応答しています",
+    "graceful_stop": "サーバーが正常に停止しました (PID {{pid}})",
+    "install_complete": "Project Zomboidサーバーが正常にインストールされました",
+    "server_reset_complete": "サーバーワールドデータがリセットされました"
+  }
+}

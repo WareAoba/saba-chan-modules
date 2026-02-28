@@ -10,6 +10,7 @@
     "rcon_password": { "label": "RCONパスワード", "description": "リモートコマンド実行パスワード" },
     "rest_host": { "label": "REST APIホスト", "description": "REST APIホスト（デフォルト127.0.0.1）" },
     "rest_port": { "label": "REST APIポート", "description": "REST APIポート（デフォルト8212）" },
+    "rest_username": { "label": "RESTユーザー名", "description": "REST Basic Auth ユーザー名" },
     "rest_password": { "label": "RESTパスワード", "description": "REST Basic Auth パスワード" }
   },
   "commands": {

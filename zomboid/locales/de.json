@@ -1,0 +1,48 @@
+{
+  "module": {
+    "display_name": "Project Zomboid",
+    "description": "Project Zomboid Dedicated-Server-Verwaltungsmodul mit vollständiger Lebenszyklussteuerung"
+  },
+  "settings": {
+    "executable_path": { "label": "Server-Ausführungspfad", "description": "Pfad zu StartServer64.bat (Windows) oder start-server.sh (Linux)" },
+    "ram": { "label": "Speicher (RAM)", "description": "Maximale Speicherzuweisung in GB" },
+    "server_name": { "label": "Serverprofil-Name", "description": "Name des Serverprofils (bestimmt INI-Dateiname)" },
+    "rcon_port": { "label": "RCON-Port", "description": "Port für RCON-Fernkonsole" },
+    "rcon_password": { "label": "RCON-Passwort", "description": "Passwort für RCON-Authentifizierung" },
+    "admin_password": { "label": "Admin-Passwort", "description": "Standard-Admin-Konto-Passwort (beim ersten Start)" },
+    "no_steam": { "label": "Kein Steam", "description": "Server ohne Steam starten (GoG-Spieler)" },
+    "public_name": { "label": "Servername", "description": "Im Serverbrowser angezeigter Name" },
+    "public_description": { "label": "Serverbeschreibung", "description": "Im Browser sichtbare Beschreibung" },
+    "password": { "label": "Server-Passwort", "description": "Passwort zum Beitreten" },
+    "max_players": { "label": "Max. Spieler", "description": "Maximale Spieleranzahl" },
+    "port": { "label": "Spielport", "description": "UDP-Port des Servers" },
+    "pvp": { "label": "PVP", "description": "Spieler-gegen-Spieler erlauben" },
+    "open": { "label": "Offener Server", "description": "Für alle offen (keine Whitelist)" },
+    "pause_empty": { "label": "Pause bei leerem Server", "description": "Welt pausieren wenn niemand online" },
+    "global_chat": { "label": "Globaler Chat", "description": "Globalen Chat aktivieren" },
+    "map": { "label": "Karte", "description": "Zu spielende Karte" },
+    "mods": { "label": "Mods", "description": "Semikolon-getrennte Mod-IDs" },
+    "workshop_items": { "label": "Workshop-Items", "description": "Semikolon-getrennte Workshop-IDs" }
+  },
+  "commands": {
+    "servermsg": { "label": "Nachricht senden", "description": "Nachricht an alle senden", "inputs": { "message": { "label": "Nachricht", "placeholder": "Nachricht eingeben" } } },
+    "players": { "label": "Spielerliste", "description": "Verbundene Spieler anzeigen" },
+    "save": { "label": "Welt speichern", "description": "Aktuelle Spielwelt speichern" },
+    "kick": { "label": "Spieler kicken", "description": "Spieler vom Server kicken", "inputs": { "player": { "label": "Spielername" }, "reason": { "label": "Grund" } } },
+    "banuser": { "label": "Spieler bannen", "description": "Spieler vom Server bannen", "inputs": { "player": { "label": "Spielername" }, "reason": { "label": "Grund" } } },
+    "unbanuser": { "label": "Spieler entbannen", "description": "Ban eines Spielers aufheben", "inputs": { "player": { "label": "Spielername" } } },
+    "quit": { "label": "Server herunterfahren", "description": "Speichern und sicher herunterfahren" }
+  },
+  "errors": {
+    "no_server_dir": "Server-Installationsverzeichnis nicht gefunden.",
+    "executable_not_found": "Server-Ausführungsdatei nicht gefunden.",
+    "java_not_found": "Gebündeltes Java nicht gefunden.",
+    "server_not_running": "Server läuft nicht."
+  },
+  "messages": {
+    "server_online": "Server ist online und antwortet",
+    "graceful_stop": "Server wurde sicher heruntergefahren (PID {{pid}})",
+    "install_complete": "Project Zomboid Server erfolgreich installiert",
+    "server_reset_complete": "Server-Weltdaten zurückgesetzt"
+  }
+}

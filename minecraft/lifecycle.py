@@ -26,9 +26,12 @@ import hashlib
 from pathlib import Path
 from i18n import I18n
 
-# Shared RCON client
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from _shared.rcon import rcon_command as _rcon_command
+# RCON communication delegates to the Rust daemon's HTTP API
+from daemon_rcon import rcon_command as _rcon_command_bridge
+
+def _rcon_command(host, port, password, command, timeout=5):
+    """RCON via daemon API if instance_id available, else direct fallback."""
+    return _rcon_command_bridge(host, port, password, command, timeout)
 
 # ─── Init ─────────────────────────────────────────────────────
 
@@ -256,6 +259,198 @@ class JavaDetector:
                                    required=str(min_java)),
             })
         return issues
+
+
+# ╔═══════════════════════════════════════════════════════════╗
+# ║               Java Auto-Download (Adoptium)               ║
+# ╚═══════════════════════════════════════════════════════════╝
+
+class JavaDownloader:
+    """Download portable JRE from Eclipse Adoptium (Temurin) API.
+
+    Downloads a JRE into <install_dir>/java/ so each server instance
+    can have its own self-contained Java runtime without requiring
+    a system-wide installation.
+    """
+
+    # Adoptium API v3 — returns the latest Temurin JRE for a given major version
+    _API_BASE = "https://api.adoptium.net/v3"
+
+    @staticmethod
+    def _platform_info():
+        """Detect OS and arch for Adoptium API query."""
+        import platform as _platform
+        system = _platform.system().lower()
+        machine = _platform.machine().lower()
+
+        if system == "windows":
+            os_name = "windows"
+        elif system == "linux":
+            os_name = "linux"
+        elif system == "darwin":
+            os_name = "mac"
+        else:
+            os_name = system
+
+        if machine in ("x86_64", "amd64"):
+            arch = "x64"
+        elif machine in ("aarch64", "arm64"):
+            arch = "aarch64"
+        else:
+            arch = machine
+
+        return os_name, arch
+
+    @staticmethod
+    def download_jre(major_version, install_dir):
+        """Download and extract a portable JRE into <install_dir>/java/.
+
+        Args:
+            major_version: Java major version (e.g., 21, 17)
+            install_dir: Server install directory
+
+        Returns:
+            dict with success, java_path, java_home, version
+        """
+        import urllib.request
+        import tarfile
+        import zipfile
+
+        os_name, arch = JavaDownloader._platform_info()
+        java_dir = os.path.join(install_dir, "java")
+
+        # Check if already downloaded
+        existing = JavaDownloader._find_bundled_java(java_dir)
+        if existing:
+            info = JavaDetector.get_java_info(existing)
+            if info and info["major_version"] >= major_version:
+                return {
+                    "success": True,
+                    "java_path": existing,
+                    "java_home": java_dir,
+                    "version": info["version"],
+                    "already_exists": True,
+                }
+
+        # Determine archive type
+        ext = "zip" if os_name == "windows" else "tar.gz"
+
+        # Adoptium API: get latest release binary
+        url = (
+            f"{JavaDownloader._API_BASE}/binary/latest/{major_version}/ga/"
+            f"{os_name}/{arch}/jre/hotspot/normal/eclipse"
+            f"?project=jdk"
+        )
+
+        print(f"Downloading Java {major_version} JRE from Adoptium...", file=sys.stderr)
+        print(f"  URL: {url}", file=sys.stderr)
+
+        tmp_file = os.path.join(install_dir, f"java-jre.{ext}")
+
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "saba-chan/1.0"})
+            with urllib.request.urlopen(req, timeout=300) as resp:
+                total = int(resp.headers.get("Content-Length", 0))
+                downloaded = 0
+                chunk_size = 256 * 1024
+
+                with open(tmp_file, "wb") as f:
+                    while True:
+                        chunk = resp.read(chunk_size)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if total > 0:
+                            pct = downloaded * 100 // total
+                            print(f"\r  Java download: {pct}% ({downloaded // 1024 // 1024}MB)", end="", file=sys.stderr)
+
+                print("", file=sys.stderr)
+
+        except Exception as e:
+            if os.path.exists(tmp_file):
+                os.remove(tmp_file)
+            return {"success": False, "message": f"Java download failed: {e}"}
+
+        # Extract
+        print(f"  Extracting to {java_dir}...", file=sys.stderr)
+        os.makedirs(java_dir, exist_ok=True)
+
+        try:
+            if ext == "zip":
+                with zipfile.ZipFile(tmp_file) as zf:
+                    # Adoptium zips have a top-level dir like "jdk-21.0.2+13-jre"
+                    top_dirs = {name.split("/")[0] for name in zf.namelist() if "/" in name}
+                    strip_prefix = top_dirs.pop() + "/" if len(top_dirs) == 1 else ""
+                    for member in zf.infolist():
+                        if member.is_dir():
+                            continue
+                        # Strip top-level directory
+                        rel_path = member.filename
+                        if strip_prefix and rel_path.startswith(strip_prefix):
+                            rel_path = rel_path[len(strip_prefix):]
+                        if not rel_path:
+                            continue
+                        dest = os.path.join(java_dir, rel_path)
+                        os.makedirs(os.path.dirname(dest), exist_ok=True)
+                        with zf.open(member) as src, open(dest, "wb") as dst:
+                            dst.write(src.read())
+            else:
+                with tarfile.open(tmp_file, "r:gz") as tf:
+                    # Same stripping for tar.gz
+                    members = tf.getmembers()
+                    if members:
+                        top_dir = members[0].name.split("/")[0]
+                        for member in members:
+                            if member.name.startswith(top_dir + "/"):
+                                member.name = member.name[len(top_dir) + 1:]
+                            if member.name:
+                                tf.extract(member, java_dir)
+        except Exception as e:
+            return {"success": False, "message": f"Java extraction failed: {e}"}
+        finally:
+            if os.path.exists(tmp_file):
+                os.remove(tmp_file)
+
+        # Make java executable on Unix
+        java_exe = JavaDownloader._find_bundled_java(java_dir)
+        if java_exe and os.name != "nt":
+            import stat
+            st = os.stat(java_exe)
+            os.chmod(java_exe, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+        if not java_exe:
+            return {"success": False, "message": "Java extracted but java executable not found"}
+
+        # Verify it works
+        info = JavaDetector.get_java_info(java_exe)
+        if not info:
+            return {"success": False, "message": "Java extracted but failed to run"}
+
+        print(f"  Java {info['version']} ready at {java_exe}", file=sys.stderr)
+
+        return {
+            "success": True,
+            "java_path": java_exe,
+            "java_home": java_dir,
+            "version": info["version"],
+            "major_version": info["major_version"],
+        }
+
+    @staticmethod
+    def _find_bundled_java(java_dir):
+        """Find java executable inside a bundled JRE directory."""
+        if not os.path.isdir(java_dir):
+            return None
+        exe_name = "java.exe" if os.name == "nt" else "java"
+        candidate = os.path.join(java_dir, "bin", exe_name)
+        if os.path.isfile(candidate):
+            return candidate
+        # Search recursively (some extractions may have nested dirs)
+        for root, _dirs, files in os.walk(java_dir):
+            if exe_name in files:
+                return os.path.join(root, exe_name)
+        return None
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -851,9 +1046,15 @@ def get_launch_command(config):
             "options": ["update_path", "install_new"],
         }
 
-    java_info = JavaDetector.find_java(java_path)
-    if java_info:
-        java_path = java_info["path"]
+    # Prefer bundled Java in <working_dir>/java/ over system Java
+    _wd = working_dir or os.path.dirname(os.path.abspath(server_jar))
+    bundled = JavaDownloader._find_bundled_java(os.path.join(_wd, "java"))
+    if bundled:
+        java_path = bundled
+    else:
+        java_info = JavaDetector.find_java(java_path)
+        if java_info:
+            java_path = java_info["path"]
 
     if not working_dir:
         working_dir = os.path.dirname(os.path.abspath(server_jar))
@@ -924,6 +1125,40 @@ def configure(config):
                    else i18n.t("errors.properties_write_failed"),
         "updated_keys": list(props_changes.keys()),
     }
+
+
+def import_settings(config):
+    """Read server.properties and return settings in saba-chan key format.
+
+    Used during migration to import existing server settings into saba-chan.
+    """
+    result = read_properties(config)
+    if not result.get("success"):
+        return result
+
+    raw_props = result.get("properties", {})
+    if not raw_props:
+        return {"success": True, "settings": {}, "message": "No properties found."}
+
+    # Build reverse map: server.properties key → saba-chan key
+    reverse_map = {v: k for k, v in _PROPERTY_KEY_MAP.items()}
+
+    settings = {}
+    for prop_key, raw_value in raw_props.items():
+        saba_key = reverse_map.get(prop_key, prop_key)
+        val = str(raw_value).strip()
+        if val.lower() == "true":
+            settings[saba_key] = True
+        elif val.lower() == "false":
+            settings[saba_key] = False
+        else:
+            try:
+                f = float(val)
+                settings[saba_key] = int(f) if f == int(f) else f
+            except (ValueError, OverflowError):
+                settings[saba_key] = val
+
+    return {"success": True, "settings": settings}
 
 
 def read_properties(config):
@@ -1084,8 +1319,8 @@ def start(config):
         if java_info:
             java_path = java_info["path"]
 
-        # ram 값을 GB 단위 문자열로 정규화 (숫자만 들어올 수 있음)
-        ram_raw = config.get("ram", "2G")
+        ram_raw = config.get("ram", 2)
+        # Accept plain number (GB). Fractional → MB (e.g. 0.5 → 512M)
         try:
             ram_gb = float(str(ram_raw).rstrip("GgMm"))
             if ram_gb == int(ram_gb):
@@ -1255,7 +1490,7 @@ def _format_command(cmd, args):
 
 
 def _send_rcon_command(host, port, password, command):
-    """Legacy wrapper — delegates to shared RCON client."""
+    """Legacy wrapper — delegates to daemon RCON bridge."""
     return _rcon_command(host, port, password, command)
 
 
@@ -1507,24 +1742,33 @@ class ServerInstaller:
 
             result["settings_applied"] = True
 
-        # Check Java compatibility
+        # Download bundled Java if needed
         java_req = details.get("java_major_version")
         if java_req:
+            # Check if system Java is already sufficient
             java_info = JavaDetector.find_java()
-            if java_info:
-                if java_info["major_version"] < java_req:
-                    result["java_warning"] = (
-                        f"Minecraft {version_id} requires Java {java_req}+, "
-                        f"but your Java is version {java_info['major_version']}. "
-                        f"Please install Java {java_req} or newer."
-                    )
-                else:
-                    result["java_ok"] = True
-                    result["java_version"] = java_info["version"]
+            if java_info and java_info["major_version"] >= java_req:
+                result["java_ok"] = True
+                result["java_path"] = java_info["path"]
+                result["java_version"] = java_info["version"]
             else:
-                result["java_warning"] = (
-                    f"Java not found. Minecraft {version_id} requires Java {java_req}+."
+                # Download portable JRE into the server directory
+                reason = (
+                    f"system Java {java_info['major_version']}" if java_info
+                    else "no system Java found"
                 )
+                print(f"  {reason}, downloading Java {java_req}...", file=sys.stderr)
+                jre_result = JavaDownloader.download_jre(java_req, install_path)
+                if jre_result.get("success"):
+                    result["java_ok"] = True
+                    result["java_path"] = jre_result["java_path"]
+                    result["java_version"] = jre_result.get("version", "")
+                    result["java_bundled"] = True
+                else:
+                    result["java_warning"] = (
+                        f"Failed to download Java {java_req}: {jre_result.get('message')}. "
+                        f"Please install Java {java_req}+ manually."
+                    )
 
         result["message"] = f"Minecraft server {version_id} installed to {install_path}"
         return result

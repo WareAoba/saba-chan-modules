@@ -10,6 +10,7 @@
     "rcon_password": { "label": "RCON 비밀번호", "description": "원격 명령어 실행 비밀번호" },
     "rest_host": { "label": "REST API 호스트", "description": "REST API 호스트 (기본 127.0.0.1)" },
     "rest_port": { "label": "REST API 포트", "description": "REST API 포트 (기본 8212)" },
+    "rest_username": { "label": "REST 사용자명", "description": "REST Basic Auth 사용자명" },
     "rest_password": { "label": "REST 비밀번호", "description": "REST Basic Auth 비밀번호" }
   },
   "commands": {

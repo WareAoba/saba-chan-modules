@@ -10,6 +10,7 @@
     "rcon_password": { "label": "RCON Password", "description": "Remote command execution password" },
     "rest_host": { "label": "REST API Host", "description": "REST API host (default 127.0.0.1)" },
     "rest_port": { "label": "REST API Port", "description": "REST API port (default 8212)" },
+    "rest_username": { "label": "REST Username", "description": "REST Basic Auth username" },
     "rest_password": { "label": "REST Password", "description": "REST Basic Auth password" },
     "server_name": { "label": "Server Name", "description": "Name displayed in the server browser" },
     "server_description": { "label": "Server Description", "description": "Server description" },

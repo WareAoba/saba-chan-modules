@@ -10,7 +10,7 @@ log_pattern = '/(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
 # 모듈 업데이트 설정 — 모듈은 별도 GitHub 레포지토리에서 관리됩니다
 [update]
-github_repo = "saba-chan-module-minecraft"  # github_owner는 본체 설정에서 상속
+github_repo = "saba-chan-modules"  # github_owner는 본체 설정에서 상속
 
 [protocols]
 supported = ["rcon", "stdin"]
@@ -27,14 +27,37 @@ default_port = 25565
 rcon_port = 25575
 ram = "2G"
 
+[install]
+method = "download"
+# Minecraft은 공식 사이트에서 server.jar를 직접 다운로드
+download_url = "https://piston-data.mojang.com/v1/objects/{version_hash}/server.jar"
+install_subdir = "server"
+
+[docker]
+image = "eclipse-temurin:{java_version}-jre-jammy"
+working_dir = "/server"
+restart = "unless-stopped"
+command = "java -Xmx{ram}G -Xms{ram}G -jar server.jar nogui"
+ports = ["{port}:{port}/tcp", "{rcon_port}:{rcon_port}/tcp"]
+volumes = ["./server:/server"]
+
+[docker.environment]
+EULA = "TRUE"
+
 [detection]
-process_patterns = ["java.exe", "minecraft_server"]
+process_patterns = ["java.exe", "java", "minecraft_server", "server.jar"]
+# cmd_patterns: java.exe 프로세스의 커맨드라인에서 Minecraft 서버를 식별하는 패턴
+# 같은 java.exe를 쓰는 다른 게임 서버(예: Zomboid)와 구분하기 위해 사용
+cmd_patterns = ["server.jar", "minecraft_server", "nogui", "net.minecraft"]
 common_paths = [
     "C:\\Users\\*\\Desktop\\MinecraftServer",
     "C:\\MinecraftServer",
     "C:\\Games\\Minecraft\\server",
     "D:\\MinecraftServer"
 ]
+# dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴
+# 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
+dir_signatures = ["server.jar", "server.properties"]
 
 # ─── Settings (displayed in GUI for instance configuration) ───
 
@@ -127,7 +150,7 @@ group = "advanced"
 name = "broadcast_rcon_to_ops"
 type = "boolean"
 label = "Broadcast RCON to Ops"
-description = "Send RCON command output to all online ops"
+description = "Send RCON command output to all online ops (only applies when Managed Start is disabled)"
 default = true
 group = "advanced"
 
@@ -454,17 +477,19 @@ group = "advanced"
 name = "rcon_password"
 type = "password"
 label = "RCON Password"
-description = "RCON access password"
+description = "RCON access password (auto-managed when Managed Start is enabled)"
 default = ""
+group = "advanced"
 
 [[settings.fields]]
 name = "rcon_port"
 type = "number"
 label = "RCON Port"
-description = "RCON server port"
+description = "RCON server port (only used when Managed Start is disabled)"
 default = 25575
 min = 1024
 max = 65535
+group = "advanced"
 
 [[settings.fields]]
 name = "region_file_compression"

@@ -1,0 +1,47 @@
+{
+  "module": {
+    "display_name": "Project Zomboid",
+    "description": "Module de gestion de serveur dédié Project Zomboid avec contrôle complet du cycle de vie"
+  },
+  "settings": {
+    "executable_path": { "label": "Chemin de l'exécutable", "description": "Chemin vers StartServer64.bat (Windows) ou start-server.sh (Linux)" },
+    "ram": { "label": "Mémoire (RAM)", "description": "Allocation mémoire maximale en Go" },
+    "server_name": { "label": "Nom du profil", "description": "Nom du profil serveur" },
+    "rcon_port": { "label": "Port RCON", "description": "Port pour la console distante RCON" },
+    "rcon_password": { "label": "Mot de passe RCON", "description": "Mot de passe d'authentification RCON" },
+    "admin_password": { "label": "Mot de passe admin", "description": "Mot de passe du compte administrateur" },
+    "public_name": { "label": "Nom du serveur", "description": "Nom affiché dans l'explorateur de serveurs" },
+    "public_description": { "label": "Description", "description": "Description visible dans l'explorateur" },
+    "password": { "label": "Mot de passe", "description": "Mot de passe pour rejoindre le serveur" },
+    "max_players": { "label": "Joueurs max", "description": "Nombre maximum de joueurs" },
+    "port": { "label": "Port du jeu", "description": "Port UDP du serveur" },
+    "pvp": { "label": "PVP", "description": "Autoriser le combat joueur contre joueur" },
+    "open": { "label": "Serveur ouvert", "description": "Ouvert à tous (pas de liste blanche)" },
+    "pause_empty": { "label": "Pause si vide", "description": "Mettre en pause quand personne n'est connecté" },
+    "global_chat": { "label": "Chat global", "description": "Activer le chat global" },
+    "map": { "label": "Carte", "description": "Carte à jouer" },
+    "mods": { "label": "Mods", "description": "IDs de mods séparés par des points-virgules" },
+    "workshop_items": { "label": "Items Workshop", "description": "IDs Workshop séparés par des points-virgules" }
+  },
+  "commands": {
+    "servermsg": { "label": "Message global", "description": "Envoyer un message à tous", "inputs": { "message": { "label": "Message", "placeholder": "Entrez le message" } } },
+    "players": { "label": "Liste des joueurs", "description": "Voir les joueurs connectés" },
+    "save": { "label": "Sauvegarder le monde", "description": "Sauvegarder le monde actuel" },
+    "kick": { "label": "Expulser", "description": "Expulser un joueur", "inputs": { "player": { "label": "Joueur" }, "reason": { "label": "Raison" } } },
+    "banuser": { "label": "Bannir", "description": "Bannir un joueur", "inputs": { "player": { "label": "Joueur" }, "reason": { "label": "Raison" } } },
+    "unbanuser": { "label": "Débannir", "description": "Lever le bannissement", "inputs": { "player": { "label": "Joueur" } } },
+    "quit": { "label": "Arrêter le serveur", "description": "Sauvegarder et arrêter" }
+  },
+  "errors": {
+    "no_server_dir": "Répertoire d'installation du serveur introuvable.",
+    "executable_not_found": "Exécutable du serveur introuvable.",
+    "java_not_found": "Java intégré introuvable.",
+    "server_not_running": "Le serveur n'est pas en cours d'exécution."
+  },
+  "messages": {
+    "server_online": "Le serveur est en ligne et répond",
+    "graceful_stop": "Le serveur s'est arrêté correctement (PID {{pid}})",
+    "install_complete": "Serveur Project Zomboid installé avec succès",
+    "server_reset_complete": "Données du monde serveur réinitialisées"
+  }
+}

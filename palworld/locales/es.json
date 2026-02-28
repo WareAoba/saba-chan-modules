@@ -10,6 +10,7 @@
     "rcon_password": { "label": "Contraseña RCON", "description": "Contraseña de ejecución de comandos remotos" },
     "rest_host": { "label": "Host de REST API", "description": "Host de REST API (por defecto 127.0.0.1)" },
     "rest_port": { "label": "Puerto de REST API", "description": "Puerto de REST API (por defecto 8212)" },
+    "rest_username": { "label": "Usuario REST", "description": "Nombre de usuario REST Basic Auth" },
     "rest_password": { "label": "Contraseña REST", "description": "Contraseña REST Basic Auth" }
   },
   "commands": {

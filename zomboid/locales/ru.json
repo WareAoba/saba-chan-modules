@@ -1,0 +1,47 @@
+{
+  "module": {
+    "display_name": "Project Zomboid",
+    "description": "Модуль управления выделенным сервером Project Zomboid с полным контролем жизненного цикла"
+  },
+  "settings": {
+    "executable_path": { "label": "Путь к исполняемому файлу", "description": "Путь к StartServer64.bat (Windows) или start-server.sh (Linux)" },
+    "ram": { "label": "Память (RAM)", "description": "Максимальное выделение памяти в ГБ" },
+    "server_name": { "label": "Имя профиля", "description": "Имя профиля сервера" },
+    "rcon_port": { "label": "Порт RCON", "description": "Порт удалённой консоли RCON" },
+    "rcon_password": { "label": "Пароль RCON", "description": "Пароль аутентификации RCON" },
+    "admin_password": { "label": "Пароль администратора", "description": "Пароль учётной записи администратора" },
+    "public_name": { "label": "Название сервера", "description": "Имя, отображаемое в браузере серверов" },
+    "public_description": { "label": "Описание", "description": "Описание, видимое в браузере" },
+    "password": { "label": "Пароль сервера", "description": "Пароль для подключения к серверу" },
+    "max_players": { "label": "Макс. игроков", "description": "Максимальное количество игроков" },
+    "port": { "label": "Игровой порт", "description": "UDP-порт сервера" },
+    "pvp": { "label": "PVP", "description": "Разрешить бой между игроками" },
+    "open": { "label": "Открытый сервер", "description": "Открыт для всех (без белого списка)" },
+    "pause_empty": { "label": "Пауза при пустом сервере", "description": "Приостановить мир без игроков" },
+    "global_chat": { "label": "Глобальный чат", "description": "Включить глобальный чат" },
+    "map": { "label": "Карта", "description": "Карта для игры" },
+    "mods": { "label": "Моды", "description": "ID модов, разделённые точкой с запятой" },
+    "workshop_items": { "label": "Предметы Workshop", "description": "ID Workshop, разделённые точкой с запятой" }
+  },
+  "commands": {
+    "servermsg": { "label": "Отправить сообщение", "description": "Отправить сообщение всем", "inputs": { "message": { "label": "Сообщение", "placeholder": "Введите сообщение" } } },
+    "players": { "label": "Список игроков", "description": "Показать подключённых игроков" },
+    "save": { "label": "Сохранить мир", "description": "Сохранить текущий мир" },
+    "kick": { "label": "Кикнуть игрока", "description": "Кикнуть игрока с сервера", "inputs": { "player": { "label": "Игрок" }, "reason": { "label": "Причина" } } },
+    "banuser": { "label": "Забанить игрока", "description": "Забанить игрока", "inputs": { "player": { "label": "Игрок" }, "reason": { "label": "Причина" } } },
+    "unbanuser": { "label": "Разбанить", "description": "Снять бан с игрока", "inputs": { "player": { "label": "Игрок" } } },
+    "quit": { "label": "Выключить сервер", "description": "Сохранить и безопасно выключить" }
+  },
+  "errors": {
+    "no_server_dir": "Каталог установки сервера не найден.",
+    "executable_not_found": "Исполняемый файл сервера не найден.",
+    "java_not_found": "Встроенная Java не найдена.",
+    "server_not_running": "Сервер не запущен."
+  },
+  "messages": {
+    "server_online": "Сервер онлайн и отвечает",
+    "graceful_stop": "Сервер остановлен корректно (PID {{pid}})",
+    "install_complete": "Сервер Project Zomboid успешно установлен",
+    "server_reset_complete": "Данные мира сервера сброшены"
+  }
+}

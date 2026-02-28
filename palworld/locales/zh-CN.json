@@ -10,6 +10,7 @@
     "rcon_password": { "label": "RCON密码", "description": "远程命令执行密码" },
     "rest_host": { "label": "REST API主机", "description": "REST API主机（默认127.0.0.1）" },
     "rest_port": { "label": "REST API端口", "description": "REST API端口（默认8212）" },
+    "rest_username": { "label": "REST用户名", "description": "REST Basic Auth用户名" },
     "rest_password": { "label": "REST密码", "description": "REST Basic Auth密码" }
   },
   "commands": {

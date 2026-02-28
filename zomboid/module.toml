@@ -31,6 +31,7 @@ anonymous = true
 install_subdir = "server"
 platform = "windows"
 beta_branch = "unstable"
+requires_extensions = ["steamcmd"]
 
 [docker]
 image = "steamcmd/steamcmd:latest"

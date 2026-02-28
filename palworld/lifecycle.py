@@ -1170,6 +1170,17 @@ def install_server(config):
     os.makedirs(install_dir, exist_ok=True)
 
     # ── SteamCMD extension 사용 시도 ──
+    # 먼저 익스텐션 활성화 상태 확인
+    enabled_exts = os.environ.get("SABA_ENABLED_EXTENSIONS", "").split(",")
+    if "steamcmd" not in enabled_exts:
+        return {
+            "success": False,
+            "message": i18n.t("messages.extension_not_enabled",
+                              defaultValue="SteamCMD extension is not enabled. Enable it in Settings → Extensions first."),
+            "error_code": "extension_required",
+            "missing_extensions": ["steamcmd"],
+        }
+
     try:
         from extensions.steamcmd import SteamCMD
 

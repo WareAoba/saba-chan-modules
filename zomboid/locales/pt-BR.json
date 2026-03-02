@@ -4,7 +4,6 @@
     "description": "Módulo de gerenciamento de servidor dedicado Project Zomboid com controle completo do ciclo de vida"
   },
   "settings": {
-    "executable_path": { "label": "Caminho do executável", "description": "Caminho para StartServer64.bat (Windows) ou start-server.sh (Linux)" },
     "ram": { "label": "Memória (RAM)", "description": "Alocação máxima de memória em GB" },
     "server_name": { "label": "Nome do perfil", "description": "Nome do perfil do servidor" },
     "rcon_port": { "label": "Porta RCON", "description": "Porta para console remoto RCON" },

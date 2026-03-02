@@ -4,7 +4,6 @@
     "description": "Project Zomboid Dedicated-Server-Verwaltungsmodul mit vollständiger Lebenszyklussteuerung"
   },
   "settings": {
-    "executable_path": { "label": "Server-Ausführungspfad", "description": "Pfad zu StartServer64.bat (Windows) oder start-server.sh (Linux)" },
     "ram": { "label": "Speicher (RAM)", "description": "Maximale Speicherzuweisung in GB" },
     "server_name": { "label": "Serverprofil-Name", "description": "Name des Serverprofils (bestimmt INI-Dateiname)" },
     "rcon_port": { "label": "RCON-Port", "description": "Port für RCON-Fernkonsole" },

@@ -4,7 +4,6 @@
     "description": "Project Zomboid 専用サーバー管理モジュール（完全なライフサイクル制御）"
   },
   "settings": {
-    "executable_path": { "label": "サーバー実行ファイルパス", "description": "StartServer64.bat (Windows) または start-server.sh (Linux) のパス" },
     "ram": { "label": "メモリ (RAM)", "description": "最大メモリ割り当て量 (GB)" },
     "server_name": { "label": "サーバープロファイル名", "description": "サーバープロファイル名（INIファイル名を決定）" },
     "rcon_port": { "label": "RCONポート", "description": "RCONリモートコンソールのポート" },
@@ -18,11 +17,34 @@
     "port": { "label": "ゲームポート", "description": "ゲームサーバーが待ち受けるUDPポート" },
     "pvp": { "label": "PVP", "description": "プレイヤー間戦闘を許可" },
     "open": { "label": "オープンサーバー", "description": "全プレイヤーに公開（ホワイトリスト不要）" },
+    "public": { "label": "公開表示", "description": "Steamサーバーブラウザに表示" },
     "pause_empty": { "label": "空のとき一時停止", "description": "プレイヤーがいない時にワールドを一時停止" },
-    "global_chat": { "label": "グローバルチャット", "description": "グローバルチャットを有効化" },
+    "global_chat": { "label": "グローバルチャット", "description": "グローバルチャットを有効化（/allコマンド）" },
     "map": { "label": "マップ", "description": "プレイするマップ" },
     "mods": { "label": "Mod", "description": "セミコロンで区切られたMod IDリスト" },
-    "workshop_items": { "label": "ワークショップアイテム", "description": "セミコロンで区切られたワークショップアイテムID" }
+    "workshop_items": { "label": "ワークショップアイテム", "description": "セミコロンで区切られたワークショップアイテムIDリスト" },
+    "announce_death": { "label": "死亡通知", "description": "キャラクターの死亡を通知" },
+    "safety_system": { "label": "セーフティシステム", "description": "プレイヤーごとのPvPトグルを許可" },
+    "sleep_allowed": { "label": "睡眠許可", "description": "プレイヤーの睡眠を許可" },
+    "sleep_needed": { "label": "睡眠必要", "description": "疲労時に睡眠が必要" },
+    "save_world_every_minutes": { "label": "自動セーブ間隔", "description": "自動セーブ間隔（分）" },
+    "ping_limit": { "label": "Ping制限", "description": "キック閾値（ms）" },
+    "hours_for_loot_respawn": { "label": "ルートリスポーン時間", "description": "ルートリスポーンまでのゲーム内時間" },
+    "max_items_for_loot_respawn": { "label": "ルートリスポーン閾値", "description": "ルートリスポーン用の最大アイテム数" },
+    "no_fire": { "label": "火災無効化", "description": "キャンプファイアを除く火災を無効化" },
+    "player_safehouse": { "label": "プレイヤーセーフハウス", "description": "セーフハウスの獲得を許可" },
+    "safehouse_allow_trespass": { "label": "セーフハウス侵入", "description": "非メンバーの立入を許可" },
+    "safehouse_allow_loot": { "label": "セーフハウスルート", "description": "非メンバーのアイテム取得を許可" },
+    "safehouse_allow_respawn": { "label": "セーフハウスリスポーン", "description": "死亡後セーフハウスでリスポーン" },
+    "faction": { "label": "ファクション", "description": "ファクションを許可" },
+    "allow_destruction_by_sledgehammer": { "label": "スレッジハンマー破壊", "description": "建物の破壊を許可" },
+    "speed_limit": { "label": "速度制限", "description": "車両速度制限" },
+    "do_lua_checksum": { "label": "Luaチェックサム", "description": "クライアントLuaファイルの検証" },
+    "steam_vac": { "label": "Steam VAC", "description": "Valve Anti-Cheatを有効化" },
+    "voice_enable": { "label": "ボイスチャット", "description": "ゲーム内ボイスチャットを有効化" },
+    "minutes_per_page": { "label": "ページ当たり時間", "description": "読書速度" },
+    "spawn_point": { "label": "スポーンポイント", "description": "カスタムスポーン座標" },
+    "max_accounts_per_user": { "label": "ユーザー当たり最大アカウント", "description": "Steamユーザー当たりのアカウント制限" }
   },
   "commands": {
     "servermsg": { "label": "全体メッセージ送信", "description": "全プレイヤーにメッセージを送信", "inputs": { "message": { "label": "メッセージ", "placeholder": "送信するメッセージを入力" } } },
@@ -31,18 +53,156 @@
     "kick": { "label": "プレイヤーキック", "description": "プレイヤーをサーバーからキック", "inputs": { "player": { "label": "プレイヤー名" }, "reason": { "label": "理由" } } },
     "banuser": { "label": "プレイヤーBAN", "description": "プレイヤーをBANする", "inputs": { "player": { "label": "プレイヤー名" }, "reason": { "label": "理由" } } },
     "unbanuser": { "label": "BAN解除", "description": "プレイヤーのBANを解除", "inputs": { "player": { "label": "プレイヤー名" } } },
+    "adduser": {
+      "label": "ユーザー追加",
+      "description": "サーバーに新しいユーザーを追加",
+      "inputs": {
+        "username": { "label": "ユーザー名", "placeholder": "アカウントのユーザー名" },
+        "password": { "label": "パスワード", "placeholder": "アカウントのパスワード" }
+      }
+    },
+    "setaccesslevel": {
+      "label": "アクセスレベル設定",
+      "description": "プレイヤーのアクセスレベルを設定",
+      "inputs": {
+        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
+        "level": { "label": "アクセスレベル" }
+      }
+    },
+    "teleport": {
+      "label": "テレポート",
+      "description": "プレイヤーにテレポート",
+      "inputs": {
+        "player": { "label": "プレイヤー", "placeholder": "移動するプレイヤー" },
+        "target": { "label": "対象", "placeholder": "移動先のプレイヤー" }
+      }
+    },
+    "teleportto": {
+      "label": "座標テレポート",
+      "description": "指定した座標にテレポート",
+      "inputs": { "coords": { "label": "座標", "placeholder": "x,y,z" } }
+    },
+    "createhorde": {
+      "label": "ゾンビ群生成",
+      "description": "プレイヤー付近にゾンビ群を生成",
+      "inputs": {
+        "count": { "label": "ゾンビ数" },
+        "player": { "label": "プレイヤー (任意)", "placeholder": "対象プレイヤー" }
+      }
+    },
+    "godmod": {
+      "label": "ゴッドモード",
+      "description": "プレイヤーを無敵にする",
+      "inputs": {
+        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
+        "value": { "label": "有効化" }
+      }
+    },
+    "invisible": {
+      "label": "透明化",
+      "description": "ゾンビから見えなくする",
+      "inputs": {
+        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
+        "value": { "label": "有効化" }
+      }
+    },
+    "startrain": { "label": "雨開始", "description": "サーバーで雨を開始" },
+    "stoprain": { "label": "雨停止", "description": "サーバーの雨を停止" },
+    "chopper": { "label": "ヘリコプターイベント", "description": "ヘリコプターイベントを発生" },
+    "gunshot": { "label": "銃声", "description": "銃声を発生" },
+    "additem": {
+      "label": "アイテム付与",
+      "description": "プレイヤーにアイテムを付与",
+      "inputs": {
+        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
+        "item": { "label": "アイテムID", "placeholder": "例: Base.Axe" },
+        "count": { "label": "個数" }
+      }
+    },
+    "addxp": {
+      "label": "経験値付与",
+      "description": "プレイヤーに経験値を付与",
+      "inputs": {
+        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
+        "perk": { "label": "パーク名", "placeholder": "例: Woodwork" },
+        "amount": { "label": "XP量" }
+      }
+    },
+    "showoptions": { "label": "サーバーオプション表示", "description": "現在のサーバー設定を表示" },
+    "reloadoptions": { "label": "オプション再読み込み", "description": "INIからサーバーオプションを再読み込み" },
+    "changeoption": {
+      "label": "オプション変更",
+      "description": "サーバーオプションをリアルタイムで変更",
+      "inputs": {
+        "option": { "label": "オプション名", "placeholder": "例: MaxPlayers" },
+        "value": { "label": "新しい値", "placeholder": "新しい値" }
+      }
+    },
     "quit": { "label": "サーバーシャットダウン", "description": "保存して安全にシャットダウン" }
   },
   "errors": {
-    "no_server_dir": "サーバーインストールディレクトリが見つかりません。",
-    "executable_not_found": "サーバー実行ファイルが見つかりません。",
-    "java_not_found": "同梱のJavaが見つかりません。",
-    "server_not_running": "サーバーは実行されていません。"
+    "no_server_dir": "サーバーインストールディレクトリが見つかりません。サーバー実行ファイルのパスを設定してください。",
+    "executable_not_found": "サーバー実行ファイル（StartServer64.batまたはstart-server.sh）がサーバーディレクトリに見つかりません。",
+    "java_not_found": "バンドルJava（jre64/bin/java）が見つかりません。サーバーのインストールが不完全な可能性があります。",
+    "classpath_not_found": "サーバーディレクトリにJavaクラスファイル（java/*.jar）が見つかりません。インストールが不完全な可能性があります。",
+    "no_install_dir": "インストールディレクトリが指定されていません。作業ディレクトリを設定してください。",
+    "steamcmd_not_found": "SteamCMDが見つかりません。サーバーをダウンロードするにはSteamCMDをインストールしてください。",
+    "install_failed": "サーバーのインストールに失敗しました: {{error}}",
+    "install_timeout": "サーバーのインストールが10分後にタイムアウトしました。",
+    "no_settings": "設定が提供されていません",
+    "properties_write_failed": "設定ファイルの書き込みに失敗しました: {{error}}",
+    "failed_to_kill": "プロセスの終了に失敗しました: {{error}}",
+    "server_not_running": "サーバーは実行されていません。先にサーバーを起動してください。",
+    "server_reset_partial": "一部のアイテムを削除できませんでした: {{errors}}",
+    "extension_not_enabled": "SteamCMD拡張機能が有効化されていません。設定 → 拡張機能で先に有効化してください。",
+    "detect": {
+      "out_of_memory": "サーバーのメモリが不足しました (OutOfMemoryError)",
+      "port_in_use": "ポート{{port}}は既に他のアプリケーションで使用されています",
+      "illegal_termination": "ワーカースレッドの不正終了 — Build 41/42の競合の可能性",
+      "permission_denied": "権限が拒否されました — 必要なファイルにアクセスできません",
+      "server_crash": "サーバーがクラッシュしました",
+      "mod_error": "サーバーログでModエラーが検出されました",
+      "save_status": "セーブ操作のステータスが検出されました"
+    },
+    "solutions": {
+      "no_server_dir": "インスタンス設定でサーバー実行ファイル（StartServer64.bat）のパスを設定するか、SteamCMDでサーバーをインストールしてください。",
+      "executable_not_found": "SteamCMD（App ID 380870）またはSteamでサーバーをダウンロードしてください。インストールディレクトリでStartServer64.batが存在することを確認してください。",
+      "java_not_found": "サーバーにはバンドルJREが含まれているはずです。SteamCMDでサーバーを再インストールするか、ファイルの整合性を確認してください。",
+      "classpath_not_found": "サーバーフォルダのjava/ディレクトリに.jarファイルがあるはずです。SteamCMDでインストールを確認してください。",
+      "out_of_memory": "サーバー設定でRAM割り当てを増やしてください（メモリ）。デフォルトは4GBです。大規模サーバーには8GB以上を推奨します。",
+      "port_in_use": "ポート{{port}}が使用中です。競合するアプリケーションを停止するか、設定でポートを変更してください。",
+      "illegal_termination": "通常、Build 41から42へのアップグレード時に発生します。設定をバックアップし、%USERPROFILE%\\Zomboidフォルダを削除してからサーバーを再起動してください。",
+      "permission_denied": "saba-chanを管理者権限で実行するか、サーバーおよびデータディレクトリのファイル権限を読み書き可能に変更してください。",
+      "server_crash": "console.txtログで詳細を確認してください。一般的な原因: Modの競合、破損したワールドデータ、メモリ不足。",
+      "mod_error": "Modがエラーを引き起こしています。最近追加したModを無効化するか、ワークショップページで互換性の更新を確認してください。",
+      "save_status": "情報メッセージです。セーブが失敗する場合は、ディスク容量とファイル権限を確認してください。",
+      "steamcmd_not_found": "https://developer.valvesoftware.com/wiki/SteamCMD からSteamCMDをインストールし、PATHに追加してください。"
+    }
   },
   "messages": {
     "server_online": "サーバーはオンラインで応答しています",
+    "server_starting_no_response": "プロセスは実行中ですが、サーバーはまだRCONクエリに応答していません",
+    "no_process_running": "実行中のプロセスがありません",
+    "shutdown_signal_sent": "PID {{pid}} にシャットダウンシグナルを送信しました",
+    "force_killed": "PID {{pid}} を強制終了しました",
     "graceful_stop": "サーバーが正常に停止しました (PID {{pid}})",
+    "graceful_stop_timeout": "安全なシャットダウンがタイムアウトしました。強制停止に進みます",
+    "save_before_quit": "シャットダウン前にワールドを保存しています...",
+    "properties_updated": "サーバー設定が正常に更新されました",
+    "properties_using_defaults": "設定ファイルが存在しません — デフォルト値を表示しています",
+    "no_mappable_settings": "サーバー設定キーにマッピングできる設定がありません",
     "install_complete": "Project Zomboidサーバーが正常にインストールされました",
-    "server_reset_complete": "サーバーワールドデータがリセットされました"
+    "server_reset_complete": "サーバーワールドデータがリセットされました",
+    "rcon_password_generated": "RCONパスワードが自動生成されました（パスワードが設定されていませんでした）"
+  },
+  "rcon": {
+    "connecting": "{{host}}:{{port}} に接続中...",
+    "connected": "接続されました!",
+    "authentication_failed": "認証に失敗しました",
+    "authenticated": "認証されました!",
+    "connection_failed": "接続に失敗しました: {{error}}",
+    "sending_command": "コマンドを送信しています: {{command}}",
+    "response_received": "レスポンスを受信しました: {{response}}",
+    "command_failed": "コマンド失敗: {{error}}"
   }
 }

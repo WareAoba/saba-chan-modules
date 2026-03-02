@@ -4,7 +4,6 @@
     "description": "Palworld-Server-Verwaltungsmodul"
   },
   "settings": {
-    "executable_path": { "label": "Server-Programmpfad", "description": "Pfad zur ausführbaren Serverdatei" },
     "port": { "label": "Server-Port", "description": "Spielserver-Port" },
     "rcon_port": { "label": "RCON-Port", "description": "RCON-Port" },
     "rcon_password": { "label": "RCON-Passwort", "description": "Passwort für Fernbefehlsausführung" },

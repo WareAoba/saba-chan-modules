@@ -17,6 +17,10 @@ supported = ["rest"]
 default = "rest"
 interaction_mode = "commands"  # console: stdin 지원, 콘솔 UI 표시 | commands: 정해진 명령어만 실행
 
+# 데몬 표준 키 ↔ 게임별 설정 키 매핑 (자격증명 자동 동기화)
+[credential_map]
+rest_password = "AdminPassword"  # daemon rest_password ↔ PalWorldSettings.ini AdminPassword
+
 [config]
 executable_path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\PalServer\\PalServer.exe"
 server_executable = "PalServer.exe"
@@ -62,14 +66,6 @@ dir_signatures = ["PalServer.exe"]
 # ========== saba-chan 전용 설정 (PalWorldSettings.ini 아님) ==========
 
 [[settings.fields]]
-name = "executable_path"
-type = "file"
-label = "Server Executable Path"
-description = "Path to the server executable"
-required = true
-group = "saba-chan"
-
-[[settings.fields]]
 name = "rest_host"
 type = "text"
 label = "REST API Host"
@@ -85,14 +81,6 @@ description = "REST API port (default 8212)"
 default = 8212
 min = 1
 max = 65535
-group = "saba-chan"
-
-[[settings.fields]]
-name = "rest_username"
-type = "text"
-label = "REST Username"
-description = "REST Basic Auth username"
-required = false
 group = "saba-chan"
 
 [[settings.fields]]

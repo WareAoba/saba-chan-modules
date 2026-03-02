@@ -159,7 +159,7 @@ def resolve_player_id(instance_id, player_input, config):
         # config에서 REST 설정 가져오기
         rest_host = config.get("rest_host", "127.0.0.1")
         rest_port = config.get("rest_port", 8212)
-        rest_username = config.get("rest_username", "")
+        rest_username = config.get("rest_username") or "admin"
         rest_password = config.get("rest_password", "")
         
         # 직접 Palworld 서버에 REST 요청 (Daemon을 거치지 않음 - 데드락 방지)
@@ -233,14 +233,14 @@ def start(config):
         if not executable:
             return {
                 "success": False,
-                "message": i18n.t("errors.no_executable", defaultValue="server_executable not specified in instance configuration. Please add the path to PalServer.exe")
+                "message": i18n.t("errors.no_executable")
             }
         
         # Check if executable exists
         if not os.path.exists(executable):
             return {
                 "success": False,
-                "message": i18n.t("errors.executable_not_found", path=executable, defaultValue=f"Executable not found: {executable}. Please check the path in instance settings.")
+                "message": i18n.t("errors.executable_not_found", path=executable)
             }
         
         port = config.get("port", 8211)
@@ -298,17 +298,17 @@ def start(config):
         }
 
 
-def _enforce_rest_policy(working_dir):
+def _enforce_rest_policy(working_dir, config=None):
     """
     Enforce REST-only policy in PalWorldSettings.ini before server launch.
 
     Palworld RCON is deprecated by the developer — saba-chan uses REST API exclusively.
     - RESTAPIEnabled = True  (always on)
     - RCONEnabled = False    (always off)
-    - AdminPassword auto-generated if empty (required for REST API auth)
+    - AdminPassword synced with daemon's rest_password (required for REST API auth)
     - ServerPassword is NOT touched (user-facing join password)
 
-    Returns dict with details of what was changed, or None if INI doesn't exist yet.
+    Returns dict with details of what was changed + the actual admin_password, or None if INI doesn't exist yet.
     """
     import secrets
     import string
@@ -326,28 +326,40 @@ def _enforce_rest_policy(working_dir):
     if props.get("RESTAPIEnabled", "False") != "True":
         props["RESTAPIEnabled"] = "True"
         changes["RESTAPIEnabled"] = "True"
-        print(i18n.t("messages.rest_api_forced_on", defaultValue="[Policy] REST API force-enabled"), file=sys.stderr)
+        print(i18n.t("messages.rest_api_forced_on"), file=sys.stderr)
 
     # Force RCON disabled
     if props.get("RCONEnabled", "False") != "False":
         props["RCONEnabled"] = "False"
         changes["RCONEnabled"] = "False"
-        print(i18n.t("messages.rcon_forced_off", defaultValue="[Policy] RCON force-disabled (deprecated)"), file=sys.stderr)
+        print(i18n.t("messages.rcon_forced_off"), file=sys.stderr)
 
-    # Auto-generate AdminPassword if empty (needed for REST API authentication)
+    # Sync AdminPassword with daemon's rest_password to ensure credentials match.
+    # Priority: existing INI AdminPassword > daemon rest_password > auto-generate
     current_admin_pw = props.get("AdminPassword", "").strip('"').strip("'")
-    if not current_admin_pw:
+    daemon_rest_pw = (config or {}).get("rest_password", "") if config else ""
+
+    if current_admin_pw:
+        # INI already has a password — use it (daemon will be updated via launch response)
+        pass
+    elif daemon_rest_pw:
+        # No INI password but daemon has one — sync it to INI
+        props["AdminPassword"] = daemon_rest_pw
+        current_admin_pw = daemon_rest_pw
+        changes["AdminPassword"] = "***synced-from-daemon***"
+        print(f"[Palworld] Synced AdminPassword from daemon rest_password", file=sys.stderr)
+    else:
+        # Neither exists — generate a new one
         alphabet = string.ascii_letters + string.digits
-        password = "".join(secrets.choice(alphabet) for _ in range(16))
-        props["AdminPassword"] = password
-        # Store password in INI but don't expose in return value
+        current_admin_pw = "".join(secrets.choice(alphabet) for _ in range(16))
+        props["AdminPassword"] = current_admin_pw
         changes["AdminPassword"] = "***auto-generated***"
-        print(i18n.t("messages.admin_password_generated", defaultValue="[Policy] AdminPassword auto-generated for REST API auth"), file=sys.stderr)
+        print(i18n.t("messages.admin_password_generated"), file=sys.stderr)
 
     if changes:
         _write_option_settings(ini_path, props)
-        return {"changed": True, "changes": changes}
-    return {"changed": False}
+        return {"changed": True, "changes": changes, "admin_password": current_admin_pw}
+    return {"changed": False, "admin_password": current_admin_pw}
 
 
 def get_launch_command(config):
@@ -359,13 +371,13 @@ def get_launch_command(config):
     if not executable:
         return {
             "success": False,
-            "message": i18n.t("errors.no_executable", defaultValue="server_executable not specified in instance configuration. Please add the path to PalServer.exe")
+            "message": i18n.t("errors.no_executable")
         }
 
     if not os.path.exists(executable):
         return {
             "success": False,
-            "message": i18n.t("errors.executable_not_found", path=executable, defaultValue=f"Executable not found: {executable}. Please check the path in instance settings.")
+            "message": i18n.t("errors.executable_not_found", path=executable)
         }
 
     port = config.get("port", 8211)
@@ -376,17 +388,25 @@ def get_launch_command(config):
     abs_working_dir = os.path.abspath(working_dir)
 
     # Enforce REST-only policy before launch
-    _enforce_rest_policy(abs_working_dir)
+    rest_result = _enforce_rest_policy(abs_working_dir, config)
 
     args = [f"--port={port}"]
 
-    return {
+    result = {
         "success": True,
         "program": os.path.abspath(executable),
         "args": args,
         "working_dir": abs_working_dir,
         "env_vars": {},
     }
+
+    # credential_map 기반 자동 동기화: module.toml [credential_map]에서
+    # rest_password = "AdminPassword" 매핑이 선언되어 있으므로,
+    # AdminPassword 값을 최상위에 반환하면 데몬이 자동으로 rest_password에 동기화한다.
+    if rest_result and rest_result.get("admin_password"):
+        result["AdminPassword"] = rest_result["admin_password"]
+
+    return result
 
 
 def stop(config):
@@ -422,10 +442,10 @@ def stop(config):
                 # Return success in either case since the goal is to stop the server
                 return {
                     "success": True,
-                    "message": i18n.t("messages.terminated", name=exe_name, defaultValue=f"Terminated {exe_name}")
+                    "message": i18n.t("messages.terminated", name=exe_name)
                 }
             except Exception as e:
-                error_msg = i18n.t("errors.failed_to_stop_process", error=str(e), defaultValue=f"Failed to stop process: {str(e)}")
+                error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
                 print(error_msg, file=sys.stderr)
                 return {
                     "success": False,
@@ -450,10 +470,10 @@ def stop(config):
                 
                 return {
                     "success": True,
-                    "message": i18n.t("messages.terminated", name=exe_name, defaultValue=f"Terminated {exe_name}")
+                    "message": i18n.t("messages.terminated", name=exe_name)
                 }
             except Exception as e:
-                error_msg = i18n.t("errors.failed_to_stop_process", error=str(e), defaultValue=f"Failed to stop process: {str(e)}")
+                error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
                 print(error_msg, file=sys.stderr)
                 return {
                     "success": False,
@@ -462,7 +482,7 @@ def stop(config):
     except Exception as e:
         return {
             "success": False,
-            "message": i18n.t("errors.failed_to_stop", error=str(e), defaultValue=f"Failed to stop: {str(e)}")
+            "message": i18n.t("errors.failed_to_stop", error=str(e))
         }
 
 def status(config):
@@ -470,7 +490,7 @@ def status(config):
     try:
         executable = config.get("server_executable")
         if not executable:
-            return {"success": True, "status": "stopped", "message": i18n.t("errors.no_executable_specified", defaultValue="No executable specified")}
+            return {"success": True, "status": "stopped", "message": i18n.t("errors.no_executable_specified")}
         
         # Extract executable name from path (e.g., "D:\\path\\PalServer.exe" -> "PalServer.exe")
         exe_name = os.path.basename(executable)
@@ -489,19 +509,19 @@ def status(config):
                     return {
                         "success": True,
                         "status": "running",
-                        "message": i18n.t("messages.process_running", name=exe_name, defaultValue=f"{exe_name} is running")
+                        "message": i18n.t("messages.process_running", name=exe_name)
                     }
                 else:
                     return {
                         "success": True,
                         "status": "stopped",
-                        "message": i18n.t("messages.process_not_running", name=exe_name, defaultValue=f"{exe_name} is not running")
+                        "message": i18n.t("messages.process_not_running", name=exe_name)
                     }
             except Exception as e:
                 return {
                     "success": True,
                     "status": "stopped",
-                    "message": i18n.t("errors.status_unknown", error=str(e), defaultValue=f"Could not determine status: {str(e)}")
+                    "message": i18n.t("errors.status_unknown", error=str(e))
                 }
         else:
             # Unix-like: Use pgrep
@@ -517,24 +537,24 @@ def status(config):
                         "success": True,
                         "status": "running",
                         "pid": int(pid) if pid else None,
-                        "message": i18n.t("messages.process_running", name=exe_name, defaultValue=f"{exe_name} is running")
+                        "message": i18n.t("messages.process_running", name=exe_name)
                     }
                 else:
                     return {
                         "success": True,
                         "status": "stopped",
-                        "message": i18n.t("messages.process_not_running", name=exe_name, defaultValue=f"{exe_name} is not running")
+                        "message": i18n.t("messages.process_not_running", name=exe_name)
                     }
             except Exception as e:
                 return {
                     "success": True,
                     "status": "stopped",
-                    "message": i18n.t("errors.status_unknown", error=str(e), defaultValue=f"Could not determine status: {str(e)}")
+                    "message": i18n.t("errors.status_unknown", error=str(e))
                 }
     except Exception as e:
         return {
             "success": False,
-            "message": i18n.t("errors.failed_to_get_status", error=str(e), defaultValue=f"Failed to get status: {str(e)}")
+            "message": i18n.t("errors.failed_to_get_status", error=str(e))
         }
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -885,15 +905,15 @@ def validate(config):
             issues.append({
                 "code": "NO_EXECUTABLE",
                 "severity": "critical",
-                "message": i18n.t("validate.no_executable", defaultValue="Server executable path not specified."),
-                "solution": i18n.t("validate.no_executable_hint", defaultValue="Set the path to PalServer.exe in instance settings."),
+                "message": i18n.t("validate.no_executable"),
+                "solution": i18n.t("validate.no_executable_hint"),
             })
         elif not os.path.isfile(executable):
             issues.append({
                 "code": "EXECUTABLE_NOT_FOUND",
                 "severity": "critical",
-                "message": i18n.t("validate.executable_not_found", path=executable, defaultValue=f"Executable not found: {executable}"),
-                "solution": i18n.t("validate.executable_not_found_hint", defaultValue="Check the executable path or reinstall the server."),
+                "message": i18n.t("validate.executable_not_found", path=executable),
+                "solution": i18n.t("validate.executable_not_found_hint"),
             })
 
     # Working directory
@@ -907,8 +927,8 @@ def validate(config):
             issues.append({
                 "code": "WORKING_DIR_ERROR",
                 "severity": "critical",
-                "message": i18n.t("validate.cannot_create_dir", path=working_dir, defaultValue=f"Cannot create working directory: {working_dir}"),
-                "solution": i18n.t("validate.cannot_create_dir_hint", defaultValue="Check folder permissions or choose a different path."),
+                "message": i18n.t("validate.cannot_create_dir", path=working_dir),
+                "solution": i18n.t("validate.cannot_create_dir_hint"),
             })
 
     # Port availability
@@ -921,8 +941,8 @@ def validate(config):
                     issues.append({
                         "code": "PORT_IN_USE",
                         "severity": "warning",
-                        "message": i18n.t("validate.port_in_use", port=port, defaultValue=f"Port {port} is already in use."),
-                        "solution": i18n.t("validate.port_in_use_hint", port=port, defaultValue=f"Stop the other process using port {port} or change the port."),
+                        "message": i18n.t("validate.port_in_use", port=port),
+                        "solution": i18n.t("validate.port_in_use_hint", port=port),
                     })
         except (OSError, ValueError):
             pass
@@ -942,11 +962,11 @@ def configure(config):
     """Apply settings to PalWorldSettings.ini."""
     settings = config.get("settings", {})
     if not settings:
-        return {"success": False, "message": i18n.t("errors.no_settings", defaultValue="No settings provided.")}
+        return {"success": False, "message": i18n.t("errors.no_settings")}
 
     ini_path = _get_settings_ini_path(config)
     if not ini_path:
-        return {"success": False, "message": i18n.t("errors.no_server_dir", defaultValue="Cannot determine server directory. Set working_dir or server_executable.")}
+        return {"success": False, "message": i18n.t("errors.no_server_dir")}
 
     # Read existing properties (or start fresh)
     props = _parse_option_settings(ini_path)
@@ -965,7 +985,7 @@ def configure(config):
     ok = _write_option_settings(ini_path, props)
     return {
         "success": ok,
-        "message": i18n.t("messages.settings_updated", defaultValue="Settings updated successfully.") if ok else i18n.t("errors.settings_write_failed", defaultValue="Failed to write settings file."),
+        "message": i18n.t("messages.settings_updated") if ok else i18n.t("errors.settings_write_failed"),
         "updated_keys": updated_keys,
     }
 
@@ -1013,7 +1033,7 @@ def read_properties(config):
     """Read current PalWorldSettings.ini."""
     ini_path = _get_settings_ini_path(config)
     if not ini_path:
-        return {"success": False, "message": i18n.t("errors.no_server_dir", defaultValue="Cannot determine server directory. Set working_dir or server_executable.")}
+        return {"success": False, "message": i18n.t("errors.no_server_dir")}
 
     if not os.path.isfile(ini_path):
         # Try DefaultPalWorldSettings.ini as reference
@@ -1032,13 +1052,13 @@ def read_properties(config):
                 "success": True,
                 "exists": False,
                 "properties": props,
-                "message": i18n.t("messages.using_defaults", defaultValue="Using defaults from DefaultPalWorldSettings.ini (server not yet configured)."),
+                "message": i18n.t("messages.using_defaults"),
             }
         return {
             "success": True,
             "exists": False,
             "properties": {},
-            "message": i18n.t("errors.settings_not_found", defaultValue="Settings file not found. Start the server once to generate it."),
+            "message": i18n.t("errors.settings_not_found"),
         }
 
     props = _parse_option_settings(ini_path)
@@ -1074,7 +1094,7 @@ def accept_eula(config):
     """Palworld does not require EULA acceptance."""
     return {
         "success": True,
-        "message": i18n.t("messages.no_eula_needed", defaultValue="Palworld does not require separate EULA acceptance."),
+        "message": i18n.t("messages.no_eula_needed"),
     }
 
 
@@ -1136,7 +1156,7 @@ def list_versions(config):
     return {
         "success": True,
         "versions": [],
-        "message": i18n.t("messages.versions_via_steam", defaultValue="Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Use SteamCMD to install or update."),
+        "message": i18n.t("messages.versions_via_steam"),
         "install_method": "steamcmd",
         "steam_app_id": "2394010",
     }
@@ -1146,7 +1166,7 @@ def get_version_details(config):
     """Palworld does not expose a public version API."""
     return {
         "success": True,
-        "message": i18n.t("messages.versions_managed_via_steam", defaultValue="Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update."),
+        "message": i18n.t("messages.versions_managed_via_steam"),
         "install_method": "steamcmd",
         "steam_app_id": "2394010",
     }
@@ -1175,8 +1195,7 @@ def install_server(config):
     if "steamcmd" not in enabled_exts:
         return {
             "success": False,
-            "message": i18n.t("messages.extension_not_enabled",
-                              defaultValue="SteamCMD extension is not enabled. Enable it in Settings → Extensions first."),
+            "message": i18n.t("messages.extension_not_enabled"),
             "error_code": "extension_required",
             "missing_extensions": ["steamcmd"],
         }
@@ -1210,7 +1229,7 @@ def install_server(config):
     # ── Fallback: 수동 설치 안내 ──
     return {
         "success": False,
-        "message": i18n.t("messages.install_via_steamcmd", defaultValue="Palworld dedicated server must be installed via SteamCMD."),
+        "message": i18n.t("messages.install_via_steamcmd"),
         "install_method": "steamcmd",
         "steam_app_id": "2394010",
         "instructions": [
@@ -1357,7 +1376,7 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
     """직접 Palworld 서버에 REST API 요청 (Daemon을 거치지 않음)"""
     rest_host = config.get("rest_host", "127.0.0.1")
     rest_port = config.get("rest_port", 8212)
-    rest_username = config.get("rest_username", "")
+    rest_username = config.get("rest_username") or "admin"
     rest_password = config.get("rest_password", "")
     
     url = f"http://{rest_host}:{rest_port}{endpoint}"

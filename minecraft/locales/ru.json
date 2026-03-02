@@ -4,7 +4,6 @@
     "description": "Модуль управления сервером Minecraft с полным контролем жизненного цикла"
   },
   "settings": {
-    "executable_path": { "label": "Путь к JAR серверу", "description": "Путь к файлу server.jar" },
     "java_path": { "label": "Путь к Java", "description": "Путь к исполняемому файлу Java (автоопределение, если пусто)" },
     "ram": { "label": "Память (RAM)", "description": "Максимальный объем выделяемой памяти (напр. 2G, 4G)" },
     "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },

@@ -4,12 +4,12 @@
     "description": "Project Zomboid 专用服务器管理模块，提供完整的生命周期管理"
   },
   "settings": {
-    "executable_path": { "label": "可执行文件路径", "description": "StartServer64.bat（Windows）或 start-server.sh（Linux）的路径" },
     "ram": { "label": "内存（RAM）", "description": "最大内存分配量（GB）" },
-    "server_name": { "label": "配置文件名称", "description": "服务器配置文件名称" },
+    "server_name": { "label": "配置文件名称", "description": "服务器配置文件名称（决定 INI 文件名）" },
     "rcon_port": { "label": "RCON 端口", "description": "远程控制台 RCON 端口" },
     "rcon_password": { "label": "RCON 密码", "description": "RCON 认证密码" },
-    "admin_password": { "label": "管理员密码", "description": "管理员帐户密码" },
+    "admin_password": { "label": "管理员密码", "description": "默认管理员帐户密码（首次启动时设置）" },
+    "no_steam": { "label": "非 Steam 模式", "description": "不使用 Steam 运行服务器（允许 GoG 玩家连接）" },
     "public_name": { "label": "服务器名称", "description": "在浏览器中显示的名称" },
     "public_description": { "label": "描述", "description": "在服务器浏览器中可见的描述" },
     "password": { "label": "服务器密码", "description": "连接服务器所需的密码" },
@@ -17,11 +17,34 @@
     "port": { "label": "游戏端口", "description": "主 UDP 游戏端口" },
     "pvp": { "label": "PVP", "description": "启用玩家对战" },
     "open": { "label": "开放服务器", "description": "对所有人开放（无白名单）" },
+    "public": { "label": "公开显示", "description": "在 Steam 服务器浏览器中显示" },
     "pause_empty": { "label": "空服暂停", "description": "无玩家时暂停世界" },
-    "global_chat": { "label": "全局聊天", "description": "启用全局聊天" },
+    "global_chat": { "label": "全局聊天", "description": "启用全局聊天（/all 命令）" },
     "map": { "label": "地图", "description": "游戏地图" },
     "mods": { "label": "模组", "description": "分号分隔的模组 ID 列表" },
-    "workshop_items": { "label": "Workshop 物品", "description": "分号分隔的 Workshop ID 列表" }
+    "workshop_items": { "label": "创意工坊物品", "description": "分号分隔的创意工坊 ID 列表" },
+    "announce_death": { "label": "死亡通知", "description": "角色死亡时通知全服" },
+    "safety_system": { "label": "安全系统", "description": "允许每个玩家切换 PvP" },
+    "sleep_allowed": { "label": "允许睡眠", "description": "允许玩家睡眠" },
+    "sleep_needed": { "label": "需要睡眠", "description": "疲劳时需要睡眠" },
+    "save_world_every_minutes": { "label": "自动存档间隔", "description": "自动存档间隔（分钟）" },
+    "ping_limit": { "label": "延迟限制", "description": "踢出阈值（ms）" },
+    "hours_for_loot_respawn": { "label": "物资刷新时间", "description": "物资刷新的游戏内小时数" },
+    "max_items_for_loot_respawn": { "label": "物资刷新阈值", "description": "触发物资刷新的最大物品数" },
+    "no_fire": { "label": "禁用火灾", "description": "禁用除篝火以外的所有火灾" },
+    "player_safehouse": { "label": "玩家安全屋", "description": "允许占领安全屋" },
+    "safehouse_allow_trespass": { "label": "安全屋闯入", "description": "允许非成员进入" },
+    "safehouse_allow_loot": { "label": "安全屋拾取", "description": "允许非成员拾取物品" },
+    "safehouse_allow_respawn": { "label": "安全屋重生", "description": "死亡后在安全屋重生" },
+    "faction": { "label": "阵营", "description": "允许创建阵营" },
+    "allow_destruction_by_sledgehammer": { "label": "大锤破坏", "description": "允许破坏建筑" },
+    "speed_limit": { "label": "速度限制", "description": "车辆速度限制" },
+    "do_lua_checksum": { "label": "Lua 校验", "description": "验证客户端 Lua 文件" },
+    "steam_vac": { "label": "Steam VAC", "description": "启用 Valve 反作弊" },
+    "voice_enable": { "label": "语音聊天", "description": "启用游戏内语音聊天" },
+    "minutes_per_page": { "label": "每页时间", "description": "阅读速度" },
+    "spawn_point": { "label": "出生点", "description": "自定义出生坐标" },
+    "max_accounts_per_user": { "label": "每用户最大账号数", "description": "每个 Steam 用户的账号限制" }
   },
   "commands": {
     "servermsg": { "label": "发送消息", "description": "发送全体消息", "inputs": { "message": { "label": "消息", "placeholder": "输入消息" } } },
@@ -30,18 +53,156 @@
     "kick": { "label": "踢出玩家", "description": "将玩家踢出服务器", "inputs": { "player": { "label": "玩家" }, "reason": { "label": "原因" } } },
     "banuser": { "label": "封禁玩家", "description": "封禁玩家", "inputs": { "player": { "label": "玩家" }, "reason": { "label": "原因" } } },
     "unbanuser": { "label": "解封", "description": "解除玩家封禁", "inputs": { "player": { "label": "玩家" } } },
+    "adduser": {
+      "label": "添加用户",
+      "description": "向服务器添加新用户",
+      "inputs": {
+        "username": { "label": "用户名", "placeholder": "账号用户名" },
+        "password": { "label": "密码", "placeholder": "账号密码" }
+      }
+    },
+    "setaccesslevel": {
+      "label": "设置权限等级",
+      "description": "设置玩家的权限等级",
+      "inputs": {
+        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
+        "level": { "label": "权限等级" }
+      }
+    },
+    "teleport": {
+      "label": "传送",
+      "description": "传送至玩家身边",
+      "inputs": {
+        "player": { "label": "玩家", "placeholder": "要传送的玩家" },
+        "target": { "label": "目标", "placeholder": "目的地玩家" }
+      }
+    },
+    "teleportto": {
+      "label": "坐标传送",
+      "description": "传送至指定坐标",
+      "inputs": { "coords": { "label": "坐标", "placeholder": "x,y,z" } }
+    },
+    "createhorde": {
+      "label": "生成尸潮",
+      "description": "在玩家附近生成僵尸群",
+      "inputs": {
+        "count": { "label": "僵尸数量" },
+        "player": { "label": "玩家（可选）", "placeholder": "目标玩家" }
+      }
+    },
+    "godmod": {
+      "label": "上帝模式",
+      "description": "使玩家无敌",
+      "inputs": {
+        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
+        "value": { "label": "启用" }
+      }
+    },
+    "invisible": {
+      "label": "隐身",
+      "description": "使玩家对僵尸不可见",
+      "inputs": {
+        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
+        "value": { "label": "启用" }
+      }
+    },
+    "startrain": { "label": "开始下雨", "description": "在服务器中开始下雨" },
+    "stoprain": { "label": "停止下雨", "description": "停止服务器中的雨" },
+    "chopper": { "label": "直升机事件", "description": "触发直升机事件" },
+    "gunshot": { "label": "枪声", "description": "产生枪声" },
+    "additem": {
+      "label": "给予物品",
+      "description": "给予玩家物品",
+      "inputs": {
+        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
+        "item": { "label": "物品 ID", "placeholder": "例如 Base.Axe" },
+        "count": { "label": "数量" }
+      }
+    },
+    "addxp": {
+      "label": "给予经验",
+      "description": "给予玩家经验值",
+      "inputs": {
+        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
+        "perk": { "label": "技能名称", "placeholder": "例如 Woodwork" },
+        "amount": { "label": "经验值" }
+      }
+    },
+    "showoptions": { "label": "查看服务器选项", "description": "显示当前服务器设置" },
+    "reloadoptions": { "label": "重新加载选项", "description": "从 INI 文件重新加载服务器选项" },
+    "changeoption": {
+      "label": "更改选项",
+      "description": "实时更改服务器选项",
+      "inputs": {
+        "option": { "label": "选项名称", "placeholder": "例如 MaxPlayers" },
+        "value": { "label": "新值", "placeholder": "新值" }
+      }
+    },
     "quit": { "label": "关闭服务器", "description": "保存并安全关闭" }
   },
   "errors": {
-    "no_server_dir": "找不到服务器安装目录。",
-    "executable_not_found": "找不到服务器可执行文件。",
-    "java_not_found": "找不到内置 Java 运行时。",
-    "server_not_running": "服务器未运行。"
+    "no_server_dir": "找不到服务器安装目录。请设置服务器可执行文件路径。",
+    "executable_not_found": "服务器目录中找不到服务器可执行文件（StartServer64.bat 或 start-server.sh）。",
+    "java_not_found": "找不到内置 Java 运行时（jre64/bin/java）。服务器安装可能不完整。",
+    "classpath_not_found": "服务器目录中找不到 Java 类文件（java/*.jar）。安装可能不完整。",
+    "no_install_dir": "未指定安装目录。请设置工作目录。",
+    "steamcmd_not_found": "找不到 SteamCMD。请安装 SteamCMD 以下载服务器。",
+    "install_failed": "服务器安装失败：{{error}}",
+    "install_timeout": "服务器安装在 10 分钟后超时。",
+    "no_settings": "未提供设置",
+    "properties_write_failed": "写入配置文件失败：{{error}}",
+    "failed_to_kill": "终止进程失败：{{error}}",
+    "server_not_running": "服务器未运行。请先启动服务器。",
+    "server_reset_partial": "部分项目无法删除：{{errors}}",
+    "extension_not_enabled": "SteamCMD 扩展未启用。请先在设置 → 扩展中启用。",
+    "detect": {
+      "out_of_memory": "服务器内存不足 (OutOfMemoryError)",
+      "port_in_use": "端口 {{port}} 已被其他应用程序使用",
+      "illegal_termination": "工作线程非法终止 — 可能是 Build 41/42 冲突",
+      "permission_denied": "权限被拒绝 — 无法访问所需文件",
+      "server_crash": "服务器崩溃",
+      "mod_error": "服务器日志中检测到模组错误",
+      "save_status": "检测到存档操作状态"
+    },
+    "solutions": {
+      "no_server_dir": "在实例设置中设置服务器可执行文件（StartServer64.bat）的路径，或通过 SteamCMD 安装服务器。",
+      "executable_not_found": "通过 SteamCMD（App ID 380870）或 Steam 下载服务器。进入安装目录确认 StartServer64.bat 存在。",
+      "java_not_found": "服务器应包含内置 JRE。请尝试通过 SteamCMD 重新安装服务器或验证文件完整性。",
+      "classpath_not_found": "服务器文件夹的 java/ 目录应包含 .jar 文件。请通过 SteamCMD 验证安装。",
+      "out_of_memory": "在服务器设置中增加 RAM 分配（内存）。默认为 4GB，大型服务器建议 8GB 或更多。",
+      "port_in_use": "端口 {{port}} 正在使用中。请停止占用该端口的应用程序或在设置中更改端口。",
+      "illegal_termination": "通常在从 Build 41 升级到 42 时发生。请备份设置并删除 %USERPROFILE%\\Zomboid 文件夹，然后重启服务器。",
+      "permission_denied": "以管理员权限运行 saba-chan，或更改文件权限以允许对服务器和数据目录的读写访问。",
+      "server_crash": "检查 console.txt 日志了解详情。常见原因：模组冲突、世界数据损坏或内存不足。",
+      "mod_error": "某个模组导致了错误。尝试禁用最近添加的模组，或在创意工坊页面检查兼容性更新。",
+      "save_status": "这是信息性消息。如果存档失败，请检查磁盘空间和文件权限。",
+      "steamcmd_not_found": "从 https://developer.valvesoftware.com/wiki/SteamCMD 安装 SteamCMD 并确保其在 PATH 中。"
+    }
   },
   "messages": {
     "server_online": "服务器在线并正在响应",
+    "server_starting_no_response": "进程正在运行，但服务器尚未响应 RCON 查询",
+    "no_process_running": "没有正在运行的进程",
+    "shutdown_signal_sent": "已向 PID {{pid}} 发送关闭信号",
+    "force_killed": "已强制终止 PID {{pid}}",
     "graceful_stop": "服务器已正常停止（PID {{pid}}）",
+    "graceful_stop_timeout": "安全关闭超时，将强制停止",
+    "save_before_quit": "关闭前正在保存世界...",
+    "properties_updated": "服务器配置更新成功",
+    "properties_using_defaults": "配置文件不存在 — 显示默认值",
+    "no_mappable_settings": "没有可映射到服务器配置键的设置",
     "install_complete": "Project Zomboid 服务器安装成功",
-    "server_reset_complete": "服务器世界数据已重置"
+    "server_reset_complete": "服务器世界数据已重置",
+    "rcon_password_generated": "已自动生成 RCON 密码（之前未设置密码）"
+  },
+  "rcon": {
+    "connecting": "正在连接到 {{host}}:{{port}}...",
+    "connected": "已连接！",
+    "authentication_failed": "认证失败",
+    "authenticated": "已认证！",
+    "connection_failed": "连接失败：{{error}}",
+    "sending_command": "正在发送命令：{{command}}",
+    "response_received": "收到响应：{{response}}",
+    "command_failed": "命令失败：{{error}}"
   }
 }

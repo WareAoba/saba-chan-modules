@@ -4,39 +4,81 @@
     "description": "幻兽帕鲁服务器管理模块"
   },
   "settings": {
-    "executable_path": { "label": "服务器可执行文件路径", "description": "服务器可执行文件的路径" },
     "port": { "label": "服务器端口", "description": "游戏服务器端口" },
-    "rcon_port": { "label": "RCON端口", "description": "RCON端口" },
-    "rcon_password": { "label": "RCON密码", "description": "远程命令执行密码" },
-    "rest_host": { "label": "REST API主机", "description": "REST API主机（默认127.0.0.1）" },
-    "rest_port": { "label": "REST API端口", "description": "REST API端口（默认8212）" },
-    "rest_username": { "label": "REST用户名", "description": "REST Basic Auth用户名" },
-    "rest_password": { "label": "REST密码", "description": "REST Basic Auth密码" }
+    "rcon_port": { "label": "RCON 端口", "description": "RCON 端口" },
+    "rcon_password": { "label": "RCON 密码", "description": "远程命令执行密码" },
+    "rest_host": { "label": "REST API 主机", "description": "REST API 主机（默认 127.0.0.1）" },
+    "rest_port": { "label": "REST API 端口", "description": "REST API 端口（默认 8212）" },
+    "rest_username": { "label": "REST 用户名", "description": "REST 基本认证用户名" },
+    "rest_password": { "label": "REST 密码", "description": "REST 基本认证密码" },
+    "server_name": { "label": "服务器名称", "description": "在服务器浏览器中显示的名称" },
+    "server_description": { "label": "服务器描述", "description": "服务器描述" },
+    "server_password": { "label": "服务器密码", "description": "加入服务器所需的密码" },
+    "admin_password": { "label": "管理员密码", "description": "管理员访问密码" },
+    "max_players": { "label": "最大玩家数", "description": "最大玩家数量（1-32）" },
+    "coop_max_players": { "label": "合作模式最大玩家数", "description": "合作队伍中的最大玩家数量" },
+    "public_ip": { "label": "公网 IP", "description": "公网 IP 地址（留空为自动）" },
+    "rcon_enabled": { "label": "启用 RCON", "description": "启用 RCON 远程命令执行" },
+    "difficulty": { "label": "难度", "description": "整体游戏难度" },
+    "is_pvp": { "label": "PvP", "description": "启用玩家对玩家战斗" },
+    "death_penalty": { "label": "死亡惩罚", "description": "玩家死亡时掉落内容" },
+    "exp_rate": { "label": "经验倍率", "description": "经验获取倍率（0.1-20.0）" },
+    "day_time_speed_rate": { "label": "白天时间速度", "description": "白天持续时间倍率（0.1-5.0）" },
+    "night_time_speed_rate": { "label": "夜晚时间速度", "description": "夜晚持续时间倍率（0.1-5.0）" },
+    "pal_capture_rate": { "label": "帕鲁捕获率", "description": "帕鲁捕获概率倍率（0.5-2.0）" },
+    "pal_spawn_num_rate": { "label": "帕鲁生成率", "description": "帕鲁生成数量倍率（0.5-3.0）" },
+    "pal_damage_rate_attack": { "label": "帕鲁攻击伤害", "description": "帕鲁攻击伤害倍率（0.1-5.0）" },
+    "pal_damage_rate_defense": { "label": "帕鲁防御", "description": "帕鲁受到伤害倍率（0.1-5.0）" },
+    "pal_stomach_decrease_rate": { "label": "帕鲁饥饿速率", "description": "帕鲁饥饿减少倍率（0.1-5.0）" },
+    "pal_stamina_decrease_rate": { "label": "帕鲁耐力速率", "description": "帕鲁耐力减少倍率（0.1-5.0）" },
+    "pal_auto_hp_regen_rate": { "label": "帕鲁生命恢复", "description": "帕鲁生命自动恢复倍率（0.1-5.0）" },
+    "pal_auto_hp_regen_rate_in_sleep": { "label": "帕鲁睡眠生命恢复", "description": "帕鲁睡眠期间生命恢复倍率（0.1-5.0）" },
+    "player_damage_rate_attack": { "label": "玩家攻击伤害", "description": "玩家攻击伤害倍率（0.1-5.0）" },
+    "player_damage_rate_defense": { "label": "玩家防御", "description": "玩家受到伤害倍率（0.1-5.0）" },
+    "player_stomach_decrease_rate": { "label": "玩家饥饿速率", "description": "玩家饥饿减少倍率（0.1-5.0）" },
+    "player_stamina_decrease_rate": { "label": "玩家耐力速率", "description": "玩家耐力减少倍率（0.1-5.0）" },
+    "player_auto_hp_regen_rate": { "label": "玩家生命恢复", "description": "玩家生命自动恢复倍率（0.1-5.0）" },
+    "player_auto_hp_regen_rate_in_sleep": { "label": "玩家睡眠生命恢复", "description": "玩家睡眠期间生命恢复倍率（0.1-5.0）" },
+    "build_object_damage_rate": { "label": "建筑伤害倍率", "description": "对建筑造成伤害的倍率（0.5-3.0）" },
+    "build_object_deterioration_damage_rate": { "label": "建筑衰减速率", "description": "建筑老化/劣化伤害倍率（0-10）" },
+    "drop_item_max_num": { "label": "掉落物品上限", "description": "世界中掉落物品的最大数量（0-3000）" },
+    "collection_drop_rate": { "label": "采集掉落率", "description": "采集物品掉落倍率（0.5-3.0）" },
+    "collection_object_hp_rate": { "label": "采集物体生命值", "description": "采集物体生命值倍率（0.5-3.0）" },
+    "collection_object_respawn_speed_rate": { "label": "采集刷新速度", "description": "采集物体刷新速度倍率（0.5-3.0）" },
+    "enemy_drop_item_rate": { "label": "敌人掉落率", "description": "敌人物品掉落倍率（0.5-3.0）" },
+    "pal_egg_default_hatching_time": { "label": "蛋孵化时间", "description": "默认蛋孵化时间（小时）（0-240）" },
+    "enable_invader_enemy": { "label": "突袭事件", "description": "启用基地突袭事件" },
+    "guild_player_max_num": { "label": "公会最大玩家数", "description": "公会中的最大玩家数量（1-100）" },
+    "enable_player_to_player_damage": { "label": "玩家对玩家伤害", "description": "允许玩家互相造成伤害" },
+    "enable_friendly_fire": { "label": "友军伤害", "description": "允许公会成员互相造成伤害" },
+    "base_camp_worker_max_num": { "label": "基地营地工作者", "description": "在基地工作的帕鲁最大数量（1-20）" },
+    "base_camp_max_num": { "label": "最大基地数量", "description": "可建造的基地营地最大数量" },
+    "work_speed_rate": { "label": "工作速度倍率", "description": "工作速度倍率" }
   },
   "commands": {
     "announce": {
       "label": "发送公告",
       "description": "向服务器广播消息",
       "inputs": {
-        "message": { "label": "公告消息", "placeholder": "输入公告内容" }
+        "message": { "label": "公告内容", "placeholder": "输入公告内容" }
       }
     },
     "info": { "label": "服务器信息", "description": "查看服务器信息" },
-    "players": { "label": "玩家列表", "description": "当前连接的玩家列表" },
+    "players": { "label": "玩家列表", "description": "列出当前连接的玩家" },
     "save": { "label": "保存世界", "description": "保存游戏世界" },
     "shutdown": {
       "label": "关闭服务器",
-      "description": "关闭服务器（可设置延迟）",
+      "description": "关闭服务器（可选延迟）",
       "inputs": {
         "waittime": { "label": "关闭延迟（秒）" },
-        "message": { "label": "关闭消息", "placeholder": "服务器关闭公告" }
+        "message": { "label": "关闭提示消息", "placeholder": "服务器关闭公告" }
       }
     },
     "kick": {
       "label": "踢出玩家",
       "description": "将玩家踢出服务器",
       "inputs": {
-        "userid": { "label": "玩家（昵称或SteamID）", "placeholder": "玩家昵称或steam_xxxxxxxxx" },
+        "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" },
         "message": { "label": "踢出消息", "placeholder": "可选：踢出消息" }
       }
     },
@@ -44,50 +86,95 @@
       "label": "封禁玩家",
       "description": "永久封禁玩家",
       "inputs": {
-        "userid": { "label": "玩家（昵称或SteamID）", "placeholder": "玩家昵称或steam_xxxxxxxxx" },
+        "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" },
         "message": { "label": "封禁消息", "placeholder": "可选：封禁消息" }
       }
     },
     "unban": {
-      "label": "解除封禁",
-      "description": "解除被封禁的玩家",
+      "label": "解除封禁玩家",
+      "description": "解除已封禁玩家",
       "inputs": {
-        "userid": { "label": "玩家（昵称或SteamID）", "placeholder": "玩家昵称或steam_xxxxxxxxx" }
+        "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" }
       }
     }
   },
   "errors": {
     "failed_to_start": "启动失败：{{error}}",
-    "no_pid_provided": "未提供PID",
-    "failed_to_kill": "进程终止失败：{{error}}",
+    "no_pid_provided": "未提供 PID",
+    "failed_to_kill": "终止进程失败：{{error}}",
     "failed_to_stop": "停止失败：{{error}}",
-    "daemon_connection_error": "守护程序连接错误：{{error}}",
-    "invalid_json_response": "来自守护程序的无效JSON响应：{{error}}",
-    "daemon_error": "守护程序错误：{{error}}",
+    "failed_to_stop_process": "停止进程失败：{{error}}",
+    "daemon_connection_error": "守护进程连接错误：{{error}}",
+    "invalid_json_response": "来自守护进程的 JSON 响应无效：{{error}}",
+    "daemon_error": "守护进程错误：{{error}}",
     "player_list_failed": "获取玩家列表失败：{{error}}",
-    "server_info_failed": "获取服务器信息失败：{{error}}"
+    "server_info_failed": "获取服务器信息失败：{{error}}",
+    "no_executable": "实例配置中未指定 server_executable。请添加 PalServer.exe 的路径",
+    "executable_not_found": "未找到可执行文件：{{path}}。请检查实例设置中的路径。",
+    "no_executable_specified": "未指定可执行文件",
+    "status_unknown": "无法确定状态：{{error}}",
+    "failed_to_get_status": "获取状态失败：{{error}}",
+    "no_settings": "未提供设置。",
+    "no_server_dir": "无法确定服务器目录。请设置 working_dir 或 server_executable。",
+    "settings_write_failed": "写入设置文件失败。",
+    "settings_not_found": "未找到设置文件。请先启动一次服务器以生成文件。"
   },
   "messages": {
-    "starting_server": "启动服务器：{{command}}",
+    "starting_server": "正在启动服务器：{{command}}",
     "working_directory": "工作目录：{{path}}",
-    "server_starting": "Palworld服务器启动，PID为{{pid}}",
-    "shutdown_signal_sent": "向PID {{pid}}发送关闭信号",
-    "force_killed": "强制终止PID {{pid}}",
-    "signal_sent": "向PID {{pid}}发送信号{{signal}}",
-    "no_process_running": "没有运行的进程",
-    "executing_command": "通过守护程序执行命令：{{command}}，参数：{{args}}",
-    "daemon_rcon_response": "守护程序RCON响应：{{result}}",
+    "server_starting": "幻兽帕鲁服务器正在启动，PID {{pid}}",
+    "shutdown_signal_sent": "已向 PID {{pid}} 发送关闭信号",
+    "force_killed": "已强制终止 PID {{pid}}",
+    "signal_sent": "已向 PID {{pid}} 发送信号 {{signal}}",
+    "no_process_running": "当前没有进程在运行",
+    "executing_command": "通过守护进程执行命令：{{command}} 参数：{{args}}",
+    "daemon_rcon_response": "守护进程 RCON 响应：{{result}}",
     "broadcast_message": "广播消息：{{message}}",
-    "save_triggered": "服务器保存已触发",
-    "shutdown_initiated": "服务器关闭已启动（{{seconds}}秒倒计时）",
-    "rest_api_forced_on": "[策略] REST API 已强制启用",
-    "rcon_forced_off": "[策略] RCON 已强制禁用（已弃用）",
-    "admin_password_generated": "[策略] 已自动生成 AdminPassword 用于 REST API 认证"
+    "save_triggered": "已触发服务器保存",
+    "shutdown_initiated": "服务器关闭已启动（{{seconds}} 秒倒计时）",
+    "rest_api_forced_on": "[策略] 已强制启用 REST API",
+    "rcon_forced_off": "[策略] 已强制禁用 RCON（已弃用）",
+    "admin_password_generated": "[策略] 已为 REST API 认证自动生成 AdminPassword",
+    "terminated": "已终止 {{name}}",
+    "process_running": "{{name}} 正在运行",
+    "process_not_running": "{{name}} 未在运行",
+    "settings_updated": "设置更新成功。",
+    "using_defaults": "使用 DefaultPalWorldSettings.ini 中的默认值（服务器尚未配置）。",
+    "no_eula_needed": "幻兽帕鲁不需要单独接受 EULA。",
+    "install_via_steamcmd": "幻兽帕鲁专用服务器必须通过 SteamCMD 安装。",
+    "versions_via_steam": "幻兽帕鲁服务器通过 Steam/SteamCMD 分发（App ID 2394010）。请使用 SteamCMD 安装或更新。",
+    "versions_managed_via_steam": "幻兽帕鲁服务器版本通过 Steam 管理。请使用 SteamCMD 并执行 app_update 2394010 进行更新。",
+    "extension_not_enabled": "SteamCMD 扩展未启用。请先在 设置 → 扩展 中启用。"
+  },
+  "rcon": {
+    "connecting": "正在连接 {{host}}:{{port}}...",
+    "connected": "已连接！",
+    "authentication_failed": "认证失败",
+    "authenticated": "认证成功！",
+    "connection_failed": "连接失败：{{error}}",
+    "sending_command": "正在发送命令：{{command}}",
+    "response_received": "已收到响应：{{response}}",
+    "command_failed": "命令执行失败：{{error}}",
+    "invalid_password": "密码无效",
+    "receiving_response": "正在接收响应...",
+    "partial_response": "已接收部分响应（{{bytes}} 字节）",
+    "response_complete": "响应完成（共 {{bytes}} 字节）",
+    "closed": "RCON 连接已关闭"
   },
   "reset": {
     "no_path": "无法确定服务器目录。请设置 working_dir 或 server_executable。",
-    "not_found": "未找到设置文件。请先启动一次服务器以生成该文件。",
+    "not_found": "未找到设置文件。请先启动一次服务器以生成文件。",
     "settings_success": "所有服务器设置已重置为出厂默认值。世界数据已保留。",
     "settings_failed": "将默认设置写入配置文件失败。"
+  },
+  "validate": {
+    "no_executable": "未指定服务器可执行文件路径。",
+    "no_executable_hint": "请在实例设置中设置 PalServer.exe 的路径。",
+    "executable_not_found": "未找到可执行文件：{{path}}",
+    "executable_not_found_hint": "请检查可执行文件路径或重新安装服务器。",
+    "cannot_create_dir": "无法创建工作目录：{{path}}",
+    "cannot_create_dir_hint": "请检查文件夹权限或选择其他路径。",
+    "port_in_use": "端口 {{port}} 已被占用。",
+    "port_in_use_hint": "请停止占用端口 {{port}} 的其他进程或更改端口。"
   }
 }

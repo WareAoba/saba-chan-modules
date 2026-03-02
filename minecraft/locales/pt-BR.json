@@ -4,7 +4,6 @@
     "description": "Módulo de gerenciamento de servidor Minecraft com controle completo do ciclo de vida"
   },
   "settings": {
-    "executable_path": { "label": "Caminho do JAR do servidor", "description": "Caminho para o arquivo server.jar" },
     "java_path": { "label": "Caminho do Java", "description": "Caminho para o executável Java (detecção automática se vazio)" },
     "ram": { "label": "Memória (RAM)", "description": "Alocação máxima de memória (ex. 2G, 4G)" },
     "port": { "label": "Porta do servidor", "description": "Porta do servidor de jogo" },

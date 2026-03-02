@@ -4,7 +4,6 @@
     "description": "Модуль управления выделенным сервером Project Zomboid с полным контролем жизненного цикла"
   },
   "settings": {
-    "executable_path": { "label": "Путь к исполняемому файлу", "description": "Путь к StartServer64.bat (Windows) или start-server.sh (Linux)" },
     "ram": { "label": "Память (RAM)", "description": "Максимальное выделение памяти в ГБ" },
     "server_name": { "label": "Имя профиля", "description": "Имя профиля сервера" },
     "rcon_port": { "label": "Порт RCON", "description": "Порт удалённой консоли RCON" },

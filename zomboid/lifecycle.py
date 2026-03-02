@@ -359,7 +359,7 @@ class IniManager:
             return props
         
         try:
-            with open(ini_path, 'r', encoding='utf-8') as f:
+            with open(ini_path, 'r', encoding='utf-8', errors='replace') as f:
                 for line in f:
                     line = line.strip()
                     if not line or line.startswith('#'):
@@ -386,7 +386,7 @@ class IniManager:
             lines = []
             updated_keys = set()
             
-            with open(ini_path, 'r', encoding='utf-8') as f:
+            with open(ini_path, 'r', encoding='utf-8', errors='replace') as f:
                 for line in f:
                     stripped = line.strip()
                     if stripped and not stripped.startswith('#') and '=' in stripped:
@@ -494,10 +494,22 @@ class ErrorDetector:
 # ═══════════════════════════════════════════════════════════
 
 def _find_server_dir(config):
-    """Resolve the server installation directory."""
+    """Resolve the server installation directory.
+    
+    Checks multiple config keys:
+      - executable_path: user-configured full path (from module settings)
+      - server_executable: instance executable path (from Rust daemon)
+      - working_dir: explicit working directory
+    """
+    # Check executable_path (module settings) first
     executable = config.get("executable_path", "")
     if executable and os.path.exists(executable):
         return os.path.dirname(os.path.abspath(executable))
+    
+    # Fallback: server_executable (Rust daemon sends instance.executable_path as this key)
+    server_exe = config.get("server_executable", "")
+    if server_exe and os.path.exists(server_exe):
+        return os.path.dirname(os.path.abspath(server_exe))
     
     working_dir = config.get("working_dir", "")
     if working_dir and os.path.isdir(working_dir):
@@ -505,6 +517,220 @@ def _find_server_dir(config):
     
     return ""
 
+
+# ── 배치/쉘 스크립트 파싱으로 JVM 실행 정보 추출 ──
+
+def _find_launch_script(server_dir):
+    """서버 디렉토리에서 공식 실행 스크립트를 찾습니다."""
+    if not server_dir:
+        return None
+    if sys.platform == "win32":
+        candidates = [
+            os.path.join(server_dir, "StartServer64.bat"),
+            os.path.join(server_dir, "StartServer64_nosteam.bat"),
+            os.path.join(server_dir, "StartServer.bat"),
+        ]
+    else:
+        candidates = [
+            os.path.join(server_dir, "start-server.sh"),
+            os.path.join(server_dir, "StartServer.sh"),
+        ]
+    for path in candidates:
+        if os.path.isfile(path):
+            return path
+    return None
+
+
+def _parse_launch_script(script_path):
+    """배치/쉘 스크립트를 파싱하여 JVM 실행 정보를 추출합니다.
+
+    Returns dict:
+        java_exe:    str   — JRE 상대 경로 (e.g. "jre64/bin/java.exe")
+        classpath:   str   — classpath 문자열
+        jvm_flags:   list  — -D, -XX, -Xms, -Xmx 등 JVM 플래그
+        main_class:  str   — 메인 클래스 (e.g. "zombie.network.GameServer")
+        extra_args:  list  — main_class 뒤 인자 (e.g. ["-statistic", "0"])
+        memory:      tuple — (Xms, Xmx) 원본 문자열 (e.g. ("16g", "16g"))
+    또는 파싱 실패 시 None.
+    """
+    if not script_path or not os.path.isfile(script_path):
+        return None
+
+    try:
+        with open(script_path, "r", encoding="utf-8", errors="replace") as f:
+            content = f.read()
+    except Exception:
+        return None
+
+    is_bat = script_path.lower().endswith(".bat")
+    variables = {}  # SET 변수 저장
+
+    if is_bat:
+        return _parse_bat(content, variables)
+    else:
+        return _parse_sh(content, variables)
+
+
+def _parse_bat(content, variables):
+    """Windows .bat 파일에서 Java 실행 명령을 파싱합니다."""
+    # 1단계: SET 변수 수집 (SET PZ_CLASSPATH=..., SET JAVA_HOME=... 등)
+    for m in re.finditer(r'(?im)^\s*SET\s+(\w+)=(.+)$', content):
+        variables[m.group(1).strip()] = m.group(2).strip()
+
+    # 2단계: java 실행 행 찾기 — "java" 또는 "java.exe"가 포함된 행
+    #   SET, REM, PAUSE 등 명령은 제외
+    java_line = None
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # @ 접두사 제거
+        bare = stripped.lstrip("@").strip()
+        # SET, REM, PAUSE 등 비실행 명령 건너뛰기
+        if re.match(r'(?i)^(SET|REM|PAUSE|ECHO|CD|SETLOCAL|ENDLOCAL|IF|GOTO|CALL)\b', bare):
+            continue
+        if re.search(r'java(?:\.exe)?\b', bare, re.IGNORECASE):
+            java_line = bare
+            break
+
+    if not java_line:
+        return None
+
+    # 변수 치환 (%VAR%)
+    def expand_var(m):
+        name = m.group(1)
+        return variables.get(name, m.group(0))
+    java_line = re.sub(r'%(\w+)%', expand_var, java_line)
+    # 후행 %1 %2 등 제거
+    java_line = re.sub(r'%\d+', '', java_line).strip()
+
+    return _parse_java_cmdline(java_line)
+
+
+def _parse_sh(content, variables):
+    """Linux .sh 파일에서 Java 실행 명령을 파싱합니다."""
+    # 1단계: 변수 수집 (EXPORT VAR=..., VAR=... 등)
+    for m in re.finditer(r'(?m)^(?:export\s+)?(\w+)=["\'"]?([^"\'"\n]+)', content):
+        variables[m.group(1).strip()] = m.group(2).strip()
+
+    # 2단계: java 실행 행 찾기
+    java_line = None
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if re.search(r'java\b', stripped, re.IGNORECASE):
+            java_line = stripped
+            break
+
+    if not java_line:
+        return None
+
+    # exec 접두사 제거
+    java_line = re.sub(r'^exec\s+', '', java_line).strip()
+
+    # 변수 치환 ($VAR, ${VAR})
+    def expand_var(m):
+        name = m.group(1) or m.group(2)
+        return variables.get(name, m.group(0))
+    java_line = re.sub(r'\$\{(\w+)\}|\$(\w+)', expand_var, java_line)
+    # 후행 "$@" "$1" 등 제거
+    java_line = re.sub(r'"\$[@\d]+"|\$[@\d]+', '', java_line).strip()
+
+    return _parse_java_cmdline(java_line)
+
+
+def _parse_java_cmdline(cmdline):
+    """java 명령행 문자열을 파싱하여 구조화된 정보를 반환합니다."""
+    # 따옴표 안의 java 경로 추출
+    m = re.match(r'^"([^"]+)"\s*(.*)$', cmdline)
+    if m:
+        java_exe = m.group(1).strip().strip('"').strip(".")
+        rest = m.group(2)
+    else:
+        parts = cmdline.split(None, 1)
+        java_exe = parts[0].strip('"').lstrip("./\\")
+        rest = parts[1] if len(parts) > 1 else ""
+
+    # 경로 정규화 (.\jre64\bin\java.exe → jre64/bin/java.exe)
+    java_exe = java_exe.lstrip(".\\/")
+    java_exe = java_exe.replace("\\", "/")
+
+    # 토큰 분리 (따옴표 인식)
+    tokens = []
+    for tok in re.finditer(r'"[^"]*"|[^\s]+', rest):
+        tokens.append(tok.group().strip('"'))
+
+    jvm_flags = []
+    classpath = ""
+    main_class = ""
+    extra_args = []
+    memory = (None, None)
+
+    i = 0
+    found_main = False
+    while i < len(tokens):
+        tok = tokens[i]
+        if found_main:
+            extra_args.append(tok)
+        elif tok == "-cp" or tok == "-classpath":
+            if i + 1 < len(tokens):
+                classpath = tokens[i + 1]
+                i += 1
+        elif tok.startswith("-Xms"):
+            jvm_flags.append(tok)
+            xms = tok[4:]
+            memory = (xms, memory[1])
+        elif tok.startswith("-Xmx"):
+            jvm_flags.append(tok)
+            xmx = tok[4:]
+            memory = (memory[0], xmx)
+        elif tok.startswith("-"):
+            jvm_flags.append(tok)
+        else:
+            # 첫 번째 비-플래그 토큰이 메인 클래스
+            main_class = tok
+            found_main = True
+        i += 1
+
+    if not main_class:
+        return None
+
+    return {
+        "java_exe": java_exe,
+        "classpath": classpath,
+        "jvm_flags": jvm_flags,
+        "main_class": main_class,
+        "extra_args": extra_args,
+        "memory": memory,
+    }
+
+
+def _parse_launch_info(config, server_dir):
+    """배치/쉘 스크립트를 파싱하여 실행 정보를 반환합니다.
+    
+    파싱 성공 시 dict, 실패 시 None (폴백 로직 사용).
+    반환 dict에는 절대 경로가 설정됩니다.
+    """
+    script = _find_launch_script(server_dir)
+    if not script:
+        return None
+
+    info = _parse_launch_script(script)
+    if not info:
+        return None
+
+    # java_exe 절대 경로 해석
+    java_abs = os.path.join(server_dir, info["java_exe"])
+    if not os.path.isfile(java_abs):
+        # 파싱된 경로에 파일이 없으면 기존 탐색으로 폴백
+        return None
+    info["java_exe_abs"] = java_abs
+
+    return info
+
+
+# ── 폴백 헬퍼 (배치파일 파싱 실패 시 사용) ──
 
 def _find_java(server_dir):
     """Find the bundled Java executable within the PZ server directory."""
@@ -693,81 +919,106 @@ def validate(config):
 def get_launch_command(config):
     """Build the server launch command for the Rust daemon.
     
-    Project Zomboid uses a bundled JRE with specific JVM flags:
-      jre64/bin/java.exe -Djava.awt.headless=true -Dzomboid.steam=1
-        -Dzomboid.znetlog=1 -XX:+UseZGC ... -Xms{ram}g -Xmx{ram}g
-        -Djava.library.path=natives/;natives/win64/;.
-        -cp {classpath} zombie.network.GameServer
-        -servername {name} -adminpassword {pass}
+    배치/쉘 스크립트를 파싱하여 JVM 실행 정보를 추출합니다.
+    PZ 업데이트로 classpath·JVM 플래그가 변경되어도 자동 반영됩니다.
+    파싱 실패 시 기존 하드코딩 폴백을 사용합니다.
     """
     server_dir = _find_server_dir(config)
     if not server_dir:
         return {"success": False, "message": i18n.t("errors.no_server_dir")}
     
-    java_path = _find_java(server_dir)
-    if not java_path:
-        return {"success": False, "message": i18n.t("errors.java_not_found")}
-    
-    # Memory
+    # 사용자 설정값
     ram_gb = config.get("ram", 4)
     try:
         ram_gb = int(ram_gb)
     except (ValueError, TypeError):
         ram_gb = 4
-    
-    # Classpath
-    classpath = _resolve_classpath(server_dir)
-    if not classpath:
-        return {"success": False, "message": i18n.t("errors.classpath_not_found")}
-    
-    # Native library path
-    native_libs = _get_native_libs(server_dir)
-    
-    # Server name
     server_name = config.get("server_name", "servertest")
-    
-    # Managed mode (stdin control vs RCON-only)
     is_managed = config.get("managed", True)
-    
-    # RCON policy enforcement
     ini_path = IniManager.get_ini_path(config)
     _enforce_rcon_policy(config, ini_path, managed=is_managed)
+
+    # ── 1차: 배치/쉘 스크립트 파싱 ──
+    parsed = _parse_launch_info(config, server_dir)
+
+    if parsed:
+        java_path = parsed["java_exe_abs"]
+        classpath = parsed["classpath"]
+        
+        # 파싱된 JVM 플래그에서 메모리 설정만 사용자 값으로 교체
+        jvm_flags = []
+        for flag in parsed["jvm_flags"]:
+            if flag.startswith("-Xms"):
+                jvm_flags.append(f"-Xms{ram_gb}g")
+            elif flag.startswith("-Xmx"):
+                jvm_flags.append(f"-Xmx{ram_gb}g")
+            else:
+                jvm_flags.append(flag)
+        
+        # main_class 뒤 인자: 스크립트 원본의 extra_args에서 -servername을 찾아 교체
+        main_class = parsed["main_class"]
+        extra_args = []
+        skip_next = False
+        servername_set = False
+        for i, arg in enumerate(parsed["extra_args"]):
+            if skip_next:
+                skip_next = False
+                continue
+            if arg == "-servername":
+                extra_args.extend(["-servername", server_name])
+                servername_set = True
+                skip_next = True  # 다음 인자(원본 서버이름) 건너뛰기
+            else:
+                extra_args.append(arg)
+        
+        if not servername_set:
+            extra_args.extend(["-servername", server_name])
+        
+        args = jvm_flags + ["-cp", classpath, main_class] + extra_args
+    else:
+        # ── 2차: 하드코딩 폴백 ──
+        java_path = _find_java(server_dir)
+        if not java_path:
+            return {"success": False, "message": i18n.t("errors.java_not_found")}
+        
+        classpath = _resolve_classpath(server_dir)
+        if not classpath:
+            return {"success": False, "message": i18n.t("errors.classpath_not_found")}
+        
+        native_libs = _get_native_libs(server_dir)
+        
+        args = [
+            "-Djava.awt.headless=true",
+            "-Dzomboid.steam=1",
+            "-Dzomboid.znetlog=1",
+            "-XX:+UseZGC",
+            "-XX:-CreateCoredumpOnCrash",
+            "-XX:-OmitStackTraceInFastThrow",
+            f"-Xms{ram_gb}g",
+            f"-Xmx{ram_gb}g",
+            f"-Djava.library.path={native_libs}",
+            "-cp", classpath,
+            "zombie.network.GameServer",
+            "-servername", server_name,
+            "-statistic", "0",
+        ]
     
-    # Build JVM args
-    args = [
-        "-Djava.awt.headless=true",
-        "-Dzomboid.steam=1",
-        "-Dzomboid.znetlog=1",
-        "-XX:+UseZGC",
-        "-XX:-CreateCoredumpOnCrash",
-        "-XX:-OmitStackTraceInFastThrow",
-        f"-Xms{ram_gb}g",
-        f"-Xmx{ram_gb}g",
-        f"-Djava.library.path={native_libs}",
-        "-cp", classpath,
-        "zombie.network.GameServer",
-        "-servername", server_name,
-        "-statistic", "0",
-    ]
-    
+    # ── 공통 후처리 ──
     # No-steam mode
     if config.get("no_steam", False):
         args.append("-nosteam")
-        # Also change steam flag
-        args[1] = "-Dzomboid.steam=0"
+        # -Dzomboid.steam=1 → 0으로 교체
+        args = ["-Dzomboid.steam=0" if a == "-Dzomboid.steam=1" else a for a in args]
     
     # Admin password (only on first launch to bypass prompt)
     admin_password = config.get("admin_password", "")
     if admin_password:
         args.extend(["-adminpassword", admin_password])
     
-    # Custom cache dir for data files
+    # Custom cache dir
     config_dir = config.get("config_dir", "")
     if config_dir:
-        if sys.platform == "win32":
-            args.insert(0, f"-Duser.home={config_dir}")
-        else:
-            args.insert(0, f"-Ddeployment.user.cachedir={config_dir}")
+        args.append(f"-cachedir={config_dir}")
     
     return {
         "success": True,
@@ -844,6 +1095,54 @@ def _try_rcon_status(config):
         print(f"RCON status check failed: {e}", file=sys.stderr)
     
     return None
+
+
+def start(config):
+    """Start server (legacy — prefer get_launch_command + ManagedProcess).
+    
+    This is the non-managed (RCON-only) fallback path.
+    The Rust daemon calls this when managed_start is disabled.
+    Spawns java.exe directly as a detached process.
+    배치/쉘 스크립트 파싱을 통해 JVM 설정을 자동 추출합니다.
+    """
+    try:
+        # get_launch_command로 통합 — 파싱 로직 재사용
+        launch = get_launch_command({**config, "managed": False})
+        if not launch.get("success"):
+            return launch
+        
+        java_path = launch["program"]
+        server_dir = launch["working_dir"]
+        cmd = [java_path] + launch["args"]
+        
+        print(i18n.t("messages.starting_server", command=" ".join(cmd)), file=sys.stderr)
+        
+        if sys.platform == "win32":
+            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+            proc = subprocess.Popen(
+                cmd, cwd=server_dir,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                creationflags=flags,
+            )
+        else:
+            proc = subprocess.Popen(
+                cmd, cwd=server_dir,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                start_new_session=True,
+            )
+        
+        return {
+            "success": True,
+            "pid": proc.pid,
+            "message": i18n.t("messages.server_starting", pid=proc.pid),
+        }
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc(), file=sys.stderr)
+        return {
+            "success": False,
+            "message": i18n.t("errors.failed_to_start", error=str(e)),
+        }
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1201,8 +1500,7 @@ def install_server(config):
     if "steamcmd" not in enabled_exts:
         return {
             "success": False,
-            "message": i18n.t("errors.extension_not_enabled",
-                              defaultValue="SteamCMD extension is not enabled. Enable it in Settings → Extensions first."),
+            "message": i18n.t("errors.extension_not_enabled"),
             "error_code": "extension_required",
             "missing_extensions": ["steamcmd"],
         }
@@ -1366,12 +1664,14 @@ def reset_server(config):
 # ╚═══════════════════════════════════════════════════════════╝
 
 FUNCTIONS = {
+    "start":              start,
     "validate":           validate,
     "get_launch_command": get_launch_command,
     "status":             status,
     "stop":               stop,
     "command":            command,
     "configure":          configure,
+    "import_settings":    import_settings,
     "read_properties":    read_properties,
     "diagnose_log":       diagnose_log,
     "install_server":     install_server,

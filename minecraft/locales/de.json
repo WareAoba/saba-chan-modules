@@ -4,7 +4,6 @@
     "description": "Minecraft-Server-Verwaltungsmodul mit vollständiger Lebenszyklus-Steuerung"
   },
   "settings": {
-    "executable_path": { "label": "Server-JAR-Pfad", "description": "Pfad zur server.jar-Datei" },
     "java_path": { "label": "Java-Pfad", "description": "Pfad zur Java-Programmdatei (automatisch erkannt, wenn leer)" },
     "ram": { "label": "Arbeitsspeicher (RAM)", "description": "Maximale Speicherzuweisung (z.B. 2G, 4G)" },
     "port": { "label": "Server-Port", "description": "Spielserver-Port" },

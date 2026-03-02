@@ -4,7 +4,6 @@
     "description": "完全なライフサイクル制御を備えたマインクラフトサーバー管理モジュール"
   },
   "settings": {
-    "executable_path": { "label": "サーバーJARパス", "description": "server.jarファイルのパス" },
     "java_path": { "label": "Javaパス", "description": "Java実行ファイルのパス（空白の場合は自動検出）" },
     "ram": { "label": "メモリ（RAM）", "description": "最大メモリ割り当て（例: 2G, 4G）" },
     "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },

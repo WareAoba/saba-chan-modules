@@ -4,7 +4,6 @@
     "description": "Palworld server management module"
   },
   "settings": {
-    "executable_path": { "label": "Server Executable Path", "description": "Path to the server executable" },
     "port": { "label": "Server Port", "description": "Game server port" },
     "rcon_port": { "label": "RCON Port", "description": "RCON port" },
     "rcon_password": { "label": "RCON Password", "description": "Remote command execution password" },
@@ -144,7 +143,8 @@
     "no_eula_needed": "Palworld does not require separate EULA acceptance.",
     "install_via_steamcmd": "Palworld dedicated server must be installed via SteamCMD.",
     "versions_via_steam": "Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Use SteamCMD to install or update.",
-    "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update."
+    "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update.",
+    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings \u2192 Extensions first."
   },
   "rcon": {
     "connecting": "Connecting to {{host}}:{{port}}...",
@@ -160,15 +160,6 @@
     "partial_response": "Partial response received ({{bytes}} bytes)",
     "response_complete": "Response complete ({{bytes}} bytes total)",
     "closed": "RCON connection closed"
-  },
-  "commands": {
-    "info": "Server Info",
-    "showplayers": "Show Players",
-    "kick": "Kick Player",
-    "ban": "Ban Player",
-    "broadcast": "Broadcast Message",
-    "save": "Save World",
-    "shutdown": "Shutdown Server"
   },
   "reset": {
     "no_path": "Cannot determine server directory. Set working_dir or server_executable.",

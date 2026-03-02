@@ -21,6 +21,7 @@ interaction_mode = "console"  # console: stdin 지원, 콘솔 UI 표시 | comman
 executable_path = ""
 java_path = "java"
 server_jar = "server.jar"
+server_executable = "server.jar"
 eula = true
 process_name = "java.exe"
 default_port = 25565
@@ -64,14 +65,6 @@ dir_signatures = ["server.jar", "server.properties"]
 [settings]
 
 # ========== saba-chan 전용 설정 (server.properties 아님) ==========
-
-[[settings.fields]]
-name = "executable_path"
-type = "file"
-label = "Server JAR Path"
-description = "Path to server.jar file"
-required = true
-group = "saba-chan"
 
 [[settings.fields]]
 name = "java_path"

@@ -4,7 +4,6 @@
     "description": "Модуль управления сервером Palworld"
   },
   "settings": {
-    "executable_path": { "label": "Путь к исполняемому файлу сервера", "description": "Путь к исполняемому файлу сервера" },
     "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },
     "rcon_port": { "label": "Порт RCON", "description": "Порт RCON" },
     "rcon_password": { "label": "Пароль RCON", "description": "Пароль для удалённого выполнения команд" },

@@ -1,0 +1,352 @@
+# ═══════════════════════════════════════════════════════════════════
+#  saba-chan Module Template — module.toml
+# ═══════════════════════════════════════════════════════════════════
+#
+#  이 파일은 모듈의 메타데이터, 프로토콜, 설정 스키마, 명령어를 정의합니다.
+#  데몬(Rust)이 이 파일을 파싱하여 ModuleMetadata를 생성합니다.
+#
+#  참고 모듈: palworld, minecraft, zomboid
+# ─────────────────────────────────────────────────────────────────
+
+
+# ── [module] 필수 메타데이터 ──────────────────────────────────────
+[module]
+name = "mygame"                         # 고유 식별자 (폴더명과 동일, 영문 소문자)
+version = "0.1.0"                       # 모듈 버전 (semver)
+description = "MyGame server module"    # 한 줄 설명
+game_name = "MyGame"                    # 전체 게임 이름
+display_name = "MyGame"                 # GUI에 표시되는 이름
+entry = "lifecycle.py"                  # 진입점 스크립트 (항상 lifecycle.py)
+icon = "icon.png"                       # 아이콘 파일 (모듈 폴더 내)
+log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 정규식
+
+
+# ── [update] 모듈 자동 업데이트 ──────────────────────────────────
+[update]
+github_repo = "saba-chan-modules"        # GitHub 레포 이름 (github_owner는 본체 설정에서 상속)
+
+
+# ── [protocols] 통신 프로토콜 ────────────────────────────────────
+#
+#  supported: 이 모듈이 지원하는 프로토콜 목록
+#    - "rcon"  : RCON 프로토콜 (Valve Source RCON)
+#    - "rest"  : HTTP REST API
+#    - "stdin" : 표준 입력 (managed process의 stdin으로 명령 전송)
+#
+#  default: 기본 사용 프로토콜 (supported 중 하나)
+#
+#  interaction_mode: GUI 상호작용 방식
+#    - "console"  : stdin 지원, 실시간 콘솔 UI 표시 (Minecraft, Zomboid)
+#    - "commands" : 정해진 명령어 버튼만 표시 (Palworld)
+#
+[protocols]
+supported = ["rcon", "stdin"]           # ← 게임에 맞게 선택
+default = "rcon"
+interaction_mode = "console"            # "console" 또는 "commands"
+
+
+# ── [credential_map] 자격증명 자동 동기화 ────────────────────────
+#
+#  데몬 표준 키 ↔ 게임별 설정 키 매핑을 선언합니다.
+#  get_launch_command()가 게임 키 값을 반환하면, 데몬이 자동으로
+#  해당 데몬 키에 동기화합니다.
+#
+#  사용 가능한 데몬 키:
+#    - rest_password  : REST API 비밀번호
+#    - rest_username  : REST API 사용자명
+#    - rcon_password  : RCON 비밀번호
+#
+#  예시: Palworld는 REST API 비밀번호가 INI의 AdminPassword와 같음
+#    [credential_map]
+#    rest_password = "AdminPassword"
+#
+#  예시: 게임이 RCON 비밀번호를 자체 설정 파일에서 관리하는 경우
+#    [credential_map]
+#    rcon_password = "ServerRconPassword"
+#
+#  매핑을 선언하면 lifecycle.py에서 rest_credentials를 직접 반환할
+#  필요 없이, 게임 키 값만 launch_result 최상위에 포함하면 됩니다.
+#
+# [credential_map]
+# rcon_password = "GameSpecificRconKey"
+
+
+# ── [config] 기본 실행 설정 ──────────────────────────────────────
+[config]
+executable_path = ""                    # 기본 실행 파일 전체 경로 (설치 후 설정)
+server_executable = "MyGameServer.exe"  # 실행 파일명 (프로세스 탐지용)
+process_name = "MyGameServer"           # 프로세스 이름 (tasklist/pgrep 탐지용)
+default_port = 7777                     # 기본 게임 포트
+# rcon_port = 25575                     # RCON 포트 (RCON 지원 시)
+stop_command = "quit"                   # stdin으로 전송하는 graceful 종료 명령어
+
+
+# ── [install] 서버 설치 방법 ─────────────────────────────────────
+#
+#  method: 설치 방식
+#    - "steamcmd"  : SteamCMD로 설치 (app_id 필수, steamcmd 익스텐션 필요)
+#    - "download"  : URL에서 직접 다운로드 (download_url 필수)
+#    - "manual"    : 수동 설치 (사용자가 직접 파일 배치)
+#
+[install]
+method = "steamcmd"                     # "steamcmd" | "download" | "manual"
+app_id = 123456                         # Steam App ID (steamcmd일 때 필수)
+anonymous = true                        # 익명 로그인 가능 여부
+install_subdir = "server"               # 설치 하위 폴더
+platform = "windows"                    # "windows" | "linux"
+requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
+# download_url = "https://..."          # method="download"일 때 사용
+# beta_branch = "experimental"          # 베타 브랜치 이름 (선택)
+
+
+# ── [docker] 컨테이너 실행 설정 ──────────────────────────────────
+#  Docker 확장이 설치된 경우 컨테이너로 실행할 수 있습니다.
+#  { } 안의 변수는 인스턴스 설정에서 자동 치환됩니다.
+#
+[docker]
+image = "steamcmd/steamcmd:latest"
+working_dir = "/server"
+restart = "unless-stopped"
+entrypoint = "/bin/bash -c"
+command = "exec /server/MyGameServer -port={port}"
+ports = ["{port}:{port}/udp"]
+volumes = ["./server:/server"]
+
+[docker.environment]
+PORT = "{port}"
+
+
+# ── [detection] 자동 감지 ────────────────────────────────────────
+#  이미 실행 중인 서버를 자동으로 찾기 위한 패턴입니다.
+#
+[detection]
+process_patterns = ["MyGameServer"]     # 프로세스 이름 패턴 (부분 일치)
+# cmd_patterns = ["zombie.network"]     # 커맨드라인 패턴 (같은 실행파일을 쓰는 게임 구분용)
+common_paths = [                        # 자주 사용되는 설치 경로
+    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\MyGame",
+]
+dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해당 게임으로 판정
+
+
+# ═══════════════════════════════════════════════════════════════════
+#                         SETTINGS
+# ═══════════════════════════════════════════════════════════════════
+#
+#  GUI에 표시되는 인스턴스 설정 필드를 정의합니다.
+#  그룹으로 나누어 관리합니다:
+#    - "saba-chan" : saba-chan 전용 설정 (게임 설정 파일과 무관)
+#    - "advanced"  : 고급 설정 (접힌 상태로 표시)
+#    - 빈 문자열   : 일반 게임 설정 (기본 표시)
+#
+#  지원 타입: text, number, boolean, select, password, file, folder
+#
+[settings]
+
+# ── saba-chan 전용 설정 ──
+
+[[settings.fields]]
+name = "rcon_port"                      # 내부 키 이름 (config에서 참조)
+type = "number"
+label = "RCON Port"
+description = "RCON remote console port"
+default = 25575
+min = 1
+max = 65535
+group = "saba-chan"
+
+[[settings.fields]]
+name = "rcon_password"
+type = "password"
+label = "RCON Password"
+description = "RCON authentication password (auto-managed)"
+required = false
+group = "saba-chan"
+
+[[settings.fields]]
+name = "managed_start"
+type = "boolean"
+label = "Managed Start (Console)"
+description = "Start in managed mode with stdin/stdout console"
+default = true
+group = "saba-chan"
+
+[[settings.fields]]
+name = "graceful_stop"
+type = "boolean"
+label = "Graceful Stop"
+description = "Send stop command and wait for server to shut down gracefully"
+default = true
+group = "saba-chan"
+
+# ── 일반 게임 설정 ──
+# 아래 필드들은 게임의 설정 파일(INI, properties 등)에 매핑됩니다.
+# lifecycle.py의 configure()에서 _KEY_MAP을 통해 변환합니다.
+
+[[settings.fields]]
+name = "server_name"
+type = "text"
+label = "Server Name"
+description = "Name displayed in the server browser"
+default = "My Server"
+
+[[settings.fields]]
+name = "max_players"
+type = "number"
+label = "Max Players"
+description = "Maximum number of players"
+default = 16
+min = 1
+max = 100
+
+[[settings.fields]]
+name = "port"
+type = "number"
+label = "Game Port"
+description = "Main game server port"
+default = 7777
+min = 1024
+max = 65535
+
+[[settings.fields]]
+name = "server_password"
+type = "password"
+label = "Server Password"
+description = "Password to join the server (empty = no password)"
+default = ""
+
+[[settings.fields]]
+name = "pvp"
+type = "boolean"
+label = "PvP"
+description = "Enable player vs player combat"
+default = true
+
+[[settings.fields]]
+name = "difficulty"
+type = "select"
+label = "Difficulty"
+description = "Game difficulty"
+options = ["easy", "normal", "hard"]
+default = "normal"
+
+# ── 고급 설정 ──
+
+[[settings.fields]]
+name = "tick_rate"
+type = "number"
+label = "Tick Rate"
+description = "Server tick rate (Hz)"
+default = 60
+min = 10
+max = 128
+group = "advanced"
+
+
+# ═══════════════════════════════════════════════════════════════════
+#                         COMMANDS
+# ═══════════════════════════════════════════════════════════════════
+#
+#  GUI에서 버튼으로 실행할 수 있는 서버 명령어를 정의합니다.
+#
+#  ── RCON 명령어 (method = "rcon") ──
+#  rcon_template: RCON으로 전송할 명령어 템플릿
+#  {변수명}은 inputs에 정의된 값으로 치환됩니다.
+#
+#  ── REST 명령어 (method = "rest") ──
+#  http_method: GET, POST, PUT, DELETE
+#  endpoint_template: REST API 엔드포인트 경로
+#  inputs의 값은 JSON body로 전송됩니다.
+#
+[commands]
+
+# RCON 명령어 예시
+[[commands.fields]]
+name = "say"
+label = "Send Message"
+description = "Broadcast a message to all players"
+method = "rcon"                         # "rcon" 또는 "rest"
+rcon_template = "say {message}"         # {변수}는 inputs에서 치환
+inputs = [
+    { name = "message", type = "text", label = "Message", required = true, placeholder = "Enter message" }
+]
+
+[[commands.fields]]
+name = "save"
+label = "Save World"
+description = "Save the game world"
+method = "rcon"
+rcon_template = "save"
+inputs = []                             # 입력 없는 명령어
+
+[[commands.fields]]
+name = "kick"
+label = "Kick Player"
+description = "Kick a player from the server"
+method = "rcon"
+rcon_template = "kick {player} {reason}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player name" },
+    { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional reason" }
+]
+
+# REST 명령어 예시 (Palworld 스타일)
+# [[commands.fields]]
+# name = "announce"
+# label = "Announcement"
+# description = "Send an announcement"
+# method = "rest"
+# http_method = "POST"
+# endpoint_template = "/v1/api/announce"
+# inputs = [
+#     { name = "message", type = "text", label = "Message", required = true }
+# ]
+
+
+# ═══════════════════════════════════════════════════════════════════
+#                         ALIASES
+# ═══════════════════════════════════════════════════════════════════
+#
+#  Discord 봇 등에서 사용할 수 있는 한국어/영어 별칭입니다.
+#
+[aliases]
+module_aliases = ["마이게임", "mg", "mygame"]
+
+[aliases.commands]
+start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
+stop = { aliases = ["정지", "끄기"], description = "Stop the server" }
+status = { aliases = ["상태", "확인"], description = "Check server status" }
+say = { aliases = ["말하기", "채팅"], description = "Send a message" }
+save = { aliases = ["저장"], description = "Save the world" }
+kick = { aliases = ["킥", "강퇴"], description = "Kick a player" }
+
+
+# ═══════════════════════════════════════════════════════════════════
+#                    SYNTAX HIGHLIGHTING
+# ═══════════════════════════════════════════════════════════════════
+#
+#  콘솔 출력의 구문 강조 규칙입니다. (interaction_mode = "console"일 때 적용)
+#  color: "info", "warn", "error", "dim", "ip", "path", "number", "string"
+#
+[syntax_highlight]
+
+[[syntax_highlight.rules]]
+name = "level_warning"
+pattern = '(?P<hl>WARN|WARNING):'
+color = "warn"
+bold = true
+
+[[syntax_highlight.rules]]
+name = "level_error"
+pattern = '(?P<hl>ERROR|FATAL):'
+color = "error"
+bold = true
+
+[[syntax_highlight.rules]]
+name = "level_info"
+pattern = '(?P<hl>INFO):'
+color = "info"
+
+[[syntax_highlight.rules]]
+name = "ip_address"
+pattern = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?'
+color = "ip"

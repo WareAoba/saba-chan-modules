@@ -4,7 +4,6 @@
     "description": "Module de gestion de serveur Palworld"
   },
   "settings": {
-    "executable_path": { "label": "Chemin de l'exécutable du serveur", "description": "Chemin vers l'exécutable du serveur" },
     "port": { "label": "Port du serveur", "description": "Port du serveur de jeu" },
     "rcon_port": { "label": "Port RCON", "description": "Port RCON" },
     "rcon_password": { "label": "Mot de passe RCON", "description": "Mot de passe d'exécution de commandes à distance" },

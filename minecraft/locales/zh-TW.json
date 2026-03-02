@@ -4,7 +4,6 @@
     "description": "具有完整生命週期控制的Minecraft伺服器管理模組"
   },
   "settings": {
-    "executable_path": { "label": "伺服器JAR路徑", "description": "server.jar檔案路徑" },
     "java_path": { "label": "Java路徑", "description": "Java執行檔路徑（留空則自動偵測）" },
     "ram": { "label": "記憶體（RAM）", "description": "最大記憶體分配（如 2G、4G）" },
     "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },

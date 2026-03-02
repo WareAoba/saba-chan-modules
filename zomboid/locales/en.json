@@ -4,7 +4,6 @@
     "description": "Project Zomboid dedicated server management module with full lifecycle control"
   },
   "settings": {
-    "executable_path": { "label": "Server Executable Path", "description": "Path to StartServer64.bat (Windows) or start-server.sh (Linux)" },
     "ram": { "label": "Memory (RAM)", "description": "Maximum memory allocation in GB" },
     "server_name": { "label": "Server Profile Name", "description": "Name of the server profile (determines INI file name)" },
     "rcon_port": { "label": "RCON Port", "description": "Port for RCON remote console" },
@@ -171,12 +170,14 @@
     "no_install_dir": "No installation directory specified. Please set a working directory.",
     "steamcmd_not_found": "SteamCMD not found. Please install SteamCMD to download the server.",
     "install_failed": "Server installation failed: {{error}}",
+    "failed_to_start": "Failed to start server: {{error}}",
     "install_timeout": "Server installation timed out after 10 minutes.",
     "no_settings": "No settings provided",
     "properties_write_failed": "Failed to write configuration: {{error}}",
     "failed_to_kill": "Failed to kill process: {{error}}",
     "server_not_running": "Server is not running. Please start the server first.",
     "server_reset_partial": "Some items could not be deleted: {{errors}}",
+    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
     "detect": {
       "out_of_memory": "Server ran out of memory (OutOfMemoryError)",
       "port_in_use": "Port {{port}} is already in use by another application",
@@ -203,6 +204,8 @@
   },
   "messages": {
     "server_online": "Server is online and responding",
+    "server_starting": "Server starting with PID {{pid}}",
+    "starting_server": "Starting server: {{command}}",
     "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",
     "no_process_running": "No process running",
     "shutdown_signal_sent": "Sent shutdown signal to PID {{pid}}",
@@ -215,7 +218,8 @@
     "no_mappable_settings": "No settings could be mapped to server configuration keys",
     "install_complete": "Project Zomboid server installed successfully",
     "server_reset_complete": "Server world data reset complete",
-    "rcon_password_generated": "Auto-generated RCON password (none was set)"
+    "rcon_password_generated": "Auto-generated RCON password (none was set)",
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
   },
   "rcon": {
     "connecting": "Connecting to {{host}}:{{port}}...",

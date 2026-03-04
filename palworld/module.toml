@@ -34,7 +34,7 @@ app_id = 2394010
 anonymous = true
 install_subdir = "server"
 platform = "windows"
-requires_extensions = ["steamcmd"]
+requires_extensions = ["steamcmd", "ue4-ini"]
 
 [docker]
 image = "steamcmd/steamcmd:latest"

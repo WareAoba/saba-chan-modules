@@ -160,7 +160,7 @@ def resolve_player_id(instance_id, player_input, config):
         rest_host = config.get("rest_host", "127.0.0.1")
         rest_port = config.get("rest_port", 8212)
         rest_username = config.get("rest_username") or "admin"
-        rest_password = config.get("rest_password", "")
+        rest_password = _read_admin_password_from_ini(config) or ""
         
         # 직접 Palworld 서버에 REST 요청 (Daemon을 거치지 않음 - 데드락 방지)
         palworld_url = f"http://{rest_host}:{rest_port}/v1/api/players"
@@ -261,7 +261,7 @@ def start(config):
         print(i18n.t('messages.working_directory', path=working_dir), file=sys.stderr)
         
         # Enforce REST-only policy before launch
-        _enforce_rest_policy(working_dir)
+        _enforce_rest_policy(working_dir, config)
         
         # Start process (detached, cross-platform)
         if sys.platform == 'win32':
@@ -298,6 +298,22 @@ def start(config):
         }
 
 
+def _read_admin_password_from_ini(config):
+    """
+    PalWorldSettings.ini에서 AdminPassword를 직접 읽어 반환합니다.
+    매번 파일에서 읽으므로 메모리 동기화 문제가 없습니다.
+    """
+    try:
+        ini_path = _get_settings_ini_path(config)
+        if ini_path and os.path.isfile(ini_path):
+            props = _parse_option_settings(ini_path)
+            pw = props.get("AdminPassword", "").strip('"').strip("'")
+            if pw:
+                return pw
+    except Exception as e:
+        print(f"[Palworld] Warning: failed to read AdminPassword from INI: {e}", file=sys.stderr)
+    return None
+
 def _enforce_rest_policy(working_dir, config=None):
     """
     Enforce REST-only policy in PalWorldSettings.ini before server launch.
@@ -310,9 +326,6 @@ def _enforce_rest_policy(working_dir, config=None):
 
     Returns dict with details of what was changed + the actual admin_password, or None if INI doesn't exist yet.
     """
-    import secrets
-    import string
-
     # Build a fake config to reuse _get_settings_ini_path
     fake_config = {"working_dir": working_dir}
     ini_path = _get_settings_ini_path(fake_config)
@@ -335,26 +348,23 @@ def _enforce_rest_policy(working_dir, config=None):
         print(i18n.t("messages.rcon_forced_off"), file=sys.stderr)
 
     # Sync AdminPassword with daemon's rest_password to ensure credentials match.
-    # Priority: existing INI AdminPassword > daemon rest_password > auto-generate
+    # daemon의 ensure_passwords()가 항상 rest_password를 생성하므로 config에 존재함.
     current_admin_pw = props.get("AdminPassword", "").strip('"').strip("'")
-    daemon_rest_pw = (config or {}).get("rest_password", "") if config else ""
+    daemon_pw = (config or {}).get("rest_password") or (config or {}).get("admin_password", "")
 
     if current_admin_pw:
-        # INI already has a password — use it (daemon will be updated via launch response)
+        # INI already has a password — use it
         pass
-    elif daemon_rest_pw:
-        # No INI password but daemon has one — sync it to INI
-        props["AdminPassword"] = daemon_rest_pw
-        current_admin_pw = daemon_rest_pw
-        changes["AdminPassword"] = "***synced-from-daemon***"
-        print(f"[Palworld] Synced AdminPassword from daemon rest_password", file=sys.stderr)
+    elif daemon_pw:
+        # No INI password but daemon has one — write it to INI
+        props["AdminPassword"] = daemon_pw
+        current_admin_pw = daemon_pw
+        changes["AdminPassword"] = "***synced-from-config***"
+        print(f"[Palworld] Synced AdminPassword from config", file=sys.stderr)
     else:
-        # Neither exists — generate a new one
-        alphabet = string.ascii_letters + string.digits
-        current_admin_pw = "".join(secrets.choice(alphabet) for _ in range(16))
-        props["AdminPassword"] = current_admin_pw
-        changes["AdminPassword"] = "***auto-generated***"
-        print(i18n.t("messages.admin_password_generated"), file=sys.stderr)
+        # 여기에 올 일 없음 — daemon이 ensure_passwords()로 항상 생성
+        print(f"[Palworld] WARNING: No password available from daemon or INI", file=sys.stderr)
+        return None
 
     if changes:
         _write_option_settings(ini_path, props)
@@ -484,6 +494,21 @@ def stop(config):
             "success": False,
             "message": i18n.t("errors.failed_to_stop", error=str(e))
         }
+
+def get_credentials(config):
+    """게임 설정 파일에서 직접 credential을 읽어 반환합니다.
+    Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다.
+    매번 파일에서 읽으므로 메모리 동기화 문제가 없습니다."""
+    try:
+        pw = _read_admin_password_from_ini(config)
+        return {
+            "success": True,
+            "rest_password": pw or "",
+            "rest_username": "admin",
+        }
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
 
 def status(config):
     """Get server status"""
@@ -1377,7 +1402,7 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
     rest_host = config.get("rest_host", "127.0.0.1")
     rest_port = config.get("rest_port", 8212)
     rest_username = config.get("rest_username") or "admin"
-    rest_password = config.get("rest_password", "")
+    rest_password = _read_admin_password_from_ini(config) or ""
     
     url = f"http://{rest_host}:{rest_port}{endpoint}"
     print(f"[Palworld] Direct REST request: {method} {url}", file=sys.stderr)
@@ -1600,6 +1625,7 @@ if __name__ == "__main__":
         "status": status,
         "command": command,
         "get_launch_command": get_launch_command,
+        "get_credentials": get_credentials,
         "validate": validate,
         "configure": configure,
         "read_properties": read_properties,

@@ -967,7 +967,7 @@ def validate(config):
     }
 
 
-def _enforce_rcon_policy(working_dir, managed=True):
+def _enforce_rcon_policy(working_dir, config=None, managed=True):
     """
     Enforce RCON policy in server.properties before server launch.
 
@@ -993,15 +993,15 @@ def _enforce_rcon_policy(working_dir, managed=True):
         if props.get("enable-rcon", "false").lower() != "true":
             changes["enable-rcon"] = "true"
             print(i18n.t("messages.rcon_enabled_native"), file=sys.stderr)
-        # Ensure RCON password exists
+        # Ensure RCON password exists — daemon이 ensure_passwords()로 생성한 값 사용
         current_pw = props.get("rcon.password", "")
         if not current_pw:
-            import secrets
-            import string
-            alphabet = string.ascii_letters + string.digits
-            password = "".join(secrets.choice(alphabet) for _ in range(16))
-            changes["rcon.password"] = password
-            print(i18n.t("messages.rcon_password_generated"), file=sys.stderr)
+            daemon_pw = (config or {}).get("rcon_password", "")
+            if daemon_pw:
+                changes["rcon.password"] = daemon_pw
+                print(f"[Minecraft] Synced rcon.password from daemon config", file=sys.stderr)
+            else:
+                print(f"[Minecraft] WARNING: No RCON password from daemon or server.properties", file=sys.stderr)
 
     if changes:
         mgr.update(changes)
@@ -1088,7 +1088,7 @@ def get_launch_command(config):
 
     # Managed mode → RCON must be OFF (stdin is used for control)
     is_managed = config.get("managed", True)  # get_launch_command default = managed
-    _enforce_rcon_policy(abs_working_dir, managed=is_managed)
+    _enforce_rcon_policy(abs_working_dir, config=config, managed=is_managed)
 
     return {
         "success": True,
@@ -1297,7 +1297,7 @@ def start(config):
         # Non-managed (legacy) mode → RCON must be ON (only control method)
         wd = config.get("working_dir")
         if wd:
-            _enforce_rcon_policy(os.path.abspath(wd), managed=False)
+            _enforce_rcon_policy(os.path.abspath(wd), config=config, managed=False)
 
         if not server_jar:
             return {
@@ -1353,6 +1353,26 @@ def start(config):
         return {"success": False, "message": i18n.t("errors.failed_to_start", error=str(e))}
 
 
+def get_credentials(config):
+    """게임 설정 파일(server.properties)에서 직접 credential을 읽어 반환합니다.
+    Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다."""
+    try:
+        working_dir = config.get("working_dir", "")
+        if not working_dir:
+            return {"success": False, "message": "working_dir not specified"}
+        mgr = ServerPropertiesManager(working_dir)
+        if not mgr.exists():
+            return {"success": False, "message": "server.properties not found"}
+        props = mgr.read()
+        return {
+            "success": True,
+            "rcon_password": props.get("rcon.password", ""),
+            "rcon_port": int(props.get("rcon.port", "25575")),
+        }
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+
 def stop(config):
     """Stop server — graceful RCON 'stop' before force kill."""
     try:
@@ -1363,8 +1383,10 @@ def stop(config):
         force = config.get("force", False)
 
         if not force:
-            rcon_port = config.get("rcon_port", 25575)
-            rcon_password = config.get("rcon_password", "")
+            # 설정 파일에서 RCON 비밀번호 읽기
+            creds = get_credentials(config)
+            rcon_port = creds.get("rcon_port", config.get("rcon_port", 25575)) if creds.get("success") else config.get("rcon_port", 25575)
+            rcon_password = creds.get("rcon_password", "") if creds.get("success") else ""
             if rcon_password:
                 try:
                     _rcon_command("127.0.0.1", rcon_port, rcon_password, "stop")
@@ -1864,6 +1886,7 @@ FUNCTIONS = {
     "command": command,
     "validate": validate,
     "get_launch_command": get_launch_command,
+    "get_credentials": get_credentials,
     "configure": configure,
     "read_properties": read_properties,
     "accept_eula": accept_eula,

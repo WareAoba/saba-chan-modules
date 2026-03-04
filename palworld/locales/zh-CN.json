@@ -10,7 +10,6 @@
     "rest_host": { "label": "REST API 主机", "description": "REST API 主机（默认 127.0.0.1）" },
     "rest_port": { "label": "REST API 端口", "description": "REST API 端口（默认 8212）" },
     "rest_username": { "label": "REST 用户名", "description": "REST 基本认证用户名" },
-    "rest_password": { "label": "REST 密码", "description": "REST 基本认证密码" },
     "server_name": { "label": "服务器名称", "description": "在服务器浏览器中显示的名称" },
     "server_description": { "label": "服务器描述", "description": "服务器描述" },
     "server_password": { "label": "服务器密码", "description": "加入服务器所需的密码" },

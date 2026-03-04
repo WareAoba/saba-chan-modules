@@ -18,6 +18,7 @@ default = "rest"
 interaction_mode = "commands"  # console: stdin 지원, 콘솔 UI 표시 | commands: 정해진 명령어만 실행
 
 # 데몬 표준 키 ↔ 게임별 설정 키 매핑 (자격증명 자동 동기화)
+# Palworld의 AdminPassword가 곳 REST API 인증 비밀번호입니다.
 [credential_map]
 rest_password = "AdminPassword"  # daemon rest_password ↔ PalWorldSettings.ini AdminPassword
 
@@ -81,14 +82,6 @@ description = "REST API port (default 8212)"
 default = 8212
 min = 1
 max = 65535
-group = "saba-chan"
-
-[[settings.fields]]
-name = "rest_password"
-type = "password"
-label = "REST Password"
-description = "REST Basic Auth password"
-required = false
 group = "saba-chan"
 
 # ========== PalWorldSettings.ini - 기본 설정 ==========

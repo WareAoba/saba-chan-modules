@@ -797,27 +797,53 @@ def _enforce_rcon_policy(config, ini_path, managed=True):
     rcon_port = config.get("rcon_port", 27015)
     updates["RCONPort"] = str(rcon_port)
     
-    if managed:
+    else:
         # Managed mode: RCON not required (stdin is used for control)
-        # Respect explicit user-set password; otherwise leave empty (disabled)
-        rcon_password = config.get("rcon_password", "") or props.get("RCONPassword", "")
+        # Respect existing INI password; otherwise use daemon's
+        rcon_password = props.get("RCONPassword", "")
         if not rcon_password:
-            updates["RCONPassword"] = ""
-            print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
-        else:
+            daemon_pw = config.get("rcon_password", "")
+            if daemon_pw:
+                rcon_password = daemon_pw
+            else:
+                updates["RCONPassword"] = ""
+                print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
+        if rcon_password:
             updates["RCONPassword"] = rcon_password
     else:
         # Non-managed mode: RCON must be enabled (it's the only control method)
-        rcon_password = config.get("rcon_password", "") or props.get("RCONPassword", "")
+        rcon_password = props.get("RCONPassword", "")
         if not rcon_password:
-            rcon_password = hashlib.sha256(os.urandom(32)).hexdigest()[:24]
-            print(i18n.t("messages.rcon_password_generated"), file=sys.stderr)
+            # daemon이 ensure_passwords()로 생성한 값 사용
+            daemon_pw = config.get("rcon_password", "")
+            if daemon_pw:
+                rcon_password = daemon_pw
+                print(f"[Zomboid] Synced RCONPassword from daemon config", file=sys.stderr)
+            else:
+                print(f"[Zomboid] WARNING: No RCON password from daemon or INI", file=sys.stderr)
         updates["RCONPassword"] = rcon_password
     
     if updates:
         IniManager.update(ini_path, updates)
     
     return rcon_password
+
+
+def get_credentials(config):
+    """게임 설정 파일(INI)에서 직접 credential을 읽어 반환합니다.
+    Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다."""
+    try:
+        ini_path = IniManager.get_ini_path(config)
+        if not os.path.exists(ini_path):
+            return {"success": False, "message": f"INI not found: {ini_path}"}
+        props = IniManager.read(ini_path)
+        return {
+            "success": True,
+            "rcon_password": props.get("RCONPassword", ""),
+            "rcon_port": int(props.get("RCONPort", config.get("rcon_port", "27015"))),
+        }
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1076,7 +1102,7 @@ def _try_rcon_status(config):
         ini_path = IniManager.get_ini_path(config)
         props = IniManager.read(ini_path)
         rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", config.get("rcon_password", ""))
+        rcon_password = props.get("RCONPassword", "")
         
         if not rcon_password:
             return None
@@ -1201,7 +1227,7 @@ def stop(config):
         ini_path = IniManager.get_ini_path(config)
         props = IniManager.read(ini_path)
         rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", config.get("rcon_password", ""))
+        rcon_password = props.get("RCONPassword", "")
         
         if rcon_password and _rcon_command:
             # Save first
@@ -1411,7 +1437,7 @@ def command(config):
         ini_path = IniManager.get_ini_path(config)
         props = IniManager.read(ini_path)
         rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", config.get("rcon_password", ""))
+        rcon_password = props.get("RCONPassword", "")
         
         if rcon_password and _rcon_command:
             result = _rcon_command("127.0.0.1", rcon_port, rcon_password, actual_cmd)
@@ -1667,6 +1693,7 @@ FUNCTIONS = {
     "start":              start,
     "validate":           validate,
     "get_launch_command": get_launch_command,
+    "get_credentials":   get_credentials,
     "status":             status,
     "stop":               stop,
     "command":            command,

@@ -7,63 +7,76 @@
  데몬(Rust)이 각 함수를 호출하고, 결과는 반드시 JSON(dict)으로 반환합니다.
  stdout → JSON 결과, stderr → 로그 (print(..., file=sys.stderr))
 
+ ★ 처음 만드는 분은 아래 순서로 작업하세요:
+
+   1. get_launch_command()의 args를 게임의 실제 커맨드라인 인자로 수정
+      → 서버를 수동으로 한번 실행해보고 인자를 확인하세요
+      → 이 함수만 제대로 만들면 서버가 켜집니다
+
+   2. validate()에 게임별 검증 추가 (Java 확인, 설정 파일 존재 등)
+
+   3. stop()에 graceful 종료 구현 (RCON/REST로 종료 명령 전송)
+      → 처음엔 force kill만으로도 동작합니다
+
+   4. configure()에 설정 파일 쓰기 로직 구현
+      → _KEY_MAP에 saba-chan 키 → 게임 키 매핑 추가
+
+   5. 나머지 함수는 필요할 때 하나씩 구현
+
+ ★ 데몬 없이 테스트하기:
+   echo '{"server_executable": "C:\\path\\server.exe"}' | python lifecycle.py validate
+   echo '{"server_executable": "C:\\path\\server.exe", "port": 7777}' | python lifecycle.py get_launch_command
+
  참고 모듈: palworld, minecraft, zomboid
 ═══════════════════════════════════════════════════════════════════
 
-■ 필수 함수 (데몬이 호출하는 공개 API) ─────────────────────────
+■ 함수 요약 ──────────────────────────────────────────────────────
 
-  validate(config)         서버 실행 가능 여부 사전 검증
-  get_launch_command(config)  데몬 ManagedProcess용 실행 커맨드 빌드 ★ 핵심
-  stop(config)             서버 종료 (graceful → force)
-  status(config)           서버 상태 조회
-  configure(config)        설정 파일에 값 적용
-  import_settings(config)  기존 설정 파일에서 값 읽기 (역매핑)
-  command(config)          서버 명령어 실행 (RCON/REST/stdin)
+  필수 (전부 구현):              데몬 호출 시점:
+  ─────────────────              ─────────────
+  validate(config)               서버 시작 직전 (실패하면 시작 안 됨)
+  get_launch_command(config)     validate 통과 후 (★ 가장 중요)
+  stop(config)                   사용자가 서버 종료 요청 시
+  status(config)                 주기적 상태 조회
+  configure(config)              시작 전 + 사용자가 설정 변경 시
+  import_settings(config)        인스턴스 최초 등록 시 (기존 설정 가져오기)
+  command(config)                rcon_template 없는 커스텀 명령어 실행 시
 
-■ 선택 함수 (게임에 따라 구현) ──────────────────────────────────
+  선택 (게임에 따라):
+  ─────────────────
+  install_server(config)         서버 설치/업데이트
+  accept_eula(config)            EULA 동의 (Minecraft 등)
+  diagnose_log(config)           로그 분석/에러 진단
+  list_versions(config)          사용 가능한 버전 목록
+  get_version_details(config)    버전 상세정보
+  get_credentials(config)        설정 파일에서 RCON/REST 자격증명 읽기
+  read_properties(config)        설정 파일 원본 읽기
+  reset_properties(config)       설정 초기화
+  reset_server(config)           서버 전체 리셋
 
-  start(config)            레거시 직접 시작 (get_launch_command 권장)
-  install_server(config)   서버 설치/업데이트
-  accept_eula(config)      EULA 동의 처리
-  diagnose_log(config)     로그 분석/에러 진단
-  list_versions(config)    사용 가능한 버전 목록
-  get_version_details(config)  설치된 버전 상세정보
-  read_properties(config)  설정 파일 원본 읽기
-  reset_properties(config) 설정 초기화
-  reset_server(config)     서버 전체 리셋
+■ config 객체 (데몬이 stdin으로 전달하는 JSON) ──────────────────
 
-■ config 객체 ───────────────────────────────────────────────────
+  항상 포함:
+    config["instance_id"]       인스턴스 UUID
+    config["server_executable"] 실행 파일 경로
+    config["working_dir"]       작업 디렉토리
+    config["port"]              게임 포트
+    config["settings"]          { "server_name": "My Server", ... }
 
-  데몬이 전달하는 config dict에는 다음 키들이 포함됩니다:
+  RCON 모듈:
+    config["rcon_port"]         RCON 포트
+    config["rcon_password"]     RCON 비밀번호 (자동 생성)
 
-  # 인스턴스 기본 정보
-  config["instance_id"]       인스턴스 UUID
-  config["server_executable"] 실행 파일 경로 (module.toml [config]에서 상속)
-  config["working_dir"]       작업 디렉토리
+  REST 모듈:
+    config["rest_host/port/username/password"]
 
-  # 포트/프로토콜 (module.toml [config]에서 상속 + 사용자 오버라이드)
-  config["port"]              게임 포트
-  config["rcon_port"]         RCON 포트
-  config["rcon_password"]     RCON 비밀번호 (auto-generated)
-  config["rest_host"]         REST API 호스트
-  config["rest_port"]         REST API 포트
-  config["rest_username"]     REST API 사용자명 (항상 "admin")
-  config["rest_password"]     REST API 비밀번호 (auto-generated)
+  stop() 호출 시:
+    config["pid"]               종료할 프로세스 PID
+    config["force"]             True면 즉시 강제 종료
 
-  # 사용자 설정 (module.toml [settings]에서 정의한 필드)
-  config["settings"]          { "server_name": "My Server", ... }
-
-  # 명령어 실행 시 추가 키
-  config["command"]           명령어 이름
-  config["args"]              명령어 인자 dict
-
-  # 종료 시 추가 키
-  config["pid"]               프로세스 PID
-  config["force"]             강제 종료 플래그
-
-  # 설치 시 추가 키
-  config["install_dir"]       설치 디렉토리
-  config["version"]           설치할 버전
+  command() 호출 시:
+    config["command"]           명령어 이름 (예: "backup")
+    config["args"]              명령어 인자 dict
 """
 
 import sys
@@ -80,7 +93,6 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 데몬이 실행 시 PYTHONPATH로 해당 경로를 자동 주입하므로,
 # 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
 from daemon_rcon import rcon_command as _rcon_command_bridge
-from i18n import I18n
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
@@ -483,40 +495,47 @@ def _do_backup(config):
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  CLI 진입점 (디버그/테스트용)
+#  CLI 진입점
 # ═══════════════════════════════════════════════════════════════════
 #
-#  직접 실행: python lifecycle.py get_launch_command '{"server_executable": "..."}'
+#  데몬이 호출하는 방식:
+#    echo '<config_json>' | python lifecycle.py <function>
 #
-def main():
-    if len(sys.argv) < 2:
-        print(json.dumps({"success": False, "message": "Usage: lifecycle.py <function> [config_json]"}))
-        sys.exit(1)
-
-    func_name = sys.argv[1]
-    config = json.loads(sys.argv[2]) if len(sys.argv) > 2 else {}
-
-    func_map = {
-        "validate": validate,
-        "get_launch_command": get_launch_command,
-        "start": lambda c: get_launch_command(c),  # start → get_launch_command 위임
-        "stop": stop,
-        "status": status,
-        "configure": configure,
-        "import_settings": import_settings,
-        "command": command,
-        "install_server": install_server,
-        "diagnose_log": diagnose_log,
-    }
-
-    func = func_map.get(func_name)
-    if not func:
-        print(json.dumps({"success": False, "message": f"Unknown function: {func_name}"}))
-        sys.exit(1)
-
-    result = func(config)
-    print(json.dumps(result, ensure_ascii=False))
-
+#  config는 반드시 stdin으로 전달해야 합니다.
+#  (커맨드라인 인자로 전달 시 민감정보 노출 및 OS 길이 제한 문제 발생)
+#
+FUNCTIONS = {
+    "validate": validate,
+    "get_launch_command": get_launch_command,
+    "start": get_launch_command,  # start → get_launch_command 위임
+    "stop": stop,
+    "status": status,
+    "configure": configure,
+    "import_settings": import_settings,
+    "command": command,
+    "install_server": install_server,
+    "diagnose_log": diagnose_log,
+}
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print(json.dumps({"success": False, "message": "Usage: lifecycle.py <function>"}))
+        sys.exit(1)
+
+    function_name = sys.argv[1]
+
+    # config JSON을 stdin에서 읽기
+    try:
+        config_str = sys.stdin.read()
+        config = json.loads(config_str) if config_str.strip() else {}
+    except json.JSONDecodeError:
+        print(json.dumps({"success": False, "message": "Invalid JSON config on stdin"}))
+        sys.exit(1)
+
+    fn = FUNCTIONS.get(function_name)
+    if fn:
+        result = fn(config)
+    else:
+        result = {"success": False, "message": f"Unknown function: {function_name}"}
+
+    print(json.dumps(result, ensure_ascii=False))

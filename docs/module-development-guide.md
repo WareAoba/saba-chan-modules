@@ -9,8 +9,9 @@
 ## 목차
 
 1. [개요](#1-개요)
-2. [모듈 구조](#2-모듈-구조)
-3. [module.toml 완전 레퍼런스](#3-moduletoml-완전-레퍼런스)
+2. [빠른 시작 — 5분 안에 첫 모듈 만들기](#빠른-시작--5분-안에-첫-모듈-만들기)
+3. [모듈 구조](#2-모듈-구조)
+4. [module.toml 완전 레퍼런스](#3-moduletoml-완전-레퍼런스)
    - 3.1 [module — 메타데이터](#31-module--메타데이터)
    - 3.2 [update — 자동 업데이트](#32-update--자동-업데이트)
    - 3.3 [protocols — 통신 프로토콜](#33-protocols--통신-프로토콜)
@@ -91,6 +92,249 @@ saba-chan 모듈은 특정 게임 서버의 생명주기를 관리하는 Python 
 4. 로그는 **stderr**로 출력 (`print(..., file=sys.stderr)`)
 
 > **중요**: stdout에는 반드시 유효한 JSON만 출력해야 합니다. `print()` 디버그 메시지는 반드시 `file=sys.stderr`를 사용하세요.
+
+### 데몬이 함수를 호출하는 순서
+
+각 상황에서 데몬이 어떤 함수를 어떤 순서로 호출하는지 알아야 모듈을 올바르게 구현할 수 있습니다.
+
+```
+■ 서버 시작
+  ┌─ validate(config)               검증 실패 시 여기서 중단
+  │    ↓ success=True
+  ├─ configure(config)              설정 파일에 값 적용
+  │    ↓
+  └─ get_launch_command(config)     program, args 등 반환 → 데몬이 spawn
+
+■ 서버 종료
+  └─ stop(config)                   PID, force 플래그 전달
+
+■ 서버 상태 조회
+  └─ status(config)                 PID 전달, running/stopped 반환
+
+■ 명령어 실행 (예: say, kick)
+  ├─ [rcon_template 있으면]          데몬이 직접 RCON 전송 (lifecycle.py 안 거침)
+  └─ [rcon_template 없으면]          command(config) 호출
+
+■ 인스턴스 최초 등록 / 기존 서버 연결
+  └─ import_settings(config)        게임 설정 파일 → saba-chan 키로 가져오기
+
+■ 사용자가 GUI에서 설정 변경
+  └─ configure(config)              변경된 settings 적용
+
+■ 서버 설치 (install 지원 모듈)
+  └─ install_server(config)         install_dir, version 전달
+```
+
+> **핵심 포인트**: `get_launch_command()`는 서버를 직접 실행하지 않습니다. 실행 파일 경로와 인자만 반환하면 데몬이 알아서 프로세스를 spawn하고 관리합니다.
+
+### config 객체 실제 예시
+
+데몬이 `get_launch_command` 호출 시 stdin으로 전달하는 JSON의 실제 모습:
+
+```json
+{
+  "instance_id": "a1b2c3d4-5678-90ef-ghij-klmnopqrstuv",
+  "server_executable": "C:\\GameServers\\MyGame\\GameServer.exe",
+  "working_dir": "C:\\GameServers\\MyGame",
+  "port": 7777,
+  "rcon_port": 25575,
+  "rcon_password": "auto_generated_pw_abc123",
+  "settings": {
+    "server_name": "My Server",
+    "max_players": 16,
+    "pvp": true,
+    "difficulty": "normal",
+    "managed_start": true,
+    "graceful_stop": true
+  }
+}
+```
+
+`stop` 호출 시:
+
+```json
+{
+  "instance_id": "a1b2c3d4-5678-90ef-ghij-klmnopqrstuv",
+  "server_executable": "C:\\GameServers\\MyGame\\GameServer.exe",
+  "working_dir": "C:\\GameServers\\MyGame",
+  "pid": 12345,
+  "force": false,
+  "graceful_stop": true,
+  "rcon_port": 25575,
+  "rcon_password": "auto_generated_pw_abc123",
+  "port": 7777,
+  "settings": { "...생략..." }
+}
+```
+
+`command` 호출 시 (`rcon_template` 없는 커스텀 명령어):
+
+```json
+{
+  "instance_id": "a1b2c3d4-...",
+  "command": "backup",
+  "args": { "slot": "1" },
+  "rcon_port": 25575,
+  "rcon_password": "auto_generated_pw_abc123",
+  "working_dir": "C:\\GameServers\\MyGame",
+  "settings": { "...생략..." }
+}
+```
+
+---
+
+## 빠른 시작 — 5분 안에 첫 모듈 만들기
+
+> 전체 레퍼런스를 읽기 전에, 먼저 최소한의 모듈을 만들어서 동작을 확인하세요.  
+> 아래 4단계만 따라하면 데몬에 모듈이 로드됩니다.
+
+### Step 1: 폴더 만들기
+
+`saba-chan-modules/` 디렉토리 안에 게임 이름으로 폴더를 만듭니다.
+
+```
+saba-chan-modules/
+└── mygame/              ← 새로 만드는 폴더
+    ├── module.toml      ← Step 2에서 작성
+    └── lifecycle.py     ← Step 3에서 작성
+```
+
+### Step 2: module.toml — 최소 설정
+
+**게임 정보를 모르겠으면 아래 4곳만 바꾸세요:**
+
+```toml
+[module]
+name = "mygame"                         # ← 폴더명과 동일하게
+display_name = "My Game"                 # ← GUI에 표시할 이름
+entry = "lifecycle.py"
+version = "0.1.0"
+
+[protocols]
+supported = ["rcon"]                     # ← 게임이 RCON 없으면 ["stdin"]으로
+default = "rcon"
+interaction_mode = "commands"            # ← stdin 쓰면 "console"로
+
+[config]
+server_executable = "GameServer.exe"     # ← 실제 실행 파일명
+process_name = "GameServer"              # ← 작업관리자에 보이는 이름
+default_port = 7777                      # ← 게임 기본 포트
+
+[detection]
+process_patterns = ["GameServer"]
+dir_signatures = ["GameServer.exe"]
+
+[settings]
+[[settings.fields]]
+name = "port"
+type = "number"
+label = "Game Port"
+default = 7777
+```
+
+### Step 3: lifecycle.py — 최소 구현
+
+**모든 함수가 dict를 반환하면 됩니다. 처음엔 get_launch_command만 제대로 구현하세요:**
+
+```python
+#!/usr/bin/env python3
+import sys, json, os
+
+def validate(config):
+    exe = config.get("server_executable", "")
+    if not exe or not os.path.exists(exe):
+        return {"success": False, "issues": [{
+            "code": "EXE_NOT_FOUND", "severity": "critical",
+            "message": f"실행 파일을 찾을 수 없습니다: {exe}",
+            "solution": "서버를 먼저 설치하거나 경로를 확인하세요."
+        }]}
+    return {"success": True, "issues": []}
+
+def get_launch_command(config):
+    exe = config.get("server_executable")
+    port = config.get("port", 7777)
+    wd = config.get("working_dir") or os.path.dirname(exe)
+    return {
+        "success": True,
+        "program": os.path.abspath(exe),
+        "args": [f"-port={port}"],           # ← 게임에 맞게 수정
+        "working_dir": os.path.abspath(wd),
+        "env_vars": {},
+    }
+
+def stop(config):
+    pid = config.get("pid")
+    if pid:
+        os.system(f"taskkill /F /PID {pid}" if os.name == "nt" else f"kill -9 {pid}")
+        return {"success": True, "message": "Server stopped"}
+    return {"success": False, "message": "No PID"}
+
+def status(config):
+    pid = config.get("pid")
+    if pid:
+        try:
+            os.kill(pid, 0)
+            return {"success": True, "status": "running"}
+        except OSError:
+            pass
+    return {"success": True, "status": "stopped"}
+
+def configure(config):      return {"success": True}
+def import_settings(config): return {"success": True, "settings": {}}
+def command(config):         return {"success": True, "message": "OK"}
+
+# ─── 아래는 수정하지 마세요 ───
+FUNCTIONS = {
+    "validate": validate, "get_launch_command": get_launch_command,
+    "stop": stop, "status": status, "configure": configure,
+    "import_settings": import_settings, "command": command,
+}
+if __name__ == "__main__":
+    fn_name = sys.argv[1] if len(sys.argv) > 1 else ""
+    cfg = json.loads(sys.stdin.read() or "{}")
+    fn = FUNCTIONS.get(fn_name)
+    print(json.dumps(fn(cfg) if fn else {"success": False, "message": f"Unknown: {fn_name}"}))
+```
+
+### Step 4: 동작 확인
+
+데몬 없이도 터미널에서 직접 테스트할 수 있습니다:
+
+```powershell
+# Windows (PowerShell)
+echo '{"server_executable": "C:\\GameServers\\MyGame\\GameServer.exe", "port": 7777}' | python lifecycle.py validate
+
+# 예상 출력 (파일이 없으면):
+# {"success": false, "issues": [{"code": "EXE_NOT_FOUND", ...}]}
+
+echo '{"server_executable": "C:\\GameServers\\MyGame\\GameServer.exe", "port": 7777}' | python lifecycle.py get_launch_command
+
+# 예상 출력:
+# {"success": true, "program": "C:\\GameServers\\MyGame\\GameServer.exe", "args": ["-port=7777"], ...}
+```
+
+```bash
+# Linux / macOS
+echo '{"server_executable": "/opt/gameserver/GameServer", "port": 7777}' | python3 lifecycle.py validate
+```
+
+> **이게 전부입니다.** `validate`와 `get_launch_command`가 올바른 JSON을 반환하면 데몬이 서버를 시작할 수 있습니다.  
+> 나머지 기능(설정 동기화, RCON 명령어, 로그 진단 등)은 작동을 확인한 후 하나씩 추가하세요.  
+> 각 기능의 상세 스펙은 이어지는 레퍼런스 섹션을 참조하세요.
+
+### 다음 단계: 게임에 맞게 확장하기
+
+최소 모듈이 동작하면, 게임 특성에 따라 아래 순서로 기능을 추가하세요:
+
+| 순서 | 해야 할 일 | 관련 섹션 |
+|:----:|-----------|----------|
+| 1 | `get_launch_command`의 args를 게임 실제 인자로 수정 | [4.3 필수 함수](#43-필수-함수) |
+| 2 | `[settings]`에 서버 설정 필드 추가 (서버명, 최대인원 등) | [3.9 settings](#39-settings--gui-설정-필드) |
+| 3 | `configure()`에서 설정을 게임 설정 파일에 쓰기 | [8. 설정 키 매핑](#8-설정-키-매핑-패턴) |
+| 4 | `stop()`에 graceful 종료 구현 (RCON/REST) | [9. 프로토콜별 구현](#9-프로토콜별-구현-가이드) |
+| 5 | `[commands]`에 GUI 명령어 추가 | [3.10 commands](#310-commands--서버-명령어) |
+| 6 | `locales/en.json` 작성 | [5. i18n](#5-i18n-다국어-지원) |
+| 7 | `[install]` 설치 방법 정의 | [3.6 install](#36-install--서버-설치-방법) |
 
 ---
 
@@ -256,6 +500,8 @@ stop_command = "quit"                   # stdin graceful 종료 명령어
 
 > **참고**: `process_name`은 실제 OS에서 보이는 프로세스 이름입니다.  
 > Java 기반 게임(Minecraft, Zomboid)은 모두 `java.exe`로 나타나므로, `[detection].cmd_patterns`로 구분합니다.
+
+> **`stop_command` 동작 방식**: lifecycle.py의 `stop()`이 읽는 값이 **아닙니다**. 데몬이 graceful 종료 시 **ManagedProcess의 stdin에 직접 전송**하는 문자열입니다. (`interaction_mode = "console"`이고 managed 프로세스일 때만 동작합니다.) 커스텀 종료 로직(RCON 전송, 저장 후 종료 등)이 필요하다면 `stop_command`와 관계없이 lifecycle.py에서 `stop()`을 구현하세요.
 
 #### 게임별 추가 키
 
@@ -1363,6 +1609,40 @@ def read_properties(config):
 
 ---
 
+#### `get_credentials(config)` — 자격증명 조회
+
+게임 설정 파일에서 직접 자격증명(RCON 비밀번호, 포트 등)을 읽어 반환합니다. 데몬이 명령어 실행 직전에 호출하며, 설정 파일이 외부에서 변경된 경우에도 최신 값을 사용할 수 있습니다.
+
+게임 설정 파일에서 RCON/REST 비밀번호를 직접 관리하는 모듈(Minecraft 등)에서 구현합니다.
+
+```python
+def get_credentials(config):
+    working_dir = config.get("working_dir", "")
+    if not working_dir:
+        return {"success": False, "message": "working_dir not specified"}
+
+    # 게임별 설정 파일에서 자격증명 읽기
+    # (Minecraft 예시: server.properties)
+    props = _read_config_file(os.path.join(working_dir, "server.cfg"))
+    return {
+        "success": True,
+        "rcon_password": props.get("rcon.password", ""),
+        "rcon_port": int(props.get("rcon.port", "25575")),
+    }
+```
+
+**반환 키:**
+
+| 키 | 타입 | 설명 |
+|----|------|------|
+| `rcon_password` | `str` | RCON 비밀번호 |
+| `rcon_port` | `int` | RCON 포트 |
+| `rest_password` | `str` | REST API 비밀번호 (REST 게임의 경우) |
+
+> **참고**: `get_credentials`를 구현하면 데몬이 FUNCTIONS dict에 등록된 것을 감지하여 명령어 실행 전에 자동 호출합니다. credential_map을 사용하는 경우에는 대부분 불필요합니다.
+
+---
+
 #### `reset_properties(config)` — 설정 초기화
 
 ```python
@@ -1867,9 +2147,47 @@ class ErrorDetector:
 
 ---
 
-## 12. 테스트 작성
+## 12. 로컬 테스트 & 디버깅
 
-### 기본 테스트 구조
+데몬을 실행하지 않고도 모듈의 각 함수를 직접 테스트할 수 있습니다.
+
+### 터미널에서 함수별 테스트
+
+lifecycle.py는 일반 Python 스크립트이므로, JSON을 stdin으로 넘기면 바로 실행됩니다:
+
+```powershell
+# ── validate 테스트 ──
+echo '{"server_executable": "C:\\test\\GameServer.exe"}' | python lifecycle.py validate
+# → {"success": false, "issues": [{"code": "EXE_NOT_FOUND", ...}]}  ← 파일이 없으므로 실패
+
+# ── get_launch_command 테스트 ──
+echo '{"server_executable": "C:\\test\\GameServer.exe", "port": 7777}' | python lifecycle.py get_launch_command
+# → {"success": true, "program": "...", "args": [...], ...}
+
+# ── configure 테스트 ──
+echo '{"working_dir": "C:\\test", "settings": {"server_name": "Hello", "max_players": 32}}' | python lifecycle.py configure
+# → {"success": true, "message": "Applied 2 settings"}
+
+# ── import_settings 테스트 ──
+echo '{"working_dir": "C:\\test"}' | python lifecycle.py import_settings
+# → {"success": true, "settings": {"server_name": "Hello", ...}}
+
+# ── stop 테스트 (실제 PID 사용 시 주의!) ──
+echo '{"pid": 99999, "force": true}' | python lifecycle.py stop
+```
+
+### 흔한 실수와 해결법
+
+| 증상 | 원인 | 해결 |
+|------|------|------|
+| `json.decoder.JSONDecodeError` | stdout에 `print()`로 디버그 메시지 출력 | `print(..., file=sys.stderr)` 사용 |
+| `ModuleNotFoundError: daemon_rcon` | 데몬 없이 실행할 때 import 실패 | 테스트 시 해당 import를 try/except로 감싸기 |
+| 데몬이 모듈을 못 찾음 | 폴더명과 `module.name`이 불일치 | 둘을 동일하게 맞추기 |
+| `configure`가 호출됐는데 설정 파일 안 바뀜 | `_KEY_MAP`에 해당 키 매핑 누락 | 매핑 테이블에 키 추가 |
+| `get_launch_command` 성공인데 서버 안 뜸 | `program` 경로가 상대경로이거나 잘못됨 | `os.path.abspath()` 사용, 실제 경로 확인 |
+| credential_map 동기화 안 됨 | `get_launch_command` 반환값에 게임 키 누락 | 반환 dict에 게임 키=값 포함 확인 |
+
+### pytest로 자동화 테스트
 
 ```python
 # test_lifecycle.py

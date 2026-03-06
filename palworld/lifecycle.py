@@ -335,6 +335,12 @@ def _enforce_rest_policy(working_dir, config=None):
     props = _parse_option_settings(ini_path)
     changes = {}
 
+    # INI 파일이 존재하지만 비어있는 경우(빈 파일/파싱 실패) → 기본 설정으로 채움
+    if not props:
+        print("[Palworld] INI file is empty/corrupt, populating with defaults", file=sys.stderr)
+        props = dict(DEFAULT_PALWORLD_SETTINGS)
+        changes["__populated_defaults"] = True
+
     # Force REST API enabled
     if props.get("RESTAPIEnabled", "False") != "True":
         props["RESTAPIEnabled"] = "True"
@@ -362,9 +368,16 @@ def _enforce_rest_policy(working_dir, config=None):
         changes["AdminPassword"] = "***synced-from-config***"
         print(f"[Palworld] Synced AdminPassword from config", file=sys.stderr)
     else:
-        # 여기에 올 일 없음 — daemon이 ensure_passwords()로 항상 생성
-        print(f"[Palworld] WARNING: No password available from daemon or INI", file=sys.stderr)
-        return None
+        # 비밀번호가 어디에도 없는 경우 (첫 실행, 빈 INI 등)
+        # RESTAPIEnabled=True / RCONEnabled=False는 반드시 기록해야 하므로
+        # 임시 비밀번호를 생성하여 INI에 기록하고, credential_map을 통해
+        # 데몬에 동기화되도록 한다.
+        import uuid
+        fallback_pw = uuid.uuid4().hex[:16]
+        props["AdminPassword"] = fallback_pw
+        current_admin_pw = fallback_pw
+        changes["AdminPassword"] = "***auto-generated***"
+        print(f"[Palworld] No password from daemon or INI — generated fallback AdminPassword", file=sys.stderr)
 
     if changes:
         _write_option_settings(ini_path, props)
@@ -501,10 +514,22 @@ def get_credentials(config):
     매번 파일에서 읽으므로 메모리 동기화 문제가 없습니다."""
     try:
         pw = _read_admin_password_from_ini(config)
+
+        # ── RCON 비밀번호 반환 (RCON 비활성화 상태에서도 필수) ──
+        # Palworld는 공식적으로 REST API를 권장하며 RCON은 지양됨.
+        # saba-chan 역시 이 정책을 따라 RCONEnabled=False를 강제하고,
+        # RCON 지원은 향후에도 추가하지 않을 예정이다.
+        # 그러나 데몬의 RCON 핸들러가 get_credentials에서 rcon_password 필드를
+        # 반드시 요구하기 때문에, 비어 있으면 명령어 실행 자체가 거부된다.
+        # 이 에러를 회피하기 위해 AdminPassword(= REST 인증 비밀번호)를
+        # rcon_password로도 반환한다. 값은 데몬이 ensure_passwords()로 생성한
+        # 랜덤 비밀번호가 _enforce_rest_policy()를 통해 INI에 동기화된 것이다.
+        # RCON 자체는 활성화하지 않으므로 실제 RCON 접속에는 사용되지 않는다.
         return {
             "success": True,
             "rest_password": pw or "",
             "rest_username": "admin",
+            "rcon_password": pw or "",   # RCON 비활성화지만 데몬 요구사항 충족용
         }
     except Exception as e:
         return {"success": False, "message": str(e)}
@@ -1242,6 +1267,34 @@ def install_server(config):
             exe_path = os.path.join(install_dir, exe_name)
             result["install_path"] = install_dir
             result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
+
+            # ── 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성 ──
+            # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
+            # 기본 값 + RESTAPIEnabled=True, RCONEnabled=False 로 미리 기록한다.
+            try:
+                if sys.platform == "win32":
+                    platform_dir = "WindowsServer"
+                else:
+                    platform_dir = "LinuxServer"
+                ini_dir = os.path.join(
+                    install_dir, "Pal", "Saved", "Config", platform_dir
+                )
+                os.makedirs(ini_dir, exist_ok=True)
+                ini_path = os.path.join(ini_dir, "PalWorldSettings.ini")
+
+                defaults = dict(DEFAULT_PALWORLD_SETTINGS)
+                defaults["RESTAPIEnabled"] = "True"
+                defaults["RCONEnabled"] = "False"
+                _write_option_settings(ini_path, defaults)
+                print(
+                    f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
+                    file=sys.stderr,
+                )
+            except Exception as e:
+                print(
+                    f"[Palworld] Provisioning: failed to write default INI: {e}",
+                    file=sys.stderr,
+                )
 
         return result
 

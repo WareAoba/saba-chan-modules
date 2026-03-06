@@ -797,7 +797,7 @@ def _enforce_rcon_policy(config, ini_path, managed=True):
     rcon_port = config.get("rcon_port", 27015)
     updates["RCONPort"] = str(rcon_port)
     
-    else:
+    if managed:
         # Managed mode: RCON not required (stdin is used for control)
         # Respect existing INI password; otherwise use daemon's
         rcon_password = props.get("RCONPassword", "")

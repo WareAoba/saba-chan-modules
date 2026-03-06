@@ -62,6 +62,17 @@ common_paths = [
 # Windows: StartServer64.bat, Linux: start-server.sh
 dir_signatures = ["StartServer64.bat"]
 
+[detection.linux]
+server_executable = "start-server.sh"
+process_name = "java"
+process_patterns = ["ProjectZomboid64", "zombie.network.GameServer", "start-server.sh"]
+common_paths = [
+    "/home/*/.steam/steam/steamapps/common/Project Zomboid Dedicated Server",
+    "/opt/zomboid-server",
+    "/srv/zomboid",
+]
+dir_signatures = ["start-server.sh"]
+
 # ═══════════════════════════════════════════════════════════
 #                       SETTINGS
 # ═══════════════════════════════════════════════════════════

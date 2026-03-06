@@ -60,6 +60,15 @@ common_paths = [
 # 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
 dir_signatures = ["server.jar", "server.properties"]
 
+[detection.linux]
+process_name = "java"
+common_paths = [
+    "/home/*/minecraft-server",
+    "/opt/minecraft-server",
+    "/srv/minecraft",
+    "/home/*/server",
+]
+
 # ─── Settings (displayed in GUI for instance configuration) ───
 
 [settings]

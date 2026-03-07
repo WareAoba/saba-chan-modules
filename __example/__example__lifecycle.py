@@ -504,6 +504,20 @@ def _do_backup(config):
 #  config는 반드시 stdin으로 전달해야 합니다.
 #  (커맨드라인 인자로 전달 시 민감정보 노출 및 OS 길이 제한 문제 발생)
 #
+# ═══════════════════════════════════════════════════════════════════
+#  start()에 대한 중요 참고사항
+# ═══════════════════════════════════════════════════════════════════
+#  start()를 직접 구현하여 subprocess.Popen으로 프로세스를 생성하는 경우,
+#  반드시 stdout/stderr에 subprocess.DEVNULL을 사용하세요.
+#
+#    ✅  subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, ...)
+#    ❌  subprocess.Popen(cmd, stdout=subprocess.PIPE,    stderr=subprocess.PIPE, ...)
+#
+#  start()는 PID를 반환하고 종료되므로 PIPE를 읽는 주체가 없어집니다.
+#  게임 서버가 stdout에 로그를 쓰면 OS 파이프 버퍼(~4KB)가 가득 차고,
+#  서버 프로세스가 write()에서 영원히 블록됩니다.
+#  (managed 모드에서는 데몬이 stdout을 읽으므로 이 문제가 없습니다)
+
 FUNCTIONS = {
     "validate": validate,
     "get_launch_command": get_launch_command,

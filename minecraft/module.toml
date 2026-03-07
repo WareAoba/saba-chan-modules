@@ -2,6 +2,7 @@
 name = "minecraft"
 version = "0.1.0"
 description = "Minecraft server management module with full lifecycle control"
+author = "WareAoba"
 game_name = "Minecraft"
 display_name = "Minecraft"
 entry = "lifecycle.py"
@@ -26,7 +27,7 @@ eula = true
 process_name = "java.exe"
 default_port = 25565
 rcon_port = 25575
-ram = "2G"
+ram = "4G"
 
 [install]
 method = "download"
@@ -89,7 +90,7 @@ name = "ram"
 type = "number"
 label = "Memory (RAM)"
 description = "Maximum memory in GB (e.g. 4 = 4GB, 0.5 = 512MB)"
-default = 2
+default = 4
 group = "saba-chan"
 
 [[settings.fields]]

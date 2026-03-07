@@ -23,6 +23,7 @@ import socket
 import struct
 import time
 import hashlib
+import zipfile
 from pathlib import Path
 from i18n import I18n
 
@@ -1289,12 +1290,17 @@ def diagnose_log(config):
 
 
 def start(config):
-    """Start server (legacy — prefer get_launch_command + ManagedProcess)."""
+    """Start server in non-managed mode (RCON-only).
+    
+    managed_start가 비활성화된 경우 데몬이 이 함수를 호출합니다.
+    프로세스를 직접 spawn하고 PID만 반환합니다.
+    이후 제어는 RCON을 통해서만 가능합니다.
+    """
     try:
         java_path = config.get("java_path", "java")
         server_jar = _resolve_server_jar(config)
 
-        # Non-managed (legacy) mode → RCON must be ON (only control method)
+        # Non-managed mode → RCON must be ON (only control method)
         wd = config.get("working_dir")
         if wd:
             _enforce_rcon_policy(os.path.abspath(wd), config=config, managed=False)
@@ -1339,11 +1345,11 @@ def start(config):
 
         if sys.platform == "win32":
             flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, creationflags=flags)
+            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL, creationflags=flags)
         else:
-            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, start_new_session=True)
+            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.DEVNULL, start_new_session=True)
 
         return {"success": True, "pid": proc.pid,
                 "message": i18n.t("messages.server_starting", pid=proc.pid)}
@@ -1452,10 +1458,75 @@ def status(config):
             except OSError:
                 pass
 
-        return {"success": True, "status": "stopped", "online": False,
+        result = {"success": True, "status": "stopped", "online": False,
                 "message": i18n.t("messages.no_process_running")}
+
+        # Attempt to detect installed version from server.jar even when offline
+        install_dir = config.get("install_dir", config.get("working_dir", ""))
+        jar_name = config.get("server_jar", config.get("jar_name", "server.jar"))
+        ver_info = _read_jar_version(install_dir, jar_name)
+        if ver_info:
+            result["version"] = ver_info["version"]
+            result["java_version"] = ver_info.get("java_version")
+            result["stable"] = ver_info.get("stable")
+
+        return result
     except Exception as e:
         return {"success": False, "message": f"Status check failed: {e}"}
+
+
+# ─── JAR version parsing ──────────────────────────────────
+
+def _read_jar_version(install_dir, jar_name="server.jar"):
+    """Read version.json from inside a Minecraft server.jar.
+
+    Returns dict with version info or None on failure.
+    """
+    if not install_dir:
+        return None
+    jar_path = os.path.join(install_dir, jar_name)
+    if not os.path.isfile(jar_path):
+        return None
+    try:
+        with zipfile.ZipFile(jar_path, "r") as zf:
+            if "version.json" not in zf.namelist():
+                return None
+            with zf.open("version.json") as vf:
+                data = json.loads(vf.read().decode("utf-8"))
+            return {
+                "version": data.get("id", "unknown"),
+                "name": data.get("name", "unknown"),
+                "protocol_version": data.get("protocol_version"),
+                "java_version": data.get("java_version"),
+                "stable": data.get("stable", False),
+                "build_time": data.get("build_time", ""),
+                "world_version": data.get("world_version"),
+            }
+    except (zipfile.BadZipFile, KeyError, json.JSONDecodeError, OSError):
+        return None
+
+
+def get_installed_version(config):
+    """Detect installed Minecraft server version by parsing version.json inside server.jar.
+
+    Config options:
+        install_dir (str): Server installation directory
+        jar_name (str): Server jar filename (default: "server.jar")
+    """
+    install_dir = config.get("install_dir", "")
+    jar_name = config.get("jar_name", "server.jar")
+
+    if not install_dir:
+        return {"success": False, "message": "No install_dir specified"}
+
+    jar_path = os.path.join(install_dir, jar_name)
+    if not os.path.isfile(jar_path):
+        return {"success": False, "message": f"Server jar not found: {jar_path}"}
+
+    info = _read_jar_version(install_dir, jar_name)
+    if info:
+        return {"success": True, **info}
+    return {"success": False, "message": "Could not read version info from server jar"}
 
 
 def command(config):
@@ -1894,6 +1965,7 @@ FUNCTIONS = {
     "list_versions": list_versions,
     "get_version_details": get_version_details,
     "install_server": install_server,
+    "get_installed_version": get_installed_version,
 }
 
 if __name__ == "__main__":

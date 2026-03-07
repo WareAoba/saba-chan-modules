@@ -2,6 +2,7 @@
 name = "zomboid"
 version = "0.1.0"
 description = "Project Zomboid dedicated server management module"
+author = "WareAoba"
 game_name = "Project Zomboid"
 display_name = "Project Zomboid"
 entry = "lifecycle.py"
@@ -230,7 +231,7 @@ default = true
 name = "map"
 type = "text"
 label = "Map"
-description = "Map to play on"
+description = "Map data to load (default: 'Muldraugh, KY' loads the full Knox Country map). Add mod maps with semicolons (e.g. 'Muldraugh, KY;Bedford Falls')"
 default = "Muldraugh, KY"
 
 [[settings.fields]]
@@ -451,7 +452,7 @@ group = "advanced"
 name = "spawn_point"
 type = "text"
 label = "Spawn Point"
-description = "Custom spawn point (x,y,z) — leave as 0,0,0 for default"
+description = "Force all players to spawn at specific coordinates (x,y,z). Leave as 0,0,0 to use the Lua-based spawn regions (spawnregions.lua)"
 default = "0,0,0"
 group = "advanced"
 

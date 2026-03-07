@@ -269,8 +269,8 @@ def start(config):
             proc = subprocess.Popen(
                 cmd,
                 cwd=working_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 creationflags=creationflags
             )
         else:
@@ -278,8 +278,8 @@ def start(config):
             proc = subprocess.Popen(
                 cmd,
                 cwd=working_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 start_new_session=True
             )
         

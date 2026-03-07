@@ -1124,11 +1124,11 @@ def _try_rcon_status(config):
 
 
 def start(config):
-    """Start server (legacy — prefer get_launch_command + ManagedProcess).
+    """Start server in non-managed mode (RCON-only).
     
-    This is the non-managed (RCON-only) fallback path.
-    The Rust daemon calls this when managed_start is disabled.
-    Spawns java.exe directly as a detached process.
+    managed_start가 비활성화된 경우 데몬이 이 함수를 호출합니다.
+    프로세스를 직접 spawn하고 PID만 반환합니다.
+    이후 제어는 RCON을 통해서만 가능합니다.
     배치/쉘 스크립트 파싱을 통해 JVM 설정을 자동 추출합니다.
     """
     try:
@@ -1147,13 +1147,13 @@ def start(config):
             flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
             proc = subprocess.Popen(
                 cmd, cwd=server_dir,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 creationflags=flags,
             )
         else:
             proc = subprocess.Popen(
                 cmd, cwd=server_dir,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 start_new_session=True,
             )
         

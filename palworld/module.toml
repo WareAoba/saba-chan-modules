@@ -2,6 +2,7 @@
 name = "palworld"
 version = "0.1.0"
 description = "Palworld server management module"
+author = "WareAoba"
 game_name = "Palworld"
 display_name = "Palworld"
 entry = "lifecycle.py"

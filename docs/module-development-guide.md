@@ -1470,16 +1470,43 @@ def command(config):
 
 게임에 따라 필요한 경우에만 구현합니다.
 
-#### `start(config)` — 레거시 직접 시작
+#### `start(config)` — Non-managed 모드 직접 시작
 
-> ⚠️ `get_launch_command()`가 권장됩니다. start()는 레거시 호환을 위해 유지됩니다.
+> `managed_start`가 비활성화된 경우 데몬이 이 함수를 호출합니다.
+> 프로세스를 직접 spawn하고 PID만 반환하며, 이후 제어는 RCON/REST를 통해서만 가능합니다.
+> `managed_start` 활성화 시에는 데몬이 `get_launch_command()`를 호출하여 직접 프로세스를 관리합니다.
 
 ```python
 def start(config):
-    # 직접 subprocess.Popen으로 서버 시작 (비권장)
+    # subprocess.Popen으로 서버를 detached 프로세스로 시작
     ...
     return {"success": True, "pid": proc.pid}
 ```
+
+> 🚨 **`subprocess.PIPE` 사용 금지 — 반드시 `subprocess.DEVNULL` 사용**
+>
+> `start()` 함수에서 `subprocess.Popen`으로 프로세스를 생성할 때
+> **`stdout=subprocess.PIPE, stderr=subprocess.PIPE`를 절대 사용하지 마세요.**
+>
+> `start()` 함수는 PID만 반환하고 종료되므로 파이프를 읽는 주체가 사라집니다.
+> 게임 서버가 stdout에 로그를 출력하면 OS 파이프 버퍼(Windows ~4KB)가 가득 차고,
+> 서버 프로세스가 `write()` 시스템콜에서 **무한 블록**되어 사실상 멈춥니다.
+> (프로세스는 살아있으나 서버가 시작을 완료하지 못합니다)
+>
+> Managed 모드에서는 데몬의 `ManagedProcess`가 stdout을 계속 읽으므로 문제없지만,
+> non-managed `start()`에서는 반드시 `subprocess.DEVNULL`을 사용해야 합니다.
+>
+> ```python
+> # ✅ 올바른 사용
+> proc = subprocess.Popen(cmd, cwd=working_dir,
+>                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+>                         creationflags=flags)
+>
+> # ❌ 잘못된 사용 — 서버가 시작 중 멈춤
+> proc = subprocess.Popen(cmd, cwd=working_dir,
+>                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+>                         creationflags=flags)
+> ```
 
 ---
 
@@ -1768,7 +1795,7 @@ saba-chan 데몬에는 내장 RCON 클라이언트가 있습니다. 모듈은 �
 ```python
 from daemon_rcon import rcon_command
 
-# 레거시 호환 시그니처 (host, port, password는 데몬이 관리)
+# 단순 호출 시그니처 (host, port, password는 데몬이 관리)
 response = rcon_command("127.0.0.1", 25575, "password", "list")
 ```
 

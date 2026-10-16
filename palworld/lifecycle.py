@@ -341,9 +341,19 @@ def get_launch_command(config):
 
     args = [f"--port={port}"]
 
+    # PalServer.exe는 실제 서버(Shipping-Cmd)를 띄우고 빠지는 런처다. 데몬(saba-runner)이
+    # 실제 서버의 PID·종료 코드를 쥐도록 런처가 하는 그대로 실제 서버를 직접 띄운다.
+    # 실제 서버 exe가 없으면(다른 배포 형태) 예전처럼 런처를 띄운다.
+    program = os.path.abspath(executable)
+    real_server = os.path.join(os.path.dirname(program), "Pal", "Binaries", "Win64",
+                               "PalServer-Win64-Shipping-Cmd.exe")
+    if os.path.exists(real_server):
+        program = real_server
+        args = ["Pal"] + args  # 런처가 붙이는 프로젝트 이름
+
     result = {
         "success": True,
-        "program": os.path.abspath(executable),
+        "program": program,
         "args": args,
         "working_dir": abs_working_dir,
         "env_vars": {},
@@ -358,81 +368,83 @@ def get_launch_command(config):
     return result
 
 
-def stop(config):
-    """Stop Palworld server"""
+def _pid_running(pid):
+    if sys.platform == 'win32':
+        out = subprocess.run(['tasklist', '/FI', f'PID eq {pid}', '/NH'],
+                             capture_output=True, text=True, check=False,
+                             creationflags=0x08000000).stdout
+        return str(pid) in out
     try:
-        executable = config.get("server_executable")
-        if not executable:
-            return {"success": False, "message": "server_executable not specified"}
-        
-        # Extract executable name from path (e.g., "D:\\path\\PalServer.exe" -> "PalServer.exe")
-        exe_name = os.path.basename(executable)
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def _rest_shutdown(config):
+    """REST로 저장 후 종료를 요청한다. 요청이 들어가면 True."""
+    password = _read_admin_password_from_ini(config)
+    if not password:
+        return False
+    port = config.get("rest_port")
+    if not port:
+        try:
+            port = int(_parse_option_settings(_get_settings_ini_path(config)).get("RESTAPIPort", 8212))
+        except Exception:
+            port = 8212
+    client = PalworldRestClient(port=port, username="admin", password=password, timeout=5)
+    try:
+        client._request("POST", "/save", {})
+    except RuntimeError as e:
+        print(f"[Palworld] REST save before shutdown failed: {e}", file=sys.stderr)
+    try:
+        client._request("POST", "/shutdown", {"waittime": 1, "message": "Server is shutting down"})
+        return True
+    except RuntimeError as e:
+        print(f"[Palworld] REST shutdown failed: {e}", file=sys.stderr)
+        return False
+
+
+def _kill(pid=None, exe_name=None):
+    """PID가 있으면 그 프로세스만, 없으면 예전처럼 실행 파일 이름으로 강제 종료"""
+    if sys.platform == 'win32':
+        target = ['/PID', str(pid)] if pid else ['/IM', exe_name]
+        subprocess.run(['taskkill', '/F', '/T', *target], capture_output=True, text=True,
+                       check=False, creationflags=0x08000000)
+    elif pid:
+        try:
+            os.kill(pid, 9)
+        except OSError:
+            pass
+    else:
+        subprocess.run(['pkill', '-9', os.path.splitext(exe_name)[0]], capture_output=True, check=False)
+
+
+def stop(config):
+    """Stop Palworld server.
+
+    Palworld는 콘솔(stdin) 명령을 받지 않으므로 REST로 저장·종료를 요청하고,
+    시간 안에 끝나지 않으면 강제 종료한다. 데몬이 PID를 주면(managed) 그 프로세스만 다룬다.
+    """
+    try:
+        pid = config.get("pid")
         force = config.get("force", False)
-        
-        if sys.platform == 'win32':
-            # Windows: Always use /F /T for forceful termination with tree kill
-            # /F = force kill, /T = terminate child processes
-            try:
-                result = subprocess.run(
-                    ['taskkill', '/F', '/T', '/IM', exe_name],
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                
-                # Log the output for debugging
-                if result.stdout:
-                    print(f"taskkill stdout: {result.stdout}", file=sys.stderr)
-                if result.stderr:
-                    print(f"taskkill stderr: {result.stderr}", file=sys.stderr)
-                print(f"taskkill return code: {result.returncode}", file=sys.stderr)
-                
-                # taskkill returns 0 on success, but can also return 128 if process not found
-                # Return success in either case since the goal is to stop the server
-                return {
-                    "success": True,
-                    "message": i18n.t("messages.terminated", name=exe_name)
-                }
-            except Exception as e:
-                error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
-                print(error_msg, file=sys.stderr)
-                return {
-                    "success": False,
-                    "message": error_msg
-                }
-        else:
-            # Unix-like: Use pkill with force
-            try:
-                # Use SIGKILL (9) for immediate termination
-                result = subprocess.run(
-                    ['pkill', '-9', os.path.splitext(exe_name)[0]],
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                
-                if result.stdout:
-                    print(f"pkill stdout: {result.stdout}", file=sys.stderr)
-                if result.stderr:
-                    print(f"pkill stderr: {result.stderr}", file=sys.stderr)
-                print(f"pkill return code: {result.returncode}", file=sys.stderr)
-                
-                return {
-                    "success": True,
-                    "message": i18n.t("messages.terminated", name=exe_name)
-                }
-            except Exception as e:
-                error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
-                print(error_msg, file=sys.stderr)
-                return {
-                    "success": False,
-                    "message": error_msg
-                }
+        exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
+
+        if pid and not force and _rest_shutdown(config):
+            for _ in range(60):
+                time.sleep(1)
+                if not _pid_running(pid):
+                    return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
+            print("[Palworld] Server did not exit after REST shutdown, force killing", file=sys.stderr)
+
+        _kill(pid, exe_name)
+        return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
     except Exception as e:
-        return {
-            "success": False,
-            "message": i18n.t("errors.failed_to_stop", error=str(e))
-        }
+        error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
+        print(error_msg, file=sys.stderr)
+        return {"success": False, "message": error_msg}
+
 
 def get_credentials(config):
     """게임 설정 파일에서 직접 credential을 읽어 반환합니다.

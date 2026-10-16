@@ -55,14 +55,16 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 | `process_patterns`, `cmd_patterns` | 이미 떠 있는 서버를 찾을 때 프로세스 이름·명령줄 패턴 |
 | `dir_signatures` | 전부 있으면 이 게임의 서버 폴더로 본다 (`POST /api/modules/detect`) |
 | `graceful_exit_patterns` | 정상 종료 때 콘솔에 찍히는 문구 (정규식). 사용자 정지와 크래시를 가르는 데 쓴다 |
-| `crash_artifacts` | 크래시 때 생기는 파일 (마지막 칸만 와일드카드). 이게 새로 생기면 크래시로 본다 |
+| `crash_artifacts` | 크래시 때 생기는 파일 (작업 폴더 기준, 마지막 칸만 와일드카드). 서버 시작 뒤 새로 생기면 크래시로 본다 |
+
+종료 판정 순서: 사바쨩이 보낸 정지 → 크래시 흔적(Windows 예외 종료 코드, unix 크래시 시그널, 새 `crash_artifacts` 파일) → `graceful_exit_patterns` → 종료 코드 0 → 원인 모름. 크래시만 자동으로 다시 띄운다(10분에 3번까지). 흔적을 선언하지 않으면 크래시를 알아보지 못하니, 게임이 크래시 때 남기는 파일을 꼭 적는다.
 
 ### `[install]` ○
 `method` (`"manual"` 기본 / `"download"` / `"steamcmd"`), `app_id`, `anonymous`(기본 true), `install_subdir`, `platform`, `download_url`, `beta`(지정하면 항상 이 브랜치로 설치), `requires_extensions`(필요한 익스텐션 id 목록).
 
 ### `[[settings.fields]]` ○
 인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`).
-데몬이 직접 의미를 아는 이름: `rcon_port`, `rest_port`, `rest_host`, `managed_start`, `log_sessions_keep`.
+데몬이 직접 의미를 아는 이름: `rcon_port`, `rest_port`, `rest_host`, `managed_start`, `log_sessions_keep`, `auto_restart`(크래시 때 다시 띄우기, 기본 true), `restart_on_unknown_exit`(원인 모를 종료도 다시 띄우기, 기본 false). 모듈이 선언하지 않아도 인스턴스 설정에 넣으면 데몬이 읽는다.
 
 ### `[[commands.fields]]` ○
 명령 카탈로그에 실리는 게임 명령. GUI 버튼, CLI, 디스코드, AI 명령 해석이 모두 이 선언을 쓴다.

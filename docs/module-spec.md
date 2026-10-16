@@ -38,7 +38,7 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 | `entry` | ✔ | Python 진입 파일. 모듈 폴더 안의 경로여야 하고 파일이 있어야 한다 |
 | `description`, `game_name`, `display_name`, `author`, `icon` | ○ | 표시용 |
 | `log_pattern` | ○ | 콘솔 줄에서 레벨을 뽑는 정규식. `(?P<level>…)` 그룹 필수 |
-| `[module.dependencies]` | ○ | 컴포넌트 → 최소 버전. 예: `"saba-core" = ">=0.3.0"` |
+| `[module.dependencies]` | ○ | 컴포넌트 → 최소 버전(`>=` 만). 키는 `versions.toml`과 같다: `saba-core`, `ext-<id>`, `gui`, `cli`. 예: `"saba-core" = ">=0.3.0"`. 데몬이 saba-core를 못 맞추면 모듈을 로드하지 않고, 나머지가 안 맞으면 `GET /api/modules`의 `unmet_dependencies`에 보인다 |
 
 ### `[protocols]` ○
 `supported` (`"rcon"` `"rest"` `"stdin"` 중), `default`, `interaction_mode` (`"console"` 콘솔 화면 / `"commands"` 명령 버튼만).

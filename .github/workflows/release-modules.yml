@@ -10,6 +10,9 @@
 #
 # 업데이터(saba-chan)는 이 릴리즈의 manifest.json을 읽어
 # 로컬 모듈 버전과 비교 후 필요한 모듈만 다운로드합니다.
+#
+# 릴리즈마다 모든 모듈을 담으므로 최신 릴리즈 하나로 충분하다. 예전 릴리즈는
+# 지우지 않는다(되돌리기와 버전 고정용 기록, U8).
 
 name: Build & Release Modules
 
@@ -71,18 +74,6 @@ jobs:
         env:
           FORCE_RELEASE: ${{ inputs.force_release || 'false' }}
           PREV_MANIFEST: ${{ steps.prev.outputs.found == 'true' && '.prev/manifest.json' || '' }}
-
-      # ── 기존 릴리즈 삭제 ─────────────────────────────
-      - name: Delete previous releases
-        if: steps.build.outputs.should_release == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🗑️ Cleaning up old releases..."
-          gh release list --limit 100 --json tagName -q '.[].tagName' | while read -r tag; do
-            echo "  Deleting release: $tag"
-            gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
-          done
 
       # ── 릴리즈 생성 ─────────────────────────────────
       - name: Create GitHub Release

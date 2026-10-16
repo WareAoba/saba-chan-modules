@@ -88,7 +88,7 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 
 ## 3. 진입 파일 계약
 
-데몬은 `python <entry> <함수 이름>`으로 실행하고 stdin에 JSON 하나를 쓴다. 모듈은 결과 JSON을 stdout **마지막 줄**에 쓴다. 진행 상황은 stderr에 `PROGRESS:{json}` 줄로 쓴다.
+데몬은 `python <entry> <함수 이름>`으로 실행하고 stdin에 JSON 하나를 쓴다. 모듈은 결과 JSON을 stdout에 쓰고 종료 코드 0으로 끝낸다. 결과는 stdout 전체이거나 **마지막 줄**이어야 한다(그 앞의 디버그 출력은 무시된다). 진행 상황은 stderr에 `PROGRESS:{json}` 줄로 쓴다.
 
 - 데몬이 넣는 환경 변수: `SABA_IPC_URL`, `SABA_IPC_PORT`, `SABA_TOKEN_PATH`(토큰 파일 경로), `SABA_LANG`. 데몬 역호출은 `daemon_rcon.daemon_post()`를 쓴다.
 - 공통 응답: `success: bool`, `message: str`. 사용자 조치가 필요하면 `action_required: "<코드>"`. 익스텐션이 없으면 `error_code: "extension_required"`, `missing_extensions[]`.

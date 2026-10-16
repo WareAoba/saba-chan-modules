@@ -31,17 +31,6 @@ method = "download"
 download_url = "https://piston-data.mojang.com/v1/objects/{version_hash}/server.jar"
 install_subdir = "server"
 
-[docker]
-image = "eclipse-temurin:{java_version}-jre-jammy"
-working_dir = "/server"
-restart = "unless-stopped"
-command = "java -Xmx{ram}G -Xms{ram}G -jar server.jar nogui"
-ports = ["{port}:{port}/tcp", "{rcon_port}:{rcon_port}/tcp"]
-volumes = ["./server:/server"]
-
-[docker.environment]
-EULA = "TRUE"
-
 [detection]
 process_patterns = ["java.exe", "java", "minecraft_server", "server.jar"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Minecraft 서버를 식별하는 패턴

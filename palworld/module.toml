@@ -43,20 +43,6 @@ install_subdir = "server"
 platform = "windows"
 requires_extensions = ["steamcmd", "ue4-ini"]
 
-[docker]
-image = "steamcmd/steamcmd:latest"
-working_dir = "/server"
-restart = "unless-stopped"
-entrypoint = "/bin/bash -c"
-command = "exec /server/PalServer.sh -port={port} -RESTAPIEnabled=True -RCONEnabled=False"
-user = "1000:1000"
-ports = ["{port}:{port}/udp", "{rest_port}:{rest_port}/tcp"]
-volumes = ["./server:/server"]
-
-[docker.environment]
-PORT = "{port}"
-REST_API_PORT = "{rest_port}"
-
 [detection]
 process_patterns = ["PalServer-Win64-Shipping-Cmd", "PalServer", "PalServer-Win64"]
 # dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴

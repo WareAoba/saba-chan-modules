@@ -18,7 +18,6 @@
    - 3.4 [credential_map — 자격증명 동기화](#34-credential_map--자격증명-동기화)
    - 3.5 [config — 기본 실행 설정](#35-config--기본-실행-설정)
    - 3.6 [install — 서버 설치 방법](#36-install--서버-설치-방법)
-   - 3.7 [docker — 컨테이너 실행](#37-docker--컨테이너-실행)
    - 3.8 [detection — 자동 감지](#38-detection--자동-감지)
    - 3.9 [settings — GUI 설정 필드](#39-settings--gui-설정-필드)
    - 3.10 [commands — 서버 명령어](#310-commands--서버-명령어)
@@ -556,70 +555,6 @@ method = "download"
 download_url = "https://piston-data.mojang.com/v1/objects/{version_hash}/server.jar"
 install_subdir = "server"
 ```
-
----
-
-### 3.7 `[docker]` — 컨테이너 실행
-
-Docker 익스텐션이 설치된 경우 서버를 컨테이너로 실행할 수 있습니다. `{변수명}` 구문으로 인스턴스 설정값을 치환합니다.
-
-```toml
-[docker]
-image = "steamcmd/steamcmd:latest"      # Docker 이미지
-working_dir = "/server"                 # 컨테이너 내 작업 디렉토리
-restart = "unless-stopped"              # 재시작 정책
-entrypoint = "/bin/bash -c"             # 진입점 (선택)
-command = "exec /server/MyGameServer -port={port}"  # 실행 명령어
-user = "1000:1000"                      # 실행 유저 (선택)
-ports = ["{port}:{port}/udp"]           # 포트 매핑
-volumes = ["./server:/server"]          # 볼륨 마운트
-
-[docker.environment]                    # 환경 변수
-PORT = "{port}"
-```
-
-#### 게임별 비교
-
-**Minecraft:**
-```toml
-[docker]
-image = "eclipse-temurin:{java_version}-jre-jammy"
-working_dir = "/server"
-restart = "unless-stopped"
-command = "java -Xmx{ram}G -Xms{ram}G -jar server.jar nogui"
-ports = ["{port}:{port}/tcp", "{rcon_port}:{rcon_port}/tcp"]
-volumes = ["./server:/server"]
-
-[docker.environment]
-EULA = "TRUE"
-```
-
-**Zomboid:**
-```toml
-[docker]
-image = "steamcmd/steamcmd:latest"
-working_dir = "/server"
-restart = "unless-stopped"
-entrypoint = "/bin/bash -c"
-command = "exec /server/start-server.sh -servername {server_name}"
-user = "1000:1000"
-ports = ["{port}:{port}/udp", "{direct_port}:{direct_port}/udp", "{rcon_port}:{rcon_port}/tcp"]
-volumes = ["./server:/server", "./data:/home/pzuser/Zomboid"]
-```
-
-#### 치환 변수
-
-`{변수명}` 형식으로 인스턴스 설정값을 치환할 수 있습니다:
-
-| 변수 | 출처 |
-|------|------|
-| `{port}` | 게임 포트 |
-| `{rcon_port}` | RCON 포트 |
-| `{rest_port}` | REST API 포트 |
-| `{ram}` | 메모리 할당량 |
-| `{server_name}` | 서버 이름 |
-| `{java_version}` | Java 버전 |
-| 기타 | settings 필드의 name |
 
 ---
 
@@ -2283,7 +2218,6 @@ def test_get_launch_command():
 
 - [ ] `icon.png` — 모듈 아이콘
 - [ ] `[install]` — 설치 방법 정의
-- [ ] `[docker]` — Docker 지원
 - [ ] `[aliases]` — 명령어 별칭
 - [ ] `[commands]` — GUI 명령어
 - [ ] `[syntax_highlight]` — 콘솔 하이라이팅 (console 모드)
@@ -2477,17 +2411,6 @@ anonymous = true
 install_subdir = "server"
 platform = "windows"
 requires_extensions = ["steamcmd"]
-
-[docker]
-image = "steamcmd/steamcmd:latest"
-working_dir = "/server"
-restart = "unless-stopped"
-command = "exec /server/FullGameServer -port={port}"
-ports = ["{port}:{port}/udp", "{rcon_port}:{rcon_port}/tcp"]
-volumes = ["./server:/server"]
-
-[docker.environment]
-PORT = "{port}"
 
 [detection]
 process_patterns = ["FullGameServer"]
@@ -2691,7 +2614,6 @@ bold = true
 | **버전 관리** | ✅ (Mojang API) | — | — |
 | **로그 진단** | ✅ (ERROR_PATTERNS) | — | — |
 | **서버 상태** | SLP 프로토콜 | REST /info + /players | RCON players |
-| **Docker** | ✅ | ✅ | ✅ |
 | **syntax_highlight** | 28개 규칙 | 5개 규칙 | 12개 규칙 |
 
 ---

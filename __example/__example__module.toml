@@ -20,7 +20,7 @@
 #    5단계: lifecycle.py의 get_launch_command()에서 실행 인자 맞추기
 #           (서버를 수동으로 한번 실행해보고 커맨드라인 인자를 확인하세요)
 #
-#  나머지 섹션(docker, install, commands 등)은 기본 동작 확인 후 추가하세요.
+#  나머지 섹션(install, commands 등)은 기본 동작 확인 후 추가하세요.
 #
 #  ★ 스키마 v1 규칙: 데몬은 schema_version = 1인 파일에서 모르는 키를 찾으면
 #    모듈을 로드하지 않습니다(오타가 조용히 무시되지 않도록). 검사는
@@ -113,22 +113,6 @@ platform = "windows"                    # "windows" | "linux"
 requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
 # download_url = "https://..."          # method="download"일 때 사용
 # beta_branch = "experimental"          # 베타 브랜치 이름 (선택)
-
-# ── [docker] 컨테이너 실행 설정 ──────────────────────────────────
-#  Docker 확장이 설치된 경우 컨테이너로 실행할 수 있습니다.
-#  { } 안의 변수는 인스턴스 설정에서 자동 치환됩니다.
-#
-[docker]
-image = "steamcmd/steamcmd:latest"
-working_dir = "/server"
-restart = "unless-stopped"
-entrypoint = "/bin/bash -c"
-command = "exec /server/MyGameServer -port={port}"
-ports = ["{port}:{port}/udp"]
-volumes = ["./server:/server"]
-
-[docker.environment]
-PORT = "{port}"
 
 # ── [detection] 자동 감지 ────────────────────────────────────────
 #  이미 실행 중인 서버를 자동으로 찾기 위한 패턴입니다.

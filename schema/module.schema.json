@@ -245,100 +245,6 @@
       },
       "type": "object"
     },
-    "ContainerSectionToml": {
-      "additionalProperties": false,
-      "description": "module.toml [docker] 섹션 — 컨테이너 격리 익스텐션 설정",
-      "properties": {
-        "command": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "cpu_limit": {
-          "default": null,
-          "description": "CPU 제한 (코어 수, 예: 2.0)",
-          "format": "double",
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-        "dockerfile": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "entrypoint": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "environment": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "default": {},
-          "type": "object"
-        },
-        "image": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "memory_limit": {
-          "default": null,
-          "description": "메모리 제한 (예: \"4g\", \"512m\")",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "ports": {
-          "default": [],
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "restart": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "user": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "volumes": {
-          "default": [],
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "working_dir": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "type": "object"
-    },
     "DetectionSection": {
       "additionalProperties": false,
       "properties": {
@@ -791,17 +697,6 @@
           "type": "null"
         }
       ]
-    },
-    "docker": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/ContainerSectionToml"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "description": "[docker] 익스텐션 설정 섹션 (컨테이너 격리용)"
     },
     "errors": {
       "additionalProperties": {

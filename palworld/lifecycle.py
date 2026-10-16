@@ -807,15 +807,7 @@ def _get_settings_ini_path(config):
     if not working_dir:
         return None
 
-    # 컨테이너 모드: 서버가 Linux 컨테이너에서 실행되므로 항상 LinuxServer 경로 사용
-    ext_data = config.get("extension_data", {})
-    use_container = ext_data.get("docker_enabled", False) if isinstance(ext_data, dict) else config.get("use_docker", False)
-    if use_container:
-        platform_dir = "LinuxServer"
-    elif sys.platform == "win32":
-        platform_dir = "WindowsServer"
-    else:
-        platform_dir = "LinuxServer"
+    platform_dir = "WindowsServer" if sys.platform == "win32" else "LinuxServer"
 
     ini_path = os.path.join(working_dir, "Pal", "Saved", "Config", platform_dir, "PalWorldSettings.ini")
     return ini_path
@@ -902,25 +894,22 @@ def validate(config):
     """Validate prerequisites before starting Palworld server."""
     issues = []
     executable = config.get("server_executable")
-    ext_data = config.get("extension_data", {})
-    use_container = ext_data.get("docker_enabled", False) if isinstance(ext_data, dict) else config.get("use_docker", False)
 
-    # 실행 파일 검사 (컨테이너 모드에서는 컨테이너 내부에서 실행하므로 검사 불필요)
-    if not use_container:
-        if not executable:
-            issues.append({
-                "code": "NO_EXECUTABLE",
-                "severity": "critical",
-                "message": i18n.t("validate.no_executable"),
-                "solution": i18n.t("validate.no_executable_hint"),
-            })
-        elif not os.path.isfile(executable):
-            issues.append({
-                "code": "EXECUTABLE_NOT_FOUND",
-                "severity": "critical",
-                "message": i18n.t("validate.executable_not_found", path=executable),
-                "solution": i18n.t("validate.executable_not_found_hint"),
-            })
+    # 실행 파일 검사
+    if not executable:
+        issues.append({
+            "code": "NO_EXECUTABLE",
+            "severity": "critical",
+            "message": i18n.t("validate.no_executable"),
+            "solution": i18n.t("validate.no_executable_hint"),
+        })
+    elif not os.path.isfile(executable):
+        issues.append({
+            "code": "EXECUTABLE_NOT_FOUND",
+            "severity": "critical",
+            "message": i18n.t("validate.executable_not_found", path=executable),
+            "solution": i18n.t("validate.executable_not_found_hint"),
+        })
 
     # Working directory
     working_dir = config.get("working_dir")

@@ -143,7 +143,8 @@
     "install_via_steamcmd": "Palworld dedicated server must be installed via SteamCMD.",
     "versions_via_steam": "Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Use SteamCMD to install or update.",
     "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update.",
-    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings \u2192 Extensions first."
+    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings \u2192 Extensions first.",
+    "extension_missing": "The {{extension}} extension is required. Install and enable it in Settings \u2192 Extensions."
   },
   "rcon": {
     "connecting": "Connecting to {{host}}:{{port}}...",

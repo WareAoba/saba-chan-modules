@@ -23,8 +23,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'
 
 # RCON communication delegates to the Rust daemon's HTTP API
 from daemon_rcon import DaemonRconClient as RconClient, daemon_post
-# UE4 INI parser (shared extension)
-from extensions.ue4_ini import parse_option_settings, write_option_settings
+# UE4 INI parser (ue4-ini extension). Without it the module still answers;
+# functions that touch PalWorldSettings.ini return extension_required.
+try:
+    from extensions.ue4_ini import parse_option_settings, write_option_settings
+except ImportError:
+    parse_option_settings = write_option_settings = None
 
 # Initialize i18n
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -818,8 +822,22 @@ def _get_settings_ini_path(config):
 
 
 # UE4 INI parse/write delegated to extensions.ue4_ini
-_parse_option_settings = parse_option_settings
-_write_option_settings = write_option_settings
+class ExtensionMissing(Exception):
+    def __init__(self, extension):
+        super().__init__(extension)
+        self.extension = extension
+
+
+def _parse_option_settings(ini_path):
+    if parse_option_settings is None:
+        raise ExtensionMissing("ue4-ini")
+    return parse_option_settings(ini_path)
+
+
+def _write_option_settings(ini_path, props):
+    if write_option_settings is None:
+        raise ExtensionMissing("ue4-ini")
+    return write_option_settings(ini_path, props)
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1611,7 +1629,15 @@ if __name__ == "__main__":
     
     fn = FUNCTIONS.get(function_name)
     if fn:
-        result = fn(config)
+        try:
+            result = fn(config)
+        except ExtensionMissing as e:
+            result = {
+                "success": False,
+                "message": i18n.t("messages.extension_missing", extension=e.extension),
+                "error_code": "extension_required",
+                "missing_extensions": [e.extension],
+            }
     else:
         result = {"success": False, "message": f"Unknown function: {function_name}"}
     

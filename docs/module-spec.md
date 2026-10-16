@@ -109,3 +109,5 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 | `import_settings` | 기존 서버 가져오기 | `settings{}` |
 
 ✔ 표시가 없는 함수는 기능을 지원할 때만 만든다. 만들었다면 반드시 `FUNCTIONS` 표에 넣는다.
+
+답을 준 실패(모르는 함수, 잘못된 설정, 익스텐션 없음)도 종료 코드 0으로 끝낸다. 데몬은 종료 코드가 0이 아니면 stdout을 버리고 일반 오류로 본다. 이 계약은 `conformance/`의 키트가 검사한다.

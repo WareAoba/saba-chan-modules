@@ -1671,13 +1671,14 @@ def main():
     
     func_name = sys.argv[1]
     
+    # Answered errors exit 0: the daemon discards stdout when the exit code is not 0.
     if func_name not in FUNCTIONS:
         print(json.dumps({
             "success": False,
             "message": f"Unknown function: {func_name}",
             "available": list(FUNCTIONS.keys())
         }))
-        sys.exit(1)
+        return
     
     try:
         config_str = sys.stdin.read()
@@ -1693,7 +1694,6 @@ def main():
             "success": False,
             "message": f"Error in {func_name}: {str(e)}"
         }))
-        sys.exit(1)
 
 
 if __name__ == "__main__":

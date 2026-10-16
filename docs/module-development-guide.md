@@ -2178,6 +2178,14 @@ class ErrorDetector:
 
 데몬을 실행하지 않고도 모듈의 각 함수를 직접 테스트할 수 있습니다.
 
+### 적합성 키트
+
+PR을 올리기 전에 [적합성 키트](../conformance/README.md)를 돌리세요. CI도 같은 검사를 합니다.
+
+```bash
+pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modules
+```
+
 ### 터미널에서 함수별 테스트
 
 lifecycle.py는 일반 Python 스크립트이므로, JSON을 stdin으로 넘기면 바로 실행됩니다:

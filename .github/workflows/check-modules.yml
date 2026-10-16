@@ -6,12 +6,18 @@ on:
     branches: [main]
 
 jobs:
-  schema:
+  conformance:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # i18n.py, daemon_rcon.py: 데몬이 모듈에 넣어 주는 공용 파일
+      - uses: actions/checkout@v4
+        with:
+          repository: WareAoba/saba-chan
+          path: saba-chan
+          sparse-checkout: modules
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install jsonschema
-      - run: python .github/scripts/check_schema.py
+      - run: pip install pytest jsonschema
+      - run: pytest conformance -W default --shared-libs saba-chan/modules

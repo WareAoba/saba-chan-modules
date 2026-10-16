@@ -21,25 +21,29 @@
 #           (서버를 수동으로 한번 실행해보고 커맨드라인 인자를 확인하세요)
 #
 #  나머지 섹션(docker, install, commands 등)은 기본 동작 확인 후 추가하세요.
+#
+#  ★ 스키마 v1 규칙: 데몬은 schema_version = 1인 파일에서 모르는 키를 찾으면
+#    모듈을 로드하지 않습니다(오타가 조용히 무시되지 않도록). 검사는
+#      saba-core module validate <모듈 폴더>
+#    로 미리 할 수 있고, 키 목록과 뜻은 docs/module-spec.md에 있습니다.
 # ─────────────────────────────────────────────────────────────────
-
 
 # ── [module] 필수 메타데이터 ──────────────────────────────────────
 [module]
+schema_version = 1                      # module.toml 스키마 버전 (지금은 1)
 name = "mygame"                         # ★ 바꾸세요: 폴더명과 동일, 영문 소문자
 version = "0.1.0"                       # 모듈 버전 (semver)
 description = "MyGame server module"    # ★ 바꾸세요: 한 줄 설명
 game_name = "MyGame"                    # ★ 바꾸세요: 전체 게임 이름
 display_name = "MyGame"                 # ★ 바꾸세요: GUI에 표시되는 이름
-entry = "lifecycle.py"                  # 진입점 스크립트 (항상 lifecycle.py)
+entry = "lifecycle.py"                  # 진입점 스크립트 (모듈 폴더 기준 경로)
+# author = "your-name"                  # 선택: 만든 사람
 icon = "icon.png"                       # 아이콘 파일 (모듈 폴더 내)
 log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 정규식
-
 
 # ── [update] 모듈 자동 업데이트 ──────────────────────────────────
 [update]
 github_repo = "saba-chan-modules"        # GitHub 레포 이름 (github_owner는 본체 설정에서 상속)
-
 
 # ── [protocols] 통신 프로토콜 ────────────────────────────────────
 #
@@ -58,7 +62,6 @@ github_repo = "saba-chan-modules"        # GitHub 레포 이름 (github_owner는
 supported = ["rcon", "stdin"]           # ← 게임에 맞게 선택
 default = "rcon"
 interaction_mode = "console"            # "console" 또는 "commands"
-
 
 # ── [credential_map] 자격증명 자동 동기화 ────────────────────────
 #
@@ -85,7 +88,6 @@ interaction_mode = "console"            # "console" 또는 "commands"
 # [credential_map]
 # rcon_password = "GameSpecificRconKey"
 
-
 # ── [config] 기본 실행 설정 ──────────────────────────────────────
 [config]
 executable_path = ""                    # 기본 실행 파일 전체 경로 (설치 후 설정)
@@ -94,7 +96,6 @@ process_name = "MyGameServer"           # 프로세스 이름 (tasklist/pgrep �
 default_port = 7777                     # 기본 게임 포트
 # rcon_port = 25575                     # RCON 포트 (RCON 지원 시)
 stop_command = "quit"                   # stdin으로 전송하는 graceful 종료 명령어
-
 
 # ── [install] 서버 설치 방법 ─────────────────────────────────────
 #
@@ -113,7 +114,6 @@ requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
 # download_url = "https://..."          # method="download"일 때 사용
 # beta_branch = "experimental"          # 베타 브랜치 이름 (선택)
 
-
 # ── [docker] 컨테이너 실행 설정 ──────────────────────────────────
 #  Docker 확장이 설치된 경우 컨테이너로 실행할 수 있습니다.
 #  { } 안의 변수는 인스턴스 설정에서 자동 치환됩니다.
@@ -130,18 +130,26 @@ volumes = ["./server:/server"]
 [docker.environment]
 PORT = "{port}"
 
-
 # ── [detection] 자동 감지 ────────────────────────────────────────
 #  이미 실행 중인 서버를 자동으로 찾기 위한 패턴입니다.
 #
 [detection]
 process_patterns = ["MyGameServer"]     # 프로세스 이름 패턴 (부분 일치)
 # cmd_patterns = ["zombie.network"]     # 커맨드라인 패턴 (같은 실행파일을 쓰는 게임 구분용)
-common_paths = [                        # 자주 사용되는 설치 경로
-    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\MyGame",
-]
 dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해당 게임으로 판정
+# 서버가 끝났을 때 사용자가 끈 것인지, 크래시인지 가리는 데 씁니다 (크래시만 자동 재시작)
+# graceful_exit_patterns = ["Server stopped"]   # 정상 종료 때 콘솔에 찍히는 문구 (정규식)
+# crash_artifacts = ["crash-reports/*.txt"]     # 크래시 때 생기는 파일 (작업 폴더 기준, 마지막 칸만 * ?)
 
+# ── [launch] 실행 관련 ───────────────────────────────────────────
+#  콘솔에 아무것도 안 찍고 파일에만 로그를 쓰는 서버라면, 그 파일을 콘솔에 합칩니다.
+# [launch]
+# log_files = ["Logs/*.log"]            # 작업 폴더 기준, 마지막 칸만 * ?
+
+# ── [extensions.<익스텐션 id>] 익스텐션별 설정 ───────────────────
+#  익스텐션이 읽는 모듈별 설정을 여기에 둡니다. 데몬은 내용을 보지 않고 넘깁니다.
+# [extensions.myext]
+# some_option = true
 
 # ═══════════════════════════════════════════════════════════════════
 #                         SETTINGS
@@ -256,12 +264,15 @@ min = 10
 max = 128
 group = "advanced"
 
-
 # ═══════════════════════════════════════════════════════════════════
 #                         COMMANDS
 # ═══════════════════════════════════════════════════════════════════
 #
 #  GUI에서 버튼으로 실행할 수 있는 서버 명령어를 정의합니다.
+#
+#  risk: 명령의 위험도. "safe"(조회·채팅) | "caution"(게임 상태 변경, 기본값) |
+#        "danger"(서버 종료, 추방·차단, 권한 변경). AI가 추론한 명령을 실행하기 전에
+#        확인을 받을지 정할 때 씁니다.
 #
 #  ── RCON 명령어 (method = "rcon") ──
 #  rcon_template: RCON으로 전송할 명령어 템플릿
@@ -277,6 +288,7 @@ group = "advanced"
 # RCON 명령어 예시
 [[commands.fields]]
 name = "say"
+risk = "safe"
 label = "Send Message"
 description = "Broadcast a message to all players"
 method = "rcon"                         # "rcon" 또는 "rest"
@@ -287,6 +299,7 @@ inputs = [
 
 [[commands.fields]]
 name = "save"
+risk = "safe"
 label = "Save World"
 description = "Save the game world"
 method = "rcon"
@@ -295,6 +308,7 @@ inputs = []                             # 입력 없는 명령어
 
 [[commands.fields]]
 name = "kick"
+risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
 method = "rcon"
@@ -316,7 +330,6 @@ inputs = [
 #     { name = "message", type = "text", label = "Message", required = true }
 # ]
 
-
 # ═══════════════════════════════════════════════════════════════════
 #                         ALIASES
 # ═══════════════════════════════════════════════════════════════════
@@ -333,7 +346,6 @@ status = { aliases = ["상태", "확인"], description = "Check server status" }
 say = { aliases = ["말하기", "채팅"], description = "Send a message" }
 save = { aliases = ["저장"], description = "Save the world" }
 kick = { aliases = ["킥", "강퇴"], description = "Kick a player" }
-
 
 # ═══════════════════════════════════════════════════════════════════
 #                    SYNTAX HIGHLIGHTING

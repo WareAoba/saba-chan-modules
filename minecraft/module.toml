@@ -1,4 +1,5 @@
 [module]
+schema_version = 1
 name = "minecraft"
 version = "0.1.0"
 description = "Minecraft server management module with full lifecycle control"
@@ -20,14 +21,9 @@ interaction_mode = "console"  # console: stdin 지원, 콘솔 UI 표시 | comman
 
 [config]
 executable_path = ""
-java_path = "java"
-server_jar = "server.jar"
 server_executable = "server.jar"
-eula = true
 process_name = "java.exe"
 default_port = 25565
-rcon_port = 25575
-ram = "4G"
 
 [install]
 method = "download"
@@ -51,24 +47,11 @@ process_patterns = ["java.exe", "java", "minecraft_server", "server.jar"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Minecraft 서버를 식별하는 패턴
 # 같은 java.exe를 쓰는 다른 게임 서버(예: Zomboid)와 구분하기 위해 사용
 cmd_patterns = ["server.jar", "minecraft_server", "nogui", "net.minecraft"]
-common_paths = [
-    "C:\\Users\\*\\Desktop\\MinecraftServer",
-    "C:\\MinecraftServer",
-    "C:\\Games\\Minecraft\\server",
-    "D:\\MinecraftServer"
-]
 # dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴
 # 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
 dir_signatures = ["server.jar", "server.properties"]
-
-[detection.linux]
-process_name = "java"
-common_paths = [
-    "/home/*/minecraft-server",
-    "/opt/minecraft-server",
-    "/srv/minecraft",
-    "/home/*/server",
-]
+graceful_exit_patterns = ["Stopping the server"]
+crash_artifacts = ["crash-reports/*.txt", "hs_err_pid*.log"]
 
 # ─── Settings (displayed in GUI for instance configuration) ───
 
@@ -203,7 +186,6 @@ label = "Enable Query"
 description = "Enable the GameSpy4 query protocol"
 default = false
 group = "advanced"
-
 
 [[settings.fields]]
 name = "enable_status"
@@ -659,6 +641,7 @@ default = false
 
 [[commands.fields]]
 name = "say"
+risk = "safe"
 label = "Send Chat Message"
 description = "Broadcast a message to the server"
 method = "rcon"
@@ -669,6 +652,7 @@ inputs = [
 
 [[commands.fields]]
 name = "give"
+risk = "caution"
 label = "Give Item"
 description = "Give an item to a player"
 method = "rcon"
@@ -681,6 +665,7 @@ inputs = [
 
 [[commands.fields]]
 name = "save-all"
+risk = "safe"
 label = "Save World"
 description = "Save the game world"
 method = "rcon"
@@ -689,6 +674,7 @@ inputs = []
 
 [[commands.fields]]
 name = "list"
+risk = "safe"
 label = "Player List"
 description = "View list of connected players"
 method = "rcon"
@@ -697,6 +683,7 @@ inputs = []
 
 [[commands.fields]]
 name = "weather"
+risk = "caution"
 label = "Change Weather"
 description = "Change the server weather"
 method = "rcon"
@@ -708,6 +695,7 @@ inputs = [
 
 [[commands.fields]]
 name = "difficulty"
+risk = "caution"
 label = "Change Difficulty"
 description = "Change the game difficulty"
 method = "rcon"
@@ -718,6 +706,7 @@ inputs = [
 
 [[commands.fields]]
 name = "gamemode"
+risk = "caution"
 label = "Change Game Mode"
 description = "Change a player's game mode"
 method = "rcon"
@@ -729,6 +718,7 @@ inputs = [
 
 [[commands.fields]]
 name = "time"
+risk = "caution"
 label = "Set Time"
 description = "Change the time of day"
 method = "rcon"
@@ -739,6 +729,7 @@ inputs = [
 
 [[commands.fields]]
 name = "tp"
+risk = "caution"
 label = "Teleport"
 description = "Teleport a player"
 method = "rcon"
@@ -750,6 +741,7 @@ inputs = [
 
 [[commands.fields]]
 name = "kick"
+risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
 method = "rcon"
@@ -761,6 +753,7 @@ inputs = [
 
 [[commands.fields]]
 name = "ban"
+risk = "danger"
 label = "Ban Player"
 description = "Ban a player from the server"
 method = "rcon"
@@ -772,6 +765,7 @@ inputs = [
 
 [[commands.fields]]
 name = "pardon"
+risk = "caution"
 label = "Unban Player"
 description = "Remove a player's ban"
 method = "rcon"
@@ -782,6 +776,7 @@ inputs = [
 
 [[commands.fields]]
 name = "op"
+risk = "danger"
 label = "Op Player"
 description = "Give operator permissions"
 method = "rcon"
@@ -792,6 +787,7 @@ inputs = [
 
 [[commands.fields]]
 name = "deop"
+risk = "caution"
 label = "Deop Player"
 description = "Remove operator permissions"
 method = "rcon"
@@ -802,6 +798,7 @@ inputs = [
 
 [[commands.fields]]
 name = "whitelist"
+risk = "caution"
 label = "Whitelist"
 description = "Manage the server whitelist"
 method = "rcon"
@@ -813,6 +810,7 @@ inputs = [
 
 [[commands.fields]]
 name = "seed"
+risk = "safe"
 label = "Show Seed"
 description = "Display the world seed"
 method = "rcon"
@@ -821,6 +819,7 @@ inputs = []
 
 [[commands.fields]]
 name = "stop"
+risk = "danger"
 label = "Stop Server"
 description = "Gracefully stop the server"
 method = "rcon"

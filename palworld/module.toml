@@ -1,4 +1,5 @@
-﻿[module]
+[module]
+schema_version = 1
 name = "palworld"
 version = "0.1.0"
 description = "Palworld server management module"
@@ -58,25 +59,10 @@ REST_API_PORT = "{rest_port}"
 
 [detection]
 process_patterns = ["PalServer-Win64-Shipping-Cmd", "PalServer", "PalServer-Win64"]
-common_paths = [
-    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\PalServer",
-    "D:\\SteamLibrary\\steamapps\\common\\PalServer",
-    "C:\\Games\\Palworld\\server"
-]
 # dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴
 # 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
 dir_signatures = ["PalServer.exe"]
-
-[detection.linux]
-server_executable = "PalServer.sh"
-process_name = "PalServer-Linux-Shipping"
-process_patterns = ["PalServer-Linux-Shipping", "PalServer", "PalServer.sh"]
-common_paths = [
-    "/home/*/.steam/steam/steamapps/common/PalServer",
-    "/opt/palworld",
-    "/srv/palworld",
-]
-dir_signatures = ["PalServer.sh"]
+crash_artifacts = ["Pal/Saved/Crashes/*"]
 
 [settings]
 
@@ -529,6 +515,7 @@ group = "advanced"
 
 [[commands.fields]]
 name = "announce"
+risk = "safe"
 label = "Send Announcement"
 description = "Broadcast a message to the server"
 method = "rest"
@@ -540,6 +527,7 @@ inputs = [
 
 [[commands.fields]]
 name = "info"
+risk = "safe"
 label = "Server Info"
 description = "View server information"
 method = "rest"
@@ -549,6 +537,7 @@ inputs = []
 
 [[commands.fields]]
 name = "players"
+risk = "safe"
 label = "Player List"
 description = "List currently connected players"
 method = "rest"
@@ -558,6 +547,7 @@ inputs = []
 
 [[commands.fields]]
 name = "save"
+risk = "safe"
 label = "Save World"
 description = "Save the game world"
 method = "rest"
@@ -567,6 +557,7 @@ inputs = []
 
 [[commands.fields]]
 name = "shutdown"
+risk = "danger"
 label = "Shutdown Server"
 description = "Shutdown the server (with optional delay)"
 method = "rest"
@@ -579,6 +570,7 @@ inputs = [
 
 [[commands.fields]]
 name = "kick"
+risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
 method = "rest"
@@ -591,6 +583,7 @@ inputs = [
 
 [[commands.fields]]
 name = "ban"
+risk = "danger"
 label = "Ban Player"
 description = "Permanently ban a player"
 method = "rest"
@@ -603,6 +596,7 @@ inputs = [
 
 [[commands.fields]]
 name = "unban"
+risk = "caution"
 label = "Unban Player"
 description = "Unban a banned player"
 method = "rest"

@@ -38,7 +38,6 @@ def _rcon_command(host, port, password, command, timeout=5):
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
 
 # ─── Friendly name → server.properties key mapping ───────────
 # Used by configure() and install_server() to translate settings.
@@ -1473,14 +1472,9 @@ def command(config):
 
         formatted = _format_command(command_text, args)
 
-        import urllib.request
-        api_url = f"{DAEMON_API_URL}/api/instance/{instance_id}/rcon"
-        payload = json.dumps({"command": formatted}).encode("utf-8")
-        req = urllib.request.Request(api_url, data=payload,
-                                     headers={"Content-Type": "application/json"}, method="POST")
-        with urllib.request.urlopen(req, timeout=5) as response:
-            result = json.loads(response.read().decode("utf-8"))
-            return {"success": result.get("success", True), "message": f"RCON: {formatted}"}
+        from daemon_rcon import daemon_post
+        result = daemon_post(f"/api/instance/{instance_id}/rcon", {"command": formatted}, timeout=5)
+        return {"success": result.get("success", True), "message": f"RCON: {formatted}"}
     except Exception as e:
         return {"success": False, "message": str(e)}
 

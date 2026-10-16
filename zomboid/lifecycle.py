@@ -44,8 +44,6 @@ except ImportError:
 
 i18n = I18n(MODULE_DIR)
 
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
-
 
 # ─── Constants ───────────────────────────────────────────
 
@@ -960,7 +958,8 @@ def get_launch_command(config):
     except (ValueError, TypeError):
         ram_gb = 4
     server_name = config.get("server_name", "servertest")
-    is_managed = config.get("managed", True)
+    # 데몬은 managed 서버를 직접 멈추고, 이 함수는 non-managed일 때만 부른다
+    is_managed = config.get("managed", False)
     ini_path = IniManager.get_ini_path(config)
     _enforce_rcon_policy(config, ini_path, managed=is_managed)
 
@@ -1143,7 +1142,8 @@ def stop(config):
     pid = config.get("pid")
     force = config.get("force", False)
     instance_id = config.get("instance_id", "")
-    is_managed = config.get("managed", True)
+    # 데몬은 managed 서버를 직접 멈추고, 이 함수는 non-managed일 때만 부른다
+    is_managed = config.get("managed", False)
     
     if not pid:
         return {"success": True, "message": i18n.t("messages.no_process_running")}
@@ -1212,13 +1212,8 @@ def stop(config):
 
 def _send_stdin_command(instance_id, cmd_text):
     """Send a command to the managed server's stdin via daemon API."""
-    import urllib.request
-    url = f"{DAEMON_API_URL}/api/instance/{instance_id}/stdin"
-    data = json.dumps({"command": cmd_text + "\n"}).encode('utf-8')
-    req = urllib.request.Request(url, data=data, method='POST',
-                                headers={'Content-Type': 'application/json'})
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        return json.loads(resp.read().decode('utf-8'))
+    from daemon_rcon import daemon_post
+    return daemon_post(f"/api/instance/{instance_id}/stdin", {"command": cmd_text + "\n"})
 
 
 def _is_process_running(pid):
@@ -1364,7 +1359,8 @@ def command(config):
     cmd_text = config.get("command_text", "")
     cmd_args = config.get("args", {})
     instance_id = config.get("instance_id", "")
-    is_managed = config.get("managed", True)
+    # 데몬은 managed 서버를 직접 멈추고, 이 함수는 non-managed일 때만 부른다
+    is_managed = config.get("managed", False)
     
     if not cmd_text and not cmd_name:
         return {"success": False, "message": "No command specified"}

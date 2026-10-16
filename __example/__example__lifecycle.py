@@ -97,9 +97,6 @@ from daemon_rcon import rcon_command as _rcon_command_bridge
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
 
-# 데몬 API 엔드포인트 (환경 변수로 주입됨)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
-
 
 # ═══════════════════════════════════════════════════════════════════
 #  설정 키 매핑: saba-chan 내부 키 → 게임 설정 파일 키

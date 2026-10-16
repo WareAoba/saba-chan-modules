@@ -22,7 +22,7 @@ from i18n import I18n
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
 # RCON communication delegates to the Rust daemon's HTTP API
-from daemon_rcon import DaemonRconClient as RconClient
+from daemon_rcon import DaemonRconClient as RconClient, daemon_post
 # UE4 INI parser (shared extension)
 from extensions.ue4_ini import parse_option_settings, write_option_settings
 
@@ -30,8 +30,6 @@ from extensions.ue4_ini import parse_option_settings, write_option_settings
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
 
-# Daemon API endpoint (localhost by default)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
 
 class PalworldRconClient:
     """Palworld RCON client — delegates to Rust daemon's RCON API."""
@@ -1486,34 +1484,24 @@ def execute_command_via_rcon(instance_id, command_lower, args, config):
 
 def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
     """Execute REST API command via daemon"""
-    api_url = f"{DAEMON_API_URL}/api/instance/{instance_id}/rest"
-    
-    payload = json.dumps({
+    payload = {
         "endpoint": endpoint,
         "method": "POST" if body else "GET",
         "body": body
-    }).encode('utf-8')
+    }
     
     try:
-        req = urllib.request.Request(
-            api_url,
-            data=payload,
-            headers={'Content-Type': 'application/json'},
-            method='POST'
-        )
+        result = daemon_post(f"/api/instance/{instance_id}/rest", payload, timeout=5)
+        print(f"[Palworld] Daemon REST response: {result}", file=sys.stderr)
         
-        with urllib.request.urlopen(req, timeout=5) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            print(f"[Palworld] Daemon REST response: {result}", file=sys.stderr)
-            
-            return {
-                "success": result.get("success", True),
-                "message": f"REST API command executed: {command_text}",
-                "data": result.get("data"),
-                "protocol": "rest"
-            }
+        return {
+            "success": result.get("success", True),
+            "message": f"REST API command executed: {command_text}",
+            "data": result.get("data"),
+            "protocol": "rest"
+        }
     
-    except urllib.error.URLError as e:
+    except ConnectionError as e:
         print(f"[Palworld] Daemon connection error: {e}", file=sys.stderr)
         return {
             "success": False,
@@ -1535,32 +1523,22 @@ def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
 
 def execute_rcon_via_daemon(instance_id, rcon_cmd):
     """Execute RCON command via daemon"""
-    api_url = f"{DAEMON_API_URL}/api/instance/{instance_id}/rcon"
-    
-    payload = json.dumps({
+    payload = {
         "command": rcon_cmd
-    }).encode('utf-8')
+    }
     
     try:
-        req = urllib.request.Request(
-            api_url,
-            data=payload,
-            headers={'Content-Type': 'application/json'},
-            method='POST'
-        )
+        result = daemon_post(f"/api/instance/{instance_id}/rcon", payload, timeout=10)
+        print(f"[Palworld] Daemon RCON response: {result}", file=sys.stderr)
         
-        with urllib.request.urlopen(req, timeout=10) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            print(f"[Palworld] Daemon RCON response: {result}", file=sys.stderr)
-            
-            return {
-                "success": result.get("success", True),
-                "message": f"RCON command executed: {rcon_cmd}",
-                "data": result.get("data"),
-                "protocol": "rcon"
-            }
+        return {
+            "success": result.get("success", True),
+            "message": f"RCON command executed: {rcon_cmd}",
+            "data": result.get("data"),
+            "protocol": "rcon"
+        }
     
-    except urllib.error.URLError as e:
+    except ConnectionError as e:
         print(f"[Palworld] Daemon RCON connection error: {e}", file=sys.stderr)
         return {
             "success": False,

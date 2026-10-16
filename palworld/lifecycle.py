@@ -226,78 +226,6 @@ def resolve_player_id(instance_id, player_input, config):
         return (False, f"Error resolving player: {str(e)}")
 
 
-def start(config):
-    """Start Palworld server"""
-    try:
-        executable = config.get("server_executable")
-        if not executable:
-            return {
-                "success": False,
-                "message": i18n.t("errors.no_executable")
-            }
-        
-        # Check if executable exists
-        if not os.path.exists(executable):
-            return {
-                "success": False,
-                "message": i18n.t("errors.executable_not_found", path=executable)
-            }
-        
-        port = config.get("port", 8211)
-        working_dir = config.get("working_dir")
-        
-        # Use working directory if specified, otherwise use executable's directory
-        if not working_dir:
-            working_dir = os.path.dirname(executable)
-        
-        # Construct command
-        cmd = [
-            executable,
-            f"--port={port}"
-        ]
-        
-        # Log for debugging (to stderr)
-        print(i18n.t('messages.starting_server', command=' '.join(cmd)), file=sys.stderr)
-        print(i18n.t('messages.working_directory', path=working_dir), file=sys.stderr)
-        
-        # Enforce REST-only policy before launch
-        _enforce_rest_policy(working_dir, config)
-        
-        # Start process (detached, cross-platform)
-        if sys.platform == 'win32':
-            creationflags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(
-                cmd,
-                cwd=working_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                creationflags=creationflags
-            )
-        else:
-            # Unix/Linux/macOS: Use start_new_session for detached process
-            proc = subprocess.Popen(
-                cmd,
-                cwd=working_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                start_new_session=True
-            )
-        
-        return {
-            "success": True,
-            "pid": proc.pid,
-            "message": i18n.t('messages.server_starting', pid=proc.pid)
-        }
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error details: {error_details}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t('errors.failed_to_start', error=str(e))
-        }
-
-
 def _read_admin_password_from_ini(config):
     """
     PalWorldSettings.ini에서 AdminPassword를 직접 읽어 반환합니다.
@@ -1673,7 +1601,6 @@ if __name__ == "__main__":
     
     # Function dispatch table (matches daemon's expected interface)
     FUNCTIONS = {
-        "start": start,
         "stop": stop,
         "status": status,
         "command": command,
@@ -1682,6 +1609,7 @@ if __name__ == "__main__":
         "validate": validate,
         "configure": configure,
         "read_properties": read_properties,
+        "import_settings": import_settings,
         "reset_properties": reset_properties,
         "reset_server": reset_server,
         "accept_eula": accept_eula,

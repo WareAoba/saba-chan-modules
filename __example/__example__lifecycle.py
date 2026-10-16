@@ -405,8 +405,10 @@ def install_server(config):
 
     # SteamCMD 예시
     try:
-        from extensions.steamcmd import install_game
-        result = install_game(
+        from extensions.steamcmd import SteamCMD
+        steam = SteamCMD()
+        steam.ensure_available()
+        result = steam.install(
             app_id=123456,
             install_dir=install_dir,
             anonymous=True,
@@ -521,7 +523,6 @@ def _do_backup(config):
 FUNCTIONS = {
     "validate": validate,
     "get_launch_command": get_launch_command,
-    "start": get_launch_command,  # start → get_launch_command 위임
     "stop": stop,
     "status": status,
     "configure": configure,

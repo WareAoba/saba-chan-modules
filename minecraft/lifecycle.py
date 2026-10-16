@@ -1289,76 +1289,6 @@ def diagnose_log(config):
     }
 
 
-def start(config):
-    """Start server in non-managed mode (RCON-only).
-    
-    managed_start가 비활성화된 경우 데몬이 이 함수를 호출합니다.
-    프로세스를 직접 spawn하고 PID만 반환합니다.
-    이후 제어는 RCON을 통해서만 가능합니다.
-    """
-    try:
-        java_path = config.get("java_path", "java")
-        server_jar = _resolve_server_jar(config)
-
-        # Non-managed mode → RCON must be ON (only control method)
-        wd = config.get("working_dir")
-        if wd:
-            _enforce_rcon_policy(os.path.abspath(wd), config=config, managed=False)
-
-        if not server_jar:
-            return {
-                "success": False,
-                "action_required": "server_jar_not_found",
-                "message": i18n.t("errors.server_jar_not_specified"),
-                "options": ["update_path", "install_new"],
-            }
-        if not os.path.exists(server_jar):
-            return {
-                "success": False,
-                "action_required": "server_jar_not_found",
-                "message": i18n.t("errors.server_jar_not_found", path=server_jar),
-                "configured_path": server_jar,
-                "options": ["update_path", "install_new"],
-            }
-
-        java_info = JavaDetector.find_java(java_path)
-        if java_info:
-            java_path = java_info["path"]
-
-        ram_raw = config.get("ram", 2)
-        # Accept plain number (GB). Fractional → MB (e.g. 0.5 → 512M)
-        try:
-            ram_gb = float(str(ram_raw).rstrip("GgMm"))
-            if ram_gb == int(ram_gb):
-                ram = f"{int(ram_gb)}G"
-            else:
-                ram = f"{int(ram_gb * 1024)}M"
-        except (ValueError, TypeError):
-            ram = "2G"
-        working_dir = config.get("working_dir") or os.path.dirname(server_jar)
-
-        if config.get("auto_eula", False):
-            EulaManager.accept_eula(working_dir)
-
-        cmd = [java_path, f"-Xmx{ram}", f"-Xms{ram}", "-jar", server_jar, "nogui"]
-        print(i18n.t("messages.starting_server", command=" ".join(cmd)), file=sys.stderr)
-
-        if sys.platform == "win32":
-            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL, creationflags=flags)
-        else:
-            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL, start_new_session=True)
-
-        return {"success": True, "pid": proc.pid,
-                "message": i18n.t("messages.server_starting", pid=proc.pid)}
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc(), file=sys.stderr)
-        return {"success": False, "message": i18n.t("errors.failed_to_start", error=str(e))}
-
-
 def get_credentials(config):
     """게임 설정 파일(server.properties)에서 직접 credential을 읽어 반환합니다.
     Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다."""
@@ -1951,7 +1881,6 @@ def install_server(config):
 # ╚═══════════════════════════════════════════════════════════╝
 
 FUNCTIONS = {
-    "start": start,
     "stop": stop,
     "status": status,
     "command": command,
@@ -1960,6 +1889,9 @@ FUNCTIONS = {
     "get_credentials": get_credentials,
     "configure": configure,
     "read_properties": read_properties,
+    "import_settings": import_settings,
+    "reset_properties": reset_properties,
+    "reset_server": reset_server,
     "accept_eula": accept_eula,
     "diagnose_log": diagnose_log,
     "list_versions": list_versions,

@@ -1123,54 +1123,6 @@ def _try_rcon_status(config):
     return None
 
 
-def start(config):
-    """Start server in non-managed mode (RCON-only).
-    
-    managed_start가 비활성화된 경우 데몬이 이 함수를 호출합니다.
-    프로세스를 직접 spawn하고 PID만 반환합니다.
-    이후 제어는 RCON을 통해서만 가능합니다.
-    배치/쉘 스크립트 파싱을 통해 JVM 설정을 자동 추출합니다.
-    """
-    try:
-        # get_launch_command로 통합 — 파싱 로직 재사용
-        launch = get_launch_command({**config, "managed": False})
-        if not launch.get("success"):
-            return launch
-        
-        java_path = launch["program"]
-        server_dir = launch["working_dir"]
-        cmd = [java_path] + launch["args"]
-        
-        print(i18n.t("messages.starting_server", command=" ".join(cmd)), file=sys.stderr)
-        
-        if sys.platform == "win32":
-            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(
-                cmd, cwd=server_dir,
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                creationflags=flags,
-            )
-        else:
-            proc = subprocess.Popen(
-                cmd, cwd=server_dir,
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                start_new_session=True,
-            )
-        
-        return {
-            "success": True,
-            "pid": proc.pid,
-            "message": i18n.t("messages.server_starting", pid=proc.pid),
-        }
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc(), file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t("errors.failed_to_start", error=str(e)),
-        }
-
-
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                  Optional Functions                       ║
 # ╚═══════════════════════════════════════════════════════════╝
@@ -1262,7 +1214,7 @@ def _send_stdin_command(instance_id, cmd_text):
     """Send a command to the managed server's stdin via daemon API."""
     import urllib.request
     url = f"{DAEMON_API_URL}/api/instance/{instance_id}/stdin"
-    data = json.dumps({"input": cmd_text + "\n"}).encode('utf-8')
+    data = json.dumps({"command": cmd_text + "\n"}).encode('utf-8')
     req = urllib.request.Request(url, data=data, method='POST',
                                 headers={'Content-Type': 'application/json'})
     with urllib.request.urlopen(req, timeout=10) as resp:
@@ -1690,7 +1642,6 @@ def reset_server(config):
 # ╚═══════════════════════════════════════════════════════════╝
 
 FUNCTIONS = {
-    "start":              start,
     "validate":           validate,
     "get_launch_command": get_launch_command,
     "get_credentials":   get_credentials,

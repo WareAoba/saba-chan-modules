@@ -333,6 +333,10 @@ def _zomboid_home(config):
     cache_dir = str(config.get("cache_dir") or "")
     if cache_dir and "{" not in cache_dir:
         return cache_dir
+    # 예전 인스턴스: config_dir이 -cachedir로 쓰였다
+    legacy = str(config.get("config_dir") or "")
+    if legacy:
+        return legacy
     if sys.platform == "win32":
         return os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid")
     return os.path.join(os.path.expanduser("~"), "Zomboid")
@@ -349,6 +353,10 @@ class IniManager:
     def get_ini_path(config):
         """Determine the path to {servername}.ini."""
         server_name = config.get("server_name", "servertest")
+        # 예전 인스턴스: config_dir 바로 아래에 ini를 둔 경우
+        legacy = str(config.get("config_dir") or "")
+        if legacy and os.path.isfile(os.path.join(legacy, f"{server_name}.ini")):
+            return os.path.join(legacy, f"{server_name}.ini")
         zomboid_dir = os.path.join(_zomboid_home(config), "Server")
         return os.path.join(zomboid_dir, f"{server_name}.ini")
 

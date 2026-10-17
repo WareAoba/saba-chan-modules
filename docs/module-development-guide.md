@@ -526,7 +526,7 @@ anonymous = true                        # 익명 로그인 가능 여부
 install_subdir = "server"               # 설치 하위 폴더
 platform = "windows"                    # 대상 플랫폼
 requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
-beta_branch = "unstable"                # 베타 브랜치 이름 (선택)
+beta = "unstable"                       # 베타 브랜치 이름 (선택)
 ```
 
 #### 설치 방식
@@ -1405,43 +1405,10 @@ def command(config):
 
 게임에 따라 필요한 경우에만 구현합니다.
 
-#### `start(config)` — Non-managed 모드 직접 시작
+#### 시작은 `get_launch_command(config)` 하나로
 
-> `managed_start`가 비활성화된 경우 데몬이 이 함수를 호출합니다.
-> 프로세스를 직접 spawn하고 PID만 반환하며, 이후 제어는 RCON/REST를 통해서만 가능합니다.
-> `managed_start` 활성화 시에는 데몬이 `get_launch_command()`를 호출하여 직접 프로세스를 관리합니다.
-
-```python
-def start(config):
-    # subprocess.Popen으로 서버를 detached 프로세스로 시작
-    ...
-    return {"success": True, "pid": proc.pid}
-```
-
-> 🚨 **`subprocess.PIPE` 사용 금지 — 반드시 `subprocess.DEVNULL` 사용**
->
-> `start()` 함수에서 `subprocess.Popen`으로 프로세스를 생성할 때
-> **`stdout=subprocess.PIPE, stderr=subprocess.PIPE`를 절대 사용하지 마세요.**
->
-> `start()` 함수는 PID만 반환하고 종료되므로 파이프를 읽는 주체가 사라집니다.
-> 게임 서버가 stdout에 로그를 출력하면 OS 파이프 버퍼(Windows ~4KB)가 가득 차고,
-> 서버 프로세스가 `write()` 시스템콜에서 **무한 블록**되어 사실상 멈춥니다.
-> (프로세스는 살아있으나 서버가 시작을 완료하지 못합니다)
->
-> Managed 모드에서는 데몬의 `ManagedProcess`가 stdout을 계속 읽으므로 문제없지만,
-> non-managed `start()`에서는 반드시 `subprocess.DEVNULL`을 사용해야 합니다.
->
-> ```python
-> # ✅ 올바른 사용
-> proc = subprocess.Popen(cmd, cwd=working_dir,
->                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
->                         creationflags=flags)
->
-> # ❌ 잘못된 사용 — 서버가 시작 중 멈춤
-> proc = subprocess.Popen(cmd, cwd=working_dir,
->                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
->                         creationflags=flags)
-> ```
+> 데몬은 managed·non-managed 두 시작 모드 모두 `get_launch_command()`를 불러 명령을 받고, 프로세스는 데몬(saba-runner)이 직접 띄웁니다.
+> 모듈이 `start()`로 프로세스를 띄우는 방식은 쓰지 않습니다. 모드 차이는 `config["managed"]`로 구분합니다(예: RCON 정책).
 
 ---
 
@@ -1455,13 +1422,11 @@ def install_server(config):
     if not install_dir:
         return {"success": False, "message": "install_dir not specified"}
 
-    # SteamCMD 예시
-    try:
-        from extensions.steamcmd import install_game
-        result = install_game(app_id=123456, install_dir=install_dir)
-        return result
-    except ImportError:
-        return {"success": False, "message": "steamcmd extension not installed"}
+    # 직접 받는 예시 (method = "download"). SteamCMD 게임은 [install] method = "steamcmd"만 적으면
+    # steamcmd 익스텐션이 설치를 맡으므로 install_server()를 만들 필요가 없다
+    url = f"https://example.com/server-{version}.zip"
+    ...
+    return {"success": True, "install_dir": install_dir}
 ```
 
 **Minecraft install_server 특징:**
@@ -1773,18 +1738,22 @@ saba-chan 익스텐션은 모듈 간에 공유되는 유틸리티입니다.
 
 ### SteamCMD 익스텐션
 
+설치·업데이트는 `module.toml`에 선언만 하면 익스텐션이 맡습니다. 모듈 코드에서 부를 일은 거의 없습니다.
+
+```toml
+[install]
+method = "steamcmd"          # 이 이름의 익스텐션이 설치·업데이트를 맡는다
+app_id = 2394010
+anonymous = true
+requires_extensions = ["steamcmd"]
+```
+
+직접 써야 하면 `SteamCMD` 클래스를 씁니다:
+
 ```python
-# module.toml에서 의존성 선언
-# [install]
-# requires_extensions = ["steamcmd"]
+from extensions.steamcmd import SteamCMD
 
-from extensions.steamcmd import install_game
-
-result = install_game(
-    app_id=2394010,
-    install_dir="/path/to/server",
-    anonymous=True,
-)
+SteamCMD().install(app_id=2394010, install_dir="/path/to/server", anonymous=True)
 ```
 
 ### UE4 INI 파서 익스텐션
@@ -1990,24 +1959,8 @@ stop_command = "quit"       # stdin으로 전송하는 종료 명령어
 
 ### SteamCMD 설치 (Palworld, Zomboid)
 
-```python
-def install_server(config):
-    install_dir = config.get("install_dir", "")
-    
-    try:
-        from extensions.steamcmd import install_game
-        result = install_game(
-            app_id=2394010,         # Steam App ID
-            install_dir=install_dir,
-            anonymous=True,          # 익명 로그인
-            beta_branch="",          # 베타 브랜치 (선택)
-        )
-        if result.get("success"):
-            configure(config)        # 설치 후 초기 설정 적용
-        return result
-    except ImportError:
-        return {"success": False, "message": "steamcmd extension required"}
-```
+`[install] method = "steamcmd"`와 `app_id`·`anonymous`(선택 `beta`)만 선언합니다. 설치·업데이트는
+steamcmd 익스텐션이 하고, 모듈은 `install_server()`를 만들지 않습니다.
 
 ### 다운로드 설치 (Minecraft)
 

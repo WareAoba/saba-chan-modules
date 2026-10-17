@@ -100,9 +100,11 @@
         "risk": {
           "default": null,
           "description": "\"safe\" | \"caution\" | \"danger\" (없으면 caution)",
-          "type": [
-            "string",
-            "null"
+          "enum": [
+            "safe",
+            "caution",
+            "danger",
+            null
           ]
         }
       },
@@ -503,11 +505,9 @@
         "schema_version": {
           "default": null,
           "description": "이 파일이 따르는 스키마 버전. 지금은 1",
-          "format": "uint32",
-          "minimum": 0.0,
-          "type": [
-            "integer",
-            "null"
+          "enum": [
+            1,
+            null
           ]
         },
         "version": {

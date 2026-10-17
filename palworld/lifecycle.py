@@ -22,7 +22,13 @@ from i18n import I18n
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
 # RCON communication delegates to the Rust daemon's HTTP API
-from daemon_rcon import DaemonRconClient as RconClient, daemon_post
+from daemon_rcon import DaemonRconClient as RconClient
+try:
+    from daemon_rcon import daemon_post
+except ImportError:
+    # 예전 코어의 daemon_rcon에는 daemon_post가 없다: 모듈은 불러지고, 그 경로를 쓰는 명령만 안내와 함께 실패한다
+    def daemon_post(path, payload, timeout=10):
+        raise ConnectionError("this saba-chan core is too old for this Palworld module; update saba-chan")
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
 # functions that touch PalWorldSettings.ini return extension_required.
 try:
@@ -276,6 +282,12 @@ def _enforce_rest_policy(working_dir, config=None):
         props["RESTAPIEnabled"] = "True"
         changes["RESTAPIEnabled"] = "True"
         print(i18n.t("messages.rest_api_forced_on"), file=sys.stderr)
+
+    # 데몬이 접속할 REST 포트(인스턴스 rest_port, 자동 배정될 수 있다)를 INI에 맞춘다
+    rest_port = (config or {}).get("rest_port")
+    if rest_port and props.get("RESTAPIPort") != str(rest_port):
+        props["RESTAPIPort"] = str(rest_port)
+        changes["RESTAPIPort"] = str(rest_port)
 
     # Force RCON disabled
     if props.get("RCONEnabled", "False") != "False":
@@ -681,7 +693,7 @@ _PALWORLD_KEY_MAP = {
     "rcon_enabled": "RCONEnabled",
     "rcon_port": "RCONPort",
     "rest_api_enabled": "RESTAPIEnabled",
-    "rest_api_port": "RESTAPIPort",
+    "rest_port": "RESTAPIPort",
     "use_auth": "bUseAuth",
     "allow_client_mod": "bAllowClientMod",
     "ban_list_url": "BanListURL",

@@ -421,19 +421,16 @@ def _rest_shutdown(config):
         return False
 
 
-def _kill(pid=None, exe_name=None):
-    """PID가 있으면 그 프로세스만, 없으면 예전처럼 실행 파일 이름으로 강제 종료"""
+def _kill(pid):
+    """그 PID(와 자식)만 강제 종료한다. 실행 파일 이름으로는 끝내지 않는다: 같은 게임의 다른 인스턴스까지 죽는다"""
     if sys.platform == 'win32':
-        target = ['/PID', str(pid)] if pid else ['/IM', exe_name]
-        subprocess.run(['taskkill', '/F', '/T', *target], capture_output=True, text=True,
+        subprocess.run(['taskkill', '/F', '/T', '/PID', str(pid)], capture_output=True, text=True,
                        check=False, creationflags=0x08000000)
-    elif pid:
+    else:
         try:
             os.kill(pid, 9)
         except OSError:
             pass
-    else:
-        subprocess.run(['pkill', '-9', os.path.splitext(exe_name)[0]], capture_output=True, check=False)
 
 
 def stop(config):
@@ -446,15 +443,18 @@ def stop(config):
         pid = config.get("pid")
         force = config.get("force", False)
         exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
+        if not pid:
+            # 데몬이 PID를 모르면 이 인스턴스의 서버가 아니다(또는 안 돌고 있다)
+            return {"success": True, "message": i18n.t("messages.process_not_running", name=exe_name)}
 
-        if pid and not force and _rest_shutdown(config):
+        if not force and _rest_shutdown(config):
             for _ in range(60):
                 time.sleep(1)
                 if not _pid_running(pid):
                     return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
             print("[Palworld] Server did not exit after REST shutdown, force killing", file=sys.stderr)
 
-        _kill(pid, exe_name)
+        _kill(pid)
         return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
     except Exception as e:
         error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
@@ -498,6 +498,12 @@ def status(config):
         
         # Extract executable name from path (e.g., "D:\\path\\PalServer.exe" -> "PalServer.exe")
         exe_name = os.path.basename(executable)
+        # 데몬이 PID를 주면 그 프로세스로만 판단한다 (이름으로 보면 다른 인스턴스와 섞인다)
+        pid = config.get("pid")
+        if pid:
+            running = _pid_running(pid)
+            key = "messages.process_running" if running else "messages.process_not_running"
+            return {"success": True, "status": "running" if running else "stopped", "message": i18n.t(key, name=exe_name)}
         
         # Check if process is running by name
         if sys.platform == 'win32':

@@ -331,10 +331,30 @@ def _cache_dir(config):
 
 
 def _legacy_config_dir(config):
-    """예전 인스턴스의 config_dir (ini가 있는 폴더). cache_dir이 있으면 쓰지 않는다"""
+    """예전 인스턴스의 config_dir. cache_dir이 있으면 쓰지 않는다. 끝의 구분자는 떼어 낸다"""
     if _cache_dir(config):
         return ""
-    return str(config.get("config_dir") or "")
+    raw = str(config.get("config_dir") or "")
+    return os.path.normpath(raw) if raw else ""
+
+
+def _legacy_layout(config):
+    """예전 config_dir을 (데이터 폴더, ini 폴더)로 푼다. 없으면 None.
+
+    config_dir은 ini가 있는 폴더(<데이터 폴더>/Server)이거나 데이터 폴더 자체(…/Zomboid,
+    ini는 그 아래 Server/)였다. 이름이 Server가 아니고 바로 아래 ini가 없는데 Server/ 폴더가
+    있으면 데이터 폴더로 본다.
+    """
+    legacy = _legacy_config_dir(config)
+    if not legacy:
+        return None
+    if os.path.basename(legacy).lower() == "server":
+        return os.path.dirname(legacy), legacy
+    server_dir = os.path.join(legacy, "Server")
+    ini_name = f"{config.get('server_name', 'servertest')}.ini"
+    if not os.path.exists(os.path.join(legacy, ini_name)) and os.path.isdir(server_dir):
+        return legacy, server_dir
+    return legacy, legacy
 
 
 def _zomboid_home(config):
@@ -346,10 +366,9 @@ def _zomboid_home(config):
     cache_dir = _cache_dir(config)
     if cache_dir:
         return cache_dir
-    legacy = _legacy_config_dir(config)
-    if legacy:
-        # config_dir은 ini가 있는 폴더(보통 <데이터 폴더>/Server)였다
-        return os.path.dirname(legacy) if os.path.basename(os.path.normpath(legacy)).lower() == "server" else legacy
+    layout = _legacy_layout(config)
+    if layout:
+        return layout[0]
     if sys.platform == "win32":
         return os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid")
     return os.path.join(os.path.expanduser("~"), "Zomboid")
@@ -367,9 +386,9 @@ class IniManager:
         """Determine the path to {servername}.ini."""
         server_name = config.get("server_name", "servertest")
         # 예전 인스턴스: config_dir 바로 아래에 ini가 있다 (cache_dir이 있으면 그쪽이 우선)
-        legacy = _legacy_config_dir(config)
-        if legacy:
-            return os.path.join(legacy, f"{server_name}.ini")
+        layout = _legacy_layout(config)
+        if layout:
+            return os.path.join(layout[1], f"{server_name}.ini")
         zomboid_dir = os.path.join(_zomboid_home(config), "Server")
         return os.path.join(zomboid_dir, f"{server_name}.ini")
 

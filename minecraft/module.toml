@@ -80,7 +80,8 @@ group = "saba-chan"
 [[settings.fields]]
 name = "ram"
 type = "text"
-format = "memory_size"
+# 크기 단위(K·M·G)가 붙은 값, 또는 예전에 GB 숫자로 저장된 값(4, 0.5)
+pattern = '\d+[KMGkmg]|\d{1,3}(\.\d+)?'
 arg = ["-Xmx{value}", "-Xms{value}"]
 label = "Memory (RAM)"
 description = "Java heap size: a number with K, M or G (e.g. 4G, 1024M)"
@@ -469,7 +470,6 @@ group = "advanced"
 [[settings.fields]]
 name = "management_server_port"
 type = "number"
-format = "port"
 label = "Management Server Port"
 default = 0
 min = 0

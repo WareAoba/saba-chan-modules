@@ -178,6 +178,20 @@ def test_memory_size_values_pass_through_and_old_numbers_still_work():
             assert want in result["args"], (ram, result["args"])
 
 
+def test_saved_settings_still_pass_the_declared_value_rules():
+    """예전에 숫자(GB)로 저장된 ram과 꺼짐을 뜻하는 관리 포트 0이 저장 검사에서 막히지 않는다."""
+    import re
+    fields = {f["name"]: f for f in _module_toml()["settings"]["fields"]}
+    ram = fields["ram"]
+    assert "format" not in ram
+    for ok in ["4G", "1024M", "512k", "4", "0.5"]:
+        assert re.fullmatch(ram["pattern"], ok), ok
+    for bad in ["4096", "4GB", "-Xmx4G", ""]:
+        assert not re.fullmatch(ram["pattern"], bad), bad
+    port = fields["management_server_port"]
+    assert "format" not in port and port["min"] == 0 and port["default"] == 0
+
+
 def test_extra_args_go_before_the_jar_and_preview_writes_nothing():
     """사용자 추가 인자는 JVM 자리(-jar 앞)에, 미리보기는 server.properties를 만들지 않는다."""
     from minecraft.lifecycle import get_launch_command

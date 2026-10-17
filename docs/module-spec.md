@@ -48,6 +48,9 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 
 ### `[launch]` ○
 `log_files`: 서버가 콘솔 대신 파일에만 로그를 쓸 때, 그 파일들을 콘솔에 합친다. 와일드카드 `*` `?`는 마지막 칸에만.
+`console`: `"pipe"`(기본) 또는 `"pty"`. stdout이 파이프면 끝날 때까지 모아 두는 서버(블록 버퍼링)는 `"pty"`로 의사 콘솔(Windows ConPTY)에 띄워 줄마다 받는다. stdout과 stderr가 한 갈래로 합쳐지고 터미널 제어 문자는 지워진다. stdin 명령은 Enter로 보내진다.
+
+Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나거나 강제 종료되면 서버와 서버가 띄운 프로세스가 같이 끝난다. 런처 exe(곧바로 끝나고 진짜 서버를 남기는 것)를 띄우면 러너가 남은 프로세스를 따라가지만 콘솔 출력은 받지 못하므로, `get_launch_command`는 진짜 서버 exe를 돌려준다.
 
 ### `[detection]` ○
 | 키 | 뜻 |

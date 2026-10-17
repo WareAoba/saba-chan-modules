@@ -31,9 +31,10 @@ process_name = "PalServer-Win64-Shipping-Cmd"
 default_port = 8211
 stop_command = "Shutdown"  # stdin으로 전송하는 graceful 종료 명령어
 
-# 서버가 콘솔 대신 파일에 쓰는 로그. saba-runner가 따라 읽어 콘솔에 합친다 (작업 디렉터리 기준)
+# Shipping-Cmd는 stdout이 파이프면 끝날 때까지 모아 둔다(2026-10-16 실측). 의사 콘솔로 띄워 줄마다 받는다.
+# Pal/Saved/Logs에는 .log가 생기지 않아 log_files는 쓰지 않는다.
 [launch]
-log_files = ["Pal/Saved/Logs/*.log"]
+console = "pty"
 
 [install]
 method = "steamcmd"

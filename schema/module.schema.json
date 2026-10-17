@@ -245,6 +245,14 @@
       },
       "type": "object"
     },
+    "ConsoleMode": {
+      "description": "saba-runner가 서버 콘솔을 잇는 방식 (`[launch] console`)",
+      "enum": [
+        "pipe",
+        "pty"
+      ],
+      "type": "string"
+    },
     "ContainerSectionToml": {
       "additionalProperties": false,
       "description": "module.toml [docker] 섹션 — 컨테이너 격리 익스텐션 설정",
@@ -491,6 +499,15 @@
     "LaunchSection": {
       "additionalProperties": false,
       "properties": {
+        "console": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ConsoleMode"
+            }
+          ],
+          "default": "pipe",
+          "description": "\"pipe\"(기본) | \"pty\". 출력을 파이프로 주면 끝날 때까지 모아 두는 서버(stdout 블록 버퍼링)는 \"pty\"로 의사 콘솔(Windows ConPTY)에 띄워 줄마다 받는다. stdout과 stderr가 한 갈래로 합쳐진다."
+        },
         "log_files": {
           "default": [],
           "description": "서버가 콘솔 대신 파일에 쓰는 로그 (작업 디렉터리 기준, 마지막 칸만 `*` `?`)",

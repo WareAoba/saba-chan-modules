@@ -197,6 +197,14 @@
     "ConfigSection": {
       "additionalProperties": false,
       "properties": {
+        "announce_command": {
+          "default": null,
+          "description": "게임 안 공지에 쓰는 `[commands.fields]` 이름 (`message` 입력 하나)",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "default_port": {
           "default": null,
           "format": "uint16",
@@ -443,6 +451,33 @@
       },
       "type": "object"
     },
+    "ModuleBackup": {
+      "additionalProperties": false,
+      "description": "`[backup]` — 무엇을 백업할지",
+      "properties": {
+        "hook": {
+          "default": false,
+          "description": "true면 lifecycle `backup_paths(config)`가 `{\"success\": true, \"paths\": [...]}`로 경로를 준다 (세이브 위치를 모듈 코드가 계산하는 게임용). `paths`에 더해진다",
+          "type": "boolean"
+        },
+        "paths": {
+          "default": [],
+          "description": "백업할 폴더·파일 (서버 작업 폴더 기준, 절대 경로 가능). `{설정 이름}`은 인스턴스 설정 값으로 바뀌고 값이 비면 그 경로는 빠진다. 없는 경로도 빠진다. 예: [\"{level_name}\", \"{level_name}_nether\"]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "save_command": {
+          "description": "서버가 켜져 있을 때 묶기 전에 실행할 `[commands.fields]` 이름 (예: \"save-all\")",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "ModuleSection": {
       "additionalProperties": false,
       "properties": {
@@ -680,6 +715,18 @@
         }
       ],
       "description": "[aliases] 모듈 및 명령어 별명 (Discord/CLI 다국어 지원)"
+    },
+    "backup": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ModuleBackup"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "[backup] 월드·세이브 백업 (A2)"
     },
     "commands": {
       "anyOf": [

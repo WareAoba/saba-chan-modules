@@ -23,6 +23,12 @@ executable_path = ""
 server_executable = "server.jar"
 process_name = "java.exe"
 default_port = 25565
+announce_command = "say"
+
+# 월드 백업 (A2). Bukkit 계열은 네더·엔드를 따로 둔다 (없으면 빠진다)
+[backup]
+paths = ["{level_name}", "{level_name}_nether", "{level_name}_the_end"]
+save_command = "save-all"
 
 [install]
 method = "download"

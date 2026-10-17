@@ -25,6 +25,12 @@ server_executable = "StartServer64.bat"
 process_name = "java.exe"
 default_port = 16261
 stop_command = "quit"
+announce_command = "servermsg"
+
+# 세이브 위치는 cache_dir·예전 배치에 따라 달라 lifecycle backup_paths가 계산한다
+[backup]
+hook = true
+save_command = "save"
 
 [install]
 method = "steamcmd"

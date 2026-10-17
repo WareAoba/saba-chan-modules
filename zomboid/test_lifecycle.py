@@ -172,6 +172,17 @@ def test_get_launch_command_missing_executable():
     assert result.get("success") is False
 
 
+def test_backup_paths_follow_cache_dir(tmp_path):
+    from zomboid.lifecycle import backup_paths
+    result = backup_paths({"cache_dir": str(tmp_path), "server_name": "myserver"})
+    assert result["success"] is True
+    assert result["paths"] == [
+        os.path.join(str(tmp_path), "Saves", "Multiplayer", "myserver"),
+        os.path.join(str(tmp_path), "db", "myserver.db"),
+        os.path.join(str(tmp_path), "Server"),
+    ]
+
+
 # ─── 6. 인코딩 계약 ────────────────────────────────────────
 
 def test_module_toml_bom_roundtrip(tmp_path):

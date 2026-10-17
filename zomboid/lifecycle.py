@@ -1661,6 +1661,20 @@ def reset_server(config):
     }
 
 
+def backup_paths(config):
+    """백업할 세이브 위치 (데몬 `[backup] hook`): 이 서버 이름의 월드, 플레이어 DB, 서버 설정 폴더"""
+    server_name = config.get("server_name") or "servertest"
+    home = _zomboid_home(config)
+    layout = _legacy_layout(config)
+    server_dir = layout[1] if layout else os.path.join(home, "Server")
+    paths = [
+        os.path.join(home, "Saves", "Multiplayer", server_name),
+        os.path.join(home, "db", f"{server_name}.db"),
+        server_dir,
+    ]
+    return {"success": True, "paths": paths}
+
+
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                  Function Registry                        ║
 # ╚═══════════════════════════════════════════════════════════╝
@@ -1678,6 +1692,7 @@ FUNCTIONS = {
     "diagnose_log":       diagnose_log,
     "install_server":     install_server,
     "reset_server":       reset_server,
+    "backup_paths":       backup_paths,
 }
 
 

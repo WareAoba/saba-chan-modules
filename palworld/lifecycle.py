@@ -903,9 +903,9 @@ def validate(config):
                 "solution": i18n.t("validate.cannot_create_dir_hint"),
             })
 
-    # Port availability
+    # Port availability — 이 서버가 이미 켜져 있으면 그 포트는 자기 것이다
     port = config.get("port", 8211)
-    if port:
+    if port and not config.get("running"):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(1)

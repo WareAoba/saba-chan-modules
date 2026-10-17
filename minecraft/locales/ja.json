@@ -205,8 +205,6 @@
     "eula_accepted": "Minecraft EULA が正常に同意されました",
     "server_reset_complete": "サーバーリセット完了",
     "server_reset_deleted": "{{count}}個のアイテムを削除",
-    "rcon_disabled_managed": "RCON無効化 — マネージドモードではstdinでサーバーを制御します",
-    "rcon_enabled_native": "RCON有効化 — 非マネージドモードではRCONが唯一の制御手段です",
     "rcon_password_generated": "RCONパスワードを自動生成しました（パスワードが設定されていませんでした）"
   },
   "rcon": {

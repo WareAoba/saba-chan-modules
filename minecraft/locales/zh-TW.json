@@ -205,8 +205,6 @@
     "eula_accepted": "Minecraft EULA已成功接受",
     "server_reset_complete": "伺服器重設完成",
     "server_reset_deleted": "已刪除 {{count}} 個項目",
-    "rcon_disabled_managed": "RCON 已停用 — 管理模式使用 stdin 控制伺服器",
-    "rcon_enabled_native": "RCON 已啟用 — 非管理模式下 RCON 是唯一的控制方式",
     "rcon_password_generated": "RCON 密碼已自動產生（未設定密碼）"
   },
   "rcon": {

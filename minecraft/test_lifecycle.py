@@ -227,22 +227,25 @@ def test_build_launch_info_eula_not_accepted_by_default():
 
 
 def test_build_launch_info_rcon_policy_managed():
-    """get_launch_command enforces RCON off in managed mode."""
+    """Managed mode keeps RCON on with the daemon's password and port (re-attached servers have no stdin)."""
     from minecraft.lifecycle import get_launch_command, ServerPropertiesManager
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
-        # Pre-create server.properties with RCON enabled
         mgr = ServerPropertiesManager(tmpdir)
-        mgr.write({"enable-rcon": "true", "rcon.password": "test123"})
+        mgr.write({"enable-rcon": "false", "rcon.password": "old"})
 
         get_launch_command({
             "server_jar": jar,
             "working_dir": tmpdir,
             "ram": 2,
             "managed": True,
+            "rcon_password": "daemon-pw",
+            "rcon_port": 25580,
         })
         props = mgr.read()
-        assert props.get("enable-rcon") == "false", "Managed mode should disable RCON"
+        assert props.get("enable-rcon") == "true"
+        assert props.get("rcon.password") == "daemon-pw"
+        assert props.get("rcon.port") == "25580"
 
 
 def test_build_launch_info_rcon_policy_non_managed():

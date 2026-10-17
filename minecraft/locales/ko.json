@@ -209,8 +209,6 @@
     "eula_accepted": "마인크래프트 EULA에 성공적으로 동의했습니다",
     "server_reset_complete": "서버 초기화 완료",
     "server_reset_deleted": "{{count}}개 항목 삭제됨",
-    "rcon_disabled_managed": "RCON 비활성화 — managed 모드에서는 stdin으로 서버를 제어합니다",
-    "rcon_enabled_native": "RCON 활성화 — 비-managed 모드에서는 RCON이 유일한 제어 수단입니다",
     "rcon_password_generated": "RCON 비밀번호가 자동 생성되었습니다 (비밀번호가 설정되지 않았습니다)"
   },
   "rcon": {

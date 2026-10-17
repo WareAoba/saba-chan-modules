@@ -54,7 +54,6 @@ _PROPERTY_KEY_MAP = {
     "enable_code_of_conduct": "enable-code-of-conduct",
     "enable_jmx_monitoring": "enable-jmx-monitoring",
     "enable_query": "enable-query",
-    "enable_rcon": "enable-rcon",
     "enable_status": "enable-status",
     "enforce_secure_profile": "enforce-secure-profile",
     "enforce_whitelist": "enforce-whitelist",
@@ -975,9 +974,9 @@ def validate(config):
                 "solution": i18n.t("errors.solutions.eula_not_accepted"),
             })
 
-    # Port availability
+    # Port availability — 이 서버가 이미 켜져 있으면 그 포트는 자기 것이다
     port = config.get("port", 25565)
-    if port:
+    if port and not config.get("running"):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(1)
@@ -998,41 +997,30 @@ def validate(config):
     }
 
 
-def _enforce_rcon_policy(working_dir, config=None, managed=True):
+def _enforce_rcon_policy(working_dir, config=None):
     """
-    Enforce RCON policy in server.properties before server launch.
+    Keep RCON on with the daemon's port and password before every launch.
 
-    - Managed mode (stdin control):  RCON is a security risk → force disable
-    - Non-managed mode (RCON only):  RCON is the only control method → force enable + ensure password
+    RCON is the command path the daemon can always use: a server it re-attached to after a
+    daemon restart has no stdin pipe, so turning RCON off would leave no way to send commands.
+    The password is the random one the daemon generated (ensure_passwords).
 
-    Returns dict with details of what was changed, or None if no changes needed.
+    Returns dict with details of what was changed, or None if server.properties does not exist yet.
     """
     mgr = ServerPropertiesManager(working_dir)
     if not mgr.exists():
-        return None  # server.properties will be generated on first run
+        return None  # server.properties will be generated on first run (defaults enable RCON)
 
     props = mgr.read()
-    changes = {}
-
-    if managed:
-        # Managed mode: RCON disabled (stdin is used for control)
-        if props.get("enable-rcon", "false").lower() == "true":
-            changes["enable-rcon"] = "false"
-            print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
-    else:
-        # Non-managed mode: RCON must be enabled
-        if props.get("enable-rcon", "false").lower() != "true":
-            changes["enable-rcon"] = "true"
-            print(i18n.t("messages.rcon_enabled_native"), file=sys.stderr)
-        # Ensure RCON password exists — daemon이 ensure_passwords()로 생성한 값 사용
-        current_pw = props.get("rcon.password", "")
-        if not current_pw:
-            daemon_pw = (config or {}).get("rcon_password", "")
-            if daemon_pw:
-                changes["rcon.password"] = daemon_pw
-                print(f"[Minecraft] Synced rcon.password from daemon config", file=sys.stderr)
-            else:
-                print(f"[Minecraft] WARNING: No RCON password from daemon or server.properties", file=sys.stderr)
+    config = config or {}
+    wanted = {"enable-rcon": "true"}
+    if config.get("rcon_password"):
+        wanted["rcon.password"] = str(config["rcon_password"])
+    if config.get("rcon_port"):
+        wanted["rcon.port"] = str(config["rcon_port"])
+    changes = {k: v for k, v in wanted.items() if props.get(k) != v}
+    if not props.get("rcon.password") and "rcon.password" not in changes:
+        print("[Minecraft] WARNING: No RCON password from daemon or server.properties", file=sys.stderr)
 
     if changes:
         mgr.update(changes)
@@ -1109,9 +1097,7 @@ def get_launch_command(config):
 
     abs_working_dir = os.path.abspath(working_dir)
 
-    # Managed mode → RCON must be OFF (stdin is used for control)
-    is_managed = config.get("managed", True)  # get_launch_command default = managed
-    _enforce_rcon_policy(abs_working_dir, config=config, managed=is_managed)
+    _enforce_rcon_policy(abs_working_dir, config=config)
 
     return {
         "success": True,

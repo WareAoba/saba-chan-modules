@@ -205,8 +205,6 @@
     "eula_accepted": "EULA Minecraft успешно принято",
     "server_reset_complete": "Сброс сервера завершён",
     "server_reset_deleted": "{{count}} элементов удалено",
-    "rcon_disabled_managed": "RCON отключён — управляемый режим использует stdin для контроля сервера",
-    "rcon_enabled_native": "RCON включён — необходим для управления сервером в неуправляемом режиме",
     "rcon_password_generated": "Пароль RCON сгенерирован автоматически (пароль не был задан)"
   },
   "rcon": {

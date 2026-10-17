@@ -205,8 +205,6 @@
     "eula_accepted": "EULA de Minecraft aceptada exitosamente",
     "server_reset_complete": "Reinicio del servidor completado",
     "server_reset_deleted": "{{count}} elementos eliminados",
-    "rcon_disabled_managed": "RCON desactivado — el modo administrado usa stdin para controlar el servidor",
-    "rcon_enabled_native": "RCON activado — necesario para controlar el servidor en modo no administrado",
     "rcon_password_generated": "Contraseña RCON generada automáticamente (no se había establecido contraseña)"
   },
   "rcon": {

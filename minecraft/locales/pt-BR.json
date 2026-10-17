@@ -205,8 +205,6 @@
     "eula_accepted": "EULA do Minecraft aceito com sucesso",
     "server_reset_complete": "Redefinição do servidor concluída",
     "server_reset_deleted": "{{count}} itens excluídos",
-    "rcon_disabled_managed": "RCON desativado — o modo gerenciado usa stdin para controlar o servidor",
-    "rcon_enabled_native": "RCON ativado — necessário para controlar o servidor no modo não gerenciado",
     "rcon_password_generated": "Senha RCON gerada automaticamente (nenhuma senha estava definida)"
   },
   "rcon": {

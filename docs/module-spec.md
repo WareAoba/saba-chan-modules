@@ -63,7 +63,9 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 종료 판정 순서: 사바쨩이 보낸 정지 → 크래시 흔적(Windows 예외 종료 코드, unix 크래시 시그널, 새 `crash_artifacts` 파일) → `graceful_exit_patterns` → 종료 코드 0 → 원인 모름. 크래시만 자동으로 다시 띄운다(10분에 3번까지). 흔적을 선언하지 않으면 크래시를 알아보지 못하니, 게임이 크래시 때 남기는 파일을 꼭 적는다.
 
 ### `[install]` ○
-`method` (`"manual"` 기본 / `"download"` / `"steamcmd"`), `app_id`, `anonymous`(기본 true), `install_subdir`, `platform`, `download_url`, `beta`(지정하면 항상 이 브랜치로 설치), `requires_extensions`(필요한 익스텐션 id 목록).
+`method` (`"manual"` 기본 / `"download"`는 내장, 그 밖의 값은 그 방식을 처리하는 익스텐션 id, 예: `"steamcmd"`), `app_id`, `anonymous`(기본 true), `install_subdir`, `platform`, `download_url`, `beta`(지정하면 항상 이 브랜치로 설치), `requires_extensions`(필요한 익스텐션 id 목록).
+- 익스텐션 방식이면 데몬이 인스턴스 `extension_data`에 `install_method_<방식>`=true와 `<방식>_<필드>`(anonymous, app_id, beta, platform, download_url)를 쓴다. 서버 업데이트(`apply-update`)는 이런 인스턴스만 받는다.
+- 모듈 Python은 `import extensions.<이름>`으로 익스텐션을 쓴다. 활성화된 익스텐션만 import된다: 데몬이 넣는 import 가드가 나머지를 `ModuleNotFoundError`로 막는다(`-`와 `_`는 같다). 익스텐션을 쓰는 코드는 함수 안에서 import하고 `ImportError`를 "익스텐션 없음" 응답으로 바꾼다(palworld의 `ExtensionMissing` 참고).
 
 ### `[[settings.fields]]` ○
 인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`).

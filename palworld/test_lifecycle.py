@@ -344,3 +344,16 @@ def test_import_settings_keeps_string_fields(tmp_path):
     assert settings["max_players"] == 32
     assert settings["exp_rate"] == 1.5
     assert settings["is_pvp"] is True
+
+
+def test_deny_technology_list_is_written_as_a_quoted_list(tmp_path):
+    """Palworld wants DenyTechnologyList=("PALBOX","RepairBench"), not one string"""
+    from palworld import lifecycle
+    written = {}
+    with mock.patch.object(lifecycle, "_parse_option_settings", return_value={}), \
+         mock.patch.object(lifecycle, "_write_option_settings", side_effect=lambda path, props: written.update(props) or True):
+        lifecycle.configure({"working_dir": str(tmp_path), "settings": {"deny_technology_list": "PALBOX, RepairBench"}})
+    assert written["DenyTechnologyList"] == '("PALBOX","RepairBench")'
+    assert lifecycle._to_ini_list("", '"') == ""
+    assert lifecycle._to_ini_list('("A")', '"') == '("A")'
+    assert lifecycle._from_ini_list('("PALBOX","RepairBench")') == "PALBOX,RepairBench"

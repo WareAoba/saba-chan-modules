@@ -699,7 +699,7 @@ group = "advanced"
 name = "deny_technology_list"
 type = "text"
 label = "Denied Technology List"
-description = "Comma-separated list of technology IDs disabled on this server"
+description = "Comma-separated technology IDs disabled on this server, e.g. PALBOX,RepairBench"
 default = ""
 group = "advanced"
 

@@ -930,6 +930,30 @@ def validate(config):
     }
 
 
+# 목록 값 INI 키 → 항목 따옴표. 화면에서는 쉼표로 적고("PALBOX,RepairBench"),
+# INI에는 괄호 목록으로 쓴다: DenyTechnologyList=("PALBOX","RepairBench"). 새 목록 키는 여기 한 줄만 추가
+_LIST_KEYS = {
+    "DenyTechnologyList": '"',
+}
+
+
+def _to_ini_list(value, quote):
+    """"a, b" → ("a","b"). 이미 괄호 목록이면 그대로, 빈 값은 빈 값"""
+    text = str(value).strip()
+    if not text or text.startswith("("):
+        return text
+    items = [item.strip().strip('"') for item in text.split(",")]
+    return "(" + ",".join(f"{quote}{item}{quote}" for item in items if item) + ")"
+
+
+def _from_ini_list(value):
+    """("a","b") → a,b"""
+    text = _unquote(value).strip()
+    if text.startswith("(") and text.endswith(")"):
+        text = text[1:-1]
+    return ",".join(item.strip().strip('"') for item in text.split(",") if item.strip().strip('"'))
+
+
 def configure(config):
     """Apply settings to PalWorldSettings.ini."""
     settings = config.get("settings", {})
@@ -951,6 +975,8 @@ def configure(config):
             continue
         if isinstance(value, bool):
             value = "True" if value else "False"
+        elif ini_key in _LIST_KEYS:
+            value = _to_ini_list(value, _LIST_KEYS[ini_key])
         props[ini_key] = str(value)
         updated_keys.append(ini_key)
 
@@ -995,6 +1021,9 @@ def import_settings(config):
         if saba_key is None:
             continue
 
+        if ini_key in _LIST_KEYS:
+            settings[saba_key] = _from_ini_list(raw_value)
+            continue
         settings[saba_key] = coerce_setting(_unquote(raw_value), types.get(saba_key))
 
     return {"success": True, "settings": settings}

@@ -88,7 +88,6 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 - `[credential_map]`: 데몬 표준 키 → 게임 설정 키. 예: `rest_password = "AdminPassword"`.
 - `[[syntax_highlight.rules]]`: `name`, `pattern`, `color`, `bold`, `italic`. 콘솔 강조.
 - `[extensions.<익스텐션 id>]`: 익스텐션이 읽는 모듈별 설정. 데몬은 내용을 보지 않고 그대로 넘긴다.
-- `[docker]`: 도커 익스텐션 설정 (도커 익스텐션 유지 여부가 정해질 때까지 그대로 둔다).
 - `[update] github_repo`: 예전 GitHub 업데이트 경로용. 데몬은 읽지 않고, 그 경로를 지울 때(L3) 같이 없앤다.
 
 ## 3. 진입 파일 계약

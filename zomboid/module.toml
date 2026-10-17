@@ -33,19 +33,6 @@ install_subdir = "server"
 platform = "windows"
 requires_extensions = ["steamcmd"]
 
-[docker]
-image = "steamcmd/steamcmd:latest"
-working_dir = "/server"
-restart = "unless-stopped"
-entrypoint = "/bin/bash -c"
-command = "exec /server/start-server.sh -servername {server_name}"
-user = "1000:1000"
-ports = ["{port}:{port}/udp", "{direct_port}:{direct_port}/udp", "{rcon_port}:{rcon_port}/tcp"]
-volumes = ["./server:/server", "./data:/home/pzuser/Zomboid"]
-
-[docker.environment]
-PORT = "{port}"
-
 [detection]
 process_patterns = ["ProjectZomboid64", "zombie.network.GameServer", "start-server"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Zomboid 서버를 식별하는 패턴

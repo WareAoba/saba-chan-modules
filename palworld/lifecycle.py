@@ -749,6 +749,18 @@ _PALWORLD_KEY_MAP = {
     "allow_enhance_stat_weight": "bAllowEnhanceStat_Weight",
     "allow_enhance_stat_work_speed": "bAllowEnhanceStat_WorkSpeed",
     "item_container_force_mark_dirty_interval": "ItemContainerForceMarkDirtyInterval",
+    # 2026-07 업데이트로 추가된 옵션
+    "physics_active_drop_item_max_num": "PhysicsActiveDropItemMaxNum",
+    "player_data_pal_storage_update_check_tick_interval": "PlayerDataPalStorageUpdateCheckTickInterval",
+    "monster_farm_action_speed_rate": "MonsterFarmActionSpeedRate",
+    "auto_transfer_master_check_interval_seconds": "AutoTransferMasterCheckIntervalSeconds",
+    "auto_transfer_master_threshold_days": "AutoTransferMasterThresholdDays",
+    "max_guilds_per_frame": "MaxGuildsPerFrame",
+    "enable_voice_chat": "bEnableVoiceChat",
+    "voice_chat_max_volume_distance": "VoiceChatMaxVolumeDistance",
+    "voice_chat_zero_volume_distance": "VoiceChatZeroVolumeDistance",
+    "enable_building_player_uid_display": "bEnableBuildingPlayerUIdDisplay",
+    "building_name_display_cache_ttl_seconds": "BuildingNameDisplayCacheTTLSeconds",
 }
 
 def _get_settings_ini_path(config):

@@ -58,9 +58,7 @@
     "announce": {
       "label": "お知らせ送信",
       "description": "サーバーにメッセージをブロードキャスト",
-      "inputs": {
-        "message": { "label": "お知らせメッセージ", "placeholder": "お知らせ内容を入力" }
-      }
+      "inputs": { "message": { "label": "お知らせメッセージ", "placeholder": "お知らせ内容を入力" } }
     },
     "info": { "label": "サーバー情報", "description": "サーバー情報を表示" },
     "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧" },
@@ -68,34 +66,25 @@
     "shutdown": {
       "label": "サーバーシャットダウン",
       "description": "サーバーをシャットダウン（遅延設定可能）",
-      "inputs": {
-        "waittime": { "label": "シャットダウン遅延（秒）" },
-        "message": { "label": "シャットダウンメッセージ", "placeholder": "サーバーシャットダウンのお知らせ" }
-      }
+      "inputs": { "waittime": { "label": "シャットダウン遅延（秒）" }, "message": { "label": "シャットダウンメッセージ", "placeholder": "サーバーシャットダウンのお知らせ" } }
     },
     "kick": {
       "label": "プレイヤーキック",
       "description": "プレイヤーをサーバーから退出させる",
-      "inputs": {
-        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" },
-        "message": { "label": "キックメッセージ", "placeholder": "任意：キックメッセージ" }
-      }
+      "inputs": { "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" }, "message": { "label": "キックメッセージ", "placeholder": "任意：キックメッセージ" } }
     },
     "ban": {
       "label": "プレイヤーBAN",
       "description": "プレイヤーを永久BAN",
-      "inputs": {
-        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" },
-        "message": { "label": "BANメッセージ", "placeholder": "任意：BANメッセージ" }
-      }
+      "inputs": { "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" }, "message": { "label": "BANメッセージ", "placeholder": "任意：BANメッセージ" } }
     },
     "unban": {
       "label": "プレイヤーBAN解除",
       "description": "BANされたプレイヤーを解除",
-      "inputs": {
-        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" }
-      }
-    }
+      "inputs": { "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" } }
+    },
+    "metrics": { "label": "サーバー指標", "description": "サーバーFPS、プレイヤー数、稼働時間を表示" },
+    "settings": { "label": "設定を表示", "description": "現在のサーバー設定を表示" }
   },
   "errors": {
     "failed_to_start": "起動に失敗しました: {{error}}",

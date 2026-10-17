@@ -58,9 +58,7 @@
     "announce": {
       "label": "发送公告",
       "description": "向服务器广播消息",
-      "inputs": {
-        "message": { "label": "公告内容", "placeholder": "输入公告内容" }
-      }
+      "inputs": { "message": { "label": "公告内容", "placeholder": "输入公告内容" } }
     },
     "info": { "label": "服务器信息", "description": "查看服务器信息" },
     "players": { "label": "玩家列表", "description": "列出当前连接的玩家" },
@@ -68,34 +66,25 @@
     "shutdown": {
       "label": "关闭服务器",
       "description": "关闭服务器（可选延迟）",
-      "inputs": {
-        "waittime": { "label": "关闭延迟（秒）" },
-        "message": { "label": "关闭提示消息", "placeholder": "服务器关闭公告" }
-      }
+      "inputs": { "waittime": { "label": "关闭延迟（秒）" }, "message": { "label": "关闭提示消息", "placeholder": "服务器关闭公告" } }
     },
     "kick": {
       "label": "踢出玩家",
       "description": "将玩家踢出服务器",
-      "inputs": {
-        "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" },
-        "message": { "label": "踢出消息", "placeholder": "可选：踢出消息" }
-      }
+      "inputs": { "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" }, "message": { "label": "踢出消息", "placeholder": "可选：踢出消息" } }
     },
     "ban": {
       "label": "封禁玩家",
       "description": "永久封禁玩家",
-      "inputs": {
-        "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" },
-        "message": { "label": "封禁消息", "placeholder": "可选：封禁消息" }
-      }
+      "inputs": { "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" }, "message": { "label": "封禁消息", "placeholder": "可选：封禁消息" } }
     },
     "unban": {
       "label": "解除封禁玩家",
       "description": "解除已封禁玩家",
-      "inputs": {
-        "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" }
-      }
-    }
+      "inputs": { "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" } }
+    },
+    "metrics": { "label": "服务器指标", "description": "查看服务器FPS、玩家数量和运行时间" },
+    "settings": { "label": "查看设置", "description": "查看当前服务器设置" }
   },
   "errors": {
     "failed_to_start": "启动失败：{{error}}",

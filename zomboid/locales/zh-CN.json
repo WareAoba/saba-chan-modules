@@ -48,35 +48,42 @@
     "max_accounts_per_user": { "label": "每用户最大账号数", "description": "每个 Steam 用户的账号限制" }
   },
   "commands": {
-    "servermsg": { "label": "发送消息", "description": "发送全体消息", "inputs": { "message": { "label": "消息", "placeholder": "输入消息" } } },
+    "servermsg": {
+      "label": "发送消息",
+      "description": "发送全体消息",
+      "inputs": { "message": { "label": "消息", "placeholder": "输入消息" } }
+    },
     "players": { "label": "玩家列表", "description": "显示在线玩家" },
     "save": { "label": "保存世界", "description": "保存当前世界" },
-    "kick": { "label": "踢出玩家", "description": "将玩家踢出服务器", "inputs": { "player": { "label": "玩家" }, "reason": { "label": "原因" } } },
-    "banuser": { "label": "封禁玩家", "description": "封禁玩家", "inputs": { "player": { "label": "玩家" }, "reason": { "label": "原因" } } },
-    "unbanuser": { "label": "解封", "description": "解除玩家封禁", "inputs": { "player": { "label": "玩家" } } },
+    "kick": {
+      "label": "踢出玩家",
+      "description": "将玩家踢出服务器",
+      "inputs": { "player": { "label": "玩家", "placeholder": "Player username" }, "reason": { "label": "原因", "placeholder": "Optional reason" } }
+    },
+    "banuser": {
+      "label": "封禁玩家",
+      "description": "封禁玩家",
+      "inputs": { "player": { "label": "玩家", "placeholder": "Player username" }, "reason": { "label": "原因", "placeholder": "Optional reason" } }
+    },
+    "unbanuser": {
+      "label": "解封",
+      "description": "解除玩家封禁",
+      "inputs": { "player": { "label": "玩家", "placeholder": "Player username" } }
+    },
     "adduser": {
       "label": "添加用户",
       "description": "向服务器添加新用户",
-      "inputs": {
-        "username": { "label": "用户名", "placeholder": "账号用户名" },
-        "password": { "label": "密码", "placeholder": "账号密码" }
-      }
+      "inputs": { "username": { "label": "用户名", "placeholder": "账号用户名" }, "password": { "label": "密码", "placeholder": "账号密码" } }
     },
     "setaccesslevel": {
       "label": "设置权限等级",
       "description": "设置玩家的权限等级",
-      "inputs": {
-        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
-        "level": { "label": "权限等级" }
-      }
+      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "level": { "label": "权限等级" } }
     },
     "teleport": {
       "label": "传送",
       "description": "传送至玩家身边",
-      "inputs": {
-        "player": { "label": "玩家", "placeholder": "要传送的玩家" },
-        "target": { "label": "目标", "placeholder": "目的地玩家" }
-      }
+      "inputs": { "player": { "label": "玩家", "placeholder": "要传送的玩家" }, "target": { "label": "目标", "placeholder": "目的地玩家" } }
     },
     "teleportto": {
       "label": "坐标传送",
@@ -86,26 +93,17 @@
     "createhorde": {
       "label": "生成尸潮",
       "description": "在玩家附近生成僵尸群",
-      "inputs": {
-        "count": { "label": "僵尸数量" },
-        "player": { "label": "玩家（可选）", "placeholder": "目标玩家" }
-      }
+      "inputs": { "count": { "label": "僵尸数量" }, "player": { "label": "玩家（可选）", "placeholder": "目标玩家" } }
     },
     "godmod": {
       "label": "上帝模式",
       "description": "使玩家无敌",
-      "inputs": {
-        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
-        "value": { "label": "启用" }
-      }
+      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "value": { "label": "启用" } }
     },
     "invisible": {
       "label": "隐身",
       "description": "使玩家对僵尸不可见",
-      "inputs": {
-        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
-        "value": { "label": "启用" }
-      }
+      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "value": { "label": "启用" } }
     },
     "startrain": { "label": "开始下雨", "description": "在服务器中开始下雨" },
     "stoprain": { "label": "停止下雨", "description": "停止服务器中的雨" },
@@ -114,30 +112,19 @@
     "additem": {
       "label": "给予物品",
       "description": "给予玩家物品",
-      "inputs": {
-        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
-        "item": { "label": "物品 ID", "placeholder": "例如 Base.Axe" },
-        "count": { "label": "数量" }
-      }
+      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "item": { "label": "物品 ID", "placeholder": "例如 Base.Axe" }, "count": { "label": "数量" } }
     },
     "addxp": {
       "label": "给予经验",
       "description": "给予玩家经验值",
-      "inputs": {
-        "player": { "label": "玩家名", "placeholder": "玩家用户名" },
-        "perk": { "label": "技能名称", "placeholder": "例如 Woodwork" },
-        "amount": { "label": "经验值" }
-      }
+      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "perk": { "label": "技能名称", "placeholder": "例如 Woodwork" }, "amount": { "label": "经验值" } }
     },
     "showoptions": { "label": "查看服务器选项", "description": "显示当前服务器设置" },
     "reloadoptions": { "label": "重新加载选项", "description": "从 INI 文件重新加载服务器选项" },
     "changeoption": {
       "label": "更改选项",
       "description": "实时更改服务器选项",
-      "inputs": {
-        "option": { "label": "选项名称", "placeholder": "例如 MaxPlayers" },
-        "value": { "label": "新值", "placeholder": "新值" }
-      }
+      "inputs": { "option": { "label": "选项名称", "placeholder": "例如 MaxPlayers" }, "value": { "label": "新值", "placeholder": "新值" } }
     },
     "quit": { "label": "关闭服务器", "description": "保存并安全关闭" }
   },
@@ -194,7 +181,10 @@
     "no_mappable_settings": "没有可映射到服务器配置键的设置",
     "install_complete": "Project Zomboid 服务器安装成功",
     "server_reset_complete": "服务器世界数据已重置",
-    "rcon_password_generated": "已自动生成 RCON 密码（之前未设置密码）"
+    "rcon_password_generated": "已自动生成 RCON 密码（之前未设置密码）",
+    "server_starting": "Server starting with PID {{pid}}",
+    "starting_server": "Starting server: {{command}}",
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
   },
   "rcon": {
     "connecting": "正在连接到 {{host}}:{{port}}...",

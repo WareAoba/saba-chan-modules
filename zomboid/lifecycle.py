@@ -324,19 +324,32 @@ DEFAULT_INI_PROPERTIES = {
 #                    INI File Manager
 # ═══════════════════════════════════════════════════════════
 
+def _cache_dir(config):
+    """인스턴스 데이터 폴더 설정 (자리표시자가 남아 있으면 없는 것으로 본다)"""
+    cache_dir = str(config.get("cache_dir") or "")
+    return cache_dir if cache_dir and "{" not in cache_dir else ""
+
+
+def _legacy_config_dir(config):
+    """예전 인스턴스의 config_dir (ini가 있는 폴더). cache_dir이 있으면 쓰지 않는다"""
+    if _cache_dir(config):
+        return ""
+    return str(config.get("config_dir") or "")
+
+
 def _zomboid_home(config):
     """PZ 데이터 폴더 (-cachedir): ini, 세이브, 콘솔 로그가 여기 있다.
 
     `cache_dir` 설정이 있으면 그 폴더(새 인스턴스는 인스턴스마다 따로 받는다),
     없으면 PZ 기본값인 ~/Zomboid (이전에 만든 인스턴스와 가져온 서버).
     """
-    cache_dir = str(config.get("cache_dir") or "")
-    if cache_dir and "{" not in cache_dir:
+    cache_dir = _cache_dir(config)
+    if cache_dir:
         return cache_dir
-    # 예전 인스턴스: config_dir이 -cachedir로 쓰였다
-    legacy = str(config.get("config_dir") or "")
+    legacy = _legacy_config_dir(config)
     if legacy:
-        return legacy
+        # config_dir은 ini가 있는 폴더(보통 <데이터 폴더>/Server)였다
+        return os.path.dirname(legacy) if os.path.basename(os.path.normpath(legacy)).lower() == "server" else legacy
     if sys.platform == "win32":
         return os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid")
     return os.path.join(os.path.expanduser("~"), "Zomboid")
@@ -353,9 +366,9 @@ class IniManager:
     def get_ini_path(config):
         """Determine the path to {servername}.ini."""
         server_name = config.get("server_name", "servertest")
-        # 예전 인스턴스: config_dir 바로 아래에 ini를 둔 경우
-        legacy = str(config.get("config_dir") or "")
-        if legacy and os.path.isfile(os.path.join(legacy, f"{server_name}.ini")):
+        # 예전 인스턴스: config_dir 바로 아래에 ini가 있다 (cache_dir이 있으면 그쪽이 우선)
+        legacy = _legacy_config_dir(config)
+        if legacy:
             return os.path.join(legacy, f"{server_name}.ini")
         zomboid_dir = os.path.join(_zomboid_home(config), "Server")
         return os.path.join(zomboid_dir, f"{server_name}.ini")
@@ -1052,7 +1065,7 @@ def get_launch_command(config):
         args.extend(["-adminpassword", admin_password])
     
     # 인스턴스마다 따로 둔 데이터 폴더 (없으면 PZ 기본 ~/Zomboid)
-    if str(config.get("cache_dir") or "") and "{" not in str(config.get("cache_dir")):
+    if _cache_dir(config) or _legacy_config_dir(config):
         home = _zomboid_home(config)
         os.makedirs(home, exist_ok=True)
         args.append(f"-cachedir={home}")

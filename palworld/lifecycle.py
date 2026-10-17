@@ -490,77 +490,13 @@ def get_credentials(config):
 
 
 def status(config):
-    """Get server status"""
+    """서버 상태. 데몬이 추적하는 PID로만 판단한다: 실행 파일 이름으로 찾으면 같은 게임의 다른 인스턴스와 섞인다"""
     try:
-        executable = config.get("server_executable")
-        if not executable:
-            return {"success": True, "status": "stopped", "message": i18n.t("errors.no_executable_specified")}
-        
-        # Extract executable name from path (e.g., "D:\\path\\PalServer.exe" -> "PalServer.exe")
-        exe_name = os.path.basename(executable)
-        # 데몬이 PID를 주면 그 프로세스로만 판단한다 (이름으로 보면 다른 인스턴스와 섞인다)
+        exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
         pid = config.get("pid")
-        if pid:
-            running = _pid_running(pid)
-            key = "messages.process_running" if running else "messages.process_not_running"
-            return {"success": True, "status": "running" if running else "stopped", "message": i18n.t(key, name=exe_name)}
-        
-        # Check if process is running by name
-        if sys.platform == 'win32':
-            try:
-                # Use tasklist to check if process is running
-                result = subprocess.run(
-                    ['tasklist', '/FI', f'IMAGENAME eq {exe_name}'],
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                if exe_name in result.stdout:
-                    return {
-                        "success": True,
-                        "status": "running",
-                        "message": i18n.t("messages.process_running", name=exe_name)
-                    }
-                else:
-                    return {
-                        "success": True,
-                        "status": "stopped",
-                        "message": i18n.t("messages.process_not_running", name=exe_name)
-                    }
-            except Exception as e:
-                return {
-                    "success": True,
-                    "status": "stopped",
-                    "message": i18n.t("errors.status_unknown", error=str(e))
-                }
-        else:
-            # Unix-like: Use pgrep
-            try:
-                result = subprocess.run(
-                    ['pgrep', '-f', os.path.splitext(exe_name)[0]],
-                    capture_output=True,
-                    check=False
-                )
-                if result.returncode == 0:
-                    pid = result.stdout.decode().strip().split('\n')[0]
-                    return {
-                        "success": True,
-                        "status": "running",
-                        "pid": int(pid) if pid else None,
-                        "message": i18n.t("messages.process_running", name=exe_name)
-                    }
-                else:
-                    return {
-                        "success": True,
-                        "status": "stopped",
-                        "message": i18n.t("messages.process_not_running", name=exe_name)
-                    }
-            except Exception as e:
-                return {
-                    "success": True,
-                    "status": "stopped",
-                    "message": i18n.t("errors.status_unknown", error=str(e))
-                }
+        running = bool(pid) and _pid_running(pid)
+        key = "messages.process_running" if running else "messages.process_not_running"
+        return {"success": True, "status": "running" if running else "stopped", "message": i18n.t(key, name=exe_name)}
     except Exception as e:
         return {
             "success": False,
@@ -1017,7 +953,10 @@ def _setting_types():
 def _coerce_setting(value, field_type):
     """파일에서 읽은 문자열을 설정 타입에 맞춘다. number·boolean 필드만 바꾸고,
     비밀번호·이름 같은 문자열은 그대로 둔다 ("000123"이 123이 되지 않게)"""
-    val = str(value).strip().strip('"')
+    val = str(value).strip()
+    # PalWorldSettings.ini는 문자열을 따옴표로 감싼다: 짝이 맞는 바깥 따옴표 한 쌍만 벗긴다
+    if len(val) >= 2 and val[0] == val[-1] == '"':
+        val = val[1:-1]
     # 스키마에 없는 키는 참/거짓만 바꾼다
     if field_type in ("boolean", None) and val.lower() in ("true", "false"):
         return val.lower() == "true"

@@ -1543,7 +1543,7 @@ priority = 35
 # 기존 `/[\w/.\-]+` 은 "key/value" 같은 자연어도 매치하여 제거.
 [[syntax_highlight.rules]]
 name = "file_path_unix"
-pattern = '(?<![\w.])(?P<hl>/[\w./\-]*/[\w.\-]+)'
+pattern = '(?:^|[^\w.])(?P<hl>/[\w./\-]*/[\w.\-]+)'
 color = "path"
 priority = 35
 

@@ -19,9 +19,7 @@ import subprocess
 import os
 import re
 import socket
-import hashlib
 import time
-from pathlib import Path
 
 # ─── Path setup ──────────────────────────────────────────
 
@@ -36,21 +34,25 @@ from i18n import I18n
 
 # RCON communication delegates to the Rust daemon's HTTP API
 try:
-    from daemon_rcon import rcon_command as _rcon_command_bridge
+    from daemon_rcon import rcon_command as _rcon_command_bridge, daemon_url
     def _rcon_command(host, port, password, command, timeout=5):
         return _rcon_command_bridge(host, port, password, command, timeout)
 except ImportError:
     _rcon_command = None
+    def daemon_url():
+        return os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
 
 i18n = I18n(MODULE_DIR)
 
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
+# 데몬 API URL — `daemon_rcon.daemon_url()`이 Python SSOT.
+DAEMON_API_URL = daemon_url()
 
 
 # ─── Constants ───────────────────────────────────────────
 
-# Mapping: saba-chan internal key → servertest.ini key
-_INI_KEY_MAP = {
+# saba-chan 내부 키 → servertest.ini 키 매핑.
+# 이름은 `_KEY_MAP`으로 통일 (template/__example과 동일).
+_KEY_MAP = {
     "public_name":           "PublicName",
     "public_description":    "PublicDescription",
     "password":              "Password",
@@ -179,7 +181,7 @@ _INI_KEY_MAP = {
 }
 
 # Reverse mapping for read_properties
-_INI_KEY_MAP_REV = {v: k for k, v in _INI_KEY_MAP.items()}
+_KEY_MAP_REV = {v: k for k, v in _KEY_MAP.items()}
 
 # Default servertest.ini values
 DEFAULT_INI_PROPERTIES = {
@@ -244,23 +246,9 @@ DEFAULT_INI_PROPERTIES = {
     "AllowTradeUI": "true",
     # ── Player / Display ──
     "ChatStreams": "s,r,a,w,y,sh,f,all",
-    "ShowSafety": "true",
-    "SafetyToggleTimer": "2",
-    "SafetyCooldownTimer": "3",
-    "DenyLoginOnOverloadedServer": "true",
-    "PingFrequency": "10",
-    "ConstructionPreventsLootRespawn": "true",
-    "DropOffWhiteListAfterDeath": "false",
-    "AdminSafehouse": "false",
-    "SafehouseAllowFire": "true",
-    "SafehouseDaySurvivedToClaim": "0",
-    "SafeHouseRemovalTime": "144",
-    "KickFastPlayers": "false",
     # ── Network / Steam ──
     "SteamPort1": "8766",
     "SteamPort2": "8767",
-    "SteamScoreboard": "true",
-    "UPnP": "true",
     "UPnPLeaseTime": "86400",
     "UPnPZeroLeaseTimeFallback": "true",
     "UPnPForce": "true",
@@ -1319,7 +1307,7 @@ def configure(config):
     updates = {}
     
     for key, value in settings.items():
-        ini_key = _INI_KEY_MAP.get(key)
+        ini_key = _KEY_MAP.get(key)
         if ini_key:
             # Convert booleans to lowercase strings
             if isinstance(value, bool):
@@ -1384,7 +1372,7 @@ def read_properties(config):
         # Return defaults mapped to internal keys
         mapped_defaults = {}
         for ini_key, value in DEFAULT_INI_PROPERTIES.items():
-            internal_key = _INI_KEY_MAP_REV.get(ini_key, ini_key)
+            internal_key = _KEY_MAP_REV.get(ini_key, ini_key)
             mapped_defaults[internal_key] = value
         return {
             "success": True,
@@ -1395,7 +1383,7 @@ def read_properties(config):
     raw_props = IniManager.read(ini_path)
     mapped = {}
     for ini_key, value in raw_props.items():
-        internal_key = _INI_KEY_MAP_REV.get(ini_key, ini_key)
+        internal_key = _KEY_MAP_REV.get(ini_key, ini_key)
         mapped[internal_key] = value
     
     return {"success": True, "properties": mapped}
@@ -1410,7 +1398,6 @@ def command(config):
     """
     cmd_name = config.get("command_name", "")
     cmd_text = config.get("command_text", "")
-    cmd_args = config.get("args", {})
     instance_id = config.get("instance_id", "")
     is_managed = config.get("managed", True)
     
@@ -1464,8 +1451,7 @@ def command(config):
 def diagnose_log(config):
     """Analyze server log for known error patterns."""
     working_dir = config.get("working_dir", "")
-    server_name = config.get("server_name", "servertest")
-    
+
     # PZ console log locations
     log_paths = []
     if working_dir:
@@ -1723,23 +1709,28 @@ def main():
         sys.exit(1)
     
     func_name = sys.argv[1]
-    
-    if func_name not in FUNCTIONS:
-        print(json.dumps({
-            "success": False,
-            "message": f"Unknown function: {func_name}",
-            "available": list(FUNCTIONS.keys())
-        }))
-        sys.exit(1)
-    
+
     try:
         config_str = sys.stdin.read()
         config = json.loads(config_str) if config_str.strip() else {}
     except json.JSONDecodeError:
         config = {}
-    
+
+    fn = FUNCTIONS.get(func_name)
+    if fn is None:
+        # Match minecraft/palworld: emit a graceful JSON response and exit 0.
+        # Exiting 1 made the daemon return HTTP 500 with the raw stderr,
+        # which broke `cli server installed-version` for instances whose
+        # module doesn't implement that optional verb.
+        print(json.dumps({
+            "success": False,
+            "message": f"Unknown function: {func_name}",
+            "available": list(FUNCTIONS.keys()),
+        }, ensure_ascii=False))
+        return
+
     try:
-        result = FUNCTIONS[func_name](config)
+        result = fn(config)
         print(json.dumps(result, ensure_ascii=False))
     except Exception as e:
         print(json.dumps({

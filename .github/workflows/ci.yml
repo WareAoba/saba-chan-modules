@@ -1,0 +1,46 @@
+# ═══════════════════════════════════════════════════════════
+# saba-chan-modules — Lint · Test CI
+# ═══════════════════════════════════════════════════════════
+#
+# 구조:
+#   1) pytest  — minecraft / palworld / zomboid lifecycle 단위 테스트
+#   2) ruff    — Critical lint only (E9, F63, F7, F82)
+#                스타일 위반은 회귀 방지용으로 block 하지 않는다.
+# ═══════════════════════════════════════════════════════════
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  python:
+    name: Python (${{ matrix.os }} · py${{ matrix.python-version }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python-version: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest ruff
+
+      - name: Ruff (critical rules only)
+        run: python -m ruff check . --select E9,F63,F7,F82
+
+      - name: Pytest
+        run: python -m pytest -q

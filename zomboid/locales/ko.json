@@ -1,6 +1,6 @@
 {
   "module": {
-    "display_name": "프로젝트 좀보이드",
+    "display_name": "Project Zomboid",
     "description": "프로젝트 좀보이드 전용 서버 관리 모듈 (전체 수명주기 제어)"
   },
   "settings": {

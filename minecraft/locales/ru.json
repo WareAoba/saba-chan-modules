@@ -1,106 +1,431 @@
 {
   "module": {
-    "display_name": "Майнкрафт",
+    "display_name": "Minecraft",
     "description": "Модуль управления сервером Minecraft с полным контролем жизненного цикла"
   },
   "settings": {
-    "java_path": { "label": "Путь к Java", "description": "Путь к исполняемому файлу Java (автоопределение, если пусто)" },
-    "ram": { "label": "Память (RAM)", "description": "Максимальный объем выделяемой памяти (напр. 2G, 4G)" },
-    "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },
-    "difficulty": { "label": "Сложность", "description": "Сложность игры" },
-    "gamemode": { "label": "Режим игры", "description": "Режим игры по умолчанию" },
-    "max_players": { "label": "Макс. игроков", "description": "Максимальное количество игроков" },
-    "motd": { "label": "MOTD", "description": "Описание в списке серверов" },
-    "online_mode": { "label": "Онлайн-режим", "description": "Требовать аутентификацию Mojang" },
-    "pvp": { "label": "PVP", "description": "Разрешить бой игрок-против-игрока" },
-    "view_distance": { "label": "Дальность прорисовки", "description": "Максимальная дальность прорисовки (чанки)" },
-    "simulation_distance": { "label": "Дистанция симуляции", "description": "Максимальная дистанция симуляции (чанки)" },
-    "spawn_protection": { "label": "Защита спавна", "description": "Радиус защиты спавна" },
-    "allow_flight": { "label": "Разрешить полет", "description": "Разрешить полет в режиме выживания" },
-    "allow_nether": { "label": "Разрешить Nether", "description": "Разрешить перемещение в Nether" },
-    "enable_command_block": { "label": "Командные блоки", "description": "Включить командные блоки" },
-    "hardcore": { "label": "Хардкор", "description": "Включить хардкорный режим" },
-    "white_list": { "label": "Белый список", "description": "Разрешить только игроков из белого списка" },
-    "level_name": { "label": "Название мира", "description": "Название папки мира" },
-    "level_seed": { "label": "Сид мира", "description": "Сид для генерации мира" },
-    "level_type": { "label": "Тип мира", "description": "Тип генерации мира" },
-    "max_world_size": { "label": "Макс. размер мира", "description": "Максимальный радиус границы мира" },
-    "use_aikar_flags": { "label": "Флаги Aikar", "description": "Использовать рекомендуемые JVM GC флаги" }
+    "java_path": {
+      "label": "Путь к Java",
+      "description": "Путь к исполняемому файлу Java (автоопределение, если пусто)"
+    },
+    "ram": {
+      "label": "Память (RAM)",
+      "description": "Максимальный объем выделяемой памяти (напр. 2G, 4G)"
+    },
+    "port": {
+      "label": "Порт сервера",
+      "description": "Порт игрового сервера"
+    },
+    "difficulty": {
+      "label": "Сложность",
+      "description": "Сложность игры"
+    },
+    "gamemode": {
+      "label": "Режим игры",
+      "description": "Режим игры по умолчанию"
+    },
+    "max_players": {
+      "label": "Макс. игроков",
+      "description": "Максимальное количество игроков"
+    },
+    "motd": {
+      "label": "MOTD",
+      "description": "Описание в списке серверов"
+    },
+    "online_mode": {
+      "label": "Онлайн-режим",
+      "description": "Требовать аутентификацию Mojang"
+    },
+    "pvp": {
+      "label": "PVP",
+      "description": "Разрешить бой игрок-против-игрока"
+    },
+    "view_distance": {
+      "label": "Дальность прорисовки",
+      "description": "Максимальная дальность прорисовки (чанки)"
+    },
+    "simulation_distance": {
+      "label": "Дистанция симуляции",
+      "description": "Максимальная дистанция симуляции (чанки)"
+    },
+    "spawn_protection": {
+      "label": "Защита спавна",
+      "description": "Радиус защиты спавна"
+    },
+    "allow_flight": {
+      "label": "Разрешить полет",
+      "description": "Разрешить полет в режиме выживания"
+    },
+    "allow_nether": {
+      "label": "Разрешить Nether",
+      "description": "Разрешить перемещение в Nether"
+    },
+    "enable_command_block": {
+      "label": "Командные блоки",
+      "description": "Включить командные блоки"
+    },
+    "hardcore": {
+      "label": "Хардкор",
+      "description": "Включить хардкорный режим"
+    },
+    "white_list": {
+      "label": "Белый список",
+      "description": "Разрешить только игроков из белого списка"
+    },
+    "level_name": {
+      "label": "Название мира",
+      "description": "Название папки мира"
+    },
+    "level_seed": {
+      "label": "Сид мира",
+      "description": "Сид для генерации мира"
+    },
+    "level_type": {
+      "label": "Тип мира",
+      "description": "Тип генерации мира"
+    },
+    "max_world_size": {
+      "label": "Макс. размер мира",
+      "description": "Максимальный радиус границы мира"
+    },
+    "use_aikar_flags": {
+      "label": "Флаги Aikar",
+      "description": "Использовать рекомендуемые JVM GC флаги"
+    },
+    "accepts_transfers": {
+      "label": "Accepts Transfers",
+      "description": "Allow connection transfer from other servers"
+    },
+    "broadcast_console_to_ops": {
+      "label": "Broadcast Console to Ops",
+      "description": "Send console output to all online ops"
+    },
+    "broadcast_rcon_to_ops": {
+      "label": "Broadcast RCON to Ops",
+      "description": "Send RCON command output to all online ops"
+    },
+    "bug_report_link": {
+      "label": "Bug Report Link",
+      "description": "Custom bug report link"
+    },
+    "enable_code_of_conduct": {
+      "label": "Code of Conduct",
+      "description": "Enable code of conduct screen"
+    },
+    "enable_jmx_monitoring": {
+      "label": "JMX Monitoring",
+      "description": "Enable JMX monitoring (exposes MBean)"
+    },
+    "enable_query": {
+      "label": "Enable Query",
+      "description": "Enable the GameSpy4 query protocol"
+    },
+    "enable_status": {
+      "label": "Enable Status",
+      "description": "Show server in multiplayer server list"
+    },
+    "enforce_secure_profile": {
+      "label": "Enforce Secure Profile",
+      "description": "Require Mojang-signed public key for players"
+    },
+    "entity_broadcast_range_percentage": {
+      "label": "Entity Broadcast Range %",
+      "description": "Entity broadcast range as percentage of default (10-1000)"
+    },
+    "force_gamemode": {
+      "label": "Force Game Mode",
+      "description": "Force default gamemode on player join"
+    },
+    "function_permission_level": {
+      "label": "Function Permission Level",
+      "description": "Default permission level for function commands (1-4)"
+    },
+    "generator_settings": {
+      "label": "Generator Settings",
+      "description": "JSON settings for flat world generation"
+    },
+    "hide_online_players": {
+      "label": "Hide Online Players",
+      "description": "Hide player list from status response"
+    },
+    "initial_disabled_packs": {
+      "label": "Initial Disabled Packs",
+      "description": "Comma-separated list of disabled datapacks"
+    },
+    "initial_enabled_packs": {
+      "label": "Initial Enabled Packs",
+      "description": "Comma-separated list of enabled datapacks"
+    },
+    "log_ips": {
+      "label": "Log IPs",
+      "description": "Log player IP addresses"
+    },
+    "max_chained_neighbor_updates": {
+      "label": "Max Chained Neighbor Updates",
+      "description": "Max consecutive neighbor updates before skipping (-1 for no limit)"
+    },
+    "max_tick_time": {
+      "label": "Max Tick Time",
+      "description": "Max milliseconds a tick can take before watchdog kills server (-1 to disable)"
+    },
+    "network_compression_threshold": {
+      "label": "Network Compression Threshold",
+      "description": "Minimum packet size to compress (-1 to disable, 0 to compress all)"
+    },
+    "op_permission_level": {
+      "label": "Op Permission Level",
+      "description": "Default permission level for ops (1-4)"
+    },
+    "player_idle_timeout": {
+      "label": "Player Idle Timeout",
+      "description": "Minutes before idle players are kicked (0 to disable)"
+    },
+    "pause_when_empty_seconds": {
+      "label": "Pause When Empty",
+      "description": "Pause server ticking after no players for this many seconds (0 to disable)"
+    },
+    "prevent_proxy_connections": {
+      "label": "Prevent Proxy Connections",
+      "description": "Block connections using VPN/proxy"
+    },
+    "query_port": {
+      "label": "Query Port",
+      "description": "Port for GameSpy4 query protocol"
+    },
+    "rate_limit": {
+      "label": "Rate Limit",
+      "description": "Max packets per second before disconnect (0 to disable)"
+    },
+    "rcon_password": {
+      "label": "RCON Password",
+      "description": "RCON access password"
+    },
+    "rcon_port": {
+      "label": "RCON Port",
+      "description": "RCON server port"
+    },
+    "region_file_compression": {
+      "label": "Region File Compression",
+      "description": "Compression algorithm for region files"
+    },
+    "require_resource_pack": {
+      "label": "Require Resource Pack",
+      "description": "Require players to accept the resource pack"
+    },
+    "resource_pack": {
+      "label": "Resource Pack URL",
+      "description": "URL to a server resource pack"
+    },
+    "resource_pack_id": {
+      "label": "Resource Pack ID",
+      "description": "UUID for the resource pack"
+    },
+    "resource_pack_prompt": {
+      "label": "Resource Pack Prompt",
+      "description": "Custom message shown when resource pack is offered"
+    },
+    "resource_pack_sha1": {
+      "label": "Resource Pack SHA-1",
+      "description": "SHA-1 hash of the resource pack"
+    },
+    "server_ip": {
+      "label": "Server IP",
+      "description": "Bind to specific IP address (leave blank for all)"
+    },
+    "spawn_animals": {
+      "label": "Spawn Animals",
+      "description": "Allow animals to spawn"
+    },
+    "spawn_monsters": {
+      "label": "Spawn Monsters",
+      "description": "Allow hostile mobs to spawn"
+    },
+    "spawn_npcs": {
+      "label": "Spawn NPCs",
+      "description": "Allow villagers to spawn"
+    },
+    "status_heartbeat_interval": {
+      "label": "Status Heartbeat Interval",
+      "description": "Heartbeat interval for server status (0 to disable)"
+    },
+    "sync_chunk_writes": {
+      "label": "Sync Chunk Writes",
+      "description": "Enable synchronous chunk I/O"
+    },
+    "text_filtering_config": {
+      "label": "Text Filtering Config",
+      "description": "Text filtering configuration"
+    },
+    "text_filtering_version": {
+      "label": "Text Filtering Version",
+      "description": "Text filtering version"
+    },
+    "use_native_transport": {
+      "label": "Use Native Transport",
+      "description": "Use Linux optimized network transport"
+    }
   },
   "commands": {
     "say": {
       "label": "Отправить сообщение в чат",
       "description": "Транслировать сообщение на сервер",
-      "inputs": { "message": { "label": "Сообщение", "placeholder": "Введите сообщение для отправки" } }
+      "inputs": {
+        "message": {
+          "label": "Сообщение",
+          "placeholder": "Введите сообщение для отправки"
+        }
+      }
     },
     "give": {
       "label": "Выдать предмет",
       "description": "Выдать предмет игроку",
       "inputs": {
-        "player": { "label": "Имя игрока", "placeholder": "Никнейм игрока" },
-        "item": { "label": "ID предмета", "placeholder": "Напр: diamond, iron_ore" },
-        "amount": { "label": "Количество" }
+        "player": {
+          "label": "Имя игрока",
+          "placeholder": "Никнейм игрока"
+        },
+        "item": {
+          "label": "ID предмета",
+          "placeholder": "Напр: diamond, iron_ore"
+        },
+        "amount": {
+          "label": "Количество"
+        }
       }
     },
-    "save-all": { "label": "Сохранить мир", "description": "Сохранить игровой мир" },
-    "list": { "label": "Список игроков", "description": "Посмотреть список подключенных игроков" },
+    "save-all": {
+      "label": "Сохранить мир",
+      "description": "Сохранить игровой мир"
+    },
+    "list": {
+      "label": "Список игроков",
+      "description": "Посмотреть список подключенных игроков"
+    },
     "weather": {
       "label": "Изменить погоду",
       "description": "Изменить погоду на сервере",
-      "inputs": { "type": { "label": "Погода" }, "duration": { "label": "Продолжительность (секунды)" } }
+      "inputs": {
+        "type": {
+          "label": "Погода"
+        },
+        "duration": {
+          "label": "Продолжительность (секунды)"
+        }
+      }
     },
     "difficulty": {
       "label": "Изменить сложность",
       "description": "Изменить сложность игры",
-      "inputs": { "level": { "label": "Сложность" } }
+      "inputs": {
+        "level": {
+          "label": "Сложность"
+        }
+      }
     },
     "gamemode": {
       "label": "Изменить режим игры",
       "description": "Изменить режим игры игрока",
-      "inputs": { "mode": { "label": "Режим игры" }, "player": { "label": "Имя игрока" } }
+      "inputs": {
+        "mode": {
+          "label": "Режим игры"
+        },
+        "player": {
+          "label": "Имя игрока"
+        }
+      }
     },
     "time": {
       "label": "Установить время",
       "description": "Изменить время суток",
-      "inputs": { "value": { "label": "Время" } }
+      "inputs": {
+        "value": {
+          "label": "Время"
+        }
+      }
     },
     "tp": {
       "label": "Телепортировать",
       "description": "Телепортировать игрока",
-      "inputs": { "player": { "label": "Игрок" }, "target": { "label": "Место назначения" } }
+      "inputs": {
+        "player": {
+          "label": "Игрок"
+        },
+        "target": {
+          "label": "Место назначения"
+        }
+      }
     },
     "kick": {
       "label": "Кикнуть игрока",
       "description": "Выгнать игрока с сервера",
-      "inputs": { "player": { "label": "Имя игрока" }, "reason": { "label": "Причина" } }
+      "inputs": {
+        "player": {
+          "label": "Имя игрока"
+        },
+        "reason": {
+          "label": "Причина"
+        }
+      }
     },
     "ban": {
       "label": "Забанить игрока",
       "description": "Забанить игрока на сервере",
-      "inputs": { "player": { "label": "Имя игрока" }, "reason": { "label": "Причина" } }
+      "inputs": {
+        "player": {
+          "label": "Имя игрока"
+        },
+        "reason": {
+          "label": "Причина"
+        }
+      }
     },
     "pardon": {
       "label": "Разбанить игрока",
       "description": "Снять бан с игрока",
-      "inputs": { "player": { "label": "Имя игрока" } }
+      "inputs": {
+        "player": {
+          "label": "Имя игрока"
+        }
+      }
     },
     "op": {
       "label": "Выдать OP игроку",
       "description": "Выдать права оператора",
-      "inputs": { "player": { "label": "Имя игрока" } }
+      "inputs": {
+        "player": {
+          "label": "Имя игрока"
+        }
+      }
     },
     "deop": {
       "label": "Снять OP с игрока",
       "description": "Снять права оператора",
-      "inputs": { "player": { "label": "Имя игрока" } }
+      "inputs": {
+        "player": {
+          "label": "Имя игрока"
+        }
+      }
     },
     "whitelist": {
       "label": "Белый список",
       "description": "Управление белым списком сервера",
-      "inputs": { "action": { "label": "Действие" }, "player": { "label": "Имя игрока" } }
+      "inputs": {
+        "action": {
+          "label": "Действие"
+        },
+        "player": {
+          "label": "Имя игрока"
+        }
+      }
     },
-    "seed": { "label": "Показать сид", "description": "Отобразить сид мира" },
-    "stop": { "label": "Остановить сервер", "description": "Корректно остановить сервер" }
+    "seed": {
+      "label": "Показать сид",
+      "description": "Отобразить сид мира"
+    },
+    "stop": {
+      "label": "Остановить сервер",
+      "description": "Корректно остановить сервер"
+    }
   },
   "errors": {
     "server_jar_not_specified": "server_jar не указан в конфигурации экземпляра. Пожалуйста добавьте путь к server.jar",

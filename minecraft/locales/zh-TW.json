@@ -4,103 +4,428 @@
     "description": "具有完整生命週期控制的Minecraft伺服器管理模組"
   },
   "settings": {
-    "java_path": { "label": "Java路徑", "description": "Java執行檔路徑（留空則自動偵測）" },
-    "ram": { "label": "記憶體（RAM）", "description": "最大記憶體分配（如 2G、4G）" },
-    "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },
-    "difficulty": { "label": "難度", "description": "遊戲難度" },
-    "gamemode": { "label": "遊戲模式", "description": "預設遊戲模式" },
-    "max_players": { "label": "最大玩家數", "description": "最大玩家數量" },
-    "motd": { "label": "MOTD", "description": "伺服器列表描述" },
-    "online_mode": { "label": "線上模式", "description": "要求Mojang身分驗證" },
-    "pvp": { "label": "PVP", "description": "允許玩家對戰" },
-    "view_distance": { "label": "視距", "description": "最大視距（區塊）" },
-    "simulation_distance": { "label": "模擬距離", "description": "最大模擬距離（區塊）" },
-    "spawn_protection": { "label": "重生點保護", "description": "重生點保護半徑" },
-    "allow_flight": { "label": "允許飛行", "description": "允許在生存模式中飛行" },
-    "allow_nether": { "label": "允許地獄", "description": "允許前往地獄" },
-    "enable_command_block": { "label": "命令方塊", "description": "啟用命令方塊" },
-    "hardcore": { "label": "極限模式", "description": "啟用極限模式" },
-    "white_list": { "label": "白名單", "description": "僅允許白名單中的玩家" },
-    "level_name": { "label": "世界名稱", "description": "世界資料夾名稱" },
-    "level_seed": { "label": "世界種子", "description": "世界生成種子" },
-    "level_type": { "label": "世界類型", "description": "世界生成類型" },
-    "max_world_size": { "label": "最大世界大小", "description": "世界邊界最大半徑" },
-    "use_aikar_flags": { "label": "Aikar標誌", "description": "使用推薦的JVM GC標誌" }
+    "java_path": {
+      "label": "Java路徑",
+      "description": "Java執行檔路徑（留空則自動偵測）"
+    },
+    "ram": {
+      "label": "記憶體（RAM）",
+      "description": "最大記憶體分配（如 2G、4G）"
+    },
+    "port": {
+      "label": "伺服器連接埠",
+      "description": "遊戲伺服器連接埠"
+    },
+    "difficulty": {
+      "label": "難度",
+      "description": "遊戲難度"
+    },
+    "gamemode": {
+      "label": "遊戲模式",
+      "description": "預設遊戲模式"
+    },
+    "max_players": {
+      "label": "最大玩家數",
+      "description": "最大玩家數量"
+    },
+    "motd": {
+      "label": "MOTD",
+      "description": "伺服器列表描述"
+    },
+    "online_mode": {
+      "label": "線上模式",
+      "description": "要求Mojang身分驗證"
+    },
+    "pvp": {
+      "label": "PVP",
+      "description": "允許玩家對戰"
+    },
+    "view_distance": {
+      "label": "視距",
+      "description": "最大視距（區塊）"
+    },
+    "simulation_distance": {
+      "label": "模擬距離",
+      "description": "最大模擬距離（區塊）"
+    },
+    "spawn_protection": {
+      "label": "重生點保護",
+      "description": "重生點保護半徑"
+    },
+    "allow_flight": {
+      "label": "允許飛行",
+      "description": "允許在生存模式中飛行"
+    },
+    "allow_nether": {
+      "label": "允許地獄",
+      "description": "允許前往地獄"
+    },
+    "enable_command_block": {
+      "label": "命令方塊",
+      "description": "啟用命令方塊"
+    },
+    "hardcore": {
+      "label": "極限模式",
+      "description": "啟用極限模式"
+    },
+    "white_list": {
+      "label": "白名單",
+      "description": "僅允許白名單中的玩家"
+    },
+    "level_name": {
+      "label": "世界名稱",
+      "description": "世界資料夾名稱"
+    },
+    "level_seed": {
+      "label": "世界種子",
+      "description": "世界生成種子"
+    },
+    "level_type": {
+      "label": "世界類型",
+      "description": "世界生成類型"
+    },
+    "max_world_size": {
+      "label": "最大世界大小",
+      "description": "世界邊界最大半徑"
+    },
+    "use_aikar_flags": {
+      "label": "Aikar標誌",
+      "description": "使用推薦的JVM GC標誌"
+    },
+    "accepts_transfers": {
+      "label": "Accepts Transfers",
+      "description": "Allow connection transfer from other servers"
+    },
+    "broadcast_console_to_ops": {
+      "label": "Broadcast Console to Ops",
+      "description": "Send console output to all online ops"
+    },
+    "broadcast_rcon_to_ops": {
+      "label": "Broadcast RCON to Ops",
+      "description": "Send RCON command output to all online ops"
+    },
+    "bug_report_link": {
+      "label": "Bug Report Link",
+      "description": "Custom bug report link"
+    },
+    "enable_code_of_conduct": {
+      "label": "Code of Conduct",
+      "description": "Enable code of conduct screen"
+    },
+    "enable_jmx_monitoring": {
+      "label": "JMX Monitoring",
+      "description": "Enable JMX monitoring (exposes MBean)"
+    },
+    "enable_query": {
+      "label": "Enable Query",
+      "description": "Enable the GameSpy4 query protocol"
+    },
+    "enable_status": {
+      "label": "Enable Status",
+      "description": "Show server in multiplayer server list"
+    },
+    "enforce_secure_profile": {
+      "label": "Enforce Secure Profile",
+      "description": "Require Mojang-signed public key for players"
+    },
+    "entity_broadcast_range_percentage": {
+      "label": "Entity Broadcast Range %",
+      "description": "Entity broadcast range as percentage of default (10-1000)"
+    },
+    "force_gamemode": {
+      "label": "Force Game Mode",
+      "description": "Force default gamemode on player join"
+    },
+    "function_permission_level": {
+      "label": "Function Permission Level",
+      "description": "Default permission level for function commands (1-4)"
+    },
+    "generator_settings": {
+      "label": "Generator Settings",
+      "description": "JSON settings for flat world generation"
+    },
+    "hide_online_players": {
+      "label": "Hide Online Players",
+      "description": "Hide player list from status response"
+    },
+    "initial_disabled_packs": {
+      "label": "Initial Disabled Packs",
+      "description": "Comma-separated list of disabled datapacks"
+    },
+    "initial_enabled_packs": {
+      "label": "Initial Enabled Packs",
+      "description": "Comma-separated list of enabled datapacks"
+    },
+    "log_ips": {
+      "label": "Log IPs",
+      "description": "Log player IP addresses"
+    },
+    "max_chained_neighbor_updates": {
+      "label": "Max Chained Neighbor Updates",
+      "description": "Max consecutive neighbor updates before skipping (-1 for no limit)"
+    },
+    "max_tick_time": {
+      "label": "Max Tick Time",
+      "description": "Max milliseconds a tick can take before watchdog kills server (-1 to disable)"
+    },
+    "network_compression_threshold": {
+      "label": "Network Compression Threshold",
+      "description": "Minimum packet size to compress (-1 to disable, 0 to compress all)"
+    },
+    "op_permission_level": {
+      "label": "Op Permission Level",
+      "description": "Default permission level for ops (1-4)"
+    },
+    "player_idle_timeout": {
+      "label": "Player Idle Timeout",
+      "description": "Minutes before idle players are kicked (0 to disable)"
+    },
+    "pause_when_empty_seconds": {
+      "label": "Pause When Empty",
+      "description": "Pause server ticking after no players for this many seconds (0 to disable)"
+    },
+    "prevent_proxy_connections": {
+      "label": "Prevent Proxy Connections",
+      "description": "Block connections using VPN/proxy"
+    },
+    "query_port": {
+      "label": "Query Port",
+      "description": "Port for GameSpy4 query protocol"
+    },
+    "rate_limit": {
+      "label": "Rate Limit",
+      "description": "Max packets per second before disconnect (0 to disable)"
+    },
+    "rcon_password": {
+      "label": "RCON Password",
+      "description": "RCON access password"
+    },
+    "rcon_port": {
+      "label": "RCON Port",
+      "description": "RCON server port"
+    },
+    "region_file_compression": {
+      "label": "Region File Compression",
+      "description": "Compression algorithm for region files"
+    },
+    "require_resource_pack": {
+      "label": "Require Resource Pack",
+      "description": "Require players to accept the resource pack"
+    },
+    "resource_pack": {
+      "label": "Resource Pack URL",
+      "description": "URL to a server resource pack"
+    },
+    "resource_pack_id": {
+      "label": "Resource Pack ID",
+      "description": "UUID for the resource pack"
+    },
+    "resource_pack_prompt": {
+      "label": "Resource Pack Prompt",
+      "description": "Custom message shown when resource pack is offered"
+    },
+    "resource_pack_sha1": {
+      "label": "Resource Pack SHA-1",
+      "description": "SHA-1 hash of the resource pack"
+    },
+    "server_ip": {
+      "label": "Server IP",
+      "description": "Bind to specific IP address (leave blank for all)"
+    },
+    "spawn_animals": {
+      "label": "Spawn Animals",
+      "description": "Allow animals to spawn"
+    },
+    "spawn_monsters": {
+      "label": "Spawn Monsters",
+      "description": "Allow hostile mobs to spawn"
+    },
+    "spawn_npcs": {
+      "label": "Spawn NPCs",
+      "description": "Allow villagers to spawn"
+    },
+    "status_heartbeat_interval": {
+      "label": "Status Heartbeat Interval",
+      "description": "Heartbeat interval for server status (0 to disable)"
+    },
+    "sync_chunk_writes": {
+      "label": "Sync Chunk Writes",
+      "description": "Enable synchronous chunk I/O"
+    },
+    "text_filtering_config": {
+      "label": "Text Filtering Config",
+      "description": "Text filtering configuration"
+    },
+    "text_filtering_version": {
+      "label": "Text Filtering Version",
+      "description": "Text filtering version"
+    },
+    "use_native_transport": {
+      "label": "Use Native Transport",
+      "description": "Use Linux optimized network transport"
+    }
   },
   "commands": {
     "say": {
       "label": "傳送聊天訊息",
       "description": "向伺服器廣播訊息",
-      "inputs": { "message": { "label": "訊息", "placeholder": "輸入要傳送的訊息" } }
+      "inputs": {
+        "message": {
+          "label": "訊息",
+          "placeholder": "輸入要傳送的訊息"
+        }
+      }
     },
     "give": {
       "label": "給予物品",
       "description": "給予玩家物品",
       "inputs": {
-        "player": { "label": "玩家名稱", "placeholder": "玩家暱稱" },
-        "item": { "label": "物品ID", "placeholder": "例: diamond, iron_ore" },
-        "amount": { "label": "數量" }
+        "player": {
+          "label": "玩家名稱",
+          "placeholder": "玩家暱稱"
+        },
+        "item": {
+          "label": "物品ID",
+          "placeholder": "例: diamond, iron_ore"
+        },
+        "amount": {
+          "label": "數量"
+        }
       }
     },
-    "save-all": { "label": "儲存世界", "description": "儲存遊戲世界" },
-    "list": { "label": "玩家清單", "description": "檢視已連線的玩家清單" },
+    "save-all": {
+      "label": "儲存世界",
+      "description": "儲存遊戲世界"
+    },
+    "list": {
+      "label": "玩家清單",
+      "description": "檢視已連線的玩家清單"
+    },
     "weather": {
       "label": "變更天氣",
       "description": "變更伺服器天氣",
-      "inputs": { "type": { "label": "天氣" }, "duration": { "label": "持續時間（秒）" } }
+      "inputs": {
+        "type": {
+          "label": "天氣"
+        },
+        "duration": {
+          "label": "持續時間（秒）"
+        }
+      }
     },
     "difficulty": {
       "label": "變更難度",
       "description": "變更遊戲難度",
-      "inputs": { "level": { "label": "難度" } }
+      "inputs": {
+        "level": {
+          "label": "難度"
+        }
+      }
     },
     "gamemode": {
       "label": "變更遊戲模式",
       "description": "變更玩家的遊戲模式",
-      "inputs": { "mode": { "label": "遊戲模式" }, "player": { "label": "玩家名稱" } }
+      "inputs": {
+        "mode": {
+          "label": "遊戲模式"
+        },
+        "player": {
+          "label": "玩家名稱"
+        }
+      }
     },
     "time": {
       "label": "設定時間",
       "description": "變更一天中的時間",
-      "inputs": { "value": { "label": "時間" } }
+      "inputs": {
+        "value": {
+          "label": "時間"
+        }
+      }
     },
     "tp": {
       "label": "傳送",
       "description": "傳送玩家",
-      "inputs": { "player": { "label": "玩家" }, "target": { "label": "目的地" } }
+      "inputs": {
+        "player": {
+          "label": "玩家"
+        },
+        "target": {
+          "label": "目的地"
+        }
+      }
     },
     "kick": {
       "label": "踢出玩家",
       "description": "將玩家踢出伺服器",
-      "inputs": { "player": { "label": "玩家名稱" }, "reason": { "label": "原因" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名稱"
+        },
+        "reason": {
+          "label": "原因"
+        }
+      }
     },
     "ban": {
       "label": "封鎖玩家",
       "description": "將玩家從伺服器封鎖",
-      "inputs": { "player": { "label": "玩家名稱" }, "reason": { "label": "原因" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名稱"
+        },
+        "reason": {
+          "label": "原因"
+        }
+      }
     },
     "pardon": {
       "label": "解除封鎖",
       "description": "解除玩家的封鎖",
-      "inputs": { "player": { "label": "玩家名稱" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名稱"
+        }
+      }
     },
     "op": {
       "label": "給予OP權限",
       "description": "授予管理員權限",
-      "inputs": { "player": { "label": "玩家名稱" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名稱"
+        }
+      }
     },
     "deop": {
       "label": "移除OP權限",
       "description": "移除管理員權限",
-      "inputs": { "player": { "label": "玩家名稱" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名稱"
+        }
+      }
     },
     "whitelist": {
       "label": "白名單",
       "description": "管理伺服器白名單",
-      "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名稱" } }
+      "inputs": {
+        "action": {
+          "label": "操作"
+        },
+        "player": {
+          "label": "玩家名稱"
+        }
+      }
     },
-    "seed": { "label": "顯示種子", "description": "顯示世界種子" },
-    "stop": { "label": "停止伺服器", "description": "正常停止伺服器" }
+    "seed": {
+      "label": "顯示種子",
+      "description": "顯示世界種子"
+    },
+    "stop": {
+      "label": "停止伺服器",
+      "description": "正常停止伺服器"
+    }
   },
   "errors": {
     "server_jar_not_specified": "實例設定中未指定server_jar。請新增server.jar的路徑",

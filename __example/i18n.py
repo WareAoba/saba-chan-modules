@@ -6,7 +6,6 @@ Loads translations from JSON files in the module's locales/ directory.
 
 import json
 import os
-import re
 
 
 class I18n:

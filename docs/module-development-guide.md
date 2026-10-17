@@ -1044,14 +1044,15 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # daemon_rcon.py, i18n.py는 saba-chan 본체(modules/)에 있습니다.
 # 데몬이 실행 시 PYTHONPATH로 해당 경로를 자동 주입하므로,
 # 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
-from daemon_rcon import rcon_command as _rcon_command_bridge
+from daemon_rcon import rcon_command as _rcon_command_bridge, daemon_url
 from i18n import I18n
 
 # i18n 초기화
 i18n = I18n(MODULE_DIR)
 
-# 데몬 API URL (환경 변수로 주입됨)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
+# 데몬 API URL — `daemon_rcon.daemon_url()`이 Python SSOT.
+# 모듈마다 리터럴 `'http://127.0.0.1:57474'`를 하드코딩하지 말 것.
+DAEMON_API_URL = daemon_url()
 
 
 # ═══ 설정 키 매핑 ═══
@@ -1891,10 +1892,13 @@ _KEY_MAP = {
 | Palworld | `PalWorldSettings.ini` | UE4 INI (OptionSettings=(...)) |
 | Zomboid | `servertest.ini` | INI (Key=Value) |
 
+> **이름 규칙**: 모듈마다 `_PROPERTY_KEY_MAP`/`_INI_KEY_MAP`처럼 다른 이름을 쓰지 말 것.
+> 기존 모듈(`minecraft`, `zomboid`)도 모두 `_KEY_MAP`으로 통일되어 있다.
+
 ### Minecraft 매핑 예시
 
 ```python
-_PROPERTY_KEY_MAP = {
+_KEY_MAP = {
     "allow_flight":     "allow-flight",      # 언더스코어 → 하이픈
     "max_players":      "max-players",
     "port":             "server-port",       # 이름 변환
@@ -1906,7 +1910,7 @@ _PROPERTY_KEY_MAP = {
 ### Zomboid 매핑 예시
 
 ```python
-_INI_KEY_MAP = {
+_KEY_MAP = {
     "public_name":      "PublicName",        # 스네이크 → 파스칼
     "max_players":      "MaxPlayers",
     "port":             "DefaultPort",       # 이름 변환

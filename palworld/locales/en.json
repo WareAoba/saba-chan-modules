@@ -4,97 +4,284 @@
     "description": "Palworld server management module"
   },
   "settings": {
-    "port": { "label": "Server Port", "description": "Game server port" },
-    "rcon_port": { "label": "RCON Port", "description": "RCON port" },
-    "rcon_password": { "label": "RCON Password", "description": "Remote command execution password" },
-    "rest_host": { "label": "REST API Host", "description": "REST API host (default 127.0.0.1)" },
-    "rest_port": { "label": "REST API Port", "description": "REST API port (default 8212)" },
-    "rest_username": { "label": "REST Username", "description": "REST Basic Auth username" },
-    "server_name": { "label": "Server Name", "description": "Name displayed in the server browser" },
-    "server_description": { "label": "Server Description", "description": "Server description" },
-    "server_password": { "label": "Server Password", "description": "Password required to join the server" },
-    "admin_password": { "label": "Admin Password", "description": "Administrator access password" },
-    "max_players": { "label": "Max Players", "description": "Maximum number of players (1-32)" },
-    "coop_max_players": { "label": "Co-op Max Players", "description": "Maximum number of players in co-op party" },
-    "public_ip": { "label": "Public IP", "description": "Public IP address (leave empty for auto)" },
-    "rcon_enabled": { "label": "RCON Enabled", "description": "Enable RCON remote command execution" },
-    "difficulty": { "label": "Difficulty", "description": "Overall game difficulty" },
-    "is_pvp": { "label": "PvP", "description": "Enable Player vs Player combat" },
-    "death_penalty": { "label": "Death Penalty", "description": "What drops on player death" },
-    "exp_rate": { "label": "EXP Rate", "description": "Experience gain multiplier (0.1-20.0)" },
-    "day_time_speed_rate": { "label": "Day Time Speed", "description": "Daytime duration multiplier (0.1-5.0)" },
-    "night_time_speed_rate": { "label": "Night Time Speed", "description": "Nighttime duration multiplier (0.1-5.0)" },
-    "pal_capture_rate": { "label": "Pal Capture Rate", "description": "Pal capture chance multiplier (0.5-2.0)" },
-    "pal_spawn_num_rate": { "label": "Pal Spawn Rate", "description": "Pal spawn count multiplier (0.5-3.0)" },
-    "pal_damage_rate_attack": { "label": "Pal Attack Damage", "description": "Pal attack damage multiplier (0.1-5.0)" },
-    "pal_damage_rate_defense": { "label": "Pal Defense", "description": "Pal damage received multiplier (0.1-5.0)" },
-    "pal_stomach_decrease_rate": { "label": "Pal Hunger Rate", "description": "Pal hunger decrease multiplier (0.1-5.0)" },
-    "pal_stamina_decrease_rate": { "label": "Pal Stamina Rate", "description": "Pal stamina decrease multiplier (0.1-5.0)" },
-    "pal_auto_hp_regen_rate": { "label": "Pal HP Regen", "description": "Pal HP auto-regeneration multiplier (0.1-5.0)" },
-    "pal_auto_hp_regen_rate_in_sleep": { "label": "Pal Sleep HP Regen", "description": "Pal HP regeneration during sleep multiplier (0.1-5.0)" },
-    "player_damage_rate_attack": { "label": "Player Attack Damage", "description": "Player attack damage multiplier (0.1-5.0)" },
-    "player_damage_rate_defense": { "label": "Player Defense", "description": "Player damage received multiplier (0.1-5.0)" },
-    "player_stomach_decrease_rate": { "label": "Player Hunger Rate", "description": "Player hunger decrease multiplier (0.1-5.0)" },
-    "player_stamina_decrease_rate": { "label": "Player Stamina Rate", "description": "Player stamina decrease multiplier (0.1-5.0)" },
-    "player_auto_hp_regen_rate": { "label": "Player HP Regen", "description": "Player HP auto-regeneration multiplier (0.1-5.0)" },
-    "player_auto_hp_regen_rate_in_sleep": { "label": "Player Sleep HP Regen", "description": "Player HP regeneration during sleep multiplier (0.1-5.0)" },
-    "build_object_damage_rate": { "label": "Structure Damage Rate", "description": "Damage dealt to structures multiplier (0.5-3.0)" },
-    "build_object_deterioration_damage_rate": { "label": "Structure Decay Rate", "description": "Structure deterioration/aging damage multiplier (0-10)" },
-    "drop_item_max_num": { "label": "Drop Item Max", "description": "Maximum number of dropped items in the world (0-3000)" },
-    "collection_drop_rate": { "label": "Gathering Drop Rate", "description": "Gathering item drop multiplier (0.5-3.0)" },
-    "collection_object_hp_rate": { "label": "Gathering Object HP", "description": "Gathering object HP multiplier (0.5-3.0)" },
-    "collection_object_respawn_speed_rate": { "label": "Gathering Respawn Speed", "description": "Gathering object respawn speed multiplier (0.5-3.0)" },
-    "enemy_drop_item_rate": { "label": "Enemy Drop Rate", "description": "Enemy item drop multiplier (0.5-3.0)" },
-    "pal_egg_default_hatching_time": { "label": "Egg Hatching Time", "description": "Default egg hatching time in hours (0-240)" },
-    "enable_invader_enemy": { "label": "Raid Events", "description": "Enable base raid events" },
-    "guild_player_max_num": { "label": "Guild Max Players", "description": "Maximum number of players in a guild (1-100)" },
-    "enable_player_to_player_damage": { "label": "Player vs Player Damage", "description": "Allow players to damage each other" },
-    "enable_friendly_fire": { "label": "Friendly Fire", "description": "Allow guild members to damage each other" },
-    "base_camp_worker_max_num": { "label": "Base Camp Workers", "description": "Maximum number of Pals working at a base (1-20)" },
-    "base_camp_max_num": { "label": "Max Base Camps", "description": "Maximum number of base camps that can be built" },
-    "work_speed_rate": { "label": "Work Speed Rate", "description": "Work speed multiplier" }
+    "port": {
+      "label": "Server Port",
+      "description": "Game server port"
+    },
+    "rcon_port": {
+      "label": "RCON Port",
+      "description": "RCON port"
+    },
+    "rcon_password": {
+      "label": "RCON Password",
+      "description": "Remote command execution password"
+    },
+    "rest_host": {
+      "label": "REST API Host",
+      "description": "REST API host (default 127.0.0.1)"
+    },
+    "rest_port": {
+      "label": "REST API Port",
+      "description": "REST API port (default 8212)"
+    },
+    "rest_username": {
+      "label": "REST Username",
+      "description": "REST Basic Auth username"
+    },
+    "server_name": {
+      "label": "Server Name",
+      "description": "Name displayed in the server browser"
+    },
+    "server_description": {
+      "label": "Server Description",
+      "description": "Server description"
+    },
+    "server_password": {
+      "label": "Server Password",
+      "description": "Password required to join the server"
+    },
+    "admin_password": {
+      "label": "Admin Password",
+      "description": "Administrator access password"
+    },
+    "max_players": {
+      "label": "Max Players",
+      "description": "Maximum number of players (1-32)"
+    },
+    "coop_max_players": {
+      "label": "Co-op Max Players",
+      "description": "Maximum number of players in co-op party"
+    },
+    "public_ip": {
+      "label": "Public IP",
+      "description": "Public IP address (leave empty for auto)"
+    },
+    "rcon_enabled": {
+      "label": "RCON Enabled",
+      "description": "Enable RCON remote command execution"
+    },
+    "difficulty": {
+      "label": "Difficulty",
+      "description": "Overall game difficulty"
+    },
+    "is_pvp": {
+      "label": "PvP",
+      "description": "Enable Player vs Player combat"
+    },
+    "death_penalty": {
+      "label": "Death Penalty",
+      "description": "What drops on player death"
+    },
+    "exp_rate": {
+      "label": "EXP Rate",
+      "description": "Experience gain multiplier (0.1-20.0)"
+    },
+    "day_time_speed_rate": {
+      "label": "Day Time Speed",
+      "description": "Daytime duration multiplier (0.1-5.0)"
+    },
+    "night_time_speed_rate": {
+      "label": "Night Time Speed",
+      "description": "Nighttime duration multiplier (0.1-5.0)"
+    },
+    "pal_capture_rate": {
+      "label": "Pal Capture Rate",
+      "description": "Pal capture chance multiplier (0.5-2.0)"
+    },
+    "pal_spawn_num_rate": {
+      "label": "Pal Spawn Rate",
+      "description": "Pal spawn count multiplier (0.5-3.0)"
+    },
+    "pal_damage_rate_attack": {
+      "label": "Pal Attack Damage",
+      "description": "Pal attack damage multiplier (0.1-5.0)"
+    },
+    "pal_damage_rate_defense": {
+      "label": "Pal Defense",
+      "description": "Pal damage received multiplier (0.1-5.0)"
+    },
+    "pal_stomach_decrease_rate": {
+      "label": "Pal Hunger Rate",
+      "description": "Pal hunger decrease multiplier (0.1-5.0)"
+    },
+    "pal_stamina_decrease_rate": {
+      "label": "Pal Stamina Rate",
+      "description": "Pal stamina decrease multiplier (0.1-5.0)"
+    },
+    "pal_auto_hp_regen_rate": {
+      "label": "Pal HP Regen",
+      "description": "Pal HP auto-regeneration multiplier (0.1-5.0)"
+    },
+    "pal_auto_hp_regen_rate_in_sleep": {
+      "label": "Pal Sleep HP Regen",
+      "description": "Pal HP regeneration during sleep multiplier (0.1-5.0)"
+    },
+    "player_damage_rate_attack": {
+      "label": "Player Attack Damage",
+      "description": "Player attack damage multiplier (0.1-5.0)"
+    },
+    "player_damage_rate_defense": {
+      "label": "Player Defense",
+      "description": "Player damage received multiplier (0.1-5.0)"
+    },
+    "player_stomach_decrease_rate": {
+      "label": "Player Hunger Rate",
+      "description": "Player hunger decrease multiplier (0.1-5.0)"
+    },
+    "player_stamina_decrease_rate": {
+      "label": "Player Stamina Rate",
+      "description": "Player stamina decrease multiplier (0.1-5.0)"
+    },
+    "player_auto_hp_regen_rate": {
+      "label": "Player HP Regen",
+      "description": "Player HP auto-regeneration multiplier (0.1-5.0)"
+    },
+    "player_auto_hp_regen_rate_in_sleep": {
+      "label": "Player Sleep HP Regen",
+      "description": "Player HP regeneration during sleep multiplier (0.1-5.0)"
+    },
+    "build_object_damage_rate": {
+      "label": "Structure Damage Rate",
+      "description": "Damage dealt to structures multiplier (0.5-3.0)"
+    },
+    "build_object_deterioration_damage_rate": {
+      "label": "Structure Decay Rate",
+      "description": "Structure deterioration/aging damage multiplier (0-10)"
+    },
+    "drop_item_max_num": {
+      "label": "Drop Item Max",
+      "description": "Maximum number of dropped items in the world (0-3000)"
+    },
+    "collection_drop_rate": {
+      "label": "Gathering Drop Rate",
+      "description": "Gathering item drop multiplier (0.5-3.0)"
+    },
+    "collection_object_hp_rate": {
+      "label": "Gathering Object HP",
+      "description": "Gathering object HP multiplier (0.5-3.0)"
+    },
+    "collection_object_respawn_speed_rate": {
+      "label": "Gathering Respawn Speed",
+      "description": "Gathering object respawn speed multiplier (0.5-3.0)"
+    },
+    "enemy_drop_item_rate": {
+      "label": "Enemy Drop Rate",
+      "description": "Enemy item drop multiplier (0.5-3.0)"
+    },
+    "pal_egg_default_hatching_time": {
+      "label": "Egg Hatching Time",
+      "description": "Default egg hatching time in hours (0-240)"
+    },
+    "enable_invader_enemy": {
+      "label": "Raid Events",
+      "description": "Enable base raid events"
+    },
+    "guild_player_max_num": {
+      "label": "Guild Max Players",
+      "description": "Maximum number of players in a guild (1-100)"
+    },
+    "enable_player_to_player_damage": {
+      "label": "Player vs Player Damage",
+      "description": "Allow players to damage each other"
+    },
+    "enable_friendly_fire": {
+      "label": "Friendly Fire",
+      "description": "Allow guild members to damage each other"
+    },
+    "base_camp_worker_max_num": {
+      "label": "Base Camp Workers",
+      "description": "Maximum number of Pals working at a base (1-20)"
+    },
+    "base_camp_max_num": {
+      "label": "Max Base Camps",
+      "description": "Maximum number of base camps that can be built"
+    },
+    "work_speed_rate": {
+      "label": "Work Speed Rate",
+      "description": "Work speed multiplier"
+    }
   },
   "commands": {
     "announce": {
       "label": "Send Announcement",
       "description": "Broadcast a message to the server",
       "inputs": {
-        "message": { "label": "Announcement Message", "placeholder": "Enter announcement message" }
+        "message": {
+          "label": "Announcement Message",
+          "placeholder": "Enter announcement message"
+        }
       }
     },
-    "info": { "label": "Server Info", "description": "View server information" },
-    "players": { "label": "Player List", "description": "List currently connected players" },
-    "save": { "label": "Save World", "description": "Save the game world" },
+    "info": {
+      "label": "Server Info",
+      "description": "View server information"
+    },
+    "players": {
+      "label": "Player List",
+      "description": "List currently connected players"
+    },
+    "save": {
+      "label": "Save World",
+      "description": "Save the game world"
+    },
     "shutdown": {
       "label": "Shutdown Server",
       "description": "Shutdown the server (with optional delay)",
       "inputs": {
-        "waittime": { "label": "Shutdown Delay (seconds)" },
-        "message": { "label": "Shutdown Message", "placeholder": "Server shutdown announcement" }
+        "waittime": {
+          "label": "Shutdown Delay (seconds)"
+        },
+        "message": {
+          "label": "Shutdown Message",
+          "placeholder": "Server shutdown announcement"
+        }
       }
     },
     "kick": {
       "label": "Kick Player",
       "description": "Kick a player from the server",
       "inputs": {
-        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" },
-        "message": { "label": "Kick Message", "placeholder": "Optional: kick message" }
+        "userid": {
+          "label": "Player (Nickname or SteamID)",
+          "placeholder": "Player nickname or steam_xxxxxxxxx"
+        },
+        "message": {
+          "label": "Kick Message",
+          "placeholder": "Optional: kick message"
+        }
       }
     },
     "ban": {
       "label": "Ban Player",
       "description": "Permanently ban a player",
       "inputs": {
-        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" },
-        "message": { "label": "Ban Message", "placeholder": "Optional: ban message" }
+        "userid": {
+          "label": "Player (Nickname or SteamID)",
+          "placeholder": "Player nickname or steam_xxxxxxxxx"
+        },
+        "message": {
+          "label": "Ban Message",
+          "placeholder": "Optional: ban message"
+        }
       }
     },
     "unban": {
       "label": "Unban Player",
       "description": "Unban a banned player",
       "inputs": {
-        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" }
+        "userid": {
+          "label": "Player (Nickname or SteamID)",
+          "placeholder": "Player nickname or steam_xxxxxxxxx"
+        }
       }
+    },
+    "metrics": {
+      "label": "Server Metrics",
+      "description": "View server FPS, player count and uptime"
+    },
+    "settings": {
+      "label": "View Settings",
+      "description": "View current server settings"
     }
   },
   "errors": {
@@ -116,7 +303,15 @@
     "no_settings": "No settings provided.",
     "no_server_dir": "Cannot determine server directory. Set working_dir or server_executable.",
     "settings_write_failed": "Failed to write settings file.",
-    "settings_not_found": "Settings file not found. Start the server once to generate it."
+    "settings_not_found": "Settings file not found. Start the server once to generate it.",
+    "unknown_command": "Unknown command: {{command}}",
+    "param_required": "The '{{param}}' argument is required.",
+    "auth_failed": "Authentication failed. Please check the REST API password.",
+    "http_error": "Server request failed (HTTP {{code}}): {{detail}}",
+    "connection_refused": "Cannot reach the server. Please make sure the server is running.",
+    "command_failed": "Failed to execute command: {{error}}",
+    "player_not_found": "Player '{{player}}' was not found online. Check the nickname or use a SteamID.",
+    "player_ambiguous": "Multiple players match '{{player}}': {{candidates}}. Please be more specific."
   },
   "messages": {
     "starting_server": "Starting server: {{command}}",
@@ -143,7 +338,7 @@
     "install_via_steamcmd": "Palworld dedicated server must be installed via SteamCMD.",
     "versions_via_steam": "Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Use SteamCMD to install or update.",
     "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update.",
-    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings \u2192 Extensions first."
+    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first."
   },
   "rcon": {
     "connecting": "Connecting to {{host}}:{{port}}...",
@@ -175,5 +370,17 @@
     "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
     "port_in_use": "Port {{port}} is already in use.",
     "port_in_use_hint": "Stop the other process using port {{port}} or change the port."
+  },
+  "cmd": {
+    "players_header": "🎮 Online players ({{count}}):",
+    "players_empty": "🎮 No players are currently online.",
+    "info": "🛠 {{name}} — {{version}}",
+    "metrics": "📊 FPS: {{fps}} | Players: {{current}}/{{max}} | Uptime: {{uptime}}",
+    "save_done": "💾 World saved.",
+    "announce_done": "📢 Announcement sent.",
+    "kick_done": "👢 Kicked {{player}}.",
+    "ban_done": "⛔ Banned {{player}}.",
+    "unban_done": "✅ Unbanned {{player}}.",
+    "shutdown_done": "🛑 Server will shut down in {{seconds}}s."
   }
 }

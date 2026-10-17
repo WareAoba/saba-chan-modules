@@ -1,100 +1,287 @@
 {
   "module": {
-    "display_name": "パルワールド",
+    "display_name": "Palworld",
     "description": "パルワールドサーバー管理モジュール"
   },
   "settings": {
-    "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },
-    "rcon_port": { "label": "RCONポート", "description": "RCONポート" },
-    "rcon_password": { "label": "RCONパスワード", "description": "リモートコマンド実行パスワード" },
-    "rcon_enabled": { "label": "RCON有効化", "description": "RCONリモートコマンド実行を有効化" },
-    "rest_host": { "label": "REST APIホスト", "description": "REST APIホスト（デフォルト127.0.0.1）" },
-    "rest_port": { "label": "REST APIポート", "description": "REST APIポート（デフォルト8212）" },
-    "rest_username": { "label": "RESTユーザー名", "description": "REST Basic Auth ユーザー名" },
-    "server_name": { "label": "サーバー名", "description": "サーバーブラウザに表示される名前" },
-    "server_description": { "label": "サーバー説明", "description": "サーバーの説明文" },
-    "server_password": { "label": "サーバーパスワード", "description": "サーバー参加に必要なパスワード" },
-    "admin_password": { "label": "管理者パスワード", "description": "管理者アクセスパスワード" },
-    "max_players": { "label": "最大プレイヤー数", "description": "最大プレイヤー数（1-32）" },
-    "coop_max_players": { "label": "Co-op最大プレイヤー数", "description": "Co-opパーティーの最大プレイヤー数" },
-    "public_ip": { "label": "パブリックIP", "description": "パブリックIPアドレス（空欄で自動）" },
-    "difficulty": { "label": "難易度", "description": "全体的なゲーム難易度" },
-    "is_pvp": { "label": "PvP", "description": "プレイヤー間の戦闘を有効化" },
-    "death_penalty": { "label": "デスペナルティ", "description": "プレイヤー死亡時のドロップ項目" },
-    "exp_rate": { "label": "経験値倍率", "description": "経験値獲得倍率（0.1-20.0）" },
-    "day_time_speed_rate": { "label": "昼間速度", "description": "昼間の持続時間倍率（0.1-5.0）" },
-    "night_time_speed_rate": { "label": "夜間速度", "description": "夜間の持続時間倍率（0.1-5.0）" },
-    "pal_capture_rate": { "label": "パル捕獲率", "description": "パル捕獲確率倍率（0.5-2.0）" },
-    "pal_spawn_num_rate": { "label": "パル出現数倍率", "description": "パルスポーン数倍率（0.5-3.0）" },
-    "pal_damage_rate_attack": { "label": "パル攻撃ダメージ", "description": "パル攻撃ダメージ倍率（0.1-5.0）" },
-    "pal_damage_rate_defense": { "label": "パル防御力", "description": "パル被ダメージ倍率（0.1-5.0）" },
-    "pal_stomach_decrease_rate": { "label": "パル空腹減少率", "description": "パル空腹減少倍率（0.1-5.0）" },
-    "pal_stamina_decrease_rate": { "label": "パルスタミナ減少率", "description": "パルスタミナ減少倍率（0.1-5.0）" },
-    "pal_auto_hp_regen_rate": { "label": "パルHP自動回復", "description": "パルHP自動回復倍率（0.1-5.0）" },
-    "pal_auto_hp_regen_rate_in_sleep": { "label": "パル睡眠中HP回復", "description": "パル睡眠中HP回復倍率（0.1-5.0）" },
-    "player_damage_rate_attack": { "label": "プレイヤー攻撃ダメージ", "description": "プレイヤー攻撃ダメージ倍率（0.1-5.0）" },
-    "player_damage_rate_defense": { "label": "プレイヤー防御力", "description": "プレイヤー被ダメージ倍率（0.1-5.0）" },
-    "player_stomach_decrease_rate": { "label": "プレイヤー空腹減少率", "description": "プレイヤー空腹減少倍率（0.1-5.0）" },
-    "player_stamina_decrease_rate": { "label": "プレイヤースタミナ減少率", "description": "プレイヤースタミナ減少倍率（0.1-5.0）" },
-    "player_auto_hp_regen_rate": { "label": "プレイヤーHP自動回復", "description": "プレイヤーHP自動回復倍率（0.1-5.0）" },
-    "player_auto_hp_regen_rate_in_sleep": { "label": "プレイヤー睡眠中HP回復", "description": "プレイヤー睡眠中HP回復倍率（0.1-5.0）" },
-    "build_object_damage_rate": { "label": "建造物ダメージ倍率", "description": "建造物に与えるダメージ倍率（0.5-3.0）" },
-    "build_object_deterioration_damage_rate": { "label": "建造物劣化速度", "description": "建造物の劣化/経年ダメージ倍率（0-10）" },
-    "drop_item_max_num": { "label": "最大ドロップアイテム数", "description": "ワールド内の最大ドロップアイテム数（0-3000）" },
-    "collection_drop_rate": { "label": "採取ドロップ率", "description": "採取アイテムドロップ倍率（0.5-3.0）" },
-    "collection_object_hp_rate": { "label": "採取オブジェクトHP", "description": "採取オブジェクトHP倍率（0.5-3.0）" },
-    "collection_object_respawn_speed_rate": { "label": "採取オブジェクトリスポーン速度", "description": "採取オブジェクトリスポーン速度倍率（0.5-3.0）" },
-    "enemy_drop_item_rate": { "label": "敵ドロップ率", "description": "敵アイテムドロップ倍率（0.5-3.0）" },
-    "pal_egg_default_hatching_time": { "label": "卵孵化時間", "description": "デフォルト卵孵化時間（時間、0-240）" },
-    "enable_invader_enemy": { "label": "拠点襲撃イベント", "description": "拠点襲撃イベントを有効化" },
-    "guild_player_max_num": { "label": "ギルド最大プレイヤー数", "description": "ギルドの最大プレイヤー数（1-100）" },
-    "enable_player_to_player_damage": { "label": "プレイヤー間ダメージ", "description": "プレイヤー間のダメージを許可" },
-    "enable_friendly_fire": { "label": "フレンドリーファイア", "description": "ギルドメンバー間のダメージを許可" },
-    "base_camp_worker_max_num": { "label": "拠点ワーカー最大数", "description": "拠点で作業可能な最大パル数（1-20）" },
-    "base_camp_max_num": { "label": "最大拠点数", "description": "建設可能な最大拠点数" },
-    "work_speed_rate": { "label": "作業速度倍率", "description": "作業速度倍率" }
+    "port": {
+      "label": "サーバーポート",
+      "description": "ゲームサーバーポート"
+    },
+    "rcon_port": {
+      "label": "RCONポート",
+      "description": "RCONポート"
+    },
+    "rcon_password": {
+      "label": "RCONパスワード",
+      "description": "リモートコマンド実行パスワード"
+    },
+    "rcon_enabled": {
+      "label": "RCON有効化",
+      "description": "RCONリモートコマンド実行を有効化"
+    },
+    "rest_host": {
+      "label": "REST APIホスト",
+      "description": "REST APIホスト（デフォルト127.0.0.1）"
+    },
+    "rest_port": {
+      "label": "REST APIポート",
+      "description": "REST APIポート（デフォルト8212）"
+    },
+    "rest_username": {
+      "label": "RESTユーザー名",
+      "description": "REST Basic Auth ユーザー名"
+    },
+    "server_name": {
+      "label": "サーバー名",
+      "description": "サーバーブラウザに表示される名前"
+    },
+    "server_description": {
+      "label": "サーバー説明",
+      "description": "サーバーの説明文"
+    },
+    "server_password": {
+      "label": "サーバーパスワード",
+      "description": "サーバー参加に必要なパスワード"
+    },
+    "admin_password": {
+      "label": "管理者パスワード",
+      "description": "管理者アクセスパスワード"
+    },
+    "max_players": {
+      "label": "最大プレイヤー数",
+      "description": "最大プレイヤー数（1-32）"
+    },
+    "coop_max_players": {
+      "label": "Co-op最大プレイヤー数",
+      "description": "Co-opパーティーの最大プレイヤー数"
+    },
+    "public_ip": {
+      "label": "パブリックIP",
+      "description": "パブリックIPアドレス（空欄で自動）"
+    },
+    "difficulty": {
+      "label": "難易度",
+      "description": "全体的なゲーム難易度"
+    },
+    "is_pvp": {
+      "label": "PvP",
+      "description": "プレイヤー間の戦闘を有効化"
+    },
+    "death_penalty": {
+      "label": "デスペナルティ",
+      "description": "プレイヤー死亡時のドロップ項目"
+    },
+    "exp_rate": {
+      "label": "経験値倍率",
+      "description": "経験値獲得倍率（0.1-20.0）"
+    },
+    "day_time_speed_rate": {
+      "label": "昼間速度",
+      "description": "昼間の持続時間倍率（0.1-5.0）"
+    },
+    "night_time_speed_rate": {
+      "label": "夜間速度",
+      "description": "夜間の持続時間倍率（0.1-5.0）"
+    },
+    "pal_capture_rate": {
+      "label": "パル捕獲率",
+      "description": "パル捕獲確率倍率（0.5-2.0）"
+    },
+    "pal_spawn_num_rate": {
+      "label": "パル出現数倍率",
+      "description": "パルスポーン数倍率（0.5-3.0）"
+    },
+    "pal_damage_rate_attack": {
+      "label": "パル攻撃ダメージ",
+      "description": "パル攻撃ダメージ倍率（0.1-5.0）"
+    },
+    "pal_damage_rate_defense": {
+      "label": "パル防御力",
+      "description": "パル被ダメージ倍率（0.1-5.0）"
+    },
+    "pal_stomach_decrease_rate": {
+      "label": "パル空腹減少率",
+      "description": "パル空腹減少倍率（0.1-5.0）"
+    },
+    "pal_stamina_decrease_rate": {
+      "label": "パルスタミナ減少率",
+      "description": "パルスタミナ減少倍率（0.1-5.0）"
+    },
+    "pal_auto_hp_regen_rate": {
+      "label": "パルHP自動回復",
+      "description": "パルHP自動回復倍率（0.1-5.0）"
+    },
+    "pal_auto_hp_regen_rate_in_sleep": {
+      "label": "パル睡眠中HP回復",
+      "description": "パル睡眠中HP回復倍率（0.1-5.0）"
+    },
+    "player_damage_rate_attack": {
+      "label": "プレイヤー攻撃ダメージ",
+      "description": "プレイヤー攻撃ダメージ倍率（0.1-5.0）"
+    },
+    "player_damage_rate_defense": {
+      "label": "プレイヤー防御力",
+      "description": "プレイヤー被ダメージ倍率（0.1-5.0）"
+    },
+    "player_stomach_decrease_rate": {
+      "label": "プレイヤー空腹減少率",
+      "description": "プレイヤー空腹減少倍率（0.1-5.0）"
+    },
+    "player_stamina_decrease_rate": {
+      "label": "プレイヤースタミナ減少率",
+      "description": "プレイヤースタミナ減少倍率（0.1-5.0）"
+    },
+    "player_auto_hp_regen_rate": {
+      "label": "プレイヤーHP自動回復",
+      "description": "プレイヤーHP自動回復倍率（0.1-5.0）"
+    },
+    "player_auto_hp_regen_rate_in_sleep": {
+      "label": "プレイヤー睡眠中HP回復",
+      "description": "プレイヤー睡眠中HP回復倍率（0.1-5.0）"
+    },
+    "build_object_damage_rate": {
+      "label": "建造物ダメージ倍率",
+      "description": "建造物に与えるダメージ倍率（0.5-3.0）"
+    },
+    "build_object_deterioration_damage_rate": {
+      "label": "建造物劣化速度",
+      "description": "建造物の劣化/経年ダメージ倍率（0-10）"
+    },
+    "drop_item_max_num": {
+      "label": "最大ドロップアイテム数",
+      "description": "ワールド内の最大ドロップアイテム数（0-3000）"
+    },
+    "collection_drop_rate": {
+      "label": "採取ドロップ率",
+      "description": "採取アイテムドロップ倍率（0.5-3.0）"
+    },
+    "collection_object_hp_rate": {
+      "label": "採取オブジェクトHP",
+      "description": "採取オブジェクトHP倍率（0.5-3.0）"
+    },
+    "collection_object_respawn_speed_rate": {
+      "label": "採取オブジェクトリスポーン速度",
+      "description": "採取オブジェクトリスポーン速度倍率（0.5-3.0）"
+    },
+    "enemy_drop_item_rate": {
+      "label": "敵ドロップ率",
+      "description": "敵アイテムドロップ倍率（0.5-3.0）"
+    },
+    "pal_egg_default_hatching_time": {
+      "label": "卵孵化時間",
+      "description": "デフォルト卵孵化時間（時間、0-240）"
+    },
+    "enable_invader_enemy": {
+      "label": "拠点襲撃イベント",
+      "description": "拠点襲撃イベントを有効化"
+    },
+    "guild_player_max_num": {
+      "label": "ギルド最大プレイヤー数",
+      "description": "ギルドの最大プレイヤー数（1-100）"
+    },
+    "enable_player_to_player_damage": {
+      "label": "プレイヤー間ダメージ",
+      "description": "プレイヤー間のダメージを許可"
+    },
+    "enable_friendly_fire": {
+      "label": "フレンドリーファイア",
+      "description": "ギルドメンバー間のダメージを許可"
+    },
+    "base_camp_worker_max_num": {
+      "label": "拠点ワーカー最大数",
+      "description": "拠点で作業可能な最大パル数（1-20）"
+    },
+    "base_camp_max_num": {
+      "label": "最大拠点数",
+      "description": "建設可能な最大拠点数"
+    },
+    "work_speed_rate": {
+      "label": "作業速度倍率",
+      "description": "作業速度倍率"
+    }
   },
   "commands": {
     "announce": {
       "label": "お知らせ送信",
       "description": "サーバーにメッセージをブロードキャスト",
       "inputs": {
-        "message": { "label": "お知らせメッセージ", "placeholder": "お知らせ内容を入力" }
+        "message": {
+          "label": "お知らせメッセージ",
+          "placeholder": "お知らせ内容を入力"
+        }
       }
     },
-    "info": { "label": "サーバー情報", "description": "サーバー情報を表示" },
-    "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧" },
-    "save": { "label": "ワールド保存", "description": "ゲームワールドを保存" },
+    "info": {
+      "label": "サーバー情報",
+      "description": "サーバー情報を表示"
+    },
+    "players": {
+      "label": "プレイヤー一覧",
+      "description": "接続中のプレイヤー一覧"
+    },
+    "save": {
+      "label": "ワールド保存",
+      "description": "ゲームワールドを保存"
+    },
     "shutdown": {
       "label": "サーバーシャットダウン",
       "description": "サーバーをシャットダウン（遅延設定可能）",
       "inputs": {
-        "waittime": { "label": "シャットダウン遅延（秒）" },
-        "message": { "label": "シャットダウンメッセージ", "placeholder": "サーバーシャットダウンのお知らせ" }
+        "waittime": {
+          "label": "シャットダウン遅延（秒）"
+        },
+        "message": {
+          "label": "シャットダウンメッセージ",
+          "placeholder": "サーバーシャットダウンのお知らせ"
+        }
       }
     },
     "kick": {
       "label": "プレイヤーキック",
       "description": "プレイヤーをサーバーから退出させる",
       "inputs": {
-        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" },
-        "message": { "label": "キックメッセージ", "placeholder": "任意：キックメッセージ" }
+        "userid": {
+          "label": "プレイヤー（ニックネームまたはSteamID）",
+          "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx"
+        },
+        "message": {
+          "label": "キックメッセージ",
+          "placeholder": "任意：キックメッセージ"
+        }
       }
     },
     "ban": {
       "label": "プレイヤーBAN",
       "description": "プレイヤーを永久BAN",
       "inputs": {
-        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" },
-        "message": { "label": "BANメッセージ", "placeholder": "任意：BANメッセージ" }
+        "userid": {
+          "label": "プレイヤー（ニックネームまたはSteamID）",
+          "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx"
+        },
+        "message": {
+          "label": "BANメッセージ",
+          "placeholder": "任意：BANメッセージ"
+        }
       }
     },
     "unban": {
       "label": "プレイヤーBAN解除",
       "description": "BANされたプレイヤーを解除",
       "inputs": {
-        "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" }
+        "userid": {
+          "label": "プレイヤー（ニックネームまたはSteamID）",
+          "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx"
+        }
       }
+    },
+    "metrics": {
+      "label": "サーバー指標",
+      "description": "サーバーFPS、プレイヤー数、稼働時間を表示"
+    },
+    "settings": {
+      "label": "設定を表示",
+      "description": "現在のサーバー設定を表示"
     }
   },
   "errors": {
@@ -116,7 +303,15 @@
     "no_settings": "設定が指定されていません。",
     "no_server_dir": "サーバーディレクトリを特定できません。working_dir または server_executable を設定してください。",
     "settings_write_failed": "設定ファイルの書き込みに失敗しました。",
-    "settings_not_found": "設定ファイルが見つかりません。一度サーバーを起動して生成してください。"
+    "settings_not_found": "設定ファイルが見つかりません。一度サーバーを起動して生成してください。",
+    "unknown_command": "不明なコマンドです: {{command}}",
+    "param_required": "'{{param}}' 引数が必要です。",
+    "auth_failed": "認証に失敗しました。REST APIパスワードを確認してください。",
+    "http_error": "サーバーリクエストに失敗しました (HTTP {{code}}): {{detail}}",
+    "connection_refused": "サーバーに接続できません。サーバーが起動しているか確認してください。",
+    "command_failed": "コマンドの実行に失敗しました: {{error}}",
+    "player_not_found": "プレイヤー '{{player}}' が見つかりません。ニックネームまたはSteamIDを確認してください。",
+    "player_ambiguous": "'{{player}}' に一致するプレイヤーが複数います: {{candidates}}。より正確に入力してください。"
   },
   "messages": {
     "starting_server": "サーバーを起動しています: {{command}}",
@@ -175,5 +370,17 @@
     "cannot_create_dir_hint": "フォルダの権限を確認するか、別のパスを選択してください。",
     "port_in_use": "ポート {{port}} は既に使用中です。",
     "port_in_use_hint": "ポート {{port}} を使用している他のプロセスを停止するか、ポートを変更してください。"
+  },
+  "cmd": {
+    "players_header": "🎮 接続中のプレイヤー ({{count}}人):",
+    "players_empty": "🎮 現在接続中のプレイヤーはいません。",
+    "info": "🛠 {{name}} — {{version}}",
+    "metrics": "📊 FPS: {{fps}} | プレイヤー: {{current}}/{{max}} | 稼働時間: {{uptime}}",
+    "save_done": "💾 ワールドを保存しました。",
+    "announce_done": "📢 アナウンスを送信しました。",
+    "kick_done": "👢 {{player}} をキックしました。",
+    "ban_done": "⛔ {{player}} をBANしました。",
+    "unban_done": "✅ {{player}} のBANを解除しました。",
+    "shutdown_done": "🛑 {{seconds}}秒後にサーバーを停止します。"
   }
 }

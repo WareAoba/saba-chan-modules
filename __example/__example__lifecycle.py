@@ -92,13 +92,20 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # daemon_rcon.py, i18n.py는 saba-chan 본체(modules/)에 있습니다.
 # 데몬이 실행 시 PYTHONPATH로 해당 경로를 자동 주입하므로,
 # 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
-from daemon_rcon import rcon_command as _rcon_command_bridge
+from daemon_rcon import rcon_command as _rcon_command_bridge, daemon_url
+
+# 표준 RCON 래퍼 — 모든 모듈에서 동일한 시그니처로 사용한다.
+# 새 모듈을 작성할 때 이 래퍼를 그대로 복사해 사용할 것.
+def _rcon_command(host, port, password, command, timeout=5):
+    """Standard RCON wrapper — delegates to the daemon's RCON bridge."""
+    return _rcon_command_bridge(host, port, password, command, timeout)
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
 
-# 데몬 API 엔드포인트 (환경 변수로 주입됨)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
+# 데몬 API 엔드포인트 — `daemon_rcon.daemon_url()`이 SSOT.
+# 모듈마다 리터럴 `'http://127.0.0.1:57474'`를 하드코딩하지 말 것.
+DAEMON_API_URL = daemon_url()
 
 
 # ═══════════════════════════════════════════════════════════════════

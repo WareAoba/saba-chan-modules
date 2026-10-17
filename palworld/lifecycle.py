@@ -6,136 +6,25 @@ Always outputs JSON to stdout, logs to stderr.
 
 import sys
 import json
-import subprocess
 import os
 import socket
-import struct
-import time
-import random
 import base64
 import urllib.request
 import urllib.error
-import urllib.parse
 from i18n import I18n
 
-# PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+# 데몬 통신·프로세스 제어·CLI는 공용 런타임(daemon_rcon)을 사용한다.
+from daemon_rcon import (
+    coerce_setting,
+    daemon_rcon_command,
+    force_kill,
+    is_process_alive,
+    load_setting_types,
+    run_lifecycle,
+)
 
-# RCON communication delegates to the Rust daemon's HTTP API
-from daemon_rcon import DaemonRconClient as RconClient
-# UE4 INI parser (shared extension)
-from extensions.ue4_ini import parse_option_settings, write_option_settings
-
-# Initialize i18n
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
-
-# Daemon API endpoint (localhost by default)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
-
-class PalworldRconClient:
-    """Palworld RCON client — delegates to Rust daemon's RCON API."""
-    
-    def __init__(self, host='127.0.0.1', port=25575, password='', instance_id=None):
-        self._instance_id = instance_id
-        self._client = RconClient(instance_id or '', host, int(port), password)
-    
-    def connect(self):
-        """Connect to RCON server"""
-        print(f"[RCON] {i18n.t('rcon.connecting', host=self._client.host, port=self._client.port)}", file=sys.stderr)
-        result = self._client.connect()
-        if result:
-            print(f"[RCON] {i18n.t('rcon.authenticated')}", file=sys.stderr)
-        else:
-            print(f"[RCON] {i18n.t('rcon.connection_failed', error='see above')}", file=sys.stderr)
-        return result
-    
-    def disconnect(self):
-        """Disconnect from RCON server"""
-        self._client.disconnect()
-    
-    def send_command(self, command):
-        """Send a command to the server"""
-        try:
-            if not self._client.socket:
-                if not self.connect():
-                    return None
-            print(f"[RCON] {i18n.t('rcon.sending_command', command=command)}", file=sys.stderr)
-            response = self._client.command(command)
-            print(f"[RCON] {i18n.t('rcon.response_received', response=response[:100] if response else 'None')}", file=sys.stderr)
-            return response
-        except Exception as e:
-            print(f"[RCON] {i18n.t('rcon.command_failed', error=str(e))}", file=sys.stderr)
-            return None
-
-
-class PalworldRestClient:
-    """Minimal REST client for Palworld built-in REST API."""
-
-    def __init__(self, host='127.0.0.1', port=8212, username='', password='', timeout=5):
-        self.base_url = f"http://{host}:{port}/v1/api"
-        self.auth_header = self._build_auth(username, password) if username or password else None
-        self.timeout = timeout
-
-    def _build_auth(self, username, password):
-        token = base64.b64encode(f"{username}:{password}".encode('utf-8')).decode('utf-8')
-        return f"Basic {token}"
-
-    def _request(self, method, path, payload=None):
-        url = f"{self.base_url}{path}"
-        headers = {"Accept": "application/json"}
-        if self.auth_header:
-            headers["Authorization"] = self.auth_header
-
-        data = None
-        if payload is not None:
-            data = json.dumps(payload).encode('utf-8')
-            headers["Content-Type"] = "application/json"
-
-        req = urllib.request.Request(url, data=data, headers=headers, method=method)
-        print(f"[REST] {method} {url} payload={payload}", file=sys.stderr)
-
-        try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                body = resp.read().decode('utf-8', errors='ignore')
-                if not body:
-                    return None
-                try:
-                    return json.loads(body)
-                except json.JSONDecodeError:
-                    return body
-        except urllib.error.HTTPError as e:
-            error_body = e.read().decode('utf-8', errors='ignore') if hasattr(e, 'read') else ''
-            raise RuntimeError(f"HTTP {e.code} {e.reason}: {error_body}")
-        except Exception as e:
-            raise RuntimeError(str(e))
-
-    def announce(self, message):
-        return self._request("POST", "/announce", {"message": message})
-
-    def info(self):
-        return self._request("GET", "/info")
-
-    def players(self):
-        return self._request("GET", "/players")
-
-    def metrics(self):
-        return self._request("GET", "/metrics")
-
-    def kick(self, userid, message=None):
-        payload = {"userid": userid}
-        if message:
-            payload["message"] = message
-        return self._request("POST", "/kick", payload)
-
-    def ban(self, userid, message=None):
-        payload = {"userid": userid}
-        if message:
-            payload["message"] = message
-        return self._request("POST", "/ban", payload)
-
-    def unban(self, userid):
-        return self._request("POST", "/unban", {"userid": userid})
 
 
 def resolve_player_id(instance_id, player_input, config):
@@ -214,88 +103,16 @@ def resolve_player_id(instance_id, player_input, config):
                 return (True, userid)
             elif len(partial_matches) > 1:
                 names = [m[0] for m in partial_matches]
-                return (False, f"Multiple players match '{player_input}': {', '.join(names)}. Please be more specific.")
-            
-            return (False, f"Player '{player_input}' not found online. Please check the name or use SteamID directly.")
-    
+                return (False, i18n.t("errors.player_ambiguous", player=player_input, candidates=", ".join(names)))
+
+            return (False, i18n.t("errors.player_not_found", player=player_input))
+
     except urllib.error.URLError as e:
         print(f"[Palworld] Failed to fetch player list: {e}", file=sys.stderr)
-        return (False, f"Failed to connect to server: {str(e)}")
+        return (False, i18n.t("errors.connection_refused"))
     except Exception as e:
         print(f"[Palworld] Error resolving player: {e}", file=sys.stderr)
-        return (False, f"Error resolving player: {str(e)}")
-
-
-def start(config):
-    """Start Palworld server"""
-    try:
-        executable = config.get("server_executable")
-        if not executable:
-            return {
-                "success": False,
-                "message": i18n.t("errors.no_executable")
-            }
-        
-        # Check if executable exists
-        if not os.path.exists(executable):
-            return {
-                "success": False,
-                "message": i18n.t("errors.executable_not_found", path=executable)
-            }
-        
-        port = config.get("port", 8211)
-        working_dir = config.get("working_dir")
-        
-        # Use working directory if specified, otherwise use executable's directory
-        if not working_dir:
-            working_dir = os.path.dirname(executable)
-        
-        # Construct command
-        cmd = [
-            executable,
-            f"--port={port}"
-        ]
-        
-        # Log for debugging (to stderr)
-        print(i18n.t('messages.starting_server', command=' '.join(cmd)), file=sys.stderr)
-        print(i18n.t('messages.working_directory', path=working_dir), file=sys.stderr)
-        
-        # Enforce REST-only policy before launch
-        _enforce_rest_policy(working_dir, config)
-        
-        # Start process (detached, cross-platform)
-        if sys.platform == 'win32':
-            creationflags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(
-                cmd,
-                cwd=working_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                creationflags=creationflags
-            )
-        else:
-            # Unix/Linux/macOS: Use start_new_session for detached process
-            proc = subprocess.Popen(
-                cmd,
-                cwd=working_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                start_new_session=True
-            )
-        
-        return {
-            "success": True,
-            "pid": proc.pid,
-            "message": i18n.t('messages.server_starting', pid=proc.pid)
-        }
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error details: {error_details}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t('errors.failed_to_start', error=str(e))
-        }
+        return (False, i18n.t("errors.command_failed", error=str(e)))
 
 
 def _read_admin_password_from_ini(config):
@@ -441,8 +258,7 @@ def stop(config):
         
         # Extract executable name from path (e.g., "D:\\path\\PalServer.exe" -> "PalServer.exe")
         exe_name = os.path.basename(executable)
-        force = config.get("force", False)
-        
+
         if sys.platform == 'win32':
             # Windows: Always use /F /T for forceful termination with tree kill
             # /F = force kill, /T = terminate child processes
@@ -641,7 +457,7 @@ DEFAULT_PALWORLD_SETTINGS = {
     "CollectionObjectHpRate": "1.000000",
     "CollectionObjectRespawnSpeedRate": "1.000000",
     "EnemyDropItemRate": "1.000000",
-    "DeathPenalty": "All",
+    "DeathPenalty": "Item",
     "bEnablePlayerToPlayerDamage": "False",
     "bEnableFriendlyFire": "False",
     "bEnableInvaderEnemy": "True",
@@ -657,7 +473,7 @@ DEFAULT_PALWORLD_SETTINGS = {
     "AutoResetGuildTimeNoOnlinePlayers": "72.000000",
     "GuildPlayerMaxNum": "20",
     "BaseCampMaxNumInGuild": "4",
-    "PalEggDefaultHatchingTime": "72.000000",
+    "PalEggDefaultHatchingTime": "1.000000",
     "WorkSpeedRate": "1.000000",
     "AutoSaveSpan": "30.000000",
     "bIsMultiplay": "False",
@@ -669,7 +485,7 @@ DEFAULT_PALWORLD_SETTINGS = {
     "bEnableNonLoginPenalty": "True",
     "bEnableFastTravel": "True",
     "bEnableFastTravelOnlyBaseCamp": "False",
-    "bIsStartLocationSelectByMap": "True",
+    "bIsStartLocationSelectByMap": "False",
     "bExistPlayerAfterLogout": "False",
     "bEnableDefenseOtherGuildPlayer": "False",
     "bInvisibleOtherGuildBaseCampAreaFX": "False",
@@ -688,7 +504,7 @@ DEFAULT_PALWORLD_SETTINGS = {
     "RCONPort": "25575",
     "Region": "",
     "bUseAuth": "True",
-    "BanListURL": "https://api.palworldgame.com/api/banlist.txt",
+    "BanListURL": "https://b.palworldgame.com/api/banlist.txt",
     "RESTAPIEnabled": "False",
     "RESTAPIPort": "8212",
     "bShowPlayerList": "False",
@@ -721,6 +537,17 @@ DEFAULT_PALWORLD_SETTINGS = {
     "bAllowEnhanceStat_Stamina": "True",
     "bAllowEnhanceStat_Weight": "True",
     "bAllowEnhanceStat_WorkSpeed": "True",
+    "PhysicsActiveDropItemMaxNum": "-1",
+    "PlayerDataPalStorageUpdateCheckTickInterval": "1.000000",
+    "MonsterFarmActionSpeedRate": "1.000000",
+    "AutoTransferMasterCheckIntervalSeconds": "3600.000000",
+    "AutoTransferMasterThresholdDays": "14",
+    "MaxGuildsPerFrame": "10",
+    "bEnableVoiceChat": "False",
+    "VoiceChatMaxVolumeDistance": "3000.000000",
+    "VoiceChatZeroVolumeDistance": "15000.000000",
+    "bEnableBuildingPlayerUIdDisplay": "False",
+    "BuildingNameDisplayCacheTTLSeconds": "60",
 }
 
 # saba-chan key → PalWorldSettings.ini key (full mapping)
@@ -853,6 +680,18 @@ _PALWORLD_KEY_MAP = {
     "allow_enhance_stat_weight": "bAllowEnhanceStat_Weight",
     "allow_enhance_stat_work_speed": "bAllowEnhanceStat_WorkSpeed",
     "item_container_force_mark_dirty_interval": "ItemContainerForceMarkDirtyInterval",
+    # 2026-07 업데이트로 추가된 옵션
+    "physics_active_drop_item_max_num": "PhysicsActiveDropItemMaxNum",
+    "player_data_pal_storage_update_check_tick_interval": "PlayerDataPalStorageUpdateCheckTickInterval",
+    "monster_farm_action_speed_rate": "MonsterFarmActionSpeedRate",
+    "auto_transfer_master_check_interval_seconds": "AutoTransferMasterCheckIntervalSeconds",
+    "auto_transfer_master_threshold_days": "AutoTransferMasterThresholdDays",
+    "max_guilds_per_frame": "MaxGuildsPerFrame",
+    "enable_voice_chat": "bEnableVoiceChat",
+    "voice_chat_max_volume_distance": "VoiceChatMaxVolumeDistance",
+    "voice_chat_zero_volume_distance": "VoiceChatZeroVolumeDistance",
+    "enable_building_player_uid_display": "bEnableBuildingPlayerUIdDisplay",
+    "building_name_display_cache_ttl_seconds": "BuildingNameDisplayCacheTTLSeconds",
 }
 
 def _get_settings_ini_path(config):
@@ -1377,7 +1216,7 @@ def command(config):
         print(f"Error details: {error_details}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Failed to execute command: {str(e)}"
+            "message": i18n.t("errors.command_failed", error=str(e))
         }
 
 
@@ -1390,30 +1229,30 @@ def execute_command_via_rest(instance_id, command_lower, args, config):
     if command_lower == "announce":
         message = args.get("message", "")
         if not message:
-            return {"success": False, "message": "Message parameter required"}
+            return {"success": False, "message": i18n.t("errors.param_required", param="message")}
         endpoint = "/v1/api/announce"
         body = {"message": message}
-    
+
     elif command_lower == "kick":
         userid = args.get("userid")
         if not userid:
-            return {"success": False, "message": "userid is required"}
+            return {"success": False, "message": i18n.t("errors.param_required", param="userid")}
         message = args.get("message", "Kicked from server")
         endpoint = "/v1/api/kick"
         body = {"userid": userid, "message": message}
-    
+
     elif command_lower == "ban":
         userid = args.get("userid")
         if not userid:
-            return {"success": False, "message": "userid is required"}
+            return {"success": False, "message": i18n.t("errors.param_required", param="userid")}
         message = args.get("message", "Banned from server")
         endpoint = "/v1/api/ban"
         body = {"userid": userid, "message": message}
-    
+
     elif command_lower == "unban":
         userid = args.get("userid")
         if not userid:
-            return {"success": False, "message": "userid is required"}
+            return {"success": False, "message": i18n.t("errors.param_required", param="userid")}
         endpoint = "/v1/api/unban"
         body = {"userid": userid}
     
@@ -1444,10 +1283,88 @@ def execute_command_via_rest(instance_id, command_lower, args, config):
         body = {"waittime": waittime, "message": message}
     
     else:
-        return {"success": False, "message": f"Unknown REST command: {command_lower}"}
+        return {"success": False, "message": i18n.t("errors.unknown_command", command=command_lower)}
     
     # 직접 Palworld 서버에 요청 (Daemon을 거치지 않음 - 데드락 방지)
     return execute_rest_direct(endpoint, body, method, command_lower, config)
+
+
+def _format_uptime(seconds):
+    """초 단위 uptime을 'Xh Ym' 형태로 표기한다."""
+    try:
+        total = int(seconds)
+    except (TypeError, ValueError):
+        return str(seconds)
+    hours, rem = divmod(total, 3600)
+    minutes = rem // 60
+    if hours > 0:
+        return f"{hours}h {minutes}m"
+    return f"{minutes}m"
+
+
+def format_command_message(command_text, result, body=None):
+    """명령 결과를 디스코드에 표시할 사람이 읽을 메시지로 포매팅한다.
+
+    구(舊) 디스코드 봇은 구조화 데이터를 직접 포매팅했지만, 릴레이 경로에서는
+    모듈이 `message`를 제공해야 사용자에게 의미 있는 응답이 도달한다.
+    포매팅할 수 없는 명령(settings 등)은 None을 반환해 데몬의 범용
+    data 포매터에 위임한다. 문구는 모듈 i18n(SABA_LANG)으로 현지화된다.
+    """
+    body = body or {}
+
+    if command_text == "players":
+        players = result.get("players", []) if isinstance(result, dict) else []
+        if not players:
+            return i18n.t("cmd.players_empty")
+        lines = [i18n.t("cmd.players_header", count=len(players))]
+        for p in players:
+            name = p.get("name") or p.get("playerId") or "?"
+            level = p.get("level")
+            lines.append(f"• {name}" + (f" (Lv.{level})" if level is not None else ""))
+        return "\n".join(lines)
+
+    if command_text == "info":
+        if not isinstance(result, dict) or not result:
+            return None
+        name = result.get("servername", "?")
+        version = result.get("version", "?")
+        desc = result.get("description") or ""
+        msg = i18n.t("cmd.info", name=name, version=version)
+        if desc:
+            msg += f"\n{desc}"
+        return msg
+
+    if command_text == "metrics":
+        if not isinstance(result, dict) or not result:
+            return None
+        return i18n.t(
+            "cmd.metrics",
+            fps=result.get("serverfps", "?"),
+            current=result.get("currentplayernum", "?"),
+            max=result.get("maxplayernum", "?"),
+            uptime=_format_uptime(result.get("uptime", 0)),
+        )
+
+    if command_text == "save":
+        return i18n.t("cmd.save_done")
+
+    if command_text == "announce":
+        return i18n.t("cmd.announce_done")
+
+    if command_text == "kick":
+        return i18n.t("cmd.kick_done", player=body.get("userid", "?"))
+
+    if command_text == "ban":
+        return i18n.t("cmd.ban_done", player=body.get("userid", "?"))
+
+    if command_text == "unban":
+        return i18n.t("cmd.unban_done", player=body.get("userid", "?"))
+
+    if command_text == "shutdown":
+        return i18n.t("cmd.shutdown_done", seconds=(body.get("waittime", 30)))
+
+    # settings 등 그 외 명령: None → 데몬이 data를 범용 포매팅
+    return None
 
 
 def execute_rest_direct(endpoint, body, method, command_text, config):
@@ -1488,32 +1405,39 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
                 result = json.loads(response_text) if response_text else {}
             except json.JSONDecodeError:
                 result = {"raw": response_text}
-            
-            return {
+
+            # 사람이 읽을 메시지 구성 — 포매팅 불가 명령은 message를 생략해
+            # 데몬의 범용 data 포매터가 처리하게 한다.
+            reply = {
                 "success": True,
-                "message": f"REST command '{command_text}' executed successfully",
                 "data": result,
                 "protocol": "rest"
             }
+            message = format_command_message(command_text, result, body)
+            if message:
+                reply["message"] = message
+            return reply
     
     except urllib.error.HTTPError as e:
         error_body = e.read().decode('utf-8') if e.fp else str(e)
         print(f"[Palworld] HTTP Error {e.code}: {error_body}", file=sys.stderr)
+        if e.code == 401:
+            return {"success": False, "message": i18n.t("errors.auth_failed")}
         return {
             "success": False,
-            "message": f"HTTP Error {e.code}: {error_body}"
+            "message": i18n.t("errors.http_error", code=e.code, detail=error_body)
         }
     except urllib.error.URLError as e:
         print(f"[Palworld] Connection error: {e}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Failed to connect to Palworld server: {str(e)}"
+            "message": i18n.t("errors.connection_refused")
         }
     except Exception as e:
         print(f"[Palworld] Error: {e}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Failed to execute REST command: {str(e)}"
+            "message": i18n.t("errors.command_failed", error=str(e))
         }
 
 
@@ -1535,7 +1459,7 @@ def execute_command_via_rcon(instance_id, command_lower, args, config):
     if command_lower not in rcon_templates:
         return {
             "success": False,
-            "message": f"Command '{command_lower}' is not available via RCON. Try using REST mode."
+            "message": i18n.t("errors.unknown_command", command=command_lower)
         }
     
     # 템플릿에서 RCON 명령어 생성
@@ -1554,55 +1478,6 @@ def execute_command_via_rcon(instance_id, command_lower, args, config):
     print(f"[Palworld] RCON command: {rcon_cmd}", file=sys.stderr)
     
     return execute_rcon_via_daemon(instance_id, rcon_cmd)
-
-
-def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
-    """Execute REST API command via daemon"""
-    api_url = f"{DAEMON_API_URL}/api/instance/{instance_id}/rest"
-    
-    payload = json.dumps({
-        "endpoint": endpoint,
-        "method": "POST" if body else "GET",
-        "body": body
-    }).encode('utf-8')
-    
-    try:
-        req = urllib.request.Request(
-            api_url,
-            data=payload,
-            headers={'Content-Type': 'application/json'},
-            method='POST'
-        )
-        
-        with urllib.request.urlopen(req, timeout=5) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            print(f"[Palworld] Daemon REST response: {result}", file=sys.stderr)
-            
-            return {
-                "success": result.get("success", True),
-                "message": f"REST API command executed: {command_text}",
-                "data": result.get("data"),
-                "protocol": "rest"
-            }
-    
-    except urllib.error.URLError as e:
-        print(f"[Palworld] Daemon connection error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Failed to connect to daemon: {str(e)}"
-        }
-    except json.JSONDecodeError as e:
-        print(f"[Palworld] Invalid JSON response from daemon: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Invalid daemon response: {str(e)}"
-        }
-    except Exception as e:
-        print(f"[Palworld] Daemon error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Failed to execute via daemon: {str(e)}"
-        }
 
 
 def execute_rcon_via_daemon(instance_id, rcon_cmd):
@@ -1624,13 +1499,20 @@ def execute_rcon_via_daemon(instance_id, rcon_cmd):
         with urllib.request.urlopen(req, timeout=10) as response:
             result = json.loads(response.read().decode('utf-8'))
             print(f"[Palworld] Daemon RCON response: {result}", file=sys.stderr)
-            
-            return {
+
+            # RCON 응답 텍스트가 있으면 그대로 사용자에게 보여준다
+            # (ShowPlayers의 플레이어 목록 등). 없으면 message를 생략해
+            # 데몬의 범용 data 포매터에 위임한다.
+            data = result.get("data")
+            reply = {
                 "success": result.get("success", True),
-                "message": f"RCON command executed: {rcon_cmd}",
-                "data": result.get("data"),
+                "data": data,
                 "protocol": "rcon"
             }
+            response_text = (data or {}).get("response") if isinstance(data, dict) else None
+            if isinstance(response_text, str) and response_text.strip():
+                reply["message"] = response_text.strip()
+            return reply
     
     except urllib.error.URLError as e:
         print(f"[Palworld] Daemon RCON connection error: {e}", file=sys.stderr)

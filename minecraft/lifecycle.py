@@ -27,22 +27,28 @@ import zipfile
 from pathlib import Path
 from i18n import I18n
 
-# RCON communication delegates to the Rust daemon's HTTP API
-from daemon_rcon import rcon_command as _rcon_command_bridge
-
-def _rcon_command(host, port, password, command, timeout=5):
-    """RCON via daemon API if instance_id available, else direct fallback."""
-    return _rcon_command_bridge(host, port, password, command, timeout)
+# 데몬 통신·프로세스 제어·CLI는 공용 런타임(daemon_rcon)을 사용한다.
+from daemon_rcon import (
+    coerce_setting,
+    config_value,
+    daemon_rcon_command,
+    force_kill,
+    is_process_alive,
+    load_setting_types,
+    rcon_command,
+    run_lifecycle,
+    wait_for_exit,
+)
 
 # ─── Init ─────────────────────────────────────────────────────
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
 
 # ─── Friendly name → server.properties key mapping ───────────
-# Used by configure() and install_server() to translate settings.
-_PROPERTY_KEY_MAP = {
+# saba-chan 내부 키 → 게임 설정 파일 키 매핑. 이름은 `_KEY_MAP`으로 통일
+# (template/__example과 동일) — 모듈마다 다른 이름 쓰지 말 것.
+_KEY_MAP = {
     "accepts_transfers": "accepts-transfers",
     "allow_flight": "allow-flight",
     "allow_nether": "allow-nether",
@@ -114,6 +120,35 @@ _PROPERTY_KEY_MAP = {
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                    Java Detection                         ║
 # ╚═══════════════════════════════════════════════════════════╝
+
+def required_java(mc_version):
+    """Minecraft 버전에 필요한 최소 Java 주 버전.
+
+    서버 jar의 version.json(java_version)이 있으면 그 값을 우선 사용하고,
+    이 함수는 메타데이터가 없을 때의 폴백이다.
+      1.20.5+ / 1.21+ / 스냅샷(24w14a 등) / 연도 기반(26.1 등) → 21
+      1.18 ~ 1.20.4 → 17, 1.17 → 16, 그 이전 → 8, 알 수 없음 → 17
+    """
+    if not mc_version:
+        return 17
+    text = str(mc_version).strip()
+    if re.match(r"^\d{2}w\d{2}[a-z]$", text):
+        return 21
+    numbers = [int(n) for n in re.findall(r"\d+", text.split("-")[0])]
+    if not numbers:
+        return 17
+    if numbers[0] != 1:
+        return 21  # 연도 기반 버전 (예: 26.1)
+    minor = numbers[1] if len(numbers) > 1 else 0
+    patch = numbers[2] if len(numbers) > 2 else 0
+    if minor >= 21 or (minor == 20 and patch >= 5):
+        return 21
+    if minor >= 18:
+        return 17
+    if minor == 17:
+        return 16
+    return 8
+
 
 class JavaDetector:
     """Detect and validate Java installations."""
@@ -211,15 +246,16 @@ class JavaDetector:
 
     @staticmethod
     def parse_major_version(version_str):
-        """Extract major version number. '17.0.2' → 17, '1.8.0_362' → 8"""
-        parts = version_str.split(".")
-        major = int(parts[0])
-        if major == 1 and len(parts) > 1:
-            major = int(parts[1])
-        return major
+        """Java 주 버전 추출. '17.0.2' → 17, '1.8.0_362' → 8, '21-ea' → 21. 실패 시 0."""
+        numbers = [int(n) for n in re.findall(r"\d+", str(version_str))[:2]]
+        if not numbers:
+            return 0
+        if numbers[0] == 1 and len(numbers) > 1:
+            return numbers[1]
+        return numbers[0]
 
     @staticmethod
-    def validate_for_minecraft(java_info, mc_version=None):
+    def validate_for_minecraft(java_info, mc_version=None, min_java=None):
         """Check if Java version meets Minecraft's minimum requirement."""
         issues = []
         if not java_info:
@@ -232,23 +268,7 @@ class JavaDetector:
             return issues
 
         major = java_info.get("major_version", 0)
-        min_java = 17  # Safe default for modern MC
-
-        if mc_version:
-            try:
-                parts = mc_version.split(".")
-                mc_major = int(parts[1]) if len(parts) > 1 else 0
-                mc_minor = int(parts[2]) if len(parts) > 2 else 0
-                if mc_major >= 20 and mc_minor >= 5:
-                    min_java = 21
-                elif mc_major >= 18:
-                    min_java = 17
-                elif mc_major >= 17:
-                    min_java = 16
-                else:
-                    min_java = 8
-            except (ValueError, IndexError):
-                pass
+        min_java = min_java or required_java(mc_version)
 
         if major < min_java:
             issues.append({
@@ -498,23 +518,25 @@ class EulaManager:
 # ║             server.properties Manager                     ║
 # ╚═══════════════════════════════════════════════════════════╝
 
+def _read_properties_file(path):
+    """key=value 형식 파일을 dict로 읽는다 (주석·빈 줄 무시, 없으면 {})."""
+    props = {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, _, value = line.partition("=")
+                    props[key.strip()] = value.strip()
+    except OSError:
+        pass
+    return props
+
+
 def _load_default_properties():
     """Load vanilla defaults from server.properties reference file,
     then apply saba-chan-specific overrides (e.g. enable RCON)."""
-    defaults = {}
-    ref_path = os.path.join(MODULE_DIR, "server.properties")
-    if os.path.isfile(ref_path):
-        try:
-            with open(ref_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    if "=" in line:
-                        key, _, value = line.partition("=")
-                        defaults[key.strip()] = value.strip()
-        except OSError:
-            pass
+    defaults = _read_properties_file(os.path.join(MODULE_DIR, "server.properties"))
 
     # saba-chan overrides: enable RCON for managed server control
     defaults["enable-rcon"] = "true"
@@ -536,21 +558,7 @@ class ServerPropertiesManager:
 
     def read(self):
         """Parse server.properties into a dict."""
-        props = {}
-        if not self.exists():
-            return props
-        try:
-            with open(self.path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    if "=" in line:
-                        key, _, value = line.partition("=")
-                        props[key.strip()] = value.strip()
-        except OSError:
-            pass
-        return props
+        return _read_properties_file(self.path)
 
     def write(self, properties):
         """Write a full properties dict (replaces entire file)."""
@@ -737,35 +745,6 @@ class ErrorDetector:
                         break
         return issues
 
-    @staticmethod
-    def diagnose_startup_failure(exit_code, stderr_text, working_dir):
-        """Diagnose why a server failed to start."""
-        issues = ErrorDetector.diagnose(stderr_text)
-
-        eula_accepted, _ = EulaManager.check_eula(working_dir)
-        if not eula_accepted:
-            if not any(i["code"] == "EULA_NOT_ACCEPTED" for i in issues):
-                issues.append({
-                    "code": "EULA_NOT_ACCEPTED",
-                    "severity": "critical",
-                    "matched_line": "",
-                    "message": i18n.t("errors.detect.eula_not_accepted"),
-                    "solution": i18n.t("errors.solutions.eula_not_accepted"),
-                })
-
-        log_path = os.path.join(working_dir, "logs", "latest.log")
-        if os.path.isfile(log_path):
-            try:
-                with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-                    recent = f.readlines()[-200:]
-                for issue in ErrorDetector.diagnose(recent):
-                    if not any(i["code"] == issue["code"] for i in issues):
-                        issues.append(issue)
-            except OSError:
-                pass
-
-        return issues
-
 
 # ╔═══════════════════════════════════════════════════════════╗
 # ║            Minecraft Server List Ping                     ║
@@ -777,45 +756,27 @@ class MinecraftPing:
     @staticmethod
     def ping(host="127.0.0.1", port=25565, timeout=3):
         """Ping a server and get status dict (players, version, motd) or None."""
+        varint = MinecraftPing._encode_varint
+        host_bytes = host.encode("utf-8")
+        handshake = (
+            varint(0x00) + varint(-1) + varint(len(host_bytes)) + host_bytes
+            + struct.pack(">H", port) + varint(1)
+        )
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            sock.connect((host, port))
-
-            # Handshake
-            protocol_version = MinecraftPing._encode_varint(-1)
-            host_bytes = host.encode("utf-8")
-            host_len = MinecraftPing._encode_varint(len(host_bytes))
-            port_bytes = struct.pack(">H", port)
-            next_state = MinecraftPing._encode_varint(1)
-
-            handshake_data = (
-                MinecraftPing._encode_varint(0x00)
-                + protocol_version + host_len + host_bytes + port_bytes + next_state
-            )
-            sock.sendall(MinecraftPing._encode_varint(len(handshake_data)) + handshake_data)
-
-            # Status request
-            sock.sendall(MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
-
-            # Read response
-            data = b""
-            while True:
-                chunk = sock.recv(4096)
-                if not chunk:
-                    break
-                data += chunk
-                try:
+            # with 블록이 예외 경로에서도 소켓을 닫는다.
+            with socket.create_connection((host, port), timeout=timeout) as sock:
+                sock.sendall(varint(len(handshake)) + handshake)
+                sock.sendall(varint(1) + varint(0x00))  # Status request
+                data = b""
+                while True:
+                    chunk = sock.recv(4096)
+                    if not chunk:
+                        return None
+                    data += chunk
                     parsed = MinecraftPing._parse_response(data)
                     if parsed is not None:
-                        sock.close()
                         return parsed
-                except Exception:
-                    continue
-
-            sock.close()
-            return None
-        except (socket.timeout, socket.error, OSError):
+        except OSError:
             return None
 
     @staticmethod
@@ -900,13 +861,17 @@ def validate(config):
     Checks: Java, server jar, EULA, working dir, port availability.
     """
     issues = []
-    java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
     working_dir = config.get("working_dir", "")
 
-    # Java
-    java_info = JavaDetector.find_java(java_path)
-    issues.extend(JavaDetector.validate_for_minecraft(java_info))
+    # Java — 서버 jar의 version.json 요구 버전을 우선 사용한다.
+    java_path = _resolve_java(config_value(config, "java_path", "java"),
+                              working_dir or (os.path.dirname(server_jar) if server_jar else ""))
+    java_info = JavaDetector.get_java_info(java_path) or JavaDetector.find_java(java_path)
+    jar_info = _read_jar_version(*os.path.split(server_jar)) if server_jar else None
+    mc_version = config_value(config, "server_version") or (jar_info or {}).get("version")
+    issues.extend(JavaDetector.validate_for_minecraft(
+        java_info, mc_version, min_java=(jar_info or {}).get("java_version")))
 
     # Server JAR
     if not server_jar:
@@ -968,6 +933,118 @@ def validate(config):
     }
 
 
+def _parse_ram(ram_raw):
+    """Parse RAM config value into JVM -Xmx/-Xms string.
+
+    Accepts plain number (GB). Fractional values → MB (e.g. 0.5 → 512M).
+    """
+    try:
+        ram_gb = float(str(ram_raw).rstrip("GgMm"))
+        if ram_gb == int(ram_gb):
+            return f"{int(ram_gb)}G"
+        return f"{int(ram_gb * 1024)}M"
+    except (ValueError, TypeError):
+        return "2G"
+
+
+def _resolve_java(java_path, working_dir):
+    """Resolve Java executable: prefer bundled → system detection → fallback.
+
+    Returns the best Java path string.
+    """
+    bundled = working_dir and JavaDownloader._find_bundled_java(os.path.join(working_dir, "java"))
+    if bundled:
+        return bundled
+    java_info = JavaDetector.find_java(java_path)
+    if java_info:
+        return java_info["path"]
+    return java_path
+
+
+def _build_launch_info(config):
+    """Build the full Java launch command from config.
+
+    Shared by get_launch_command (managed) and daemon's non-managed start.
+    Returns { success, program, args, working_dir, env_vars } on success,
+    or { success: False, action_required, message, ... } on failure.
+
+    Handles: JAR resolution, Java resolution, RAM, Aikar flags,
+    extra JVM args, EULA auto-accept, RCON policy enforcement.
+    """
+    java_path = config.get("java_path", "java")
+    server_jar = _resolve_server_jar(config)
+    ram = _parse_ram(config.get("ram", 2))
+    working_dir = config.get("working_dir")
+    extra_jvm_args = config.get("jvm_args", [])
+
+    # ── Server JAR validation ──
+    if not server_jar:
+        return {
+            "success": False,
+            "action_required": "server_jar_not_found",
+            "message": i18n.t("errors.server_jar_not_specified"),
+            "options": ["update_path", "install_new"],
+        }
+
+    if not os.path.isfile(server_jar):
+        return {
+            "success": False,
+            "action_required": "server_jar_not_found",
+            "message": i18n.t("errors.server_jar_not_found", path=server_jar),
+            "configured_path": server_jar,
+            "options": ["update_path", "install_new"],
+        }
+
+    # ── Working dir (infer from jar if not given) ──
+    if not working_dir:
+        working_dir = os.path.dirname(os.path.abspath(server_jar))
+    abs_working_dir = os.path.abspath(working_dir)
+
+    # ── Java resolution (bundled > system) ──
+    java_path = _resolve_java(java_path, abs_working_dir)
+
+    # ── Build JVM args ──
+    args = [f"-Xmx{ram}", f"-Xms{ram}"]
+
+    if config.get("use_aikar_flags", False):
+        args.extend([
+            "-XX:+UseG1GC", "-XX:+ParallelRefProcEnabled",
+            "-XX:MaxGCPauseMillis=200", "-XX:+UnlockExperimentalVMOptions",
+            "-XX:+DisableExplicitGC", "-XX:+AlwaysPreTouch",
+            "-XX:G1NewSizePercent=30", "-XX:G1MaxNewSizePercent=40",
+            "-XX:G1HeapRegionSize=8M", "-XX:G1ReservePercent=20",
+            "-XX:G1HeapWastePercent=5", "-XX:G1MixedGCCountTarget=4",
+            "-XX:InitiatingHeapOccupancyPercent=15",
+            "-XX:G1MixedGCLiveThresholdPercent=90",
+            "-XX:G1RSetUpdatingPauseTimePercent=5",
+            "-XX:SurvivorRatio=32", "-XX:+PerfDisableSharedMem",
+            "-XX:MaxTenuringThreshold=1",
+        ])
+
+    if isinstance(extra_jvm_args, list):
+        args.extend(extra_jvm_args)
+    elif isinstance(extra_jvm_args, str):
+        args.extend(extra_jvm_args.split())
+
+    args.extend(["-jar", os.path.abspath(server_jar), "nogui"])
+
+    # ── EULA auto-accept ──
+    if config.get("auto_eula", False):
+        EulaManager.accept_eula(abs_working_dir)
+
+    # ── RCON policy ──
+    is_managed = config.get("managed", True)
+    _enforce_rcon_policy(abs_working_dir, config=config, managed=is_managed)
+
+    return {
+        "success": True,
+        "program": java_path,
+        "args": args,
+        "working_dir": abs_working_dir,
+        "env_vars": {},
+    }
+
+
 def _enforce_rcon_policy(working_dir, config=None, managed=True):
     """
     Enforce RCON policy in server.properties before server launch.
@@ -1000,9 +1077,9 @@ def _enforce_rcon_policy(working_dir, config=None, managed=True):
             daemon_pw = (config or {}).get("rcon_password", "")
             if daemon_pw:
                 changes["rcon.password"] = daemon_pw
-                print(f"[Minecraft] Synced rcon.password from daemon config", file=sys.stderr)
+                print("[Minecraft] Synced rcon.password from daemon config", file=sys.stderr)
             else:
-                print(f"[Minecraft] WARNING: No RCON password from daemon or server.properties", file=sys.stderr)
+                print("[Minecraft] WARNING: No RCON password from daemon or server.properties", file=sys.stderr)
 
     if changes:
         mgr.update(changes)
@@ -1014,90 +1091,10 @@ def get_launch_command(config):
     """
     Build the command for the Rust daemon to spawn as a ManagedProcess.
     Returns { success, program, args, working_dir, env_vars }.
+
+    Delegates to _build_launch_info for all shared logic.
     """
-    java_path = config.get("java_path", "java")
-    server_jar = _resolve_server_jar(config)
-    ram_raw = config.get("ram", 2)
-    # Accept plain number (GB). Fractional values converted to MB (e.g. 0.5 → 512M, 1.5 → 1536M)
-    try:
-        ram_gb = float(str(ram_raw).rstrip("GgMm"))
-        if ram_gb == int(ram_gb):
-            ram = f"{int(ram_gb)}G"
-        else:
-            ram = f"{int(ram_gb * 1024)}M"
-    except (ValueError, TypeError):
-        ram = "2G"
-    working_dir = config.get("working_dir")
-    extra_jvm_args = config.get("jvm_args", [])
-
-    if not server_jar:
-        return {
-            "success": False,
-            "action_required": "server_jar_not_found",
-            "message": i18n.t("errors.server_jar_not_specified"),
-            "options": ["update_path", "install_new"],
-        }
-
-    if not os.path.isfile(server_jar):
-        return {
-            "success": False,
-            "action_required": "server_jar_not_found",
-            "message": i18n.t("errors.server_jar_not_found", path=server_jar),
-            "configured_path": server_jar,
-            "options": ["update_path", "install_new"],
-        }
-
-    # Prefer bundled Java in <working_dir>/java/ over system Java
-    _wd = working_dir or os.path.dirname(os.path.abspath(server_jar))
-    bundled = JavaDownloader._find_bundled_java(os.path.join(_wd, "java"))
-    if bundled:
-        java_path = bundled
-    else:
-        java_info = JavaDetector.find_java(java_path)
-        if java_info:
-            java_path = java_info["path"]
-
-    if not working_dir:
-        working_dir = os.path.dirname(os.path.abspath(server_jar))
-
-    args = [f"-Xmx{ram}", f"-Xms{ram}"]
-
-    # Aikar's flags (recommended for modern MC servers)
-    if config.get("use_aikar_flags", False):
-        args.extend([
-            "-XX:+UseG1GC", "-XX:+ParallelRefProcEnabled",
-            "-XX:MaxGCPauseMillis=200", "-XX:+UnlockExperimentalVMOptions",
-            "-XX:+DisableExplicitGC", "-XX:+AlwaysPreTouch",
-            "-XX:G1NewSizePercent=30", "-XX:G1MaxNewSizePercent=40",
-            "-XX:G1HeapRegionSize=8M", "-XX:G1ReservePercent=20",
-            "-XX:G1HeapWastePercent=5", "-XX:G1MixedGCCountTarget=4",
-            "-XX:InitiatingHeapOccupancyPercent=15",
-            "-XX:G1MixedGCLiveThresholdPercent=90",
-            "-XX:G1RSetUpdatingPauseTimePercent=5",
-            "-XX:SurvivorRatio=32", "-XX:+PerfDisableSharedMem",
-            "-XX:MaxTenuringThreshold=1",
-        ])
-
-    if isinstance(extra_jvm_args, list):
-        args.extend(extra_jvm_args)
-    elif isinstance(extra_jvm_args, str):
-        args.extend(extra_jvm_args.split())
-
-    args.extend(["-jar", os.path.abspath(server_jar), "nogui"])
-
-    abs_working_dir = os.path.abspath(working_dir)
-
-    # Managed mode → RCON must be OFF (stdin is used for control)
-    is_managed = config.get("managed", True)  # get_launch_command default = managed
-    _enforce_rcon_policy(abs_working_dir, config=config, managed=is_managed)
-
-    return {
-        "success": True,
-        "program": java_path,
-        "args": args,
-        "working_dir": abs_working_dir,
-        "env_vars": {},
-    }
+    return _build_launch_info(config)
 
 
 def configure(config):
@@ -1110,16 +1107,8 @@ def configure(config):
     if not settings:
         return {"success": False, "message": i18n.t("errors.no_settings")}
 
-    mgr = ServerPropertiesManager(working_dir)
-
-    props_changes = {}
-    for key, value in settings.items():
-        prop_key = _PROPERTY_KEY_MAP.get(key, key)
-        if isinstance(value, bool):
-            value = "true" if value else "false"
-        props_changes[prop_key] = str(value)
-
-    success = mgr.update(props_changes)
+    props_changes = _to_properties(settings)
+    success = ServerPropertiesManager(working_dir).update(props_changes)
     return {
         "success": success,
         "message": i18n.t("messages.properties_updated") if success
@@ -1128,37 +1117,35 @@ def configure(config):
     }
 
 
+def _to_properties(settings):
+    """saba-chan 설정 → server.properties 변경분. _KEY_MAP에 없는 키(ram, auto_eula 등)는 버린다."""
+    changes = {}
+    for key, value in settings.items():
+        prop_key = _KEY_MAP.get(key)
+        if prop_key is None:
+            continue
+        if isinstance(value, bool):
+            value = "true" if value else "false"
+        changes[prop_key] = str(value)
+    return changes
+
+
 def import_settings(config):
     """Read server.properties and return settings in saba-chan key format.
 
-    Used during migration to import existing server settings into saba-chan.
+    module.toml 필드 타입이 number/boolean인 값만 변환하고 나머지는 문자열을
+    유지한다 (level-seed, 숫자 MOTD·비밀번호 손상 방지).
     """
     result = read_properties(config)
     if not result.get("success"):
         return result
 
-    raw_props = result.get("properties", {})
-    if not raw_props:
-        return {"success": True, "settings": {}, "message": "No properties found."}
-
-    # Build reverse map: server.properties key → saba-chan key
-    reverse_map = {v: k for k, v in _PROPERTY_KEY_MAP.items()}
-
+    reverse_map = {v: k for k, v in _KEY_MAP.items()}
+    field_types = load_setting_types(MODULE_DIR)
     settings = {}
-    for prop_key, raw_value in raw_props.items():
+    for prop_key, raw_value in result.get("properties", {}).items():
         saba_key = reverse_map.get(prop_key, prop_key)
-        val = str(raw_value).strip()
-        if val.lower() == "true":
-            settings[saba_key] = True
-        elif val.lower() == "false":
-            settings[saba_key] = False
-        else:
-            try:
-                f = float(val)
-                settings[saba_key] = int(f) if f == int(f) else f
-            except (ValueError, OverflowError):
-                settings[saba_key] = val
-
+        settings[saba_key] = coerce_setting(raw_value, field_types.get(saba_key))
     return {"success": True, "settings": settings}
 
 
@@ -1195,7 +1182,7 @@ def reset_properties(config):
 
 
 def reset_server(config):
-    """Full server reset: delete everything except server.jar and eula.txt.
+    """Full server reset: delete everything except *.jar, eula.txt and the bundled JRE (java/).
 
     server.properties will be recreated from module defaults on next configure().
     """
@@ -1209,21 +1196,15 @@ def reset_server(config):
     if not working_path.is_dir():
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
 
-    # 보존할 파일 패턴 (대소문자 무시)
-    KEEP_FILES = {"eula.txt"}
-    KEEP_EXTENSIONS = {".jar"}
-
     deleted = []
     errors = []
 
     for item in list(working_path.iterdir()):
         name_lower = item.name.lower()
-
-        # JAR 파일 보존 (server.jar 등)
-        if item.is_file() and any(name_lower.endswith(ext) for ext in KEEP_EXTENSIONS):
+        # 보존: 서버 jar, eula.txt, 설치 시 내려받은 번들 JRE(java/)
+        if item.is_file() and (name_lower.endswith(".jar") or name_lower == "eula.txt"):
             continue
-        # eula.txt 보존
-        if item.is_file() and name_lower in KEEP_FILES:
+        if item.is_dir() and name_lower == "java":
             continue
 
         try:
@@ -1274,89 +1255,18 @@ def diagnose_log(config):
         log_lines = log_lines.splitlines()
 
     if not log_lines and working_dir:
-        log_path = os.path.join(working_dir, "logs", "latest.log")
-        if os.path.isfile(log_path):
-            try:
-                with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-                    log_lines = f.readlines()[-500:]
-            except OSError:
-                pass
+        try:
+            with open(os.path.join(working_dir, "logs", "latest.log"), "r",
+                      encoding="utf-8", errors="replace") as f:
+                log_lines = f.readlines()[-500:]
+        except OSError:
+            pass
 
     return {
         "success": True,
         "issues": ErrorDetector.diagnose(log_lines),
         "lines_analyzed": len(log_lines),
     }
-
-
-def start(config):
-    """Start server in non-managed mode (RCON-only).
-    
-    managed_start가 비활성화된 경우 데몬이 이 함수를 호출합니다.
-    프로세스를 직접 spawn하고 PID만 반환합니다.
-    이후 제어는 RCON을 통해서만 가능합니다.
-    """
-    try:
-        java_path = config.get("java_path", "java")
-        server_jar = _resolve_server_jar(config)
-
-        # Non-managed mode → RCON must be ON (only control method)
-        wd = config.get("working_dir")
-        if wd:
-            _enforce_rcon_policy(os.path.abspath(wd), config=config, managed=False)
-
-        if not server_jar:
-            return {
-                "success": False,
-                "action_required": "server_jar_not_found",
-                "message": i18n.t("errors.server_jar_not_specified"),
-                "options": ["update_path", "install_new"],
-            }
-        if not os.path.exists(server_jar):
-            return {
-                "success": False,
-                "action_required": "server_jar_not_found",
-                "message": i18n.t("errors.server_jar_not_found", path=server_jar),
-                "configured_path": server_jar,
-                "options": ["update_path", "install_new"],
-            }
-
-        java_info = JavaDetector.find_java(java_path)
-        if java_info:
-            java_path = java_info["path"]
-
-        ram_raw = config.get("ram", 2)
-        # Accept plain number (GB). Fractional → MB (e.g. 0.5 → 512M)
-        try:
-            ram_gb = float(str(ram_raw).rstrip("GgMm"))
-            if ram_gb == int(ram_gb):
-                ram = f"{int(ram_gb)}G"
-            else:
-                ram = f"{int(ram_gb * 1024)}M"
-        except (ValueError, TypeError):
-            ram = "2G"
-        working_dir = config.get("working_dir") or os.path.dirname(server_jar)
-
-        if config.get("auto_eula", False):
-            EulaManager.accept_eula(working_dir)
-
-        cmd = [java_path, f"-Xmx{ram}", f"-Xms{ram}", "-jar", server_jar, "nogui"]
-        print(i18n.t("messages.starting_server", command=" ".join(cmd)), file=sys.stderr)
-
-        if sys.platform == "win32":
-            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL, creationflags=flags)
-        else:
-            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL, start_new_session=True)
-
-        return {"success": True, "pid": proc.pid,
-                "message": i18n.t("messages.server_starting", pid=proc.pid)}
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc(), file=sys.stderr)
-        return {"success": False, "message": i18n.t("errors.failed_to_start", error=str(e))}
 
 
 def get_credentials(config):
@@ -1379,55 +1289,44 @@ def get_credentials(config):
         return {"success": False, "message": str(e)}
 
 
+def _send_rcon(config, command_text):
+    """RCON 명령 실행 → 응답 텍스트. instance_id가 있으면 데몬 경유, 없으면 직접 연결."""
+    instance_id = config.get("instance_id")
+    if instance_id:
+        return daemon_rcon_command(instance_id, command_text)
+    creds = get_credentials(config)
+    if not creds.get("success") or not creds.get("rcon_password"):
+        raise ConnectionError("RCON password not found in server.properties")
+    return rcon_command("127.0.0.1", creds["rcon_port"], creds["rcon_password"], command_text)
+
+
 def stop(config):
     """Stop server — graceful RCON 'stop' before force kill."""
-    try:
-        pid = config.get("pid")
-        if not pid:
-            return {"success": False, "message": i18n.t("errors.no_pid_provided")}
+    pid = config.get("pid")
+    if not pid:
+        return {"success": False, "message": i18n.t("errors.no_pid_provided")}
 
-        force = config.get("force", False)
+    graceful = not config.get("force", False) and config_value(config, "graceful_stop", True)
+    if graceful:
+        try:
+            _send_rcon(config, "stop")
+            if wait_for_exit(pid, timeout=30):
+                return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
+            print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
+        except ConnectionError as e:
+            print(f"RCON stop failed, falling back: {e}", file=sys.stderr)
 
-        if not force:
-            # 설정 파일에서 RCON 비밀번호 읽기
-            creds = get_credentials(config)
-            rcon_port = creds.get("rcon_port", config.get("rcon_port", 25575)) if creds.get("success") else config.get("rcon_port", 25575)
-            rcon_password = creds.get("rcon_password", "") if creds.get("success") else ""
-            if rcon_password:
-                try:
-                    _rcon_command("127.0.0.1", rcon_port, rcon_password, "stop")
-                    for _ in range(30):
-                        time.sleep(1)
-                        try:
-                            os.kill(pid, 0)
-                        except OSError:
-                            return {"success": True,
-                                    "message": i18n.t("messages.graceful_stop", pid=pid)}
-                    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-                except Exception as e:
-                    print(f"RCON stop failed, falling back: {e}", file=sys.stderr)
-
-        if sys.platform == "win32":
-            try:
-                subprocess.run(["taskkill", "/F", "/PID", str(pid)], check=True,
-                               creationflags=0x08000000)
-                return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-            except subprocess.CalledProcessError as e:
-                return {"success": False, "message": i18n.t("errors.failed_to_kill", error=str(e))}
-        else:
-            import signal as sig_mod
-            os.kill(pid, sig_mod.SIGKILL if force else sig_mod.SIGTERM)
-            return {"success": True, "message": i18n.t("messages.signal_sent",
-                                                        signal="KILL" if force else "TERM", pid=pid)}
-    except Exception as e:
-        return {"success": False, "message": i18n.t("errors.failed_to_stop", error=str(e))}
+    ok, error = force_kill(pid)
+    if ok:
+        return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
+    return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
 
 
 def status(config):
     """Enhanced status with Server List Ping."""
     try:
         pid = config.get("pid")
-        port = config.get("port", 25565)
+        port = config_value(config, "port", 25565)
         host = config.get("host", "127.0.0.1")
 
         ping_result = MinecraftPing.ping(host, int(port), timeout=3)
@@ -1450,13 +1349,9 @@ def status(config):
                 "message": i18n.t("messages.server_online"),
             }
 
-        if pid:
-            try:
-                os.kill(pid, 0)
-                return {"success": True, "status": "starting", "pid": pid,
-                        "online": False, "message": i18n.t("messages.server_starting_no_response")}
-            except OSError:
-                pass
+        if pid and is_process_alive(pid):
+            return {"success": True, "status": "starting", "pid": pid,
+                    "online": False, "message": i18n.t("messages.server_starting_no_response")}
 
         result = {"success": True, "status": "stopped", "online": False,
                 "message": i18n.t("messages.no_process_running")}
@@ -1530,29 +1425,20 @@ def get_installed_version(config):
 
 
 def command(config):
-    """Execute command via daemon RCON API (legacy path)."""
+    """Execute a named command via the daemon RCON API. Payload: command, args, instance_id."""
+    command_text = config.get("command")
+    instance_id = config.get("instance_id")
+    if not command_text:
+        return {"success": False, "message": "No command specified"}
+    if not instance_id:
+        return {"success": False, "message": "No instance_id specified"}
+
+    formatted = _format_command(command_text, config.get("args") or {})
     try:
-        command_text = config.get("command")
-        args = config.get("args", {})
-        instance_id = config.get("instance_id")
-
-        if not command_text:
-            return {"success": False, "message": "No command specified"}
-        if not instance_id:
-            return {"success": False, "message": "No instance_id specified"}
-
-        formatted = _format_command(command_text, args)
-
-        import urllib.request
-        api_url = f"{DAEMON_API_URL}/api/instance/{instance_id}/rcon"
-        payload = json.dumps({"command": formatted}).encode("utf-8")
-        req = urllib.request.Request(api_url, data=payload,
-                                     headers={"Content-Type": "application/json"}, method="POST")
-        with urllib.request.urlopen(req, timeout=5) as response:
-            result = json.loads(response.read().decode("utf-8"))
-            return {"success": result.get("success", True), "message": f"RCON: {formatted}"}
-    except Exception as e:
+        response = daemon_rcon_command(instance_id, formatted)
+    except ConnectionError as e:
         return {"success": False, "message": str(e)}
+    return {"success": True, "message": response.strip() or f"RCON: {formatted}", "response": response}
 
 
 # ─── Helpers ──────────────────────────────────────────────────
@@ -1580,11 +1466,6 @@ def _format_command(cmd, args):
     }
     formatter = formatters.get(cmd)
     return formatter(args) if formatter else cmd
-
-
-def _send_rcon_command(host, port, password, command):
-    """Legacy wrapper — delegates to daemon RCON bridge."""
-    return _rcon_command(host, port, password, command)
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1734,7 +1615,6 @@ class ServerInstaller:
 
         download_url = details["download_url"]
         expected_sha1 = details.get("sha1")
-        expected_size = details.get("size")
 
         # Create install directory
         install_path = os.path.abspath(install_dir)
@@ -1819,12 +1699,7 @@ class ServerInstaller:
         # Apply initial server settings
         if initial_settings and isinstance(initial_settings, dict):
             mgr = ServerPropertiesManager(install_path)
-            props = {}
-            for k, v in initial_settings.items():
-                prop_key = _PROPERTY_KEY_MAP.get(k, k)
-                if isinstance(v, bool):
-                    v = "true" if v else "false"
-                props[prop_key] = str(v)
+            props = _to_properties(initial_settings)
 
             # Enable RCON by default with random password
             if "enable-rcon" not in props:
@@ -1951,7 +1826,6 @@ def install_server(config):
 # ╚═══════════════════════════════════════════════════════════╝
 
 FUNCTIONS = {
-    "start": start,
     "stop": stop,
     "status": status,
     "command": command,
@@ -1960,6 +1834,9 @@ FUNCTIONS = {
     "get_credentials": get_credentials,
     "configure": configure,
     "read_properties": read_properties,
+    "reset_properties": reset_properties,
+    "reset_server": reset_server,
+    "import_settings": import_settings,
     "accept_eula": accept_eula,
     "diagnose_log": diagnose_log,
     "list_versions": list_versions,
@@ -1969,26 +1846,4 @@ FUNCTIONS = {
 }
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(json.dumps({"success": False,
-                           "message": "Usage: lifecycle.py <function>"}))
-        sys.exit(1)
-
-    function_name = sys.argv[1]
-
-    # Read config JSON from stdin (avoids command-line length limits
-    # and prevents sensitive data from appearing in process listings)
-    try:
-        config_str = sys.stdin.read()
-        config = json.loads(config_str) if config_str.strip() else {}
-    except json.JSONDecodeError:
-        print(json.dumps({"success": False, "message": "Invalid JSON config on stdin"}))
-        sys.exit(1)
-
-    fn = FUNCTIONS.get(function_name)
-    if fn:
-        result = fn(config)
-    else:
-        result = {"success": False, "message": f"Unknown function: {function_name}"}
-
-    print(json.dumps(result))
+    run_lifecycle(FUNCTIONS)

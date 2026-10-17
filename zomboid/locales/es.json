@@ -4,43 +4,462 @@
     "description": "Módulo de gestión de servidor dedicado de Project Zomboid con control completo del ciclo de vida"
   },
   "settings": {
-    "ram": { "label": "Memoria (RAM)", "description": "Asignación máxima de memoria en GB" },
-    "server_name": { "label": "Nombre del perfil", "description": "Nombre del perfil del servidor" },
-    "rcon_port": { "label": "Puerto RCON", "description": "Puerto para consola remota RCON" },
-    "rcon_password": { "label": "Contraseña RCON", "description": "Contraseña para autenticación RCON" },
-    "admin_password": { "label": "Contraseña de admin", "description": "Contraseña de la cuenta de administrador" },
-    "public_name": { "label": "Nombre del servidor", "description": "Nombre mostrado en el navegador de servidores" },
-    "public_description": { "label": "Descripción", "description": "Descripción visible en el navegador" },
-    "password": { "label": "Contraseña", "description": "Contraseña para unirse al servidor" },
-    "max_players": { "label": "Máx. jugadores", "description": "Número máximo de jugadores" },
-    "port": { "label": "Puerto del juego", "description": "Puerto UDP del servidor" },
-    "pvp": { "label": "PVP", "description": "Permitir combate entre jugadores" },
-    "open": { "label": "Servidor abierto", "description": "Abierto a todos (sin lista blanca)" },
-    "pause_empty": { "label": "Pausar vacío", "description": "Pausar el mundo sin jugadores" },
-    "global_chat": { "label": "Chat global", "description": "Habilitar chat global" },
-    "map": { "label": "Mapa", "description": "Mapa para jugar" },
-    "mods": { "label": "Mods", "description": "IDs de mods separados por punto y coma" },
-    "workshop_items": { "label": "Items del Workshop", "description": "IDs de Workshop separados por punto y coma" }
+    "ram": {
+      "label": "Memoria (RAM)",
+      "description": "Asignación máxima de memoria en GB"
+    },
+    "server_name": {
+      "label": "Nombre del perfil",
+      "description": "Nombre del perfil del servidor"
+    },
+    "rcon_port": {
+      "label": "Puerto RCON",
+      "description": "Puerto para consola remota RCON"
+    },
+    "rcon_password": {
+      "label": "Contraseña RCON",
+      "description": "Contraseña para autenticación RCON"
+    },
+    "admin_password": {
+      "label": "Contraseña de admin",
+      "description": "Contraseña de la cuenta de administrador"
+    },
+    "no_steam": {
+      "label": "No Steam Mode",
+      "description": "Run server without Steam (allows GoG players)"
+    },
+    "public_name": {
+      "label": "Nombre del servidor",
+      "description": "Nombre mostrado en el navegador de servidores"
+    },
+    "public_description": {
+      "label": "Descripción",
+      "description": "Descripción visible en el navegador"
+    },
+    "password": {
+      "label": "Contraseña",
+      "description": "Contraseña para unirse al servidor"
+    },
+    "max_players": {
+      "label": "Máx. jugadores",
+      "description": "Número máximo de jugadores"
+    },
+    "port": {
+      "label": "Puerto del juego",
+      "description": "Puerto UDP del servidor"
+    },
+    "pvp": {
+      "label": "PVP",
+      "description": "Permitir combate entre jugadores"
+    },
+    "open": {
+      "label": "Servidor abierto",
+      "description": "Abierto a todos (sin lista blanca)"
+    },
+    "public": {
+      "label": "Public Visibility",
+      "description": "Show server in the Steam server browser"
+    },
+    "pause_empty": {
+      "label": "Pausar vacío",
+      "description": "Pausar el mundo sin jugadores"
+    },
+    "global_chat": {
+      "label": "Chat global",
+      "description": "Habilitar chat global"
+    },
+    "map": {
+      "label": "Mapa",
+      "description": "Mapa para jugar"
+    },
+    "mods": {
+      "label": "Mods",
+      "description": "IDs de mods separados por punto y coma"
+    },
+    "workshop_items": {
+      "label": "Items del Workshop",
+      "description": "IDs de Workshop separados por punto y coma"
+    },
+    "announce_death": {
+      "label": "Announce Death",
+      "description": "Announce when a character dies"
+    },
+    "safety_system": {
+      "label": "Safety System",
+      "description": "Allow PvP toggle per player"
+    },
+    "sleep_allowed": {
+      "label": "Sleep Allowed",
+      "description": "Allow players to sleep"
+    },
+    "sleep_needed": {
+      "label": "Sleep Needed",
+      "description": "Players need to sleep when exhausted"
+    },
+    "save_world_every_minutes": {
+      "label": "Auto-Save Interval",
+      "description": "Auto-save interval in minutes"
+    },
+    "ping_limit": {
+      "label": "Ping Limit",
+      "description": "Kick threshold in ms"
+    },
+    "hours_for_loot_respawn": {
+      "label": "Loot Respawn Hours",
+      "description": "In-game hours before loot respawn"
+    },
+    "max_items_for_loot_respawn": {
+      "label": "Loot Respawn Threshold",
+      "description": "Max items for loot respawn trigger"
+    },
+    "no_fire": {
+      "label": "Disable Fire",
+      "description": "Disable all fire except campfires"
+    },
+    "player_safehouse": {
+      "label": "Player Safehouses",
+      "description": "Allow safehouse claiming"
+    },
+    "safehouse_allow_trespass": {
+      "label": "Safehouse Trespassing",
+      "description": "Allow non-members to enter"
+    },
+    "safehouse_allow_loot": {
+      "label": "Safehouse Looting",
+      "description": "Allow non-members to loot"
+    },
+    "safehouse_allow_respawn": {
+      "label": "Safehouse Respawn",
+      "description": "Respawn in safehouse after death"
+    },
+    "faction": {
+      "label": "Factions",
+      "description": "Allow factions"
+    },
+    "allow_destruction_by_sledgehammer": {
+      "label": "Sledgehammer Destruction",
+      "description": "Allow structure destruction"
+    },
+    "speed_limit": {
+      "label": "Speed Limit",
+      "description": "Vehicle speed limit"
+    },
+    "do_lua_checksum": {
+      "label": "Lua Checksum",
+      "description": "Verify client Lua files"
+    },
+    "steam_vac": {
+      "label": "Steam VAC",
+      "description": "Enable Valve Anti-Cheat"
+    },
+    "voice_enable": {
+      "label": "Voice Chat",
+      "description": "Enable in-game voice chat"
+    },
+    "minutes_per_page": {
+      "label": "Minutes Per Page",
+      "description": "Reading speed"
+    },
+    "spawn_point": {
+      "label": "Spawn Point",
+      "description": "Custom spawn coordinates"
+    },
+    "max_accounts_per_user": {
+      "label": "Max Accounts Per User",
+      "description": "Account limit per Steam user"
+    }
   },
   "commands": {
-    "servermsg": { "label": "Mensaje global", "description": "Enviar mensaje a todos", "inputs": { "message": { "label": "Mensaje", "placeholder": "Escribe el mensaje" } } },
-    "players": { "label": "Lista de jugadores", "description": "Ver jugadores conectados" },
-    "save": { "label": "Guardar mundo", "description": "Guardar el mundo actual" },
-    "kick": { "label": "Expulsar jugador", "description": "Expulsar a un jugador", "inputs": { "player": { "label": "Jugador" }, "reason": { "label": "Razón" } } },
-    "banuser": { "label": "Banear jugador", "description": "Banear a un jugador", "inputs": { "player": { "label": "Jugador" }, "reason": { "label": "Razón" } } },
-    "unbanuser": { "label": "Desbanear", "description": "Quitar el ban de un jugador", "inputs": { "player": { "label": "Jugador" } } },
-    "quit": { "label": "Apagar servidor", "description": "Guardar y apagar el servidor" }
+    "servermsg": {
+      "label": "Mensaje global",
+      "description": "Enviar mensaje a todos",
+      "inputs": {
+        "message": {
+          "label": "Mensaje",
+          "placeholder": "Escribe el mensaje"
+        }
+      }
+    },
+    "players": {
+      "label": "Lista de jugadores",
+      "description": "Ver jugadores conectados"
+    },
+    "save": {
+      "label": "Guardar mundo",
+      "description": "Guardar el mundo actual"
+    },
+    "kick": {
+      "label": "Expulsar jugador",
+      "description": "Expulsar a un jugador",
+      "inputs": {
+        "player": {
+          "label": "Jugador",
+          "placeholder": "Player username"
+        },
+        "reason": {
+          "label": "Razón",
+          "placeholder": "Optional reason"
+        }
+      }
+    },
+    "banuser": {
+      "label": "Banear jugador",
+      "description": "Banear a un jugador",
+      "inputs": {
+        "player": {
+          "label": "Jugador",
+          "placeholder": "Player username"
+        },
+        "reason": {
+          "label": "Razón",
+          "placeholder": "Optional reason"
+        }
+      }
+    },
+    "unbanuser": {
+      "label": "Desbanear",
+      "description": "Quitar el ban de un jugador",
+      "inputs": {
+        "player": {
+          "label": "Jugador",
+          "placeholder": "Player username"
+        }
+      }
+    },
+    "adduser": {
+      "label": "Add User",
+      "description": "Add a new user to the server",
+      "inputs": {
+        "username": {
+          "label": "Username",
+          "placeholder": "Account username"
+        },
+        "password": {
+          "label": "Password",
+          "placeholder": "Account password"
+        }
+      }
+    },
+    "setaccesslevel": {
+      "label": "Set Access Level",
+      "description": "Set a player's access level",
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "level": {
+          "label": "Access Level"
+        }
+      }
+    },
+    "teleport": {
+      "label": "Teleport",
+      "description": "Teleport to a player",
+      "inputs": {
+        "player": {
+          "label": "Player",
+          "placeholder": "Player to teleport"
+        },
+        "target": {
+          "label": "Target",
+          "placeholder": "Destination player"
+        }
+      }
+    },
+    "teleportto": {
+      "label": "Teleport To Coords",
+      "description": "Teleport to specific coordinates",
+      "inputs": {
+        "coords": {
+          "label": "Coordinates",
+          "placeholder": "x,y,z"
+        }
+      }
+    },
+    "createhorde": {
+      "label": "Create Horde",
+      "description": "Spawn a zombie horde near a player",
+      "inputs": {
+        "count": {
+          "label": "Zombie Count"
+        },
+        "player": {
+          "label": "Player (optional)",
+          "placeholder": "Target player"
+        }
+      }
+    },
+    "godmod": {
+      "label": "God Mode",
+      "description": "Make a player invincible",
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "value": {
+          "label": "Enabled"
+        }
+      }
+    },
+    "invisible": {
+      "label": "Invisible",
+      "description": "Make a player invisible to zombies",
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "value": {
+          "label": "Enabled"
+        }
+      }
+    },
+    "startrain": {
+      "label": "Start Rain",
+      "description": "Start raining on the server"
+    },
+    "stoprain": {
+      "label": "Stop Rain",
+      "description": "Stop raining on the server"
+    },
+    "chopper": {
+      "label": "Helicopter Event",
+      "description": "Trigger a helicopter event"
+    },
+    "gunshot": {
+      "label": "Gunshot Sound",
+      "description": "Place a gunshot sound"
+    },
+    "additem": {
+      "label": "Give Item",
+      "description": "Give an item to a player",
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "item": {
+          "label": "Item ID",
+          "placeholder": "e.g. Base.Axe"
+        },
+        "count": {
+          "label": "Count"
+        }
+      }
+    },
+    "addxp": {
+      "label": "Give XP",
+      "description": "Give experience to a player",
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "perk": {
+          "label": "Perk Name",
+          "placeholder": "e.g. Woodwork"
+        },
+        "amount": {
+          "label": "XP Amount"
+        }
+      }
+    },
+    "showoptions": {
+      "label": "Show Server Options",
+      "description": "Display current server settings"
+    },
+    "reloadoptions": {
+      "label": "Reload Options",
+      "description": "Reload server options from INI"
+    },
+    "changeoption": {
+      "label": "Change Option",
+      "description": "Change a server option at runtime",
+      "inputs": {
+        "option": {
+          "label": "Option Name",
+          "placeholder": "e.g. MaxPlayers"
+        },
+        "value": {
+          "label": "New Value",
+          "placeholder": "New value"
+        }
+      }
+    },
+    "quit": {
+      "label": "Apagar servidor",
+      "description": "Guardar y apagar el servidor"
+    }
   },
   "errors": {
     "no_server_dir": "Directorio de instalación no encontrado.",
     "executable_not_found": "Ejecutable del servidor no encontrado.",
     "java_not_found": "Java incluido no encontrado.",
-    "server_not_running": "El servidor no está en ejecución."
+    "classpath_not_found": "Could not find Java class files (java/*.jar) in the server directory. The installation may be incomplete.",
+    "no_install_dir": "No installation directory specified. Please set a working directory.",
+    "steamcmd_not_found": "SteamCMD not found. Please install SteamCMD to download the server.",
+    "install_failed": "Server installation failed: {{error}}",
+    "failed_to_start": "Failed to start server: {{error}}",
+    "install_timeout": "Server installation timed out after 10 minutes.",
+    "no_settings": "No settings provided",
+    "properties_write_failed": "Failed to write configuration: {{error}}",
+    "failed_to_kill": "Failed to kill process: {{error}}",
+    "server_not_running": "El servidor no está en ejecución.",
+    "server_reset_partial": "Some items could not be deleted: {{errors}}",
+    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
+    "detect": {
+      "out_of_memory": "Server ran out of memory (OutOfMemoryError)",
+      "port_in_use": "Port {{port}} is already in use by another application",
+      "illegal_termination": "Illegal termination of worker thread — possible Build 41/42 conflict",
+      "permission_denied": "Permission denied — cannot access required files",
+      "server_crash": "The server has crashed",
+      "mod_error": "A mod error was detected in the server log",
+      "save_status": "Save operation status detected"
+    },
+    "solutions": {
+      "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
+      "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
+      "java_not_found": "The server should include a bundled JRE. Try reinstalling the server or verifying file integrity via SteamCMD.",
+      "classpath_not_found": "The java/ directory in the server folder should contain .jar files. Try verifying the installation via SteamCMD.",
+      "out_of_memory": "Increase the RAM allocation in server settings (Memory). Default is 4 GB; try 8 GB or more for larger servers.",
+      "port_in_use": "Port {{port}} is in use. Stop the conflicting application or change the port in settings.",
+      "illegal_termination": "This usually happens when upgrading from Build 41 to 42. Back up your settings and delete the %USERPROFILE%\\Zomboid folder, then restart the server.",
+      "permission_denied": "Run saba-chan as administrator, or change file permissions to allow read/write access to the server and data directories.",
+      "server_crash": "Check the console.txt log for details. Common causes: mod conflicts, corrupted world data, or insufficient memory.",
+      "mod_error": "A mod is causing errors. Try disabling recently added mods or check the Workshop page for compatibility updates.",
+      "save_status": "This is informational. If saves are failing, check disk space and file permissions.",
+      "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
+    }
   },
   "messages": {
     "server_online": "El servidor está en línea y respondiendo",
+    "server_starting": "Server starting with PID {{pid}}",
+    "starting_server": "Starting server: {{command}}",
+    "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",
+    "no_process_running": "No process running",
+    "shutdown_signal_sent": "Sent shutdown signal to PID {{pid}}",
+    "force_killed": "Force killed PID {{pid}}",
     "graceful_stop": "El servidor se detuvo correctamente (PID {{pid}})",
+    "graceful_stop_timeout": "Graceful shutdown timed out, proceeding to force stop",
+    "save_before_quit": "Saving world before shutdown...",
+    "properties_updated": "Server configuration updated successfully",
+    "properties_using_defaults": "Configuration file does not exist — showing defaults",
+    "no_mappable_settings": "No settings could be mapped to server configuration keys",
     "install_complete": "Servidor de Project Zomboid instalado correctamente",
-    "server_reset_complete": "Datos del mundo del servidor reiniciados"
+    "server_reset_complete": "Datos del mundo del servidor reiniciados",
+    "rcon_password_generated": "Auto-generated RCON password (none was set)",
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
+  },
+  "rcon": {
+    "connecting": "Connecting to {{host}}:{{port}}...",
+    "connected": "Connected!",
+    "authentication_failed": "Authentication failed",
+    "authenticated": "Authenticated!",
+    "connection_failed": "Connection failed: {{error}}",
+    "sending_command": "Sending command: {{command}}",
+    "response_received": "Response received: {{response}}",
+    "command_failed": "Command failed: {{error}}"
   }
 }

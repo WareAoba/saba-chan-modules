@@ -1,6 +1,6 @@
 {
   "module": {
-    "display_name": "마인크래프트",
+    "display_name": "Minecraft",
     "description": "마인크래프트 서버 관리 모듈 (전체 수명주기 제어)"
   },
   "settings": {

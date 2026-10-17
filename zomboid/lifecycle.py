@@ -9,8 +9,7 @@ graceful shutdown, settings synchronization, and installation via SteamCMD.
 Project Zomboid is a Java-based game server (Steam App 380870) that:
   - Uses a bundled JRE (jre64/bin/java.exe) with custom classpath
   - Stores configs in ~/Zomboid/Server/{servername}.ini (separate from install dir)
-  - Supports RCON on port 27015 for remote administration
-  - Supports stdin console for direct command input
+  - Takes commands on its console (stdin); RCON stays off (saba-chan security policy)
 """
 
 import sys
@@ -34,13 +33,7 @@ if _root_dir not in sys.path:
 
 from i18n import I18n
 
-# RCON communication delegates to the Rust daemon's HTTP API
-try:
-    from daemon_rcon import rcon_command as _rcon_command_bridge
-    def _rcon_command(host, port, password, command, timeout=5):
-        return _rcon_command_bridge(host, port, password, command, timeout)
-except ImportError:
-    _rcon_command = None
+from daemon_rcon import daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
 
 i18n = I18n(MODULE_DIR)
 
@@ -834,23 +827,6 @@ def _enforce_rcon_policy(ini_path):
     return ""
 
 
-def get_credentials(config):
-    """게임 설정 파일(INI)에서 직접 credential을 읽어 반환합니다.
-    Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다."""
-    try:
-        ini_path = IniManager.get_ini_path(config)
-        if not os.path.exists(ini_path):
-            return {"success": False, "message": f"INI not found: {ini_path}"}
-        props = IniManager.read(ini_path)
-        return {
-            "success": True,
-            "rcon_password": props.get("RCONPassword", ""),
-            "rcon_port": int(props.get("RCONPort", config.get("rcon_port", "27015"))),
-        }
-    except Exception as e:
-        return {"success": False, "message": str(e)}
-
-
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                  Required Functions                       ║
 # ╚═══════════════════════════════════════════════════════════╝
@@ -1042,203 +1018,78 @@ def get_launch_command(config):
 
 
 def status(config):
-    """Check the current server status.
-    
-    Uses the process PID if available, and optionally probes RCON.
-    """
+    """Check the current server status by the daemon-tracked PID."""
     pid = config.get("pid")
-    
-    if pid:
-        try:
-            if sys.platform == "win32":
-                result = subprocess.run(
-                    ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
-                    capture_output=True, text=True, timeout=5
-                )
-                is_running = str(pid) in result.stdout
-            else:
-                os.kill(pid, 0)
-                is_running = True
-        except (OSError, subprocess.SubprocessError):
-            is_running = False
-        
-        if is_running:
-            # Try RCON for detailed status
-            rcon_info = _try_rcon_status(config)
-            if rcon_info:
-                return {
-                    "success": True,
-                    "status": "running",
-                    **rcon_info,
-                }
-            return {
-                "success": True,
-                "status": "running",
-                "message": i18n.t("messages.server_starting_no_response"),
-            }
-    
+    if pid and is_process_alive(pid):
+        return {
+            "success": True,
+            "status": "running",
+            "message": i18n.t("messages.server_starting_no_response"),
+        }
     return {"success": True, "status": "stopped"}
-
-
-def _try_rcon_status(config):
-    """Try to get server info via RCON 'players' command."""
-    if not _rcon_command:
-        return None
-    
-    try:
-        ini_path = IniManager.get_ini_path(config)
-        props = IniManager.read(ini_path)
-        rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", "")
-        
-        if not rcon_password:
-            return None
-        
-        result = _rcon_command("127.0.0.1", rcon_port, rcon_password, "players")
-        if result and result.get("success"):
-            response = result.get("response", "")
-            # Parse player list: "Players connected (X):\n-name\n-name"
-            match = re.search(r"Players connected \((\d+)\)", response)
-            player_count = int(match.group(1)) if match else 0
-            return {
-                "players_online": player_count,
-                "message": i18n.t("messages.server_online"),
-            }
-    except Exception as e:
-        print(f"RCON status check failed: {e}", file=sys.stderr)
-    
-    return None
 
 
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                  Optional Functions                       ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-def stop(config):
-    """Stop the server gracefully.
-    
-    In managed mode:
-      1. Send 'save' via daemon stdin IPC
-      2. Wait 5 seconds
-      3. Send 'quit' via daemon stdin IPC
-      4. Wait for process to exit (up to 30s)
-      5. Force kill if still running
-    
-    In non-managed mode:
-      Same sequence but via RCON protocol.
-    """
-    pid = config.get("pid")
-    force = config.get("force", False)
-    instance_id = config.get("instance_id", "")
-    # 데몬은 managed 서버를 직접 멈추고, 이 함수는 non-managed일 때만 부른다
-    is_managed = config.get("managed", False)
-    
-    if not pid:
-        return {"success": True, "message": i18n.t("messages.no_process_running")}
-    
-    if force:
-        return _force_kill(pid)
-    
-    # ── Managed mode: use daemon stdin IPC ────────────────────
-    if is_managed and instance_id:
-        try:
-            _send_stdin_command(instance_id, "save")
-            print(i18n.t("messages.save_before_quit"), file=sys.stderr)
-            time.sleep(5)
-            
-            _send_stdin_command(instance_id, "quit")
-            print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-            
-            for _ in range(30):
-                time.sleep(1)
-                if not _is_process_running(pid):
-                    return {
-                        "success": True,
-                        "message": i18n.t("messages.graceful_stop", pid=pid),
-                    }
-            
-            print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-            return _force_kill(pid)
-        except Exception as e:
-            print(f"Managed stdin stop failed: {e}", file=sys.stderr)
-    
-    # ── Non-managed / Fallback: use RCON ──────────────────────
+STOP_TIMEOUT = 30
+
+
+def _request_terminate(pid):
+    """POSIX: SIGTERM (서버가 저장하고 끝난다). Windows 콘솔 앱에는 보낼 정상 종료 신호가 없어 False"""
+    if os.name == "nt":
+        return False
+    import signal
     try:
-        ini_path = IniManager.get_ini_path(config)
-        props = IniManager.read(ini_path)
-        rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", "")
-        
-        if rcon_password and _rcon_command:
-            # Save first
-            _rcon_command("127.0.0.1", rcon_port, rcon_password, "save")
-            print(i18n.t("messages.save_before_quit"), file=sys.stderr)
-            time.sleep(5)
-            
-            # Then quit
-            _rcon_command("127.0.0.1", rcon_port, rcon_password, "quit")
-            print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-            
-            # Wait for process to exit
-            for _ in range(30):
-                time.sleep(1)
-                if not _is_process_running(pid):
-                    return {
-                        "success": True,
-                        "message": i18n.t("messages.graceful_stop", pid=pid),
-                    }
-            
-            # Process didn't exit, force kill
-            print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-            return _force_kill(pid)
-    except Exception as e:
-        print(f"Graceful stop failed: {e}", file=sys.stderr)
-    
-    # Fallback: force kill
-    return _force_kill(pid)
-
-
-def _send_stdin_command(instance_id, cmd_text):
-    """Send a command to the managed server's stdin via daemon API."""
-    from daemon_rcon import daemon_post
-    return daemon_post(f"/api/instance/{instance_id}/stdin", {"command": cmd_text + "\n"})
-
-
-def _is_process_running(pid):
-    """Check if a process is still running."""
-    try:
-        if sys.platform == "win32":
-            result = subprocess.run(
-                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
-                capture_output=True, text=True, timeout=5
-            )
-            return str(pid) in result.stdout
-        else:
-            os.kill(pid, 0)
-            return True
-    except (OSError, subprocess.SubprocessError):
+        os.kill(int(pid), signal.SIGTERM)
+        return True
+    except (OSError, ValueError) as e:
+        print(f"[Zomboid] SIGTERM failed: {e}", file=sys.stderr)
         return False
 
 
-def _force_kill(pid):
-    """Force kill a process."""
+def _console_quit(instance_id):
+    """콘솔(stdin)로 save 후 quit. 콘솔이 없으면(409, 데몬 없음) False"""
+    if not instance_id:
+        return False
     try:
-        if sys.platform == "win32":
-            subprocess.run(["taskkill", "/F", "/PID", str(pid)],
-                           capture_output=True, timeout=10)
-        else:
-            import signal
-            os.kill(pid, signal.SIGKILL)
-        
-        return {
-            "success": True,
-            "message": i18n.t("messages.force_killed", pid=pid),
-        }
+        daemon_stdin_command(instance_id, "save")
+        print(i18n.t("messages.save_before_quit"), file=sys.stderr)
+        time.sleep(5)
+        daemon_stdin_command(instance_id, "quit")
+        return True
     except Exception as e:
-        return {
-            "success": False,
-            "message": i18n.t("errors.failed_to_kill", error=str(e)),
-        }
+        print(f"[Zomboid] console stop unavailable: {e}", file=sys.stderr)
+        return False
+
+
+def _kill(pid):
+    ok, error = force_kill(pid)
+    if ok:
+        return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
+    return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
+
+
+def stop(config):
+    """Stop the server.
+
+    Normal stop: console `save` + `quit`, else SIGTERM, then wait for the exit.
+    Force kill only when force=true or the server did not exit in time (RCON is off by policy).
+    The daemon stops managed servers with a console itself, so this runs mostly without one.
+    """
+    pid = config.get("pid")
+    if not pid:
+        return {"success": True, "message": i18n.t("messages.no_process_running")}
+    if config.get("force", False):
+        return _kill(pid)
+
+    if _console_quit(config.get("instance_id", "")) or _request_terminate(pid):
+        print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
+        if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+            return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
+        print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
+    return _kill(pid)
 
 
 def configure(config):
@@ -1327,64 +1178,20 @@ def read_properties(config):
 
 
 def command(config):
-    """Execute a command via stdin (managed) or RCON (non-managed).
-    
-    In managed mode: forwards command to server's stdin via daemon API.
-    In non-managed mode: sends command via RCON protocol.
-    Falls back to the other method if primary fails.
-    """
+    """Send a command to the server console (stdin) through the daemon."""
     cmd_name = config.get("command_name", "")
     cmd_text = config.get("command_text", "")
-    cmd_args = config.get("args", {})
     instance_id = config.get("instance_id", "")
-    # 데몬은 managed 서버를 직접 멈추고, 이 함수는 non-managed일 때만 부른다
-    is_managed = config.get("managed", False)
-    
-    if not cmd_text and not cmd_name:
+    actual_cmd = cmd_text or cmd_name
+    if not actual_cmd:
         return {"success": False, "message": "No command specified"}
-    
-    # Determine the actual command text
-    actual_cmd = cmd_text if cmd_text else cmd_name
-    
-    # ── Managed mode: prefer stdin ──
-    if is_managed and instance_id:
-        try:
-            result = _send_stdin_command(instance_id, actual_cmd)
-            return {
-                "success": True,
-                "message": f"Command sent via stdin: {actual_cmd}",
-                "data": result,
-            }
-        except Exception as e:
-            print(f"Stdin command failed, trying RCON: {e}", file=sys.stderr)
-    
-    # ── Non-managed / Fallback: try RCON ──
+    if not instance_id:
+        return {"success": False, "message": i18n.t("errors.server_not_running")}
     try:
-        ini_path = IniManager.get_ini_path(config)
-        props = IniManager.read(ini_path)
-        rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", "")
-        
-        if rcon_password and _rcon_command:
-            result = _rcon_command("127.0.0.1", rcon_port, rcon_password, actual_cmd)
-            if result and result.get("success"):
-                return {
-                    "success": True,
-                    "message": result.get("response", "Command executed"),
-                    "data": result,
-                }
+        result = daemon_stdin_command(instance_id, actual_cmd)
     except Exception as e:
-        print(f"RCON command failed: {e}", file=sys.stderr)
-    
-    # ── Last resort: daemon stdin IPC (if not yet tried) ──
-    if not is_managed and instance_id:
-        try:
-            result = _send_stdin_command(instance_id, actual_cmd)
-            return {"success": True, "message": f"Command sent via stdin fallback: {actual_cmd}", "data": result}
-        except Exception as e:
-            return {"success": False, "message": f"Failed to send command: {e}"}
-    
-    return {"success": False, "message": i18n.t("errors.server_not_running")}
+        return {"success": False, "message": f"Failed to send command: {e}"}
+    return {"success": True, "message": f"Command sent via stdin: {actual_cmd}", "data": result}
 
 
 def diagnose_log(config):
@@ -1625,7 +1432,6 @@ def backup_paths(config):
 FUNCTIONS = {
     "validate":           validate,
     "get_launch_command": get_launch_command,
-    "get_credentials":   get_credentials,
     "status":             status,
     "stop":               stop,
     "command":            command,

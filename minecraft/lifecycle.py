@@ -8,7 +8,7 @@ Provides complete server management:
   - server.properties read/write
   - Error detection and diagnosis with solutions
   - Server launch command generation (for Rust managed process)
-  - Graceful shutdown via RCON /stop
+  - Graceful shutdown (the daemon sends `stop` to the console; this module falls back to SIGTERM)
   - Server List Ping for rich status info
 
 Always outputs JSON to stdout, logs to stderr.
@@ -27,13 +27,7 @@ import zipfile
 from pathlib import Path
 from i18n import I18n
 
-# RCON communication delegates to the Rust daemon's HTTP API
-from daemon_rcon import rcon_command as _rcon_command_bridge
 from daemon_rcon import force_kill, is_process_alive, wait_for_exit
-
-def _rcon_command(host, port, password, command, timeout=5):
-    """RCON via daemon API if instance_id available, else direct fallback."""
-    return _rcon_command_bridge(host, port, password, command, timeout)
 
 # ─── Init ─────────────────────────────────────────────────────
 
@@ -1269,50 +1263,54 @@ def diagnose_log(config):
     }
 
 
-def get_credentials(config):
-    """게임 설정 파일(server.properties)에서 직접 credential을 읽어 반환합니다.
-    Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다."""
+STOP_TIMEOUT = 30
+
+
+def _send_console_stop(instance_id):
+    """데몬을 거쳐 서버 콘솔(stdin)에 `stop`을 보낸다. 콘솔이 없으면 False"""
+    if not instance_id:
+        return False
     try:
-        working_dir = config.get("working_dir", "")
-        if not working_dir:
-            return {"success": False, "message": "working_dir not specified"}
-        mgr = ServerPropertiesManager(working_dir)
-        if not mgr.exists():
-            return {"success": False, "message": "server.properties not found"}
-        props = mgr.read()
-        return {
-            "success": True,
-            "rcon_password": props.get("rcon.password", ""),
-            "rcon_port": int(props.get("rcon.port", "25575")),
-        }
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+        from daemon_rcon import daemon_stdin_command
+        daemon_stdin_command(instance_id, "stop", timeout=5)
+        return True
+    except Exception as e:  # 콘솔 없음(409), 데몬 없음
+        print(f"[Minecraft] console stop unavailable: {e}", file=sys.stderr)
+        return False
+
+
+def _request_terminate(pid):
+    """POSIX: SIGTERM (서버가 월드를 저장하고 끝난다). Windows 콘솔 앱에는 보낼 정상 종료 신호가 없어 False"""
+    if os.name == "nt":
+        return False
+    import signal
+    try:
+        os.kill(int(pid), signal.SIGTERM)
+        return True
+    except (OSError, ValueError) as e:
+        print(f"[Minecraft] SIGTERM failed: {e}", file=sys.stderr)
+        return False
 
 
 def stop(config):
-    """Stop server — graceful RCON 'stop' before force kill."""
+    """서버 정지. 일반 정지는 콘솔 `stop` → SIGTERM 순서로 저장 후 종료를 기다리고,
+    force이거나 기다려도 안 끝날 때만 강제 종료한다 (RCON은 보안 정책으로 꺼져 있다).
+
+    데몬은 콘솔이 있는 managed 서버를 직접 멈추므로, 이 함수는 콘솔이 없을 때 주로 불린다.
+    """
     try:
         pid = config.get("pid")
         if not pid:
             return {"success": False, "message": i18n.t("errors.no_pid_provided")}
 
-        force = config.get("force", False)
-
-        if not force:
-            # 설정 파일에서 RCON 비밀번호 읽기
-            creds = get_credentials(config)
-            rcon_port = creds.get("rcon_port", config.get("rcon_port", 25575)) if creds.get("success") else config.get("rcon_port", 25575)
-            rcon_password = creds.get("rcon_password", "") if creds.get("success") else ""
-            if rcon_password:
-                try:
-                    _rcon_command("127.0.0.1", rcon_port, rcon_password, "stop")
-                    # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
-                    if wait_for_exit(pid, timeout=30):
-                        return {"success": True,
-                                "message": i18n.t("messages.graceful_stop", pid=pid)}
-                    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-                except Exception as e:
-                    print(f"RCON stop failed, falling back: {e}", file=sys.stderr)
+        if not config.get("force", False):
+            asked = _send_console_stop(config.get("instance_id")) or _request_terminate(pid)
+            if asked:
+                # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
+                if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+                    return {"success": True,
+                            "message": i18n.t("messages.graceful_stop", pid=pid)}
+                print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
 
         ok, error = force_kill(pid)
         if ok:
@@ -1425,7 +1423,7 @@ def get_installed_version(config):
 
 
 def command(config):
-    """Execute command via daemon RCON API (legacy path)."""
+    """Send a named command to the server console through the daemon."""
     try:
         command_text = config.get("command")
         args = config.get("args", {})
@@ -1438,9 +1436,9 @@ def command(config):
 
         formatted = _format_command(command_text, args)
 
-        from daemon_rcon import daemon_post
-        result = daemon_post(f"/api/instance/{instance_id}/rcon", {"command": formatted}, timeout=5)
-        return {"success": result.get("success", True), "message": f"RCON: {formatted}"}
+        from daemon_rcon import daemon_stdin_command
+        result = daemon_stdin_command(instance_id, formatted, timeout=5)
+        return {"success": result.get("success", True), "message": formatted}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -1470,11 +1468,6 @@ def _format_command(cmd, args):
     }
     formatter = formatters.get(cmd)
     return formatter(args) if formatter else cmd
-
-
-def _send_rcon_command(host, port, password, command):
-    """Legacy wrapper — delegates to daemon RCON bridge."""
-    return _rcon_command(host, port, password, command)
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1844,7 +1837,6 @@ FUNCTIONS = {
     "command": command,
     "validate": validate,
     "get_launch_command": get_launch_command,
-    "get_credentials": get_credentials,
     "configure": configure,
     "read_properties": read_properties,
     "import_settings": import_settings,

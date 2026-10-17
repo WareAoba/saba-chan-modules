@@ -241,3 +241,33 @@ def test_launch_turns_rcon_off(tmp_path):
     ini.write_text("RCONPassword=secret\nRCONPort=27015\n", encoding="utf-8")
     assert _enforce_rcon_policy(str(ini)) == ""
     assert IniManager.read(str(ini))["RCONPassword"] == ""
+
+
+def test_normal_stop_never_force_kills_first():
+    """RCON is off: a normal stop goes console save+quit (or SIGTERM) and waits; kill only after the wait"""
+    from unittest import mock
+    from zomboid import lifecycle
+    calls = []
+    with mock.patch.object(lifecycle, "_console_quit", side_effect=lambda iid: calls.append("quit") or True), \
+         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
+         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or True), \
+         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
+        assert lifecycle.stop({"pid": 7, "instance_id": "z"})["success"] is True
+    assert calls == ["quit", "wait"]
+
+    calls.clear()
+    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
+         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
+         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or False), \
+         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
+        lifecycle.stop({"pid": 7})
+    assert calls == ["term", "wait", "kill"]
+
+
+def test_commands_go_to_the_console():
+    from unittest import mock
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle, "daemon_stdin_command", return_value={"data": {}}) as stdin:
+        result = lifecycle.command({"command_text": "players", "instance_id": "z"})
+    assert result["success"] is True
+    stdin.assert_called_once_with("z", "players")

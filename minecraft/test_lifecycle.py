@@ -13,7 +13,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "validate", "configure",
     "read_properties", "reset_properties", "reset_server", "import_settings",
-    "get_credentials", "accept_eula", "diagnose_log", "list_versions",
+    "accept_eula", "diagnose_log", "list_versions",
     "get_version_details", "install_server", "get_installed_version",
 }
 
@@ -386,15 +386,55 @@ def test_status_does_not_signal_process():
 
 def test_stop_graceful_then_reports_success():
     from minecraft import lifecycle
-    with tempfile.TemporaryDirectory() as tmpdir:
-        lifecycle.ServerPropertiesManager(tmpdir).write({"rcon.password": "pw", "rcon.port": "25575"})
-        with mock.patch.object(lifecycle, "_rcon_command", return_value="") as rcon, \
-             mock.patch.object(lifecycle, "wait_for_exit", return_value=True), \
-             mock.patch.object(lifecycle, "force_kill") as kill:
-            result = lifecycle.stop({"pid": 99, "instance_id": "abc", "working_dir": tmpdir})
+    with mock.patch.object(lifecycle, "_send_console_stop", return_value=True) as console, \
+         mock.patch.object(lifecycle, "wait_for_exit", return_value=True), \
+         mock.patch.object(lifecycle, "force_kill") as kill:
+        result = lifecycle.stop({"pid": 99, "instance_id": "abc"})
     assert result["success"] is True
-    rcon.assert_called_once_with("127.0.0.1", 25575, "pw", "stop")
+    console.assert_called_once_with("abc")
     kill.assert_not_called()
+
+
+def test_normal_stop_without_console_terminates_before_any_kill():
+    """RCON is off and there is no console: a normal stop asks the server to exit (SIGTERM) and waits,
+    so it can save; it only force-kills after the wait runs out"""
+    from minecraft import lifecycle
+    calls = []
+    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
+         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
+         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or True), \
+         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
+        result = lifecycle.stop({"pid": 99})
+    assert result["success"] is True
+    assert calls == ["term", "wait"]
+
+    calls.clear()
+    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
+         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
+         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or False), \
+         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
+        lifecycle.stop({"pid": 99})
+    assert calls == ["term", "wait", "kill"]
+
+
+@pytest.mark.skipif(os.name == "nt", reason="SIGTERM is POSIX only")
+def test_request_terminate_sends_sigterm_not_sigkill():
+    import signal
+    from minecraft import lifecycle
+    with mock.patch.object(lifecycle.os, "kill") as kill:
+        assert lifecycle._request_terminate(4321) is True
+    kill.assert_called_once_with(4321, signal.SIGTERM)
+
+
+def test_force_stop_kills_without_asking():
+    from minecraft import lifecycle
+    with mock.patch.object(lifecycle, "_send_console_stop") as console, \
+         mock.patch.object(lifecycle, "_request_terminate") as term, \
+         mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
+        lifecycle.stop({"pid": 99, "force": True})
+    console.assert_not_called()
+    term.assert_not_called()
+    kill.assert_called_once_with(99)
 
 
 def test_ping_closes_socket_on_error():

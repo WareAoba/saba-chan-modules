@@ -5,8 +5,6 @@
   },
   "settings": {
     "port": { "label": "Port du serveur", "description": "Port du serveur de jeu" },
-    "rcon_port": { "label": "Port RCON", "description": "Port RCON" },
-    "rcon_password": { "label": "Mot de passe RCON", "description": "Mot de passe d'exécution de commandes à distance" },
     "rest_host": { "label": "Hôte REST API", "description": "Hôte REST API (par défaut 127.0.0.1)" },
     "rest_port": { "label": "Port REST API", "description": "Port REST API (par défaut 8212)" },
     "rest_username": { "label": "Nom d'utilisateur REST", "description": "Nom d'utilisateur REST Basic Auth" },
@@ -17,7 +15,6 @@
     "max_players": { "label": "Max Players", "description": "Maximum number of players (1-32)" },
     "coop_max_players": { "label": "Co-op Max Players", "description": "Maximum number of players in co-op party" },
     "public_ip": { "label": "Public IP", "description": "Public IP address (leave empty for auto)" },
-    "rcon_enabled": { "label": "RCON Enabled", "description": "Enable RCON remote command execution" },
     "difficulty": { "label": "Difficulty", "description": "Overall game difficulty" },
     "is_pvp": { "label": "PvP", "description": "Enable Player vs Player combat" },
     "death_penalty": { "label": "Death Penalty", "description": "What drops on player death" },
@@ -143,21 +140,6 @@
     "not_found": "Fichier de paramètres introuvable. Démarrez le serveur une fois pour le générer.",
     "settings_success": "Tous les paramètres du serveur ont été réinitialisés aux valeurs d'usine. Les données du monde ont été préservées.",
     "settings_failed": "Échec de l'écriture des paramètres par défaut dans le fichier de configuration."
-  },
-  "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}",
-    "invalid_password": "Invalid password",
-    "receiving_response": "Receiving response...",
-    "partial_response": "Partial response received ({{bytes}} bytes)",
-    "response_complete": "Response complete ({{bytes}} bytes total)",
-    "closed": "RCON connection closed"
   },
   "validate": {
     "no_executable": "Server executable path not specified.",

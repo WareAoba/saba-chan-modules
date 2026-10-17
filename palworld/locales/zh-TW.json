@@ -5,8 +5,6 @@
   },
   "settings": {
     "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },
-    "rcon_port": { "label": "RCON 連接埠", "description": "RCON 連接埠" },
-    "rcon_password": { "label": "RCON 密碼", "description": "遠端指令執行密碼" },
     "rest_host": { "label": "REST API 主機", "description": "REST API 主機（預設 127.0.0.1）" },
     "rest_port": { "label": "REST API 連接埠", "description": "REST API 連接埠（預設 8212）" },
     "rest_username": { "label": "REST 使用者名稱", "description": "REST 基本驗證使用者名稱" },
@@ -17,7 +15,6 @@
     "max_players": { "label": "最大玩家數", "description": "最大玩家數量（1-32）" },
     "coop_max_players": { "label": "合作模式最大玩家數", "description": "合作隊伍最大玩家數量" },
     "public_ip": { "label": "公開 IP", "description": "公開 IP 位址（留空自動取得）" },
-    "rcon_enabled": { "label": "啟用 RCON", "description": "啟用 RCON 遠端指令執行" },
     "difficulty": { "label": "難度", "description": "整體遊戲難度" },
     "is_pvp": { "label": "PvP", "description": "啟用玩家對玩家戰鬥" },
     "death_penalty": { "label": "死亡懲罰", "description": "玩家死亡時掉落內容" },
@@ -133,21 +130,6 @@
     "versions_via_steam": "帕魯世界伺服器透過 Steam/SteamCMD（App ID 2394010）發佈。請使用 SteamCMD 安裝或更新。",
     "versions_managed_via_steam": "帕魯世界伺服器版本透過 Steam 管理。請使用 SteamCMD 的 app_update 2394010 來更新。",
     "extension_not_enabled": "SteamCMD 擴充功能未啟用。請先在設定 → 擴充功能中啟用。"
-  },
-  "rcon": {
-    "connecting": "正在連線至 {{host}}:{{port}}...",
-    "connected": "已連線！",
-    "authentication_failed": "驗證失敗",
-    "authenticated": "已驗證！",
-    "connection_failed": "連線失敗：{{error}}",
-    "sending_command": "正在傳送命令：{{command}}",
-    "response_received": "已收到回應：{{response}}",
-    "command_failed": "命令失敗：{{error}}",
-    "invalid_password": "密碼無效",
-    "receiving_response": "正在接收回應...",
-    "partial_response": "收到部分回應（{{bytes}} 位元組）",
-    "response_complete": "回應完成（共 {{bytes}} 位元組）",
-    "closed": "RCON 連線已關閉"
   },
   "reset": {
     "no_path": "無法確定伺服器目錄。請設定 working_dir 或 server_executable。",

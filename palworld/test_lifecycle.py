@@ -357,3 +357,19 @@ def test_deny_technology_list_is_written_as_a_quoted_list(tmp_path):
     assert lifecycle._to_ini_list("", '"') == ""
     assert lifecycle._to_ini_list('("A")', '"') == '("A")'
     assert lifecycle._from_ini_list('("PALBOX","RepairBench")') == "PALBOX,RepairBench"
+
+
+def test_rcon_stays_off_and_has_no_command_path(tmp_path):
+    """RCON은 보안 정책으로 막는다: 설정으로 켤 수 없고, 손으로 켠 INI도 저장 때 꺼지며, 명령은 REST로만 간다"""
+    from palworld import lifecycle
+    assert "rcon_enabled" not in lifecycle._PALWORLD_KEY_MAP
+    assert not hasattr(lifecycle, "execute_command_via_rcon")
+    written = {}
+    with mock.patch.object(lifecycle, "_parse_option_settings", return_value={"RCONEnabled": "True"}), \
+         mock.patch.object(lifecycle, "_write_option_settings", side_effect=lambda path, props: written.update(props) or True):
+        lifecycle.configure({"working_dir": str(tmp_path), "settings": {"rcon_enabled": True, "server_name": "x"}})
+    assert written["RCONEnabled"] == "False"
+    with mock.patch.object(lifecycle, "execute_command_via_rest", return_value={"success": True}) as rest:
+        lifecycle.command({"command": "info", "instance_id": "i1", "protocol_mode": "rcon"})
+    rest.assert_called_once()
+    assert "rcon_password" not in lifecycle.get_credentials({"working_dir": str(tmp_path)})

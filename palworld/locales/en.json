@@ -5,8 +5,6 @@
   },
   "settings": {
     "port": { "label": "Server Port", "description": "Game server port" },
-    "rcon_port": { "label": "RCON Port", "description": "RCON port" },
-    "rcon_password": { "label": "RCON Password", "description": "Remote command execution password" },
     "rest_host": { "label": "REST API Host", "description": "REST API host (default 127.0.0.1)" },
     "rest_port": { "label": "REST API Port", "description": "REST API port (default 8212)" },
     "rest_username": { "label": "REST Username", "description": "REST Basic Auth username" },
@@ -17,7 +15,6 @@
     "max_players": { "label": "Max Players", "description": "Maximum number of players (1-32)" },
     "coop_max_players": { "label": "Co-op Max Players", "description": "Maximum number of players in co-op party" },
     "public_ip": { "label": "Public IP", "description": "Public IP address (leave empty for auto)" },
-    "rcon_enabled": { "label": "RCON Enabled", "description": "Enable RCON remote command execution" },
     "difficulty": { "label": "Difficulty", "description": "Overall game difficulty" },
     "is_pvp": { "label": "PvP", "description": "Enable Player vs Player combat" },
     "death_penalty": { "label": "Death Penalty", "description": "What drops on player death" },
@@ -206,21 +203,6 @@
     "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update.",
     "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
     "extension_missing": "The {{extension}} extension is required. Install and enable it in Settings → Extensions."
-  },
-  "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}",
-    "invalid_password": "Invalid password",
-    "receiving_response": "Receiving response...",
-    "partial_response": "Partial response received ({{bytes}} bytes)",
-    "response_complete": "Response complete ({{bytes}} bytes total)",
-    "closed": "RCON connection closed"
   },
   "reset": {
     "no_path": "Cannot determine server directory. Set working_dir or server_executable.",

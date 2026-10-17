@@ -21,8 +21,7 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-# RCON communication delegates to the Rust daemon's HTTP API
-from daemon_rcon import DaemonRconClient as RconClient
+# 명령은 데몬의 REST 경로로 보낸다 (RCON은 보안 정책으로 꺼 둔다)
 try:
     from daemon_rcon import daemon_post
 except ImportError:
@@ -39,42 +38,6 @@ except ImportError:
 # Initialize i18n
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
-
-
-class PalworldRconClient:
-    """Palworld RCON client — delegates to Rust daemon's RCON API."""
-    
-    def __init__(self, host='127.0.0.1', port=25575, password='', instance_id=None):
-        self._instance_id = instance_id
-        self._client = RconClient(instance_id or '', host, int(port), password)
-    
-    def connect(self):
-        """Connect to RCON server"""
-        print(f"[RCON] {i18n.t('rcon.connecting', host=self._client.host, port=self._client.port)}", file=sys.stderr)
-        result = self._client.connect()
-        if result:
-            print(f"[RCON] {i18n.t('rcon.authenticated')}", file=sys.stderr)
-        else:
-            print(f"[RCON] {i18n.t('rcon.connection_failed', error='see above')}", file=sys.stderr)
-        return result
-    
-    def disconnect(self):
-        """Disconnect from RCON server"""
-        self._client.disconnect()
-    
-    def send_command(self, command):
-        """Send a command to the server"""
-        try:
-            if not self._client.socket:
-                if not self.connect():
-                    return None
-            print(f"[RCON] {i18n.t('rcon.sending_command', command=command)}", file=sys.stderr)
-            response = self._client.command(command)
-            print(f"[RCON] {i18n.t('rcon.response_received', response=response[:100] if response else 'None')}", file=sys.stderr)
-            return response
-        except Exception as e:
-            print(f"[RCON] {i18n.t('rcon.command_failed', error=str(e))}", file=sys.stderr)
-            return None
 
 
 class PalworldRestClient:
@@ -468,22 +431,10 @@ def get_credentials(config):
     매번 파일에서 읽으므로 메모리 동기화 문제가 없습니다."""
     try:
         pw = _read_admin_password_from_ini(config)
-
-        # ── RCON 비밀번호 반환 (RCON 비활성화 상태에서도 필수) ──
-        # Palworld는 공식적으로 REST API를 권장하며 RCON은 지양됨.
-        # saba-chan 역시 이 정책을 따라 RCONEnabled=False를 강제하고,
-        # RCON 지원은 향후에도 추가하지 않을 예정이다.
-        # 그러나 데몬의 RCON 핸들러가 get_credentials에서 rcon_password 필드를
-        # 반드시 요구하기 때문에, 비어 있으면 명령어 실행 자체가 거부된다.
-        # 이 에러를 회피하기 위해 AdminPassword(= REST 인증 비밀번호)를
-        # rcon_password로도 반환한다. 값은 데몬이 ensure_passwords()로 생성한
-        # 랜덤 비밀번호가 _enforce_rest_policy()를 통해 INI에 동기화된 것이다.
-        # RCON 자체는 활성화하지 않으므로 실제 RCON 접속에는 사용되지 않는다.
         return {
             "success": True,
             "rest_password": pw or "",
             "rest_username": "admin",
-            "rcon_password": pw or "",   # RCON 비활성화지만 데몬 요구사항 충족용
         }
     except Exception as e:
         return {"success": False, "message": str(e)}
@@ -642,9 +593,7 @@ _PALWORLD_KEY_MAP = {
     "server_password": "ServerPassword",
     "admin_password": "AdminPassword",
     "region": "Region",
-    # Connectivity / Auth
-    "rcon_enabled": "RCONEnabled",
-    "rcon_port": "RCONPort",
+    # Connectivity / Auth (RCONEnabled는 보안 정책상 항상 False라 설정 키가 없다)
     "rest_api_enabled": "RESTAPIEnabled",
     "rest_port": "RESTAPIPort",
     "use_auth": "bUseAuth",
@@ -980,6 +929,8 @@ def configure(config):
         props[ini_key] = str(value)
         updated_keys.append(ini_key)
 
+    # RCON은 보안 정책으로 막는다: 손으로 켠 INI라도 저장할 때 끈다
+    props["RCONEnabled"] = "False"
     ok = _write_option_settings(ini_path, props)
     return {
         "success": ok,
@@ -1271,7 +1222,7 @@ def install_server(config):
 
 
 def command(config):
-    """Execute server command via daemon REST/RCON API based on protocol_mode"""
+    """서버 명령을 데몬의 REST 경로로 실행한다"""
     try:
         # 디버그: 전달받은 config 출력
         print(f"[Palworld] Received config keys: {list(config.keys())}", file=sys.stderr)
@@ -1279,9 +1230,7 @@ def command(config):
         command_text = config.get("command")
         args = config.get("args", {})
         instance_id = config.get("instance_id")
-        protocol_mode = config.get("protocol_mode", "rest")  # "rest", "rcon", "auto"
-        
-        print(f"[Palworld] command={command_text}, instance_id={instance_id}, protocol_mode={protocol_mode}", file=sys.stderr)
+        print(f"[Palworld] command={command_text}, instance_id={instance_id}", file=sys.stderr)
         
         if not command_text:
             return {
@@ -1295,7 +1244,7 @@ def command(config):
                 "message": f"No instance_id specified. Config keys: {list(config.keys())}, config: {str(config)[:300]}"
             }
         
-        print(f"[Palworld] Executing command '{command_text}' via protocol_mode='{protocol_mode}' with args: {args}", file=sys.stderr)
+        print(f"[Palworld] Executing command '{command_text}' with args: {args}", file=sys.stderr)
         
         # Normalize command for branching
         command_lower = command_text.lower()
@@ -1314,11 +1263,6 @@ def command(config):
                 else:
                     print(f"[Palworld] Player lookup failed for unban, using original: {player_input}", file=sys.stderr)
         
-        # === RCON 모드 ===
-        if protocol_mode == "rcon":
-            return execute_command_via_rcon(instance_id, command_lower, args, config)
-        
-        # === REST 모드 (기본값) ===
         return execute_command_via_rest(instance_id, command_lower, args, config)
     
     except Exception as e:
@@ -1467,45 +1411,6 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
         }
 
 
-def execute_command_via_rcon(instance_id, command_lower, args, config):
-    """Execute command via RCON"""
-    
-    # RCON 명령어 템플릿 매핑
-    rcon_templates = {
-        "announce": "Broadcast {message}",
-        "info": "Info",
-        "players": "ShowPlayers",
-        "save": "Save",
-        "shutdown": "Shutdown {waittime} {message}",
-        "kick": "KickPlayer {userid}",
-        "ban": "BanPlayer {userid}",
-        "unban": "UnBanPlayer {userid}",
-    }
-    
-    if command_lower not in rcon_templates:
-        return {
-            "success": False,
-            "message": f"Command '{command_lower}' is not available via RCON. Try using REST mode."
-        }
-    
-    # 템플릿에서 RCON 명령어 생성
-    template = rcon_templates[command_lower]
-    
-    # 인자 치환
-    rcon_cmd = template
-    for key, value in args.items():
-        rcon_cmd = rcon_cmd.replace("{" + key + "}", str(value) if value else "")
-    
-    # 남은 플레이스홀더 제거 및 공백 정리
-    import re
-    rcon_cmd = re.sub(r'\{[^}]+\}', '', rcon_cmd)
-    rcon_cmd = ' '.join(rcon_cmd.split())  # 연속 공백 제거
-    
-    print(f"[Palworld] RCON command: {rcon_cmd}", file=sys.stderr)
-    
-    return execute_rcon_via_daemon(instance_id, rcon_cmd)
-
-
 def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
     """Execute REST API command via daemon"""
     payload = {
@@ -1542,43 +1447,6 @@ def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
         return {
             "success": False,
             "message": f"Failed to execute via daemon: {str(e)}"
-        }
-
-
-def execute_rcon_via_daemon(instance_id, rcon_cmd):
-    """Execute RCON command via daemon"""
-    payload = {
-        "command": rcon_cmd
-    }
-    
-    try:
-        result = daemon_post(f"/api/instance/{instance_id}/rcon", payload, timeout=10)
-        print(f"[Palworld] Daemon RCON response: {result}", file=sys.stderr)
-        
-        return {
-            "success": result.get("success", True),
-            "message": f"RCON command executed: {rcon_cmd}",
-            "data": result.get("data"),
-            "protocol": "rcon"
-        }
-    
-    except ConnectionError as e:
-        print(f"[Palworld] Daemon RCON connection error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Failed to connect to daemon for RCON: {str(e)}"
-        }
-    except json.JSONDecodeError as e:
-        print(f"[Palworld] Invalid JSON response from daemon RCON: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Invalid daemon RCON response: {str(e)}"
-        }
-    except Exception as e:
-        print(f"[Palworld] Daemon RCON error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Failed to execute RCON via daemon: {str(e)}"
         }
 
 

@@ -5,9 +5,6 @@
   },
   "settings": {
     "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },
-    "rcon_port": { "label": "RCONポート", "description": "RCONポート" },
-    "rcon_password": { "label": "RCONパスワード", "description": "リモートコマンド実行パスワード" },
-    "rcon_enabled": { "label": "RCON有効化", "description": "RCONリモートコマンド実行を有効化" },
     "rest_host": { "label": "REST APIホスト", "description": "REST APIホスト（デフォルト127.0.0.1）" },
     "rest_port": { "label": "REST APIポート", "description": "REST APIポート（デフォルト8212）" },
     "rest_username": { "label": "RESTユーザー名", "description": "REST Basic Auth ユーザー名" },
@@ -133,21 +130,6 @@
     "versions_via_steam": "Palworld サーバーは Steam/SteamCMD（App ID 2394010）で配布されています。SteamCMD を使用してインストールまたは更新してください。",
     "versions_managed_via_steam": "Palworld サーバーのバージョンは Steam で管理されています。app_update 2394010 で SteamCMD を使用して更新してください。",
     "extension_not_enabled": "SteamCMD 拡張機能が有効になっていません。設定 → 拡張機能 で先に有効にしてください。"
-  },
-  "rcon": {
-    "connecting": "{{host}}:{{port}} に接続中...",
-    "connected": "接続されました!",
-    "authentication_failed": "認証に失敗しました",
-    "authenticated": "認証されました!",
-    "connection_failed": "接続に失敗しました: {{error}}",
-    "sending_command": "コマンドを送信しています: {{command}}",
-    "response_received": "レスポンスを受信しました: {{response}}",
-    "command_failed": "コマンド失敗: {{error}}",
-    "invalid_password": "無効なパスワード",
-    "receiving_response": "レスポンスを受信中...",
-    "partial_response": "部分的なレスポンスを受信しました ({{bytes}} バイト)",
-    "response_complete": "レスポンス完了 (合計 {{bytes}} バイト)",
-    "closed": "RCON 接続が閉じられました"
   },
   "reset": {
     "no_path": "サーバーディレクトリを特定できません。working_dirまたはserver_executableを設定してください。",

@@ -5,8 +5,6 @@
   },
   "settings": {
     "port": { "label": "服务器端口", "description": "游戏服务器端口" },
-    "rcon_port": { "label": "RCON 端口", "description": "RCON 端口" },
-    "rcon_password": { "label": "RCON 密码", "description": "远程命令执行密码" },
     "rest_host": { "label": "REST API 主机", "description": "REST API 主机（默认 127.0.0.1）" },
     "rest_port": { "label": "REST API 端口", "description": "REST API 端口（默认 8212）" },
     "rest_username": { "label": "REST 用户名", "description": "REST 基本认证用户名" },
@@ -17,7 +15,6 @@
     "max_players": { "label": "最大玩家数", "description": "最大玩家数量（1-32）" },
     "coop_max_players": { "label": "合作模式最大玩家数", "description": "合作队伍中的最大玩家数量" },
     "public_ip": { "label": "公网 IP", "description": "公网 IP 地址（留空为自动）" },
-    "rcon_enabled": { "label": "启用 RCON", "description": "启用 RCON 远程命令执行" },
     "difficulty": { "label": "难度", "description": "整体游戏难度" },
     "is_pvp": { "label": "PvP", "description": "启用玩家对玩家战斗" },
     "death_penalty": { "label": "死亡惩罚", "description": "玩家死亡时掉落内容" },
@@ -133,21 +130,6 @@
     "versions_via_steam": "幻兽帕鲁服务器通过 Steam/SteamCMD 分发（App ID 2394010）。请使用 SteamCMD 安装或更新。",
     "versions_managed_via_steam": "幻兽帕鲁服务器版本通过 Steam 管理。请使用 SteamCMD 并执行 app_update 2394010 进行更新。",
     "extension_not_enabled": "SteamCMD 扩展未启用。请先在 设置 → 扩展 中启用。"
-  },
-  "rcon": {
-    "connecting": "正在连接 {{host}}:{{port}}...",
-    "connected": "已连接！",
-    "authentication_failed": "认证失败",
-    "authenticated": "认证成功！",
-    "connection_failed": "连接失败：{{error}}",
-    "sending_command": "正在发送命令：{{command}}",
-    "response_received": "已收到响应：{{response}}",
-    "command_failed": "命令执行失败：{{error}}",
-    "invalid_password": "密码无效",
-    "receiving_response": "正在接收响应...",
-    "partial_response": "已接收部分响应（{{bytes}} 字节）",
-    "response_complete": "响应完成（共 {{bytes}} 字节）",
-    "closed": "RCON 连接已关闭"
   },
   "reset": {
     "no_path": "无法确定服务器目录。请设置 working_dir 或 server_executable。",

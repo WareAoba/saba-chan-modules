@@ -5,9 +5,6 @@
   },
   "settings": {
     "port": { "label": "서버 포트", "description": "게임 서버 포트" },
-    "rcon_port": { "label": "RCON 포트", "description": "RCON 포트" },
-    "rcon_password": { "label": "RCON 비밀번호", "description": "원격 명령어 실행 비밀번호" },
-    "rcon_enabled": { "label": "RCON 활성화", "description": "RCON 원격 명령어 실행 활성화" },
     "rest_host": { "label": "REST API 호스트", "description": "REST API 호스트 (기본 127.0.0.1)" },
     "rest_port": { "label": "REST API 포트", "description": "REST API 포트 (기본 8212)" },
     "rest_username": { "label": "REST 사용자명", "description": "REST Basic Auth 사용자명" },
@@ -206,21 +203,6 @@
     "versions_managed_via_steam": "팰월드 서버 버전은 Steam을 통해 관리됩니다. app_update 2394010으로 SteamCMD를 사용하여 업데이트하세요.",
     "extension_not_enabled": "SteamCMD 확장이 활성화되지 않았습니다. 설정 → 확장에서 먼저 활성화하세요.",
     "extension_missing": "{{extension}} 익스텐션이 필요합니다. 설정 → 확장에서 설치하고 활성화하세요."
-  },
-  "rcon": {
-    "connecting": "{{host}}:{{port}}에 연결 중...",
-    "connected": "연결됨!",
-    "authentication_failed": "인증 실패",
-    "authenticated": "인증됨!",
-    "connection_failed": "연결 실패: {{error}}",
-    "sending_command": "명령 전송 중: {{command}}",
-    "response_received": "응답 수신: {{response}}",
-    "command_failed": "명령 실패: {{error}}",
-    "invalid_password": "잘못된 비밀번호",
-    "receiving_response": "응답 수신 중...",
-    "partial_response": "부분 응답 수신됨 ({{bytes}} 바이트)",
-    "response_complete": "응답 완료 (총 {{bytes}} 바이트)",
-    "closed": "RCON 연결이 닫혔습니다"
   },
   "reset": {
     "no_path": "서버 디렉토리를 확인할 수 없습니다. working_dir 또는 server_executable을 설정하세요.",

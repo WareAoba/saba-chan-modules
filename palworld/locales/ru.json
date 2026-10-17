@@ -5,8 +5,6 @@
   },
   "settings": {
     "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },
-    "rcon_port": { "label": "Порт RCON", "description": "Порт RCON" },
-    "rcon_password": { "label": "Пароль RCON", "description": "Пароль для удалённого выполнения команд" },
     "rest_host": { "label": "Хост REST API", "description": "Хост REST API (по умолчанию 127.0.0.1)" },
     "rest_port": { "label": "Порт REST API", "description": "Порт REST API (по умолчанию 8212)" },
     "rest_username": { "label": "Имя пользователя REST", "description": "Имя пользователя REST Basic Auth" },
@@ -17,7 +15,6 @@
     "max_players": { "label": "Max Players", "description": "Maximum number of players (1-32)" },
     "coop_max_players": { "label": "Co-op Max Players", "description": "Maximum number of players in co-op party" },
     "public_ip": { "label": "Public IP", "description": "Public IP address (leave empty for auto)" },
-    "rcon_enabled": { "label": "RCON Enabled", "description": "Enable RCON remote command execution" },
     "difficulty": { "label": "Difficulty", "description": "Overall game difficulty" },
     "is_pvp": { "label": "PvP", "description": "Enable Player vs Player combat" },
     "death_penalty": { "label": "Death Penalty", "description": "What drops on player death" },
@@ -137,21 +134,6 @@
     "not_found": "Файл настроек не найден. Запустите сервер один раз для его создания.",
     "settings_success": "Все настройки сервера сброшены до заводских значений. Данные мира сохранены.",
     "settings_failed": "Не удалось записать настройки по умолчанию в файл конфигурации."
-  },
-  "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}",
-    "invalid_password": "Invalid password",
-    "receiving_response": "Receiving response...",
-    "partial_response": "Partial response received ({{bytes}} bytes)",
-    "response_complete": "Response complete ({{bytes}} bytes total)",
-    "closed": "RCON connection closed"
   },
   "validate": {
     "no_executable": "Server executable path not specified.",

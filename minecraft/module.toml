@@ -396,6 +396,7 @@ group = "advanced"
 [[settings.fields]]
 name = "port"
 type = "number"
+port = true
 label = "Server Port"
 description = "Game server port"
 default = 25565
@@ -430,6 +431,7 @@ default = true
 [[settings.fields]]
 name = "query_port"
 type = "number"
+port = true
 label = "Query Port"
 description = "Port for GameSpy4 query protocol"
 default = 25565
@@ -458,6 +460,7 @@ group = "advanced"
 [[settings.fields]]
 name = "rcon_port"
 type = "number"
+port = true
 label = "RCON Port"
 description = "RCON server port (only used when Managed Start is disabled)"
 default = 25575

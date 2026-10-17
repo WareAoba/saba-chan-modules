@@ -324,6 +324,20 @@ DEFAULT_INI_PROPERTIES = {
 #                    INI File Manager
 # ═══════════════════════════════════════════════════════════
 
+def _zomboid_home(config):
+    """PZ 데이터 폴더 (-cachedir): ini, 세이브, 콘솔 로그가 여기 있다.
+
+    `cache_dir` 설정이 있으면 그 폴더(새 인스턴스는 인스턴스마다 따로 받는다),
+    없으면 PZ 기본값인 ~/Zomboid (이전에 만든 인스턴스와 가져온 서버).
+    """
+    cache_dir = str(config.get("cache_dir") or "")
+    if cache_dir and "{" not in cache_dir:
+        return cache_dir
+    if sys.platform == "win32":
+        return os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid")
+    return os.path.join(os.path.expanduser("~"), "Zomboid")
+
+
 class IniManager:
     """Read/write Project Zomboid server INI files.
     
@@ -335,18 +349,7 @@ class IniManager:
     def get_ini_path(config):
         """Determine the path to {servername}.ini."""
         server_name = config.get("server_name", "servertest")
-        
-        # Try explicit config_dir first
-        config_dir = config.get("config_dir", "")
-        if config_dir and os.path.isdir(config_dir):
-            return os.path.join(config_dir, f"{server_name}.ini")
-        
-        # Default locations
-        if sys.platform == "win32":
-            zomboid_dir = os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid", "Server")
-        else:
-            zomboid_dir = os.path.join(os.path.expanduser("~"), "Zomboid", "Server")
-        
+        zomboid_dir = os.path.join(_zomboid_home(config), "Server")
         return os.path.join(zomboid_dir, f"{server_name}.ini")
 
     @staticmethod
@@ -1040,10 +1043,11 @@ def get_launch_command(config):
     if admin_password:
         args.extend(["-adminpassword", admin_password])
     
-    # Custom cache dir
-    config_dir = config.get("config_dir", "")
-    if config_dir:
-        args.append(f"-cachedir={config_dir}")
+    # 인스턴스마다 따로 둔 데이터 폴더 (없으면 PZ 기본 ~/Zomboid)
+    if str(config.get("cache_dir") or "") and "{" not in str(config.get("cache_dir")):
+        home = _zomboid_home(config)
+        os.makedirs(home, exist_ok=True)
+        args.append(f"-cachedir={home}")
     
     return {
         "success": True,
@@ -1419,11 +1423,7 @@ def diagnose_log(config):
     if working_dir:
         log_paths.append(os.path.join(working_dir, "server-console.txt"))
     
-    if sys.platform == "win32":
-        zomboid_dir = os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid")
-    else:
-        zomboid_dir = os.path.join(os.path.expanduser("~"), "Zomboid")
-    
+    zomboid_dir = _zomboid_home(config)
     log_paths.append(os.path.join(zomboid_dir, "console.txt"))
     log_paths.append(os.path.join(zomboid_dir, "server-console.txt"))
     
@@ -1599,15 +1599,12 @@ def _find_steamcmd():
 def reset_server(config):
     """Reset the server world (delete save data, keep settings).
     
-    Deletes: ~/Zomboid/Saves/Multiplayer/{servername}/
-    Keeps: ~/Zomboid/Server/{servername}.ini and .lua files
+    Deletes: <data folder>/Saves/Multiplayer/{servername}/
+    Keeps: <data folder>/Server/{servername}.ini and .lua files
     """
     server_name = config.get("server_name", "servertest")
     
-    if sys.platform == "win32":
-        saves_dir = os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid", "Saves", "Multiplayer", server_name)
-    else:
-        saves_dir = os.path.join(os.path.expanduser("~"), "Zomboid", "Saves", "Multiplayer", server_name)
+    saves_dir = os.path.join(_zomboid_home(config), "Saves", "Multiplayer", server_name)
     
     deleted = []
     errors = []

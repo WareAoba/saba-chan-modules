@@ -4,6 +4,7 @@
     "description": "Project Zomboid 專用伺服器管理模組，提供完整的生命週期管理"
   },
   "settings": {
+    "cache_dir": { "label": "資料資料夾", "description": "此伺服器存放設定、存檔與日誌的資料夾 (-cachedir)。留空則使用 ~/Zomboid" },
     "ram": { "label": "記憶體（RAM）", "description": "最大記憶體配置量（GB）" },
     "server_name": { "label": "設定檔名稱", "description": "伺服器設定檔名稱（決定 INI 檔案名稱）" },
     "rcon_port": { "label": "RCON 連接埠", "description": "遠端控制台 RCON 連接埠" },

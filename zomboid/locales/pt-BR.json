@@ -4,6 +4,7 @@
     "description": "Módulo de gerenciamento de servidor dedicado Project Zomboid com controle completo do ciclo de vida"
   },
   "settings": {
+    "cache_dir": { "label": "Pasta de dados", "description": "Pasta de configurações, saves e logs deste servidor (-cachedir). Vazio = ~/Zomboid" },
     "ram": { "label": "Memória (RAM)", "description": "Alocação máxima de memória em GB" },
     "server_name": { "label": "Nome do perfil", "description": "Nome do perfil do servidor" },
     "rcon_port": { "label": "Porta RCON", "description": "Porta para console remoto RCON" },

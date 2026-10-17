@@ -4,6 +4,7 @@
     "description": "Project Zomboid 専用サーバー管理モジュール（完全なライフサイクル制御）"
   },
   "settings": {
+    "cache_dir": { "label": "データフォルダー", "description": "このサーバーの設定・セーブ・ログを置くフォルダー (-cachedir)。空欄なら ~/Zomboid" },
     "ram": { "label": "メモリ (RAM)", "description": "最大メモリ割り当て量 (GB)" },
     "server_name": { "label": "サーバープロファイル名", "description": "サーバープロファイル名（INIファイル名を決定）" },
     "rcon_port": { "label": "RCONポート", "description": "RCONリモートコンソールのポート" },

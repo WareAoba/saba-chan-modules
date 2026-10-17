@@ -4,6 +4,7 @@
     "description": "Project Zomboid 专用服务器管理模块，提供完整的生命周期管理"
   },
   "settings": {
+    "cache_dir": { "label": "数据文件夹", "description": "此服务器存放设置、存档和日志的文件夹 (-cachedir)。留空则使用 ~/Zomboid" },
     "ram": { "label": "内存（RAM）", "description": "最大内存分配量（GB）" },
     "server_name": { "label": "配置文件名称", "description": "服务器配置文件名称（决定 INI 文件名）" },
     "rcon_port": { "label": "RCON 端口", "description": "远程控制台 RCON 端口" },

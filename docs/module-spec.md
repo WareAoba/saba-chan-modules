@@ -69,6 +69,8 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 ### `[[settings.fields]]` ○
 인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`).
+- `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`·`rcon_port`·`rest_port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
+- 문자열 `default`의 `{instance_dir}`은 새 인스턴스 폴더로 바뀐다(인스턴스마다 따로 둘 게임 데이터 폴더 등). 기존 서버를 가져올 때는 빈 값이 들어가므로 모듈은 빈 값을 그 게임의 기본 위치로 다룬다(zomboid `cache_dir` 참고).
 데몬이 직접 의미를 아는 이름: `rcon_port`, `rest_port`, `rest_host`, `managed_start`, `log_sessions_keep`, `auto_restart`(크래시 때 다시 띄우기, 기본 true), `restart_on_unknown_exit`(원인 모를 종료도 다시 띄우기, 기본 false). 모듈이 선언하지 않아도 인스턴스 설정에 넣으면 데몬이 읽는다.
 
 ### `[[commands.fields]]` ○

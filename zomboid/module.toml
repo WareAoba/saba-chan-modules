@@ -54,6 +54,14 @@ crash_artifacts = ["hs_err_pid*.log"]
 # ========== saba-chan 전용 설정 ==========
 
 [[settings.fields]]
+name = "cache_dir"
+type = "text"
+label = "Data Folder"
+description = "Where this server keeps its settings, saves and logs (-cachedir). Empty uses ~/Zomboid"
+default = "{instance_dir}/zomboid"
+group = "advanced"
+
+[[settings.fields]]
 name = "ram"
 type = "number"
 label = "Memory (RAM)"
@@ -75,6 +83,7 @@ group = "saba-chan"
 [[settings.fields]]
 name = "rcon_port"
 type = "number"
+port = true
 label = "RCON Port"
 description = "Port for RCON remote console (only used when Managed Start is disabled)"
 default = 27015
@@ -157,6 +166,7 @@ max = 100
 [[settings.fields]]
 name = "port"
 type = "number"
+port = true
 label = "Game Port"
 description = "UDP port the game server listens on"
 default = 16261
@@ -743,6 +753,7 @@ group = "advanced"
 [[settings.fields]]
 name = "steam_port1"
 type = "number"
+port = true
 label = "Steam Port 1"
 description = "First Steam networking port"
 default = 8766
@@ -753,6 +764,7 @@ group = "advanced"
 [[settings.fields]]
 name = "steam_port2"
 type = "number"
+port = true
 label = "Steam Port 2"
 description = "Second Steam networking port"
 default = 8767

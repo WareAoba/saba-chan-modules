@@ -4,6 +4,7 @@
     "description": "프로젝트 좀보이드 전용 서버 관리 모듈 (전체 수명주기 제어)"
   },
   "settings": {
+    "cache_dir": { "label": "데이터 폴더", "description": "이 서버의 설정, 세이브, 로그를 두는 폴더 (-cachedir). 비우면 ~/Zomboid" },
     "ram": { "label": "메모리 (RAM)", "description": "최대 메모리 할당량 (GB 단위)" },
     "server_name": { "label": "서버 프로필 이름", "description": "서버 프로필 이름 (INI 파일 이름 결정)" },
     "rcon_port": { "label": "RCON 포트", "description": "RCON 원격 콘솔 포트" },

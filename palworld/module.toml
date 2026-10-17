@@ -66,6 +66,7 @@ group = "saba-chan"
 [[settings.fields]]
 name = "rest_port"
 type = "number"
+port = true
 label = "REST API Port"
 description = "REST API port (default 8212)"
 default = 8212
@@ -124,6 +125,7 @@ max = 32
 [[settings.fields]]
 name = "port"
 type = "number"
+port = true
 label = "Server Port"
 description = "Game server port"
 default = 8211

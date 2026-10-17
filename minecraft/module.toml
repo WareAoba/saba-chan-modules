@@ -14,8 +14,8 @@ log_pattern = '/(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 saba-core = ">=0.1.2"
 
 [protocols]
-supported = ["rcon", "stdin"]
-default = "rcon"
+supported = ["stdin"]
+default = "stdin"
 interaction_mode = "console"  # console: stdin 지원, 콘솔 UI 표시 | commands: 정해진 명령어만 실행
 
 [config]
@@ -82,7 +82,7 @@ group = "saba-chan"
 name = "managed_start"
 type = "boolean"
 label = "Managed Start (Console)"
-description = "Start in managed mode with stdin/stdout console (RCON disabled). Disable for native mode (RCON auto-enabled)."
+description = "Start through saba-runner with a stdin/stdout console (RCON stays off in every mode). Disable to leave the server unmanaged: then saba-chan cannot send it commands."
 default = true
 group = "saba-chan"
 
@@ -123,14 +123,6 @@ name = "broadcast_console_to_ops"
 type = "boolean"
 label = "Broadcast Console to Ops"
 description = "Send console output to all online ops"
-default = true
-group = "advanced"
-
-[[settings.fields]]
-name = "broadcast_rcon_to_ops"
-type = "boolean"
-label = "Broadcast RCON to Ops"
-description = "Send RCON command output to all online ops (only applies when Managed Start is disabled)"
 default = true
 group = "advanced"
 
@@ -452,25 +444,6 @@ description = "Max packets per second before disconnect (0 to disable)"
 default = 0
 min = 0
 max = 100000
-group = "advanced"
-
-[[settings.fields]]
-name = "rcon_password"
-type = "password"
-label = "RCON Password"
-description = "RCON access password (auto-managed when Managed Start is enabled)"
-default = ""
-group = "advanced"
-
-[[settings.fields]]
-name = "rcon_port"
-type = "number"
-port = true
-label = "RCON Port"
-description = "RCON server port (only used when Managed Start is disabled)"
-default = 25575
-min = 1024
-max = 65535
 group = "advanced"
 
 [[settings.fields]]

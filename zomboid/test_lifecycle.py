@@ -105,9 +105,7 @@ def _ini_bound_field_names(cfg):
 
 def test_ini_bound_fields_are_mapped():
     """INI에 쓰여야 하는 UI 필드가 모두 _INI_KEY_MAP에 있어야 한다.
-    누락되면 GUI에서 바꾼 값이 서버에 반영되지 않는다.
-    단, advanced group의 rcon_port/rcon_password는 managed 모드에서만 의미가
-    있고 INI 자체에도 기록되므로 KEY_MAP에 있어야 한다."""
+    누락되면 GUI에서 바꾼 값이 서버에 반영되지 않는다. (RCON 칸은 없다: 보안상 늘 꺼 둔다)"""
     from zomboid.lifecycle import _INI_KEY_MAP
 
     cfg = _load_module_toml()
@@ -234,3 +232,12 @@ def test_unknown_function_returns_graceful_json_with_zero_exit():
     assert payload["success"] is False
     assert "Unknown function" in payload["message"]
     assert "available" in payload
+
+
+def test_launch_turns_rcon_off(tmp_path):
+    """RCON is blocked for security: an empty RCONPassword disables it in Project Zomboid."""
+    from zomboid.lifecycle import _enforce_rcon_policy, IniManager
+    ini = tmp_path / "servertest.ini"
+    ini.write_text("RCONPassword=secret\nRCONPort=27015\n", encoding="utf-8")
+    assert _enforce_rcon_policy(str(ini)) == ""
+    assert IniManager.read(str(ini))["RCONPassword"] == ""

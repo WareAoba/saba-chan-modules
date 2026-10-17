@@ -1,3 +1,4 @@
+import pytest
 """Tests for Minecraft lifecycle module functions."""
 import json
 import os
@@ -22,8 +23,8 @@ def test_default_properties_loaded():
     from minecraft.lifecycle import DEFAULT_PROPERTIES
     assert isinstance(DEFAULT_PROPERTIES, dict)
     assert len(DEFAULT_PROPERTIES) > 30, f"Expected 30+ properties, got {len(DEFAULT_PROPERTIES)}"
-    # saba-chan override: enable-rcon should be true
-    assert DEFAULT_PROPERTIES.get("enable-rcon") == "true"
+    # saba-chan override: RCON is blocked
+    assert DEFAULT_PROPERTIES.get("enable-rcon") == "false"
     # Vanilla properties should be present
     assert "server-port" in DEFAULT_PROPERTIES
     assert "difficulty" in DEFAULT_PROPERTIES
@@ -226,45 +227,32 @@ def test_build_launch_info_eula_not_accepted_by_default():
         assert not accepted, "EULA should not be auto-accepted without auto_eula=True"
 
 
-def test_build_launch_info_rcon_policy_managed():
-    """Managed mode keeps RCON on with the daemon's password and port (re-attached servers have no stdin)."""
+@pytest.mark.parametrize("managed", [True, False])
+def test_launch_turns_rcon_off_in_every_mode(managed):
+    """RCON is blocked for security: every launch turns it off and does not sync the daemon's password/port."""
     from minecraft.lifecycle import get_launch_command, ServerPropertiesManager
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         mgr = ServerPropertiesManager(tmpdir)
-        mgr.write({"enable-rcon": "false", "rcon.password": "old"})
+        mgr.write({"enable-rcon": "true", "rcon.password": "old", "rcon.port": "25575"})
 
         get_launch_command({
             "server_jar": jar,
             "working_dir": tmpdir,
             "ram": 2,
-            "managed": True,
+            "managed": managed,
             "rcon_password": "daemon-pw",
             "rcon_port": 25580,
         })
         props = mgr.read()
-        assert props.get("enable-rcon") == "true"
-        assert props.get("rcon.password") == "daemon-pw"
-        assert props.get("rcon.port") == "25580"
+        assert props.get("enable-rcon") == "false"
+        assert props.get("rcon.password") == "old"
+        assert props.get("rcon.port") == "25575"
 
 
-def test_build_launch_info_rcon_policy_non_managed():
-    """get_launch_command enforces RCON on in non-managed mode."""
-    from minecraft.lifecycle import get_launch_command, ServerPropertiesManager
-    with tempfile.TemporaryDirectory() as tmpdir:
-        jar = _make_fake_jar(tmpdir)
-        # Pre-create server.properties with RCON disabled
-        mgr = ServerPropertiesManager(tmpdir)
-        mgr.write({"enable-rcon": "false"})
-
-        get_launch_command({
-            "server_jar": jar,
-            "working_dir": tmpdir,
-            "ram": 2,
-            "managed": False,
-        })
-        props = mgr.read()
-        assert props.get("enable-rcon") == "true", "Non-managed mode should enable RCON"
+def test_rcon_cannot_be_turned_on_from_settings():
+    from minecraft.lifecycle import _PROPERTY_KEY_MAP
+    assert not {"enable_rcon", "rcon_password", "rcon_port", "broadcast_rcon_to_ops"} & set(_PROPERTY_KEY_MAP)
 
 
 def test_build_launch_info_working_dir_from_jar():
@@ -296,27 +284,6 @@ def test_get_launch_command_returns_success():
         assert result["success"] is True
         assert "program" in result
         assert "args" in result
-
-
-# ── get_launch_command non-managed mode ──
-
-def test_get_launch_command_non_managed_rcon_on():
-    """get_launch_command with managed=False should enable RCON."""
-    from minecraft.lifecycle import get_launch_command, ServerPropertiesManager
-    with tempfile.TemporaryDirectory() as tmpdir:
-        jar = _make_fake_jar(tmpdir)
-        mgr = ServerPropertiesManager(tmpdir)
-        mgr.write({"enable-rcon": "false"})
-
-        result = get_launch_command({
-            "server_jar": jar,
-            "working_dir": tmpdir,
-            "ram": 2,
-            "managed": False,
-        })
-        assert result["success"] is True
-        props = mgr.read()
-        assert props.get("enable-rcon") == "true"
 
 
 # ── 데몬 계약 ────────────────────────────────────────────────
@@ -358,13 +325,13 @@ def test_import_settings_keeps_string_fields():
     from minecraft.lifecycle import import_settings, ServerPropertiesManager
     with tempfile.TemporaryDirectory() as tmpdir:
         ServerPropertiesManager(tmpdir).write({
-            "level-seed": "-4172144997902289642", "motd": "12345", "rcon.password": "0042",
+            "level-seed": "-4172144997902289642", "motd": "12345", "level-name": "0042",
             "max-players": "20", "pvp": "true", "custom-key": "true",
         })
         settings = import_settings({"working_dir": tmpdir})["settings"]
         assert settings["level_seed"] == "-4172144997902289642"
         assert settings["motd"] == "12345"
-        assert settings["rcon_password"] == "0042"
+        assert settings["level_name"] == "0042"
         assert settings["max_players"] == 20
         assert settings["pvp"] is True
         assert settings["custom-key"] == "true"

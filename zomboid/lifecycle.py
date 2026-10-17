@@ -84,8 +84,6 @@ _INI_KEY_MAP = {
     "minutes_per_page":      "MinutesPerPage",
     "spawn_point":           "SpawnPoint",
     "max_accounts_per_user": "MaxAccountsPerUser",
-    "rcon_port":             "RCONPort",
-    "rcon_password":         "RCONPassword",
     "spawn_items":           "SpawnItems",
     # ── Player / Display ──
     "server_welcome_message":  "ServerWelcomeMessage",
@@ -823,52 +821,17 @@ def _get_native_libs(server_dir):
     return ";".join(paths) if sys.platform == "win32" else ":".join(paths)
 
 
-def _enforce_rcon_policy(config, ini_path, managed=True):
-    """Enforce RCON settings based on managed/non-managed mode.
-    
-    - Managed mode (stdin control):  RCON is optional; disable by default
-      to reduce attack surface.  stdin is used for all commands.
-    - Non-managed mode (RCON only):  RCON is the sole control method;
-      force enable + ensure password exists.
-    
-    Returns the RCON password (may be empty in managed mode).
+def _enforce_rcon_policy(ini_path):
+    """Keep RCON off in every mode (an empty RCONPassword disables it in Project Zomboid).
+
+    saba-chan blocks RCON for security: commands go through the server console (stdin).
+    Returns the RCON password, always "".
     """
     props = IniManager.read(ini_path) if os.path.exists(ini_path) else {}
-    updates = {}
-    
-    rcon_port = config.get("rcon_port", 27015)
-    updates["RCONPort"] = str(rcon_port)
-    
-    if managed:
-        # Managed mode: RCON not required (stdin is used for control)
-        # Respect existing INI password; otherwise use daemon's
-        rcon_password = props.get("RCONPassword", "")
-        if not rcon_password:
-            daemon_pw = config.get("rcon_password", "")
-            if daemon_pw:
-                rcon_password = daemon_pw
-            else:
-                updates["RCONPassword"] = ""
-                print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
-        if rcon_password:
-            updates["RCONPassword"] = rcon_password
-    else:
-        # Non-managed mode: RCON must be enabled (it's the only control method)
-        rcon_password = props.get("RCONPassword", "")
-        if not rcon_password:
-            # daemon이 ensure_passwords()로 생성한 값 사용
-            daemon_pw = config.get("rcon_password", "")
-            if daemon_pw:
-                rcon_password = daemon_pw
-                print(f"[Zomboid] Synced RCONPassword from daemon config", file=sys.stderr)
-            else:
-                print(f"[Zomboid] WARNING: No RCON password from daemon or INI", file=sys.stderr)
-        updates["RCONPassword"] = rcon_password
-    
-    if updates:
-        IniManager.update(ini_path, updates)
-    
-    return rcon_password
+    if props.get("RCONPassword", ""):
+        IniManager.update(ini_path, {"RCONPassword": ""})
+        print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
+    return ""
 
 
 def get_credentials(config):
@@ -963,23 +926,6 @@ def validate(config):
     except Exception:
         pass  # UDP port check is unreliable; skip
     
-    # Check RCON port (TCP)
-    rcon_port = int(config.get("rcon_port", 27015))
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex(("127.0.0.1", rcon_port))
-        sock.close()
-        if result == 0:
-            issues.append({
-                "severity": "warning",
-                "code": "rcon_port_in_use",
-                "message": i18n.t("errors.detect.port_in_use", port=rcon_port),
-                "fix_hint": i18n.t("errors.solutions.port_in_use", port=rcon_port),
-            })
-    except Exception:
-        pass
-    
     has_errors = any(i["severity"] == "error" for i in issues)
     return {"success": not has_errors, "issues": issues}
 
@@ -1002,10 +948,7 @@ def get_launch_command(config):
     except (ValueError, TypeError):
         ram_gb = 4
     server_name = config.get("server_name", "servertest")
-    # 데몬은 managed 서버를 직접 멈추고, 이 함수는 non-managed일 때만 부른다
-    is_managed = config.get("managed", False)
-    ini_path = IniManager.get_ini_path(config)
-    _enforce_rcon_policy(config, ini_path, managed=is_managed)
+    _enforce_rcon_policy(IniManager.get_ini_path(config))
 
     # ── 1차: 배치/쉘 스크립트 파싱 ──
     parsed = _parse_launch_info(config, server_dir)

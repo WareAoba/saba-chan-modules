@@ -15,8 +15,8 @@ saba-core = ">=0.1.2"
 ext-steamcmd = ">=0.1.0"
 
 [protocols]
-supported = ["rcon", "stdin"]
-default = "rcon"
+supported = ["stdin"]
+default = "stdin"
 interaction_mode = "console"
 
 [config]
@@ -88,25 +88,6 @@ default = "servertest"
 group = "saba-chan"
 
 [[settings.fields]]
-name = "rcon_port"
-type = "number"
-port = true
-label = "RCON Port"
-description = "Port for RCON remote console (only used when Managed Start is disabled)"
-default = 27015
-min = 1
-max = 65535
-group = "advanced"
-
-[[settings.fields]]
-name = "rcon_password"
-type = "password"
-label = "RCON Password"
-description = "Password for RCON authentication (auto-managed when Managed Start is enabled)"
-required = false
-group = "advanced"
-
-[[settings.fields]]
 name = "admin_password"
 type = "password"
 label = "Admin Password"
@@ -126,7 +107,7 @@ group = "saba-chan"
 name = "managed_start"
 type = "boolean"
 label = "Managed Start (Console)"
-description = "Start in managed mode with stdin/stdout console (RCON disabled). Disable for native mode (RCON auto-enabled)."
+description = "Start through saba-runner with a stdin/stdout console (RCON stays off in every mode). Disable to leave the server unmanaged: then saba-chan cannot send it commands."
 default = true
 group = "saba-chan"
 

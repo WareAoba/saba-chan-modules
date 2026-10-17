@@ -47,7 +47,6 @@ _PROPERTY_KEY_MAP = {
     "allow_flight": "allow-flight",
     "allow_nether": "allow-nether",
     "broadcast_console_to_ops": "broadcast-console-to-ops",
-    "broadcast_rcon_to_ops": "broadcast-rcon-to-ops",
     "bug_report_link": "bug-report-link",
     "difficulty": "difficulty",
     "enable_command_block": "enable-command-block",
@@ -86,8 +85,6 @@ _PROPERTY_KEY_MAP = {
     "pvp": "pvp",
     "query_port": "query.port",
     "rate_limit": "rate-limit",
-    "rcon_password": "rcon.password",
-    "rcon_port": "rcon.port",
     "region_file_compression": "region-file-compression",
     "require_resource_pack": "require-resource-pack",
     "resource_pack": "resource-pack",
@@ -515,7 +512,7 @@ class EulaManager:
 
 def _load_default_properties():
     """Load vanilla defaults from server.properties reference file,
-    then apply saba-chan-specific overrides (e.g. enable RCON)."""
+    then apply saba-chan-specific overrides (RCON stays off: commands go through the console)."""
     defaults = {}
     ref_path = os.path.join(MODULE_DIR, "server.properties")
     if os.path.isfile(ref_path):
@@ -531,8 +528,8 @@ def _load_default_properties():
         except OSError:
             pass
 
-    # saba-chan overrides: enable RCON for managed server control
-    defaults["enable-rcon"] = "true"
+    # saba-chan overrides: RCON is blocked for security
+    defaults["enable-rcon"] = "false"
     defaults.setdefault("pause-when-empty-seconds", "60")
     return defaults
 
@@ -617,20 +614,6 @@ class ServerPropertiesManager:
 
     def get_defaults(self):
         return dict(DEFAULT_PROPERTIES)
-
-    def ensure_rcon(self, port=25575, password=""):
-        """Ensure RCON is enabled. Generates a password if none given."""
-        import secrets
-        import string
-        if not password:
-            alphabet = string.ascii_letters + string.digits
-            password = "".join(secrets.choice(alphabet) for _ in range(16))
-        self.update({
-            "enable-rcon": "true",
-            "rcon.port": str(port),
-            "rcon.password": password,
-        })
-        return password
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -999,33 +982,23 @@ def validate(config):
 
 def _enforce_rcon_policy(working_dir, config=None):
     """
-    Keep RCON on with the daemon's port and password before every launch.
+    Keep RCON off before every launch, in every mode.
 
-    RCON is the command path the daemon can always use: a server it re-attached to after a
-    daemon restart has no stdin pipe, so turning RCON off would leave no way to send commands.
-    The password is the random one the daemon generated (ensure_passwords).
+    saba-chan blocks RCON for security: commands reach the server through its console (stdin),
+    which saba-runner keeps open across daemon restarts. The daemon's RCON password/port are not synced.
 
     Returns dict with details of what was changed, or None if server.properties does not exist yet.
     """
     mgr = ServerPropertiesManager(working_dir)
     if not mgr.exists():
-        return None  # server.properties will be generated on first run (defaults enable RCON)
+        return None  # server.properties will be generated on first run (defaults keep RCON off)
 
     props = mgr.read()
-    config = config or {}
-    wanted = {"enable-rcon": "true"}
-    if config.get("rcon_password"):
-        wanted["rcon.password"] = str(config["rcon_password"])
-    if config.get("rcon_port"):
-        wanted["rcon.port"] = str(config["rcon_port"])
-    changes = {k: v for k, v in wanted.items() if props.get(k) != v}
-    if not props.get("rcon.password") and "rcon.password" not in changes:
-        print("[Minecraft] WARNING: No RCON password from daemon or server.properties", file=sys.stderr)
-
-    if changes:
-        mgr.update(changes)
-        return {"changed": True, "changes": changes}
-    return {"changed": False}
+    if props.get("enable-rcon", "false").lower() == "false":
+        return {"changed": False}
+    mgr.update({"enable-rcon": "false"})
+    print("[Minecraft] RCON turned off (saba-chan sends commands through the console)", file=sys.stderr)
+    return {"changed": True, "changes": {"enable-rcon": "false"}}
 
 
 def get_launch_command(config):
@@ -1742,9 +1715,8 @@ class ServerInstaller:
                     v = "true" if v else "false"
                 props[prop_key] = str(v)
 
-            # Enable RCON by default with random password
-            if "enable-rcon" not in props:
-                mgr.ensure_rcon()
+            # RCON is blocked for security (commands go through the console)
+            props["enable-rcon"] = "false"
 
             if props:
                 mgr.update(props)

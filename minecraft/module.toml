@@ -8,7 +8,8 @@ game_name = "Minecraft"
 display_name = "Minecraft"
 entry = "lifecycle.py"
 icon = "icon.png"
-log_pattern = '/(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
+# Vanilla·Forge·Fabric `[HH:MM:SS] [thread/LEVEL]`, Paper 콘솔 `[HH:MM:SS LEVEL]`
+log_pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
 [module.dependencies]
 saba-core = ">=0.1.2"
@@ -865,17 +866,17 @@ priority = 100
 # Exception / Error 클래스 완전 이름 (java.lang.NullPointerException, OutOfMemoryError 등)
 [[syntax_highlight.rules]]
 name = "exception_class"
-pattern = '(?P<hl>[a-z][\w.]*\.[A-Z]\w*(?:Exception|Error))'
+pattern = '\b(?P<hl>[a-z]\w*(?:\.[a-z]\w*)*\.[A-Z]\w*(?:Exception|Error))\b'
 color = "error"
 bold = true
 priority = 90
 
 # ── 구조: 타임스탬프 + 스레드/레벨 ──────────────────────
 
-# 타임스탬프 [HH:MM:SS]
+# 타임스탬프 [HH:MM:SS] (Paper 콘솔은 `[HH:MM:SS LEVEL]`이라 닫는 괄호가 없다)
 [[syntax_highlight.rules]]
 name = "timestamp"
-pattern = '^\[\d{2}:\d{2}:\d{2}\]'
+pattern = '^\[\d{2}:\d{2}:\d{2}\]?'
 color = "timestamp"
 priority = 80
 
@@ -907,6 +908,34 @@ priority = 75
 [[syntax_highlight.rules]]
 name = "level_info"
 pattern = '\[(?P<hl>[^\]]+/INFO)\]'
+color = "dim"
+priority = 70
+
+# Paper 콘솔 레벨 `[HH:MM:SS LEVEL]:` (스레드 이름이 없다)
+[[syntax_highlight.rules]]
+name = "level_error_paper"
+pattern = '^\[\d{2}:\d{2}:\d{2} (?P<hl>ERROR|FATAL)\]'
+color = "error"
+bold = true
+priority = 75
+
+[[syntax_highlight.rules]]
+name = "level_warn_paper"
+pattern = '^\[\d{2}:\d{2}:\d{2} (?P<hl>WARN)\]'
+color = "warn"
+bold = true
+priority = 75
+
+[[syntax_highlight.rules]]
+name = "level_debug_paper"
+pattern = '^\[\d{2}:\d{2}:\d{2} (?P<hl>DEBUG)\]'
+color = "debug"
+italic = true
+priority = 75
+
+[[syntax_highlight.rules]]
+name = "level_info_paper"
+pattern = '^\[\d{2}:\d{2}:\d{2} (?P<hl>INFO)\]'
 color = "dim"
 priority = 70
 
@@ -1048,7 +1077,7 @@ priority = 40
 # UUID (대소문자 모두 허용) — 파일 경로/식별자 안에 포함된 경우는 제외
 [[syntax_highlight.rules]]
 name = "uuid"
-pattern = '(?<![\w/-])(?P<hl>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?![\w/-])'
+pattern = '(?:^|[^\w/-])(?P<hl>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:$|[^\w/-])'
 color = "uuid"
 priority = 30
 
@@ -1121,7 +1150,7 @@ priority = 20
 # URL/파일 경로(/api, /jace5 등)와 혼동되지 않도록 줄 시작 또는 공백 뒤에서만 매칭
 [[syntax_highlight.rules]]
 name = "slash_command"
-pattern = '(?<=^|\s)(?P<hl>/[a-z][a-z0-9_-]+)\b'
+pattern = '(?:^|\s)(?P<hl>/[a-z][a-z0-9_-]+)\b'
 color = "command"
 bold = true
 priority = 15

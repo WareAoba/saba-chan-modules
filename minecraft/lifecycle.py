@@ -29,6 +29,7 @@ from i18n import I18n
 
 # RCON communication delegates to the Rust daemon's HTTP API
 from daemon_rcon import rcon_command as _rcon_command_bridge
+from daemon_rcon import force_kill, is_process_alive, wait_for_exit
 
 def _rcon_command(host, port, password, command, timeout=5):
     """RCON via daemon API if instance_id available, else direct fallback."""
@@ -238,11 +239,13 @@ class JavaDetector:
 
     @staticmethod
     def parse_major_version(version_str):
-        """Extract major version number. '17.0.2' → 17, '1.8.0_362' → 8"""
-        parts = version_str.split(".")
-        major = int(parts[0])
-        if major == 1 and len(parts) > 1:
-            major = int(parts[1])
+        """Extract major version number. '17.0.2' → 17, '1.8.0_362' → 8, '21-ea' → 21, 읽을 수 없으면 0"""
+        numbers = re.findall(r"\d+", str(version_str))
+        if not numbers:
+            return 0
+        major = int(numbers[0])
+        if major == 1 and len(numbers) > 1:
+            major = int(numbers[1])
         return major
 
     @staticmethod
@@ -791,45 +794,46 @@ class MinecraftPing:
     def ping(host="127.0.0.1", port=25565, timeout=3):
         """Ping a server and get status dict (players, version, motd) or None."""
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            sock.connect((host, port))
-
-            # Handshake
-            protocol_version = MinecraftPing._encode_varint(-1)
-            host_bytes = host.encode("utf-8")
-            host_len = MinecraftPing._encode_varint(len(host_bytes))
-            port_bytes = struct.pack(">H", port)
-            next_state = MinecraftPing._encode_varint(1)
-
-            handshake_data = (
-                MinecraftPing._encode_varint(0x00)
-                + protocol_version + host_len + host_bytes + port_bytes + next_state
-            )
-            sock.sendall(MinecraftPing._encode_varint(len(handshake_data)) + handshake_data)
-
-            # Status request
-            sock.sendall(MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
-
-            # Read response
-            data = b""
-            while True:
-                chunk = sock.recv(4096)
-                if not chunk:
-                    break
-                data += chunk
-                try:
-                    parsed = MinecraftPing._parse_response(data)
-                    if parsed is not None:
-                        sock.close()
-                        return parsed
-                except Exception:
-                    continue
-
-            sock.close()
-            return None
+            # with 블록이라 오류가 나도 소켓이 닫힌다
+            with socket.create_connection((host, port), timeout=timeout) as sock:
+                return MinecraftPing._exchange(sock, host, port)
         except (socket.timeout, socket.error, OSError):
             return None
+
+    @staticmethod
+    def _exchange(sock, host, port):
+        """핸드셰이크와 상태 요청을 보내고 응답을 읽는다."""
+        # Handshake
+        protocol_version = MinecraftPing._encode_varint(-1)
+        host_bytes = host.encode("utf-8")
+        host_len = MinecraftPing._encode_varint(len(host_bytes))
+        port_bytes = struct.pack(">H", port)
+        next_state = MinecraftPing._encode_varint(1)
+
+        handshake_data = (
+            MinecraftPing._encode_varint(0x00)
+            + protocol_version + host_len + host_bytes + port_bytes + next_state
+        )
+        sock.sendall(MinecraftPing._encode_varint(len(handshake_data)) + handshake_data)
+
+        # Status request
+        sock.sendall(MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
+
+        # Read response
+        data = b""
+        while True:
+            chunk = sock.recv(4096)
+            if not chunk:
+                break
+            data += chunk
+            try:
+                parsed = MinecraftPing._parse_response(data)
+                if parsed is not None:
+                    return parsed
+            except Exception:
+                continue
+
+        return None
 
     @staticmethod
     def _encode_varint(value):
@@ -1132,7 +1136,10 @@ def configure(config):
 
     props_changes = {}
     for key, value in settings.items():
-        prop_key = _PROPERTY_KEY_MAP.get(key, key)
+        # server.properties 키가 아닌 것(ram, java_path 같은 사바쨩 설정)은 쓰지 않는다
+        prop_key = _PROPERTY_KEY_MAP.get(key)
+        if prop_key is None:
+            continue
         if isinstance(value, bool):
             value = "true" if value else "false"
         props_changes[prop_key] = str(value)
@@ -1206,7 +1213,7 @@ def reset_properties(config):
 
 
 def reset_server(config):
-    """Full server reset: delete everything except server.jar and eula.txt.
+    """Full server reset: delete everything except server.jar, eula.txt and the bundled java/.
 
     server.properties will be recreated from module defaults on next configure().
     """
@@ -1235,6 +1242,9 @@ def reset_server(config):
             continue
         # eula.txt 보존
         if item.is_file() and name_lower in KEEP_FILES:
+            continue
+        # 받아 둔 번들 Java 보존 (다시 받으려면 크다)
+        if item.is_dir() and name_lower == "java":
             continue
 
         try:
@@ -1337,29 +1347,18 @@ def stop(config):
             if rcon_password:
                 try:
                     _rcon_command("127.0.0.1", rcon_port, rcon_password, "stop")
-                    for _ in range(30):
-                        time.sleep(1)
-                        try:
-                            os.kill(pid, 0)
-                        except OSError:
-                            return {"success": True,
-                                    "message": i18n.t("messages.graceful_stop", pid=pid)}
+                    # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
+                    if wait_for_exit(pid, timeout=30):
+                        return {"success": True,
+                                "message": i18n.t("messages.graceful_stop", pid=pid)}
                     print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
                 except Exception as e:
                     print(f"RCON stop failed, falling back: {e}", file=sys.stderr)
 
-        if sys.platform == "win32":
-            try:
-                subprocess.run(["taskkill", "/F", "/PID", str(pid)], check=True,
-                               creationflags=0x08000000)
-                return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-            except subprocess.CalledProcessError as e:
-                return {"success": False, "message": i18n.t("errors.failed_to_kill", error=str(e))}
-        else:
-            import signal as sig_mod
-            os.kill(pid, sig_mod.SIGKILL if force else sig_mod.SIGTERM)
-            return {"success": True, "message": i18n.t("messages.signal_sent",
-                                                        signal="KILL" if force else "TERM", pid=pid)}
+        ok, error = force_kill(pid)
+        if ok:
+            return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
+        return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
     except Exception as e:
         return {"success": False, "message": i18n.t("errors.failed_to_stop", error=str(e))}
 
@@ -1391,13 +1390,9 @@ def status(config):
                 "message": i18n.t("messages.server_online"),
             }
 
-        if pid:
-            try:
-                os.kill(pid, 0)
-                return {"success": True, "status": "starting", "pid": pid,
-                        "online": False, "message": i18n.t("messages.server_starting_no_response")}
-            except OSError:
-                pass
+        if pid and is_process_alive(pid):
+            return {"success": True, "status": "starting", "pid": pid,
+                    "online": False, "message": i18n.t("messages.server_starting_no_response")}
 
         result = {"success": True, "status": "stopped", "online": False,
                 "message": i18n.t("messages.no_process_running")}

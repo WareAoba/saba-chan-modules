@@ -617,6 +617,17 @@ DEFAULT_PALWORLD_SETTINGS = {
     "bAllowEnhanceStat_Stamina": "True",
     "bAllowEnhanceStat_Weight": "True",
     "bAllowEnhanceStat_WorkSpeed": "True",
+    "PhysicsActiveDropItemMaxNum": "-1",
+    "PlayerDataPalStorageUpdateCheckTickInterval": "1.000000",
+    "MonsterFarmActionSpeedRate": "1.000000",
+    "AutoTransferMasterCheckIntervalSeconds": "3600.000000",
+    "AutoTransferMasterThresholdDays": "14",
+    "MaxGuildsPerFrame": "10",
+    "bEnableVoiceChat": "False",
+    "VoiceChatMaxVolumeDistance": "3000.000000",
+    "VoiceChatZeroVolumeDistance": "15000.000000",
+    "bEnableBuildingPlayerUIdDisplay": "False",
+    "BuildingNameDisplayCacheTTLSeconds": "60",
 }
 
 # saba-chan key → PalWorldSettings.ini key (full mapping)
@@ -859,7 +870,7 @@ PALWORLD_ERROR_PATTERNS = [
 def validate(config):
     """Validate prerequisites before starting Palworld server."""
     issues = []
-    executable = config.get("server_executable")
+    executable = config.get("server_executable") or config.get("server_jar")
 
     # 실행 파일 검사
     if not executable:

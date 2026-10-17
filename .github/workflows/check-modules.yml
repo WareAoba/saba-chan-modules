@@ -27,8 +27,28 @@ jobs:
           ref: ${{ steps.core.outputs.ref }}
           path: saba-chan
           sparse-checkout: modules
+      # 팰월드 설정 테스트는 ue4_ini 익스텐션을 쓴다 (같은 이름 브랜치가 있으면 그것)
+      - name: Pick the extensions branch
+        id: ext
+        run: |
+          b="${{ github.head_ref || github.ref_name }}"
+          if git ls-remote --exit-code --heads https://github.com/WareAoba/saba-chan-extensions "$b" >/dev/null; then
+            echo "ref=$b" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          repository: WareAoba/saba-chan-extensions
+          ref: ${{ steps.ext.outputs.ref }}
+          path: saba-chan-extensions
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install pytest jsonschema
       - run: pytest conformance -W default --shared-libs saba-chan/modules
+      # 모듈 단위 테스트 (pytest.ini testpaths)
+      - run: pytest -q
+        env:
+          SABA_RUNTIME_DIR: saba-chan/modules
+          SABA_EXTENSIONS_DIR: saba-chan-extensions

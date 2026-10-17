@@ -596,6 +596,20 @@
       ],
       "type": "object"
     },
+    "OneOrMany": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "문자열 하나 또는 여럿 (`arg = \"-x\"` / `arg = [\"-a\", \"-b\"]`)"
+    },
     "ProtocolsSection": {
       "additionalProperties": false,
       "properties": {
@@ -631,10 +645,28 @@
     "SettingFieldToml": {
       "additionalProperties": false,
       "properties": {
+        "arg": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OneOrMany"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "실행 인자 모양. 문자열 하나나 배열 (`SettingField::arg`)"
+        },
         "default": {
           "default": null
         },
         "description": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "format": {
           "default": null,
           "type": [
             "string",
@@ -682,6 +714,13 @@
           },
           "type": [
             "array",
+            "null"
+          ]
+        },
+        "pattern": {
+          "default": null,
+          "type": [
+            "string",
             "null"
           ]
         },

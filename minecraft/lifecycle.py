@@ -78,6 +78,15 @@ _PROPERTY_KEY_MAP = {
     "prevent_proxy_connections": "prevent-proxy-connections",
     "pvp": "pvp",
     "query_port": "query.port",
+    "debug": "debug",
+    "management_server_enabled": "management-server-enabled",
+    "management_server_host": "management-server-host",
+    "management_server_port": "management-server-port",
+    "management_server_secret": "management-server-secret",
+    "management_server_allowed_origins": "management-server-allowed-origins",
+    "management_server_tls_enabled": "management-server-tls-enabled",
+    "management_server_tls_keystore": "management-server-tls-keystore",
+    "management_server_tls_keystore_password": "management-server-tls-keystore-password",
     "rate_limit": "rate-limit",
     "region_file_compression": "region-file-compression",
     "require_resource_pack": "require-resource-pack",
@@ -887,6 +896,21 @@ def _resolve_server_jar(config):
     return os.path.abspath(jar)
 
 
+def _java_memory(value):
+    """ram 설정 → Java 힙 크기. "4G"·"1024M"·"512k"는 그대로, 예전에 저장된 숫자(GB)는 G로
+    (소수는 M으로: 0.5 → 512M). 읽을 수 없으면 2G"""
+    text = str(value).strip()
+    if re.fullmatch(r"\d+[KMGkmg]", text):
+        return text
+    try:
+        gb = float(text)
+    except (ValueError, TypeError):
+        return "2G"
+    if gb <= 0:
+        return "2G"
+    return f"{int(gb)}G" if gb == int(gb) else f"{int(gb * 1024)}M"
+
+
 def _launch_java(config, server_jar):
     """실제로 띄울 Java: <working_dir>/java/의 번들 Java가 시스템 Java보다 먼저다."""
     java_path = config.get("java_path", "java")
@@ -1002,16 +1026,7 @@ def get_launch_command(config):
     """
     java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
-    ram_raw = config.get("ram", 2)
-    # Accept plain number (GB). Fractional values converted to MB (e.g. 0.5 → 512M, 1.5 → 1536M)
-    try:
-        ram_gb = float(str(ram_raw).rstrip("GgMm"))
-        if ram_gb == int(ram_gb):
-            ram = f"{int(ram_gb)}G"
-        else:
-            ram = f"{int(ram_gb * 1024)}M"
-    except (ValueError, TypeError):
-        ram = "2G"
+    ram = _java_memory(config.get("ram", "2G"))
     working_dir = config.get("working_dir")
     extra_jvm_args = config.get("jvm_args", [])
 
@@ -1060,11 +1075,18 @@ def get_launch_command(config):
     elif isinstance(extra_jvm_args, str):
         args.extend(extra_jvm_args.split())
 
+    # 사용자가 더한 실행 인자(데몬의 extra_args)는 JVM 인자 자리, -jar 앞에 넣는다
+    extra_args = config.get("extra_args") or []
+    if isinstance(extra_args, list):
+        args.extend(str(a) for a in extra_args)
+
     args.extend(["-jar", os.path.abspath(server_jar), "nogui"])
 
     abs_working_dir = os.path.abspath(working_dir)
 
-    _enforce_rcon_policy(abs_working_dir, config=config)
+    # 미리보기(preview)는 아무 파일도 고치지 않는다
+    if not config.get("preview"):
+        _enforce_rcon_policy(abs_working_dir, config=config)
 
     return {
         "success": True,
@@ -1072,6 +1094,7 @@ def get_launch_command(config):
         "args": args,
         "working_dir": abs_working_dir,
         "env_vars": {},
+        "extra_args_placed": True,
     }
 
 

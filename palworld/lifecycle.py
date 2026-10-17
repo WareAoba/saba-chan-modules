@@ -315,8 +315,8 @@ def get_launch_command(config):
 
     abs_working_dir = os.path.abspath(working_dir)
 
-    # Enforce REST-only policy before launch
-    rest_result = _enforce_rest_policy(abs_working_dir, config)
+    # Enforce REST-only policy before launch (미리보기는 INI를 고치지 않는다)
+    rest_result = None if config.get("preview") else _enforce_rest_policy(abs_working_dir, config)
 
     args = [f"--port={port}"]
 

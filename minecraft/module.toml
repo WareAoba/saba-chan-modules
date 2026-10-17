@@ -11,7 +11,7 @@ icon = "icon.png"
 log_pattern = '/(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
 [module.dependencies]
-saba-core = ">=0.1.2"
+saba-core = ">=0.1.5"
 
 [permissions]
 network = true          # 서버 파일 내려받기, 포트 확인
@@ -68,10 +68,12 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "ram"
-type = "number"
+type = "text"
+format = "memory_size"
+arg = ["-Xmx{value}", "-Xms{value}"]
 label = "Memory (RAM)"
-description = "Maximum memory in GB (e.g. 4 = 4GB, 0.5 = 512MB)"
-default = 4
+description = "Java heap size: a number with K, M or G (e.g. 4G, 1024M)"
+default = "4G"
 group = "saba-chan"
 
 [[settings.fields]]
@@ -80,6 +82,7 @@ type = "boolean"
 label = "Aikar's Flags"
 description = "Use recommended JVM flags for better GC performance"
 default = false
+arg = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1"
 group = "saba-chan"
 
 [[settings.fields]]
@@ -428,6 +431,70 @@ type = "boolean"
 label = "PVP"
 description = "Allow player vs player combat"
 default = true
+
+[[settings.fields]]
+name = "debug"
+type = "boolean"
+label = "Debug"
+description = "Extra debug logging from the server"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "management_server_enabled"
+type = "boolean"
+label = "Management Server"
+description = "Enable the server management protocol (JSON-RPC over WebSocket)"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "management_server_host"
+type = "text"
+label = "Management Server Host"
+default = "localhost"
+group = "advanced"
+
+[[settings.fields]]
+name = "management_server_port"
+type = "number"
+format = "port"
+label = "Management Server Port"
+default = 0
+min = 0
+max = 65535
+group = "advanced"
+
+[[settings.fields]]
+name = "management_server_secret"
+type = "password"
+label = "Management Server Secret"
+group = "advanced"
+
+[[settings.fields]]
+name = "management_server_allowed_origins"
+type = "text"
+label = "Management Server Allowed Origins"
+group = "advanced"
+
+[[settings.fields]]
+name = "management_server_tls_enabled"
+type = "boolean"
+label = "Management Server TLS"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "management_server_tls_keystore"
+type = "text"
+label = "Management Server TLS Keystore"
+group = "advanced"
+
+[[settings.fields]]
+name = "management_server_tls_keystore_password"
+type = "password"
+label = "Management Server TLS Keystore Password"
+group = "advanced"
 
 [[settings.fields]]
 name = "query_port"

@@ -311,6 +311,13 @@
     "HighlightRuleToml": {
       "additionalProperties": false,
       "properties": {
+        "background": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "bold": {
           "default": false,
           "type": "boolean"
@@ -327,6 +334,15 @@
         },
         "pattern": {
           "type": "string"
+        },
+        "priority": {
+          "default": 0,
+          "format": "int32",
+          "type": "integer"
+        },
+        "underline": {
+          "default": false,
+          "type": "boolean"
         }
       },
       "required": [

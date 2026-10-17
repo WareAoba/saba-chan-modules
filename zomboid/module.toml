@@ -8,7 +8,7 @@ game_name = "Project Zomboid"
 display_name = "Project Zomboid"
 entry = "lifecycle.py"
 icon = "icon.png"
-log_pattern = '(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)'
+log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
 saba-core = ">=0.1.2"
@@ -1405,6 +1405,13 @@ pattern = ',\s+(?P<hl>\d{13})>'
 color = "dim"
 priority = 80
 
+# B42 머리 "f:0, t:1765669004675, st:214 957 507>" (프레임, 에폭 밀리초, 서버 틱)
+[[syntax_highlight.rules]]
+name = "b42_header"
+pattern = '\b(?P<hl>f:\d+, t:\d{13}, st:[\d ,]*\d)>'
+color = "dim"
+priority = 80
+
 # 서버 시작 (여러 변형)
 [[syntax_highlight.rules]]
 name = "server_started"
@@ -1416,7 +1423,7 @@ priority = 75
 # 서버 종료 / 셧다운
 [[syntax_highlight.rules]]
 name = "server_quitting"
-pattern = '(?P<hl>Quitting!|Server is shutting down|Shutting down)'
+pattern = '(?P<hl>Quitting!|Server is shutting down|Shutting down|Server exited)'
 color = "warn"
 bold = true
 priority = 75
@@ -1452,12 +1459,10 @@ color = "dim"
 italic = true
 priority = 70
 
-# 로그 카테고리: `: Category ,` 또는 `: Category.Sub ,`
-# 기존 패턴 `> \w+(\.\w+)+` 은 점이 반드시 필요했지만 실제 Zomboid 카테고리는
-# 대부분 단일 단어(General, Network, Chat...)여서 매치 실패. 단일 단어 허용.
+# 로그 카테고리: 레벨 뒤 `General     ,`(B41) 또는 `General      f:0,`(B42)
 [[syntax_highlight.rules]]
 name = "log_category"
-pattern = ':\s+(?P<hl>[A-Z][\w.]+)\s*,'
+pattern = '^[A-Z]+\s*:\s+(?P<hl>[A-Z][\w.]+)\s*(?:,|f:\d)'
 color = "keyword"
 priority = 65
 
@@ -1538,7 +1543,7 @@ priority = 35
 # 기존 `/[\w/.\-]+` 은 "key/value" 같은 자연어도 매치하여 제거.
 [[syntax_highlight.rules]]
 name = "file_path_unix"
-pattern = '(?<![\w.])(?P<hl>/[\w./\-]*/[\w.\-]+)'
+pattern = '(?:^|[^\w.])(?P<hl>/[\w./\-]*/[\w.\-]+)'
 color = "path"
 priority = 35
 

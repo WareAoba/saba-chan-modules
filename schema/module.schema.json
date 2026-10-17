@@ -479,6 +479,43 @@
       },
       "type": "object"
     },
+    "ModulePermissions": {
+      "additionalProperties": false,
+      "description": "`[permissions]` — 모듈 Python 코드가 쓰는 능력 (M12). 선언하지 않은 능력을 코드에서 찾으면 `saba-core module audit`과 `GET /api/module/:name/audit`이 알린다. 새 권한은 여기와 `PERMISSIONS`, `modules/saba_audit.py` 표에 한 줄씩 더한다",
+      "properties": {
+        "dynamic_code": {
+          "default": false,
+          "description": "실행 중에 만든 코드 실행 (eval, exec, compile, 동적 __import__, pickle, importlib)",
+          "type": "boolean"
+        },
+        "env_secrets": {
+          "default": false,
+          "description": "환경 변수 전체 읽기 (dict(os.environ) 등)",
+          "type": "boolean"
+        },
+        "fs_outside_instance": {
+          "default": false,
+          "description": "서버 작업 폴더 밖의 파일 쓰기 (정적 검사로는 찾지 못한다: 선언만)",
+          "type": "boolean"
+        },
+        "native_code": {
+          "default": false,
+          "description": "네이티브 코드 (ctypes, cffi, winreg)",
+          "type": "boolean"
+        },
+        "network": {
+          "default": false,
+          "description": "네트워크 접속 (socket, urllib, requests 등). 데몬 API 호출(daemon_rcon)은 포함하지 않는다",
+          "type": "boolean"
+        },
+        "spawn_process": {
+          "default": false,
+          "description": "다른 프로그램 실행·프로세스 신호 (subprocess, os.system, os.kill 등)",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
     "ModuleSection": {
       "additionalProperties": false,
       "properties": {
@@ -810,6 +847,22 @@
     },
     "module": {
       "$ref": "#/definitions/ModuleSection"
+    },
+    "permissions": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ModulePermissions"
+        }
+      ],
+      "default": {
+        "dynamic_code": false,
+        "env_secrets": false,
+        "fs_outside_instance": false,
+        "native_code": false,
+        "network": false,
+        "spawn_process": false
+      },
+      "description": "[permissions] 모듈 코드가 쓰는 능력 (M12)"
     },
     "protocols": {
       "anyOf": [

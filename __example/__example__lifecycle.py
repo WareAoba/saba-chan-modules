@@ -62,7 +62,10 @@
     config["server_executable"] 실행 파일 경로
     config["working_dir"]       작업 디렉토리
     config["port"]              게임 포트
-    config["settings"]          { "server_name": "My Server", ... }
+    인스턴스 설정 값                각 설정 이름이 최상위 키로 (예: config["server_name"])
+
+  configure() 호출 시에만:
+    config["settings"]          바꿀 설정 { "server_name": "My Server", ... }
 
   REST 모듈 (게임에 REST API가 있을 때만):
     config["rest_host/port/username/password"]

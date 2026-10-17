@@ -28,7 +28,7 @@ DAEMON_FUNCTIONS = {
     "validate", "configure", "read_properties", "reset_properties", "reset_server",
     "accept_eula", "diagnose_log",
     "list_versions", "get_version_details", "install_server", "get_installed_version",
-    "import_settings",
+    "import_settings", "backup_paths",
 }
 REQUIRED_FUNCTIONS = {"get_launch_command"}
 # 빈 작업 폴더에서 불러도 아무것도 바꾸지 않는 함수
@@ -207,3 +207,20 @@ def test_translation_keys(module):
     assert not problems, "\n".join(problems)
     if untranslated:
         warnings.warn(f"{module.name}: 번역 안 된 키 수 (영어로 보인다): {untranslated}")
+
+
+# ── 코드 검사 (M12) ─────────────────────────────────────
+
+def test_code_uses_only_declared_permissions(module, shared_libs):
+    """lifecycle 코드가 쓰는 능력(네트워크, 프로세스 실행, 동적 코드 등)은 [permissions]에 선언한다"""
+    audit = shared_libs / "saba_audit.py"
+    if not audit.is_file():
+        pytest.skip("이 saba-chan에는 코드 검사기(saba_audit.py)가 없다")
+    out = subprocess.run([sys.executable, "-I", str(audit), str(module.dir)], capture_output=True, text=True,
+                         encoding="utf-8", timeout=CALL_TIMEOUT)
+    result = json.loads(out.stdout)
+    assert result["success"], result
+    declared = module.manifest.get("permissions", {})
+    missing = [f"{f['permission']} {f['file']}:{f['line']} {f['detail']}"
+               for f in result["findings"] if declared.get(f["permission"]) is not True]
+    assert not missing, "[permissions]에 선언하지 않은 능력을 쓴다:\n" + "\n".join(missing)

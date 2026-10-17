@@ -54,6 +54,18 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 #    - "console"  : stdin 지원, 실시간 콘솔 UI 표시 (Minecraft, Zomboid)
 #    - "commands" : 정해진 명령어 버튼만 표시 (Palworld)
 #
+# ── [permissions] 코드가 쓰는 능력 (M12) ─────────────────────
+#  lifecycle 코드가 쓰는 능력을 선언합니다. 데몬(`saba-core module audit`, 모듈 화면)과
+#  적합성 키트가 코드를 검사해 선언하지 않은 사용을 알립니다. 쓰지 않는 것은 빼세요.
+#    network             네트워크 접속 (socket, urllib, requests). 데몬 API 호출은 제외
+#    spawn_process       프로그램 실행·프로세스 신호 (subprocess, os.system, os.kill)
+#    native_code         ctypes, cffi, winreg
+#    dynamic_code        eval, exec, compile, 동적 __import__, pickle, importlib
+#    env_secrets         환경 변수 전체 읽기 (dict(os.environ))
+#    fs_outside_instance 서버 작업 폴더 밖에 파일 쓰기 (검사로는 못 찾으니 정직하게 선언)
+[permissions]
+spawn_process = true
+
 [protocols]
 supported = ["stdin"]                   # ← 게임에 맞게 선택 ("stdin" | "rest")
 default = "stdin"

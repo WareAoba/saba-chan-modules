@@ -15,6 +15,10 @@ saba-core = ">=0.1.2"
 ext-steamcmd = ">=0.1.0"
 ext-ue4-ini = ">=0.1.0"
 
+[permissions]
+network = true          # 서버 파일 내려받기, 포트 확인
+spawn_process = true    # 서버 실행 파일 호출, PID로 종료
+
 [protocols]
 supported = ["rest"]
 default = "rest"

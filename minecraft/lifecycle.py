@@ -116,19 +116,21 @@ _PROPERTY_KEY_MAP = {
 
 def required_java(mc_version):
     """Minecraft 버전에 필요한 최소 Java 주 버전 (서버 jar에 version.json이 없을 때의 폴백).
-      1.20.5+ / 1.21+ / 스냅샷(24w14a 등) / 연도 기반(26.1 등) → 21
+      연도 기반(26.1 등), 26년 이후 스냅샷 → 25
+      1.20.5+ / 1.21+ / 그 전 스냅샷(24w14a 등) → 21
       1.18 ~ 1.20.4 → 17, 1.17 → 16, 그 이전 → 8, 알 수 없음 → 17
     """
     if not mc_version:
         return 17
     text = str(mc_version).strip()
-    if re.match(r"^\d{2}w\d{2}[a-z]$", text):
-        return 21
+    snapshot = re.match(r"^(\d{2})w\d{2}[a-z]$", text)
+    if snapshot:
+        return 25 if int(snapshot.group(1)) >= 26 else 21
     numbers = [int(n) for n in re.findall(r"\d+", text.split("-")[0])]
     if not numbers:
         return 17
     if numbers[0] != 1:
-        return 21  # 연도 기반 버전 (예: 26.1)
+        return 25  # 연도 기반 버전 (예: 26.1)
     minor = numbers[1] if len(numbers) > 1 else 0
     patch = numbers[2] if len(numbers) > 2 else 0
     if minor >= 21 or (minor == 20 and patch >= 5):
@@ -905,18 +907,28 @@ def _resolve_server_jar(config):
     return os.path.abspath(jar)
 
 
+def _launch_java(config, server_jar):
+    """실제로 띄울 Java: <working_dir>/java/의 번들 Java가 시스템 Java보다 먼저다."""
+    java_path = config.get("java_path", "java")
+    wd = config.get("working_dir") or (os.path.dirname(os.path.abspath(server_jar)) if server_jar else "")
+    bundled = JavaDownloader._find_bundled_java(os.path.join(wd, "java")) if wd else None
+    if bundled:
+        return bundled
+    java_info = JavaDetector.find_java(java_path)
+    return java_info["path"] if java_info else java_path
+
+
 def validate(config):
     """
     Validate all prerequisites before starting.
     Checks: Java, server jar, EULA, working dir, port availability.
     """
     issues = []
-    java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
     working_dir = config.get("working_dir", "")
 
-    # Java: 서버 jar의 version.json(java_version, id)을 먼저 본다
-    java_info = JavaDetector.find_java(java_path)
+    # Java: 띄울 Java로 검사한다. 필요한 버전은 서버 jar의 version.json(java_version, id)을 먼저 본다
+    java_info = JavaDetector.find_java(_launch_java(config, server_jar))
     jar_info = _read_jar_version(*os.path.split(server_jar)) if server_jar else None
     mc_version = config.get("server_version") or (jar_info or {}).get("version")
     issues.extend(JavaDetector.validate_for_minecraft(
@@ -1061,15 +1073,7 @@ def get_launch_command(config):
             "options": ["update_path", "install_new"],
         }
 
-    # Prefer bundled Java in <working_dir>/java/ over system Java
-    _wd = working_dir or os.path.dirname(os.path.abspath(server_jar))
-    bundled = JavaDownloader._find_bundled_java(os.path.join(_wd, "java"))
-    if bundled:
-        java_path = bundled
-    else:
-        java_info = JavaDetector.find_java(java_path)
-        if java_info:
-            java_path = java_info["path"]
+    java_path = _launch_java(config, server_jar)
 
     if not working_dir:
         working_dir = os.path.dirname(os.path.abspath(server_jar))
@@ -1666,7 +1670,6 @@ class ServerInstaller:
 
         download_url = details["download_url"]
         expected_sha1 = details.get("sha1")
-        expected_size = details.get("size")
 
         # Create install directory
         install_path = os.path.abspath(install_dir)

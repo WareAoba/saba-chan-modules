@@ -401,17 +401,6 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 
 ---
 
-### 3.2 `[update]` — 자동 업데이트
-
-```toml
-[update]
-github_repo = "saba-chan-modules"        # GitHub 레포 이름
-```
-
-모듈은 별도의 GitHub 리포지토리에서 관리됩니다. `github_owner`는 saba-chan 본체 설정에서 상속됩니다.
-
----
-
 ### 3.3 `[protocols]` — 통신 프로토콜
 
 ```toml
@@ -2200,9 +2189,6 @@ entry = "lifecycle.py"
 icon = "icon.png"
 log_pattern = '(?P<level>INFO|WARN|ERROR)'
 
-[update]
-github_repo = "saba-chan-modules"
-
 [protocols]
 supported = ["rcon"]
 default = "rcon"
@@ -2337,9 +2323,6 @@ display_name = "Full Game"
 entry = "lifecycle.py"
 icon = "icon.png"
 log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'
-
-[update]
-github_repo = "saba-chan-modules"
 
 [protocols]
 supported = ["rcon", "stdin"]

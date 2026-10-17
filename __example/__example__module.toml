@@ -41,10 +41,6 @@ entry = "lifecycle.py"                  # 진입점 스크립트 (모듈 폴더 
 icon = "icon.png"                       # 아이콘 파일 (모듈 폴더 내)
 log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 정규식
 
-# ── [update] 모듈 자동 업데이트 ──────────────────────────────────
-[update]
-github_repo = "saba-chan-modules"        # GitHub 레포 이름 (github_owner는 본체 설정에서 상속)
-
 # ── [protocols] 통신 프로토콜 ────────────────────────────────────
 #
 #  supported: 이 모듈이 지원하는 프로토콜 목록

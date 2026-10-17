@@ -443,20 +443,6 @@
       },
       "type": "object"
     },
-    "LegacyUpdateSection": {
-      "additionalProperties": false,
-      "properties": {
-        "github_repo": {
-          "default": null,
-          "description": "업데이터가 GitHub에서 이 모듈을 찾을 저장소 이름 (예전 경로)",
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "type": "object"
-    },
     "ModuleSection": {
       "additionalProperties": false,
       "properties": {
@@ -806,17 +792,6 @@
           "type": "null"
         }
       ]
-    },
-    "update": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/LegacyUpdateSection"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "description": "[update] 예전 GitHub 업데이트 경로가 읽는 키 (데몬은 안 읽는다). L3에서 GitHub 경로와 함께 지운다"
     }
   },
   "required": [

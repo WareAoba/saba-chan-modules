@@ -10,6 +10,9 @@ entry = "lifecycle.py"
 icon = "icon.png"
 log_pattern = '/(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
+[module.dependencies]
+saba-core = ">=0.1.0"
+
 # 모듈 업데이트 설정 — 모듈은 별도 GitHub 레포지토리에서 관리됩니다
 [update]
 github_repo = "saba-chan-modules"  # github_owner는 본체 설정에서 상속

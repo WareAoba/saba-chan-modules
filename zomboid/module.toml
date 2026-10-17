@@ -10,6 +10,10 @@ entry = "lifecycle.py"
 icon = "icon.png"
 log_pattern = '(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)'
 
+[module.dependencies]
+saba-core = ">=0.1.0"
+ext-steamcmd = ">=0.1.0"
+
 [update]
 github_repo = "saba-chan-modules"
 

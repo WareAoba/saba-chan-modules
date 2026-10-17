@@ -327,3 +327,9 @@ def test_log_pattern_reads_level_prefix_only(line, level):
 def test_log_pattern_skips_unprefixed_stack_lines():
     import re
     assert re.search(_load_module_toml()["module"]["log_pattern"], "\tat zombie.network.ServerMap.SaveAll(ServerMap.java:75)") is None
+
+
+def test_highlight_marks_unix_path_after_space_only():
+    rules = _load_module_toml()["syntax_highlight"]["rules"]
+    assert ("/home/pz/Zomboid/Server", "path") in _highlighted("LOG  : General      f:0, t:1765669004675, st:1> loading /home/pz/Zomboid/Server", rules)
+    assert not any(c == "path" for _, c in _highlighted("LOG  : General      f:0, t:1765669004675, st:1> see a.b/c/d", rules))

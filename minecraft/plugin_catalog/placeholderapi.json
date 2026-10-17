@@ -1,0 +1,325 @@
+{
+  "name": "PlaceholderAPI",
+  "match": [
+    "PlaceholderAPI"
+  ],
+  "docs": [
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://github.com/PlaceholderAPI/PlaceholderAPI/tree/master/src/main/java/me/clip/placeholderapi/commands/impl",
+    "https://github.com/PlaceholderAPI/PlaceholderAPI/blob/master/src/main/resources/plugin.yml"
+  ],
+  "commands": [
+    {
+      "name": "placeholderapi-parse",
+      "label": "Parse text",
+      "description": "Parses the placeholders in a given text and shows the result.",
+      "risk": "safe",
+      "console_template": "placeholderapi parse {player} {text}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, or --null"
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "label": "Text",
+          "required": true,
+          "placeholder": "e.g. %player_name%"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-bcparse",
+      "label": "Parse and broadcast",
+      "description": "Parses placeholders of a String and broadcasts the result to all players.",
+      "risk": "caution",
+      "console_template": "placeholderapi bcparse {player} {text}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, or --null"
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "label": "Text",
+          "required": true,
+          "placeholder": "e.g. Hello %player_name%"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-cmdparse",
+      "label": "Parse and run command",
+      "description": "Parses placeholders of a String and executes it as a command.",
+      "risk": "danger",
+      "console_template": "placeholderapi cmdparse {player} {text}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, or --null"
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "label": "Command",
+          "required": true,
+          "placeholder": "Command without slash, e.g. say %player_name%"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-parserel",
+      "label": "Parse relational",
+      "description": "Parses a relational placeholder.",
+      "risk": "safe",
+      "console_template": "placeholderapi parserel {player_one} {player_two} {text}",
+      "inputs": [
+        {
+          "name": "player_one",
+          "type": "text",
+          "label": "First player",
+          "required": true,
+          "placeholder": "Online player name"
+        },
+        {
+          "name": "player_two",
+          "type": "text",
+          "label": "Second player",
+          "required": true,
+          "placeholder": "Online player name"
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "label": "Text",
+          "required": true,
+          "placeholder": "e.g. %rel_...%"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-ecloud-clear",
+      "label": "Clear eCloud cache",
+      "description": "Clears the cache for the eCloud.",
+      "risk": "caution",
+      "console_template": "placeholderapi ecloud clear",
+      "inputs": []
+    },
+    {
+      "name": "placeholderapi-ecloud-download",
+      "label": "Download expansion",
+      "description": "Allows you to download an expansion from the eCloud.",
+      "risk": "caution",
+      "console_template": "placeholderapi ecloud download {expansion} {version}",
+      "inputs": [
+        {
+          "name": "expansion",
+          "type": "text",
+          "label": "Expansion",
+          "required": true,
+          "placeholder": "Expansion name, e.g. Player"
+        },
+        {
+          "name": "version",
+          "type": "text",
+          "label": "Version",
+          "required": false,
+          "placeholder": "Latest if empty"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-ecloud-info",
+      "label": "eCloud expansion info",
+      "description": "Gives information about a specific Expansion.",
+      "risk": "safe",
+      "console_template": "placeholderapi ecloud info {expansion} {version}",
+      "inputs": [
+        {
+          "name": "expansion",
+          "type": "text",
+          "label": "Expansion",
+          "required": true,
+          "placeholder": "Expansion name"
+        },
+        {
+          "name": "version",
+          "type": "text",
+          "label": "Version",
+          "required": false,
+          "placeholder": "Latest if empty"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-ecloud-list",
+      "label": "List eCloud expansions",
+      "description": "Lists either all Expansions on the eCloud, only those by a specific author or only those that you have installed.",
+      "risk": "safe",
+      "console_template": "placeholderapi ecloud list {filter} {page}",
+      "inputs": [
+        {
+          "name": "filter",
+          "type": "text",
+          "label": "Filter",
+          "required": true,
+          "placeholder": "all, installed, or an author name"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-ecloud-placeholders",
+      "label": "List expansion placeholders",
+      "description": "List all placeholders of an Expansion.",
+      "risk": "safe",
+      "console_template": "placeholderapi ecloud placeholders {expansion}",
+      "inputs": [
+        {
+          "name": "expansion",
+          "type": "text",
+          "label": "Expansion",
+          "required": true,
+          "placeholder": "Expansion name"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-ecloud-refresh",
+      "label": "Refresh eCloud",
+      "description": "Refresh the cached data from the eCloud.",
+      "risk": "safe",
+      "console_template": "placeholderapi ecloud refresh",
+      "inputs": []
+    },
+    {
+      "name": "placeholderapi-ecloud-status",
+      "label": "eCloud status",
+      "description": "Displays the actual Status of the eCloud.",
+      "risk": "safe",
+      "console_template": "placeholderapi ecloud status",
+      "inputs": []
+    },
+    {
+      "name": "placeholderapi-ecloud-update",
+      "label": "Update expansions",
+      "description": "Downloads and registers updates for an installed expansion, or for all installed expansions.",
+      "risk": "caution",
+      "console_template": "placeholderapi ecloud update {expansion}",
+      "inputs": [
+        {
+          "name": "expansion",
+          "type": "text",
+          "label": "Expansion",
+          "required": true,
+          "placeholder": "Expansion name, or all"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-info",
+      "label": "Expansion info",
+      "description": "Gives you information about the specified Expansion.",
+      "risk": "safe",
+      "console_template": "placeholderapi info {expansion}",
+      "inputs": [
+        {
+          "name": "expansion",
+          "type": "text",
+          "label": "Expansion",
+          "required": true,
+          "placeholder": "Expansion identifier"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-list",
+      "label": "List expansions",
+      "description": "Lists all active/registered expansions.",
+      "risk": "safe",
+      "console_template": "placeholderapi list",
+      "inputs": []
+    },
+    {
+      "name": "placeholderapi-register",
+      "label": "Register expansion",
+      "description": "Registers an expansion from a specified filename.",
+      "risk": "caution",
+      "console_template": "placeholderapi register {file}",
+      "inputs": [
+        {
+          "name": "file",
+          "type": "text",
+          "label": "File name",
+          "required": true,
+          "placeholder": "e.g. Expansion-Player.jar"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-unregister",
+      "label": "Unregister expansion",
+      "description": "Unregisters the specified expansion.",
+      "risk": "caution",
+      "console_template": "placeholderapi unregister {expansion}",
+      "inputs": [
+        {
+          "name": "expansion",
+          "type": "text",
+          "label": "Expansion",
+          "required": true,
+          "placeholder": "Expansion name"
+        }
+      ]
+    },
+    {
+      "name": "placeholderapi-dump",
+      "label": "Dump info",
+      "description": "Pastes useful information from PlaceholderAPI such as plugin version, server version and installed expansions.",
+      "risk": "safe",
+      "console_template": "placeholderapi dump",
+      "inputs": []
+    },
+    {
+      "name": "placeholderapi-help",
+      "label": "Help",
+      "description": "Displays all the commands PlaceholderAPI currently offers.",
+      "risk": "safe",
+      "console_template": "placeholderapi help",
+      "inputs": []
+    },
+    {
+      "name": "placeholderapi-reload",
+      "label": "Reload",
+      "description": "Reloads the config settings.",
+      "risk": "danger",
+      "console_template": "placeholderapi reload",
+      "inputs": []
+    },
+    {
+      "name": "placeholderapi-version",
+      "label": "Version",
+      "description": "Shows the current version and authors of PlaceholderAPI.",
+      "risk": "safe",
+      "console_template": "placeholderapi version",
+      "inputs": []
+    }
+  ]
+}

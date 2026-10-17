@@ -4,6 +4,7 @@
     "description": "Minecraft server management module with full lifecycle control"
   },
   "settings": {
+    "server_type": { "label": "Server Type", "description": "Which server software runs this world. Vanilla, Paper, Folia, Purpur and Fabric can be installed by saba-chan; the others are detected when you import an existing server." },
     "java_path": { "label": "Java Path", "description": "Path to Java executable (auto-detected if blank)" },
     "ram": { "label": "Memory (RAM)", "description": "Maximum memory allocation (e.g. 2G, 4G)" },
     "port": { "label": "Server Port", "description": "Game server port" },
@@ -146,6 +147,9 @@
     "stop": { "label": "Stop Server", "description": "Gracefully stop the server" }
   },
   "errors": {
+    "server_type_mismatch": "Server type is set to '{{chosen}}' but the server files are '{{detected}}'.",
+    "server_type_install_unsupported": "saba-chan cannot install '{{type}}' servers. Install it yourself and add it with 'Import existing server'.",
+    "server_type_version_unavailable": "'{{type}}' has no stable build for Minecraft {{version}} yet.",
     "server_jar_not_specified": "server_jar not specified in instance configuration. Please add the path to server.jar",
     "server_jar_not_found": "Server jar not found: {{path}}. Please check the path in instance settings.",
     "failed_to_start": "Failed to start: {{error}}",
@@ -173,6 +177,7 @@
       "server_overloaded": "Server is overloaded and cannot keep up with tick rate"
     },
     "solutions": {
+      "server_type_mismatch": "Update (reinstall) the server, or set the server type to match the actual server.",
       "java_not_found": "Install Java 17+ (recommended: Adoptium Temurin) from https://adoptium.net/ and ensure it's in your PATH, or set the Java path in instance settings.",
       "java_version_too_old": "Install Java {{required}}+ from https://adoptium.net/ — current Minecraft versions require modern Java.",
       "server_jar_not_specified": "Set the path to your server.jar in instance settings.",
@@ -210,6 +215,9 @@
     "server_reset_complete": "Server reset complete",
     "server_reset_deleted": "{{count}} items deleted",
     "rcon_password_generated": "Auto-generated RCON password (no password was set)"
+  },
+  "plugins": {
+    "args_label": "Arguments"
   },
   "rcon": {
     "connecting": "Connecting to {{host}}:{{port}}...",

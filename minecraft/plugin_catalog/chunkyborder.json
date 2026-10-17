@@ -1,0 +1,119 @@
+{
+  "name": "ChunkyBorder",
+  "match": [
+    "ChunkyBorder",
+    "chunkyborder"
+  ],
+  "docs": [
+    "https://github.com/pop4959/ChunkyBorder/wiki/Commands",
+    "https://github.com/pop4959/ChunkyBorder",
+    "https://github.com/pop4959/Chunky/wiki/World-borders"
+  ],
+  "commands": [
+    {
+      "name": "chunky-border-add",
+      "label": "Add border",
+      "description": "Creates a world border from the current selection.",
+      "risk": "caution",
+      "console_template": "chunky border add {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "chunky-border-remove",
+      "label": "Remove border",
+      "description": "Removes a world border.",
+      "risk": "danger",
+      "console_template": "chunky border remove {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "chunky-border-wrap",
+      "label": "Set border wrap",
+      "description": "Sets the world border wrap type in the currently selected world; none disables wrapping.",
+      "risk": "caution",
+      "console_template": "chunky border wrap {type}",
+      "inputs": [
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Wrap type",
+          "required": false,
+          "options": [
+            "none",
+            "default",
+            "both",
+            "radial",
+            "x",
+            "z",
+            "earth"
+          ],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "chunky-border-list",
+      "label": "List borders",
+      "description": "Lists active world borders.",
+      "risk": "safe",
+      "console_template": "chunky border list",
+      "inputs": []
+    },
+    {
+      "name": "chunky-border-load",
+      "label": "Load border",
+      "description": "Loads the world border in a world as the current selection.",
+      "risk": "caution",
+      "console_template": "chunky border load {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "chunky-border-bypass",
+      "label": "Toggle border bypass",
+      "description": "Temporarily bypasses the world border for the given player.",
+      "risk": "caution",
+      "console_template": "chunky border bypass {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "chunky-border-help",
+      "label": "Border help",
+      "description": "Shows the ChunkyBorder command help.",
+      "risk": "safe",
+      "console_template": "chunky border help",
+      "inputs": []
+    }
+  ]
+}

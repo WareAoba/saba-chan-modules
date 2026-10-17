@@ -14,7 +14,7 @@ DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "validate", "configure",
     "read_properties", "reset_properties", "reset_server", "import_settings",
     "accept_eula", "diagnose_log", "list_versions",
-    "get_version_details", "install_server", "get_installed_version",
+    "get_version_details", "install_server", "get_installed_version", "instance_commands",
 }
 
 

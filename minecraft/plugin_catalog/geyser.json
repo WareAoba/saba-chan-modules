@@ -1,0 +1,31 @@
+{
+  "name": "Geyser",
+  "match": ["Geyser-Spigot", "geyser-fabric", "geyser_neoforge"],
+  "docs": [
+    "https://geysermc.org/wiki/geyser/commands/",
+    "https://github.com/GeyserMC/Geyser/blob/master/core/src/main/java/org/geysermc/geyser/command/CommandRegistry.java",
+    "https://github.com/GeyserMC/Geyser/tree/master/core/src/main/java/org/geysermc/geyser/command/defaults"
+  ],
+  "player_only": ["geyser advancements", "geyser offhand", "geyser settings", "geyser statistics", "geyser tooltips", "geyser ping", "geyser options", "geyser quickactions", "geyser gamerules"],
+  "commands": [
+    {"name": "geyser-help", "label": "Help", "description": "Shows help for all registered commands.", "risk": "safe", "console_template": "geyser help", "inputs": []},
+    {"name": "geyser-list", "label": "List Bedrock players", "description": "List all players connected through Geyser.", "risk": "safe", "console_template": "geyser list", "inputs": []},
+    {"name": "geyser-version", "label": "Version", "description": "Shows the current Geyser version and checks for updates.", "risk": "safe", "console_template": "geyser version", "inputs": []},
+    {"name": "geyser-dump", "label": "Debug dump", "description": "Dumps Geyser debug information for bug reports.", "risk": "safe", "console_template": "geyser dump {options}", "inputs": [
+      {"name": "options", "type": "text", "label": "Options", "required": false, "placeholder": "Any of: full, offline, logs"}
+    ]},
+    {"name": "geyser-connectiontest", "label": "Connection test", "description": "Tests whether Bedrock players from other networks can reach Geyser at the given address and port.", "risk": "safe", "console_template": "geyser connectiontest {address} {port}", "inputs": [
+      {"name": "address", "type": "text", "label": "Address", "required": true, "placeholder": "Public IP or domain"},
+      {"name": "port", "type": "number", "label": "Port", "required": false, "min": 1, "max": 65534, "placeholder": "Bedrock port (default from config)"}
+    ]},
+    {"name": "geyser-reload", "label": "Reload", "description": "Reloads the Geyser configurations. Kicks all players when used!", "risk": "danger", "console_template": "geyser reload", "inputs": []},
+    {"name": "geyser-extensions", "label": "List extensions", "description": "Lists all currently loaded extensions. This command is only registered if any extensions are loaded.", "risk": "safe", "console_template": "geyser extensions", "inputs": []},
+    {"name": "geyser-nethernet-status", "label": "NetherNet status", "description": "Shows the NetherNet signaling provider's current server status report.", "risk": "safe", "console_template": "geyser nethernet status", "inputs": []},
+    {"name": "geyser-nethernet-status-automatic", "label": "Restore automatic NetherNet status", "description": "Restores the automatic Geyser status report for the NetherNet signaling provider.", "risk": "caution", "console_template": "geyser nethernet status automatic", "inputs": []},
+    {"name": "geyser-nethernet-status-set", "label": "Set NetherNet status", "description": "Queues a complete server status snapshot for the NetherNet signaling provider.", "risk": "caution", "console_template": "geyser nethernet status set {snapshot}", "inputs": [
+      {"name": "snapshot", "type": "text", "label": "Snapshot", "required": true, "placeholder": "base64url-encoded JSON snapshot"}
+    ]},
+    {"name": "geyser-nethernet-action", "label": "NetherNet operator link", "description": "Shows the signaling provider's current link for the operator, such as one to claim this server.", "risk": "safe", "console_template": "geyser nethernet action", "inputs": []},
+    {"name": "geyser-nethernet-diagnostics", "label": "NetherNet diagnostics", "description": "Shows NetherNet signaling status and diagnostics, for use with external signaling.", "risk": "safe", "console_template": "geyser nethernet diagnostics", "inputs": []}
+  ]
+}

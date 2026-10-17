@@ -1,0 +1,2519 @@
+{
+  "name": "EssentialsX",
+  "match": [
+    "Essentials"
+  ],
+  "docs": [
+    "https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/main/resources/plugin.yml",
+    "https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/main/resources/messages.properties",
+    "https://github.com/EssentialsX/Essentials/tree/2.x/Essentials/src/main/java/com/earth2me/essentials/commands"
+  ],
+  "player_only": [
+    "antioch",
+    "anvil",
+    "beezooka",
+    "bigtree",
+    "book",
+    "bottom",
+    "break",
+    "cartographytable",
+    "clearinventoryconfirmtoggle",
+    "compass",
+    "condense",
+    "createkit",
+    "depth",
+    "disposal",
+    "editsign",
+    "enchant",
+    "enderchest",
+    "fireball",
+    "firework",
+    "grindstone",
+    "hat",
+    "home",
+    "ignore",
+    "invsee",
+    "item",
+    "itemlore",
+    "itemname",
+    "jump",
+    "kittycannon",
+    "loom",
+    "more",
+    "pay",
+    "payconfirmtoggle",
+    "potion",
+    "powertoollist",
+    "powertooltoggle",
+    "renamehome",
+    "repair",
+    "sell",
+    "sethome",
+    "setjail",
+    "settpr",
+    "setwarp",
+    "showkit",
+    "skull",
+    "smithingtable",
+    "spawner",
+    "stonecutter",
+    "suicide",
+    "thunder",
+    "top",
+    "tpa",
+    "tpacancel",
+    "tpaccept",
+    "tpahere",
+    "tpdeny",
+    "tphere",
+    "tpo",
+    "tpoffline",
+    "tpohere",
+    "tree",
+    "unlimited",
+    "workbench",
+    "world"
+  ],
+  "commands": [
+    {
+      "name": "afk",
+      "label": "Toggle player AFK",
+      "description": "Toggles the AFK status of the specified player with an optional reason.",
+      "risk": "caution",
+      "console_template": "afk {player} {message}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": false,
+          "placeholder": "Optional reason"
+        }
+      ]
+    },
+    {
+      "name": "back",
+      "label": "Send player back",
+      "description": "Teleports the specified player to their prior location.",
+      "risk": "caution",
+      "console_template": "back {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "backup",
+      "label": "Run backup",
+      "description": "Runs the backup if configured.",
+      "risk": "caution",
+      "console_template": "backup",
+      "inputs": []
+    },
+    {
+      "name": "balance",
+      "label": "Show balance",
+      "description": "Displays the balance of the specified player.",
+      "risk": "safe",
+      "console_template": "balance {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "balancetop",
+      "label": "Top balances",
+      "description": "Displays the first (or specified) page of the top balance values.",
+      "risk": "safe",
+      "console_template": "balancetop {page}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "ess-ban",
+      "label": "Ban player",
+      "description": "Bans the specified player with an optional reason.",
+      "risk": "danger",
+      "console_template": "eban {player} {reason}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "label": "Reason",
+          "required": false,
+          "placeholder": "Optional reason"
+        }
+      ]
+    },
+    {
+      "name": "banip",
+      "label": "Ban IP address",
+      "description": "Bans the specified IP address with an optional reason.",
+      "risk": "danger",
+      "console_template": "banip {address} {reason}",
+      "inputs": [
+        {
+          "name": "address",
+          "type": "text",
+          "label": "Address",
+          "required": true,
+          "placeholder": "IP address or player name"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "label": "Reason",
+          "required": false,
+          "placeholder": "Optional reason"
+        }
+      ]
+    },
+    {
+      "name": "broadcast",
+      "label": "Broadcast",
+      "description": "Broadcasts the given message to the entire server.",
+      "risk": "caution",
+      "console_template": "broadcast {message}",
+      "inputs": [
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "broadcastworld",
+      "label": "Broadcast to world",
+      "description": "Broadcasts the given message to the specified world.",
+      "risk": "caution",
+      "console_template": "broadcastworld {world} {message}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "burn",
+      "label": "Burn player",
+      "description": "Sets the specified player on fire for the specified amount of seconds.",
+      "risk": "caution",
+      "console_template": "burn {player} {seconds}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "seconds",
+          "type": "number",
+          "label": "Seconds",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "clearinventory",
+      "label": "Clear inventory",
+      "description": "Clears all items from the specified player's inventory.",
+      "risk": "danger",
+      "console_template": "clearinventory {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "clearinventory-item",
+      "label": "Clear item from inventory",
+      "description": "Clears all (or the specified amount) of the given item from the specified player's inventory.",
+      "risk": "danger",
+      "console_template": "clearinventory {player} {item} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        },
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true,
+          "placeholder": "Item name, * or **"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "customtext",
+      "label": "Show custom text",
+      "description": "Shows a custom text chapter defined in custom.txt.",
+      "risk": "safe",
+      "console_template": "customtext {chapter} {page}",
+      "inputs": [
+        {
+          "name": "chapter",
+          "type": "text",
+          "label": "Chapter",
+          "required": true
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "delhome",
+      "label": "Delete player home",
+      "description": "Deletes the specified player's home with the given name.",
+      "risk": "danger",
+      "console_template": "delhome {player}:{name}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Home name",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "deljail",
+      "label": "Delete jail",
+      "description": "Deletes the jail with the given name.",
+      "risk": "danger",
+      "console_template": "deljail {jail}",
+      "inputs": [
+        {
+          "name": "jail",
+          "type": "text",
+          "label": "Jail name",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "delkit",
+      "label": "Delete kit",
+      "description": "Deletes the kit with the given name.",
+      "risk": "danger",
+      "console_template": "delkit {kit}",
+      "inputs": [
+        {
+          "name": "kit",
+          "type": "text",
+          "label": "Kit",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "delwarp",
+      "label": "Delete warp",
+      "description": "Deletes the warp with the given name.",
+      "risk": "danger",
+      "console_template": "delwarp {warp}",
+      "inputs": [
+        {
+          "name": "warp",
+          "type": "text",
+          "label": "Warp",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "eco-give",
+      "label": "Give money",
+      "description": "Gives the specified player the specified amount of money.",
+      "risk": "caution",
+      "console_template": "eco give {player} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * or ** for all"
+        },
+        {
+          "name": "amount",
+          "type": "text",
+          "label": "Amount",
+          "required": true,
+          "placeholder": "e.g. 100 or 10%"
+        }
+      ]
+    },
+    {
+      "name": "eco-take",
+      "label": "Take money",
+      "description": "Takes the specified amount of money from the specified player.",
+      "risk": "caution",
+      "console_template": "eco take {player} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * or ** for all"
+        },
+        {
+          "name": "amount",
+          "type": "text",
+          "label": "Amount",
+          "required": true,
+          "placeholder": "e.g. 100 or 10%"
+        }
+      ]
+    },
+    {
+      "name": "eco-set",
+      "label": "Set balance",
+      "description": "Sets the specified player's balance to the specified amount of money.",
+      "risk": "danger",
+      "console_template": "eco set {player} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * or ** for all"
+        },
+        {
+          "name": "amount",
+          "type": "text",
+          "label": "Amount",
+          "required": true,
+          "placeholder": "e.g. 100 or 10%"
+        }
+      ]
+    },
+    {
+      "name": "eco-reset",
+      "label": "Reset balance",
+      "description": "Resets the specified player's balance to the server's starting balance.",
+      "risk": "danger",
+      "console_template": "eco reset {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * or ** for all"
+        }
+      ]
+    },
+    {
+      "name": "exp-give",
+      "label": "Give XP",
+      "description": "Gives the target player the specified amount of xp.",
+      "risk": "caution",
+      "console_template": "exp give {player} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        },
+        {
+          "name": "amount",
+          "type": "text",
+          "label": "Amount",
+          "required": true,
+          "placeholder": "e.g. 100 or 10L for levels"
+        }
+      ]
+    },
+    {
+      "name": "exp-set",
+      "label": "Set XP",
+      "description": "Sets the target player's xp the specified amount.",
+      "risk": "caution",
+      "console_template": "exp set {player} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        },
+        {
+          "name": "amount",
+          "type": "text",
+          "label": "Amount",
+          "required": true,
+          "placeholder": "e.g. 100 or 10L for levels"
+        }
+      ]
+    },
+    {
+      "name": "exp-show",
+      "label": "Show XP",
+      "description": "Displays the amount of xp the target player has.",
+      "risk": "safe",
+      "console_template": "exp show {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "exp-reset",
+      "label": "Reset XP",
+      "description": "Resets the target player's xp to 0.",
+      "risk": "caution",
+      "console_template": "exp reset {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "ext",
+      "label": "Extinguish player",
+      "description": "Extinguishes the specified player.",
+      "risk": "caution",
+      "console_template": "ext {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "feed",
+      "label": "Feed player",
+      "description": "Fully feeds the specified player.",
+      "risk": "caution",
+      "console_template": "feed {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "fly",
+      "label": "Toggle fly",
+      "description": "Toggles fly for the specified player.",
+      "risk": "caution",
+      "console_template": "fly {player} {state}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ess-gamemode",
+      "label": "Set gamemode",
+      "description": "Sets the gamemode of the specified player.",
+      "risk": "caution",
+      "console_template": "egamemode {mode} {player}",
+      "inputs": [
+        {
+          "name": "mode",
+          "type": "select",
+          "label": "Gamemode",
+          "required": true,
+          "options": [
+            "survival",
+            "creative",
+            "adventure",
+            "spectator"
+          ]
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "gc",
+      "label": "Server status",
+      "description": "Reports memory, uptime and tick info.",
+      "risk": "safe",
+      "console_template": "gc",
+      "inputs": []
+    },
+    {
+      "name": "getpos",
+      "label": "Get player position",
+      "description": "Gets the coordinates of the specified player.",
+      "risk": "safe",
+      "console_template": "getpos {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "ess-give",
+      "label": "Give item",
+      "description": "Gives the target player 64 (or the specified amount) of the specified item.",
+      "risk": "caution",
+      "console_template": "egive {player} {item} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true,
+          "placeholder": "e.g. diamond"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "ess-give-meta",
+      "label": "Give item with metadata",
+      "description": "Gives the target player the specified amount of the specified item with the given metadata.",
+      "risk": "caution",
+      "console_template": "egive {player} {item} {amount} {meta}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true,
+          "placeholder": "e.g. diamond_sword"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true,
+          "min": 1
+        },
+        {
+          "name": "meta",
+          "type": "text",
+          "label": "Item meta",
+          "required": true,
+          "placeholder": "e.g. sharpness:5 name:Sword"
+        }
+      ]
+    },
+    {
+      "name": "god",
+      "label": "Toggle god mode",
+      "description": "Toggles god mode for the specified player.",
+      "risk": "caution",
+      "console_template": "god {player} {state}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "heal",
+      "label": "Heal player",
+      "description": "Heals the specified player.",
+      "risk": "caution",
+      "console_template": "heal {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "helpop",
+      "label": "Message admins",
+      "description": "Sends the given message to all online admins.",
+      "risk": "safe",
+      "console_template": "helpop {message}",
+      "inputs": [
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "ice",
+      "label": "Freeze player",
+      "description": "Cools the given player off.",
+      "risk": "caution",
+      "console_template": "ice {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "info",
+      "label": "Show info",
+      "description": "Shows information set by the server owner.",
+      "risk": "safe",
+      "console_template": "info {chapter} {page}",
+      "inputs": [
+        {
+          "name": "chapter",
+          "type": "text",
+          "label": "Chapter",
+          "required": false
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "itemdb",
+      "label": "Look up item",
+      "description": "Searches the item database for the given item.",
+      "risk": "safe",
+      "console_template": "itemdb {item}",
+      "inputs": [
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "jailedplayers",
+      "label": "List jailed players",
+      "description": "Lists all jailed players.",
+      "risk": "safe",
+      "console_template": "jailedplayers",
+      "inputs": []
+    },
+    {
+      "name": "jails",
+      "label": "List jails",
+      "description": "Lists all jails.",
+      "risk": "safe",
+      "console_template": "jails",
+      "inputs": []
+    },
+    {
+      "name": "ess-kick",
+      "label": "Kick player",
+      "description": "Kicks the specified player with an optional reason.",
+      "risk": "danger",
+      "console_template": "ekick {player} {reason}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "label": "Reason",
+          "required": false,
+          "placeholder": "Optional reason"
+        }
+      ]
+    },
+    {
+      "name": "kickall",
+      "label": "Kick all players",
+      "description": "Kicks all players with an optional reason.",
+      "risk": "danger",
+      "console_template": "kickall {reason}",
+      "inputs": [
+        {
+          "name": "reason",
+          "type": "text",
+          "label": "Reason",
+          "required": false,
+          "placeholder": "Optional reason"
+        }
+      ]
+    },
+    {
+      "name": "kill",
+      "label": "Kill player",
+      "description": "Kills the specified player.",
+      "risk": "danger",
+      "console_template": "ekill {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "kit",
+      "label": "List kits",
+      "description": "Lists all available kits.",
+      "risk": "safe",
+      "console_template": "kit",
+      "inputs": []
+    },
+    {
+      "name": "kit-give",
+      "label": "Give kit",
+      "description": "Gives the specified kit to the specified player.",
+      "risk": "caution",
+      "console_template": "kit {kit} {player}",
+      "inputs": [
+        {
+          "name": "kit",
+          "type": "text",
+          "label": "Kit",
+          "required": true,
+          "placeholder": "Kit name, comma-separated for several"
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "kitreset",
+      "label": "Reset kit cooldown",
+      "description": "Resets the cooldown of the specified kit for the specified player.",
+      "risk": "caution",
+      "console_template": "kitreset {kit} {player}",
+      "inputs": [
+        {
+          "name": "kit",
+          "type": "text",
+          "label": "Kit",
+          "required": true
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "lightning",
+      "label": "Strike lightning",
+      "description": "Strikes lightning at the target player with an optional power.",
+      "risk": "caution",
+      "console_template": "lightning {player} {power}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        },
+        {
+          "name": "power",
+          "type": "number",
+          "label": "Power",
+          "required": false,
+          "min": 0,
+          "default": 5
+        }
+      ]
+    },
+    {
+      "name": "ess-list",
+      "label": "List players",
+      "description": "Lists all players on the server, or the given group if specified.",
+      "risk": "safe",
+      "console_template": "elist {group}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "mail-clear",
+      "label": "Clear player mail",
+      "description": "Clears either all or the specified mail(s) for the given player.",
+      "risk": "danger",
+      "console_template": "mail clear {player} {number}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "number",
+          "type": "number",
+          "label": "Mail number",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "mail-clearall",
+      "label": "Clear all mail",
+      "description": "Clears all mail for all players.",
+      "risk": "danger",
+      "console_template": "mail clearall",
+      "inputs": []
+    },
+    {
+      "name": "mail-send",
+      "label": "Send mail",
+      "description": "Sends the specified player the given message.",
+      "risk": "caution",
+      "console_template": "mail send {player} {message}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "mail-sendall",
+      "label": "Send mail to all",
+      "description": "Sends all players the given message.",
+      "risk": "caution",
+      "console_template": "mail sendall {message}",
+      "inputs": [
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "mail-sendtemp",
+      "label": "Send expiring mail",
+      "description": "Sends the specified player the given message which will expire in the specified time.",
+      "risk": "caution",
+      "console_template": "mail sendtemp {player} {expire} {message}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "expire",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1d2h30m"
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "mail-sendtempall",
+      "label": "Send expiring mail to all",
+      "description": "Sends all players the given message which will expire in the specified time.",
+      "risk": "caution",
+      "console_template": "mail sendtempall {expire} {message}",
+      "inputs": [
+        {
+          "name": "expire",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1d2h30m"
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "me",
+      "label": "Describe action",
+      "description": "Describes an action.",
+      "risk": "safe",
+      "console_template": "eme {description}",
+      "inputs": [
+        {
+          "name": "description",
+          "type": "text",
+          "label": "Description",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "motd",
+      "label": "Show MOTD",
+      "description": "Views the Message Of The Day.",
+      "risk": "safe",
+      "console_template": "motd {chapter} {page}",
+      "inputs": [
+        {
+          "name": "chapter",
+          "type": "text",
+          "label": "Chapter",
+          "required": false
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "msg",
+      "label": "Private message",
+      "description": "Privately sends the given message to the specified player.",
+      "risk": "safe",
+      "console_template": "emsg {to} {message}",
+      "inputs": [
+        {
+          "name": "to",
+          "type": "text",
+          "label": "To",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "msgtoggle",
+      "label": "Toggle private messages",
+      "description": "Toggles private messages for the specified player.",
+      "risk": "caution",
+      "console_template": "msgtoggle {player} {state}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mute",
+      "label": "Mute or unmute player",
+      "description": "Permanently mutes the specified player or unmutes them if they were already muted.",
+      "risk": "caution",
+      "console_template": "mute {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "mute-timed",
+      "label": "Mute player for a time",
+      "description": "Mutes the specified player for the time given with an optional reason.",
+      "risk": "caution",
+      "console_template": "mute {player} {datediff} {reason}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "datediff",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1d2h30m"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "label": "Reason",
+          "required": false,
+          "placeholder": "Optional reason"
+        }
+      ]
+    },
+    {
+      "name": "unmute",
+      "label": "Unmute player",
+      "description": "Unmutes the specified player.",
+      "risk": "caution",
+      "console_template": "unmute {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "near",
+      "label": "Nearby players",
+      "description": "Lists all players within the default (or given) radius of the specified player.",
+      "risk": "safe",
+      "console_template": "near {player} {radius}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "nick",
+      "label": "Set nickname",
+      "description": "Changes the specified player's nickname to the given text.",
+      "risk": "caution",
+      "console_template": "nick {player} {nickname}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "nickname",
+          "type": "text",
+          "label": "Nickname",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "nick-off",
+      "label": "Remove nickname",
+      "description": "Removes the given player's nickname.",
+      "risk": "caution",
+      "console_template": "nick {player} off",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "nuke",
+      "label": "Nuke",
+      "description": "Sends a nuke over all players or the specified player(s).",
+      "risk": "danger",
+      "console_template": "nuke {players}",
+      "inputs": [
+        {
+          "name": "players",
+          "type": "text",
+          "label": "Players",
+          "required": false,
+          "placeholder": "Optional, space-separated; empty for all"
+        }
+      ]
+    },
+    {
+      "name": "paytoggle",
+      "label": "Toggle payments",
+      "description": "Toggles if the specified player is accepting payments.",
+      "risk": "caution",
+      "console_template": "paytoggle {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "ping",
+      "label": "Ping",
+      "description": "Pong!",
+      "risk": "safe",
+      "console_template": "ping",
+      "inputs": []
+    },
+    {
+      "name": "playtime",
+      "label": "Show playtime",
+      "description": "Shows the specified player's time played in game.",
+      "risk": "safe",
+      "console_template": "playtime {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "powertool",
+      "label": "Assign powertool",
+      "description": "Assigns a command to the given item for the specified player.",
+      "risk": "caution",
+      "console_template": "powertool {player} {item} {command}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true
+        },
+        {
+          "name": "command",
+          "type": "text",
+          "label": "Command",
+          "required": true,
+          "placeholder": "Command without slash"
+        }
+      ]
+    },
+    {
+      "name": "ptime",
+      "label": "List all player times",
+      "description": "Lists the player time of all online players.",
+      "risk": "safe",
+      "console_template": "ptime",
+      "inputs": []
+    },
+    {
+      "name": "ptime-list",
+      "label": "Show player time",
+      "description": "Lists the player time for the specified player(s).",
+      "risk": "safe",
+      "console_template": "ptime list {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "ptime-set",
+      "label": "Set player time",
+      "description": "Sets the time for the specified player(s) to the given time.",
+      "risk": "caution",
+      "console_template": "ptime {time} {player}",
+      "inputs": [
+        {
+          "name": "time",
+          "type": "text",
+          "label": "Time",
+          "required": true,
+          "placeholder": "e.g. day, night, 17:30, 4000ticks, @day to fix"
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "ptime-reset",
+      "label": "Reset player time",
+      "description": "Resets the time for the specified player(s).",
+      "risk": "caution",
+      "console_template": "ptime reset {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "pweather",
+      "label": "List all player weather",
+      "description": "Lists the player weather of all online players.",
+      "risk": "safe",
+      "console_template": "pweather",
+      "inputs": []
+    },
+    {
+      "name": "pweather-list",
+      "label": "Show player weather",
+      "description": "Lists the player weather for the specified player(s).",
+      "risk": "safe",
+      "console_template": "pweather list {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "pweather-set",
+      "label": "Set player weather",
+      "description": "Sets the weather for the specified player(s) to the given weather.",
+      "risk": "caution",
+      "console_template": "pweather {weather} {player}",
+      "inputs": [
+        {
+          "name": "weather",
+          "type": "select",
+          "label": "Weather",
+          "required": true,
+          "options": [
+            "storm",
+            "sun"
+          ]
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "pweather-reset",
+      "label": "Reset player weather",
+      "description": "Resets the weather for the specified player(s).",
+      "risk": "caution",
+      "console_template": "pweather reset {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "r",
+      "label": "Reply",
+      "description": "Replies to the last player to message the console with the given text.",
+      "risk": "safe",
+      "console_template": "r {message}",
+      "inputs": [
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "realname",
+      "label": "Real name",
+      "description": "Displays the username of a user based on the given nickname.",
+      "risk": "safe",
+      "console_template": "realname {nickname}",
+      "inputs": [
+        {
+          "name": "nickname",
+          "type": "text",
+          "label": "Nickname",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "recipe",
+      "label": "Show recipe",
+      "description": "Displays how to craft the given item.",
+      "risk": "safe",
+      "console_template": "recipe {item} {page}",
+      "inputs": [
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "remove",
+      "label": "Remove entities",
+      "description": "Removes all of the given mob type in the specified world.",
+      "risk": "danger",
+      "console_template": "remove {type} {world}",
+      "inputs": [
+        {
+          "name": "type",
+          "type": "text",
+          "label": "Entity type",
+          "required": true,
+          "placeholder": "e.g. drops, arrows, monsters, all, or a mob type"
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "rest",
+      "label": "Rest player",
+      "description": "Resets the time since rest of the specified player.",
+      "risk": "caution",
+      "console_template": "rest {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "rtoggle",
+      "label": "Toggle reply target",
+      "description": "Changes whether the recipient of the reply is last recipient or last sender.",
+      "risk": "caution",
+      "console_template": "rtoggle {player} {state}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rules",
+      "label": "Show rules",
+      "description": "Views the server rules.",
+      "risk": "safe",
+      "console_template": "rules {chapter} {page}",
+      "inputs": [
+        {
+          "name": "chapter",
+          "type": "text",
+          "label": "Chapter",
+          "required": false
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "seen",
+      "label": "Last seen",
+      "description": "Shows the logout time, ban, mute, and UUID information of the specified player.",
+      "risk": "safe",
+      "console_template": "seen {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, UUID or IP"
+        }
+      ]
+    },
+    {
+      "name": "setworth",
+      "label": "Set item worth",
+      "description": "Sets the worth of the specified item to the given price.",
+      "risk": "caution",
+      "console_template": "setworth {item} {price}",
+      "inputs": [
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true
+        },
+        {
+          "name": "price",
+          "type": "number",
+          "label": "Price",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "socialspy",
+      "label": "Toggle social spy",
+      "description": "Toggles social spy for the specified player.",
+      "risk": "caution",
+      "console_template": "socialspy {player} {state}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "spawnmob",
+      "label": "Spawn mob",
+      "description": "Spawns the specified amount of the given mob at the specified player.",
+      "risk": "caution",
+      "console_template": "spawnmob {mob} {amount} {player}",
+      "inputs": [
+        {
+          "name": "mob",
+          "type": "text",
+          "label": "Mob",
+          "required": true,
+          "placeholder": "e.g. zombie or zombie:baby,chicken"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true,
+          "min": 1
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "speed",
+      "label": "Set speed",
+      "description": "Sets the specified type of speed to the given speed for the specified player.",
+      "risk": "caution",
+      "console_template": "speed {type} {speed} {player}",
+      "inputs": [
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Type",
+          "required": true,
+          "options": [
+            "fly",
+            "walk"
+          ]
+        },
+        {
+          "name": "speed",
+          "type": "number",
+          "label": "Speed",
+          "required": true,
+          "min": 0,
+          "max": 10
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        }
+      ]
+    },
+    {
+      "name": "sudo",
+      "label": "Run as player",
+      "description": "Makes the specified player run the given command.",
+      "risk": "danger",
+      "console_template": "sudo {player} {command}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name, * for all"
+        },
+        {
+          "name": "command",
+          "type": "text",
+          "label": "Command",
+          "required": true,
+          "placeholder": "Command and args, c:text to chat"
+        }
+      ]
+    },
+    {
+      "name": "tempban",
+      "label": "Temporarily ban player",
+      "description": "Bans the given player for the specified amount of time with an optional reason.",
+      "risk": "danger",
+      "console_template": "tempban {player} {datediff} {reason}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "datediff",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1d2h30m"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "label": "Reason",
+          "required": false,
+          "placeholder": "Optional reason"
+        }
+      ]
+    },
+    {
+      "name": "tempbanip",
+      "label": "Temporarily ban IP",
+      "description": "Bans the given IP address for the specified amount of time with an optional reason.",
+      "risk": "danger",
+      "console_template": "tempbanip {address} {datediff} {reason}",
+      "inputs": [
+        {
+          "name": "address",
+          "type": "text",
+          "label": "Address",
+          "required": true,
+          "placeholder": "IP address or player name"
+        },
+        {
+          "name": "datediff",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1d2h30m"
+        },
+        {
+          "name": "reason",
+          "type": "text",
+          "label": "Reason",
+          "required": false,
+          "placeholder": "Optional reason"
+        }
+      ]
+    },
+    {
+      "name": "ess-time",
+      "label": "Show world times",
+      "description": "Displays the times in all worlds.",
+      "risk": "safe",
+      "console_template": "etime",
+      "inputs": []
+    },
+    {
+      "name": "ess-time-set",
+      "label": "Set world time",
+      "description": "Sets the time in all (or the specified) worlds to the given time.",
+      "risk": "caution",
+      "console_template": "etime set {time} {world}",
+      "inputs": [
+        {
+          "name": "time",
+          "type": "text",
+          "label": "Time",
+          "required": true,
+          "placeholder": "e.g. day, night, 17:30, 4pm, 4000ticks"
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "World name or all"
+        }
+      ]
+    },
+    {
+      "name": "ess-time-add",
+      "label": "Add world time",
+      "description": "Adds the given time to all (or the specified) worlds' time.",
+      "risk": "caution",
+      "console_template": "etime add {time} {world}",
+      "inputs": [
+        {
+          "name": "time",
+          "type": "text",
+          "label": "Time",
+          "required": true,
+          "placeholder": "e.g. day, night, 17:30, 4pm, 4000ticks"
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "World name or all"
+        }
+      ]
+    },
+    {
+      "name": "togglejail",
+      "label": "Jail player",
+      "description": "Jails the player and teleports them to the specified jail, optionally for a time.",
+      "risk": "caution",
+      "console_template": "togglejail {player} {jail} {datediff}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "jail",
+          "type": "text",
+          "label": "Jail name",
+          "required": true
+        },
+        {
+          "name": "datediff",
+          "type": "text",
+          "label": "Duration",
+          "required": false,
+          "placeholder": "e.g. 1d2h30m"
+        }
+      ]
+    },
+    {
+      "name": "togglejail-release",
+      "label": "Unjail player",
+      "description": "Releases the specified player from jail.",
+      "risk": "caution",
+      "console_template": "togglejail {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "ess-tp",
+      "label": "Teleport player to player",
+      "description": "Teleports the first specified player to the second.",
+      "risk": "caution",
+      "console_template": "etp {player} {target}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "target",
+          "type": "text",
+          "label": "Target player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "tpaall",
+      "label": "Request all to teleport",
+      "description": "Requests all players to teleport to the specified player.",
+      "risk": "caution",
+      "console_template": "tpaall {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "tpall",
+      "label": "Teleport all",
+      "description": "Teleports all players to the specified player.",
+      "risk": "caution",
+      "console_template": "tpall {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "tpauto",
+      "label": "Toggle auto-accept teleports",
+      "description": "Toggles if tpa requests are auto accepted for the specified player.",
+      "risk": "caution",
+      "console_template": "tpauto {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "tppos",
+      "label": "Teleport to coordinates",
+      "description": "Teleports the specified player to the given coordinates, optionally in another world.",
+      "risk": "caution",
+      "console_template": "tppos {player} {x} {y} {z} {world}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "x",
+          "type": "text",
+          "label": "X",
+          "required": true,
+          "placeholder": "Number or ~"
+        },
+        {
+          "name": "y",
+          "type": "text",
+          "label": "Y",
+          "required": true,
+          "placeholder": "Number or ~"
+        },
+        {
+          "name": "z",
+          "type": "text",
+          "label": "Z",
+          "required": true,
+          "placeholder": "Number or ~"
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "Optional world name"
+        }
+      ]
+    },
+    {
+      "name": "tppos-rotation",
+      "label": "Teleport to coordinates with rotation",
+      "description": "Teleports the specified player to the given coordinates with a yaw and pitch, optionally in another world.",
+      "risk": "caution",
+      "console_template": "tppos {player} {x} {y} {z} {yaw} {pitch} {world}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "x",
+          "type": "text",
+          "label": "X",
+          "required": true,
+          "placeholder": "Number or ~"
+        },
+        {
+          "name": "y",
+          "type": "text",
+          "label": "Y",
+          "required": true,
+          "placeholder": "Number or ~"
+        },
+        {
+          "name": "z",
+          "type": "text",
+          "label": "Z",
+          "required": true,
+          "placeholder": "Number or ~"
+        },
+        {
+          "name": "yaw",
+          "type": "number",
+          "label": "Yaw",
+          "required": true
+        },
+        {
+          "name": "pitch",
+          "type": "number",
+          "label": "Pitch",
+          "required": true,
+          "min": -90,
+          "max": 90
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "Optional world name"
+        }
+      ]
+    },
+    {
+      "name": "tpr",
+      "label": "Random teleport player",
+      "description": "Teleports the specified player to a random location in the specified location.",
+      "risk": "caution",
+      "console_template": "tpr {location} {player}",
+      "inputs": [
+        {
+          "name": "location",
+          "type": "text",
+          "label": "Location",
+          "required": true,
+          "placeholder": "Random teleport location (e.g. world)"
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "tptoggle",
+      "label": "Toggle teleports",
+      "description": "Toggles if teleports are enabled for the specified player.",
+      "risk": "caution",
+      "console_template": "tptoggle {player} {state}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "unban",
+      "label": "Unban player",
+      "description": "Unbans the specified player.",
+      "risk": "caution",
+      "console_template": "unban {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "unbanip",
+      "label": "Unban IP address",
+      "description": "Unbans the specified IP address.",
+      "risk": "caution",
+      "console_template": "unbanip {address}",
+      "inputs": [
+        {
+          "name": "address",
+          "type": "text",
+          "label": "Address",
+          "required": true,
+          "placeholder": "IP address or player name"
+        }
+      ]
+    },
+    {
+      "name": "vanish",
+      "label": "Toggle vanish",
+      "description": "Toggles vanish for the specified player.",
+      "risk": "caution",
+      "console_template": "vanish {player} {state}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "warp",
+      "label": "List warps",
+      "description": "Gives a list of all warps on either the first or specified page.",
+      "risk": "safe",
+      "console_template": "warp {page}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "warp-player",
+      "label": "Warp player",
+      "description": "Teleports the specified player to the given warp.",
+      "risk": "caution",
+      "console_template": "warp {warp} {player}",
+      "inputs": [
+        {
+          "name": "warp",
+          "type": "text",
+          "label": "Warp",
+          "required": true
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "warpinfo",
+      "label": "Warp info",
+      "description": "Provides information about the given warp.",
+      "risk": "safe",
+      "console_template": "warpinfo {warp}",
+      "inputs": [
+        {
+          "name": "warp",
+          "type": "text",
+          "label": "Warp",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "ess-weather",
+      "label": "Set weather",
+      "description": "Sets the weather in the specified world to the given type for an optional duration.",
+      "risk": "caution",
+      "console_template": "eweather {world} {weather} {duration}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "weather",
+          "type": "select",
+          "label": "Weather",
+          "required": true,
+          "options": [
+            "storm",
+            "sun"
+          ]
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "label": "Duration (seconds)",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "whois",
+      "label": "Player info",
+      "description": "Gives basic information about the specified player.",
+      "risk": "safe",
+      "console_template": "whois {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "worth",
+      "label": "Item worth",
+      "description": "Checks the worth of the given item, optionally for a given amount.",
+      "risk": "safe",
+      "console_template": "worth {item} {amount}",
+      "inputs": [
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "essentials-reload",
+      "label": "Reload Essentials",
+      "description": "Reloads Essentials' config.",
+      "risk": "danger",
+      "console_template": "essentials reload",
+      "inputs": []
+    },
+    {
+      "name": "essentials-version",
+      "label": "Essentials version",
+      "description": "Gives information about the Essentials version.",
+      "risk": "safe",
+      "console_template": "essentials version",
+      "inputs": []
+    },
+    {
+      "name": "essentials-commands",
+      "label": "Forwarded commands",
+      "description": "Gives information about what commands Essentials is forwarding.",
+      "risk": "safe",
+      "console_template": "essentials commands",
+      "inputs": []
+    },
+    {
+      "name": "essentials-debug",
+      "label": "Toggle debug mode",
+      "description": "Toggles Essentials' debug mode.",
+      "risk": "caution",
+      "console_template": "essentials debug {state}",
+      "inputs": [
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "essentials-cleanup",
+      "label": "Clean up userdata",
+      "description": "Cleans up old userdata.",
+      "risk": "danger",
+      "console_template": "essentials cleanup {days} {money} {homes}",
+      "inputs": [
+        {
+          "name": "days",
+          "type": "number",
+          "label": "Days offline",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "money",
+          "type": "number",
+          "label": "Max balance",
+          "required": false,
+          "min": 0
+        },
+        {
+          "name": "homes",
+          "type": "number",
+          "label": "Max homes",
+          "required": false,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "essentials-homes-fix",
+      "label": "Fix homes",
+      "description": "Removes homes in invalid locations from user data.",
+      "risk": "caution",
+      "console_template": "essentials homes fix",
+      "inputs": []
+    },
+    {
+      "name": "essentials-homes-delete",
+      "label": "Delete homes",
+      "description": "Deletes all homes, or all homes in the specified world.",
+      "risk": "danger",
+      "console_template": "essentials homes delete {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "Optional world name"
+        }
+      ]
+    },
+    {
+      "name": "essentials-dump",
+      "label": "Server dump",
+      "description": "Generates a server dump with the requested information.",
+      "risk": "safe",
+      "console_template": "essentials dump {options}",
+      "inputs": [
+        {
+          "name": "options",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "Optional: all config discord kits log worth tpr spawns commands"
+        }
+      ]
+    }
+  ]
+}

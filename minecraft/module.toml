@@ -1008,7 +1008,7 @@ priority = 50
 [[syntax_highlight.rules]]
 name = "player_disconnect_reason"
 pattern = '\w{3,16} lost connection: (?P<hl>.+)'
-color = "notice"
+color = "info"
 priority = 50
 
 # ── 사망 메시지 (Minecraft Java 1.21.11 기준 동사 집합) ─
@@ -1018,7 +1018,7 @@ priority = 50
 [[syntax_highlight.rules]]
 name = "death_message"
 pattern = ': (?P<hl>\w{3,16} (?:was (?:slain|shot|blown|pummeled|squished|killed|stung|fireballed|obliterated|skewered|impaled|struck|pricked|poked|smashed|speared|roasted|squashed|burned|frozen|doomed|sniped|spitballed)|drowned|burned|suffocated|froze|fell|hit the ground|went (?:up|off)|walked into|tried to swim|experienced kinetic|starved|withered|died|discovered|left the confines).*)'
-color = "critical"
+color = "error"
 priority = 45
 
 # ── 관리자 명령 피드백 ───────────────────────────────────
@@ -1027,7 +1027,7 @@ priority = 45
 [[syntax_highlight.rules]]
 name = "admin_action"
 pattern = '\[(?P<hl>\w{3,16}: [A-Z][^\]]+)\]'
-color = "notice"
+color = "info"
 italic = true
 priority = 40
 
@@ -1035,7 +1035,7 @@ priority = 40
 [[syntax_highlight.rules]]
 name = "admin_target"
 pattern = '(?P<hl>(?:Opped|De-?opped|Banned(?: player)?|Unbanned|Pardoned|Kicked|Whitelisted|Teleported) \w{3,16})'
-color = "notice"
+color = "info"
 bold = true
 priority = 40
 

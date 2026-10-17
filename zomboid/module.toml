@@ -1542,7 +1542,7 @@ priority = 35
 [[syntax_highlight.rules]]
 name = "duration"
 pattern = '(?P<hl>\d+\s*ms)\b'
-color = "duration"
+color = "number"
 priority = 20
 
 # 슬래시 관리자 명령 (/additem, /kickuser 등)

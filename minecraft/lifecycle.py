@@ -114,6 +114,32 @@ _PROPERTY_KEY_MAP = {
 # ║                    Java Detection                         ║
 # ╚═══════════════════════════════════════════════════════════╝
 
+def required_java(mc_version):
+    """Minecraft 버전에 필요한 최소 Java 주 버전 (서버 jar에 version.json이 없을 때의 폴백).
+      1.20.5+ / 1.21+ / 스냅샷(24w14a 등) / 연도 기반(26.1 등) → 21
+      1.18 ~ 1.20.4 → 17, 1.17 → 16, 그 이전 → 8, 알 수 없음 → 17
+    """
+    if not mc_version:
+        return 17
+    text = str(mc_version).strip()
+    if re.match(r"^\d{2}w\d{2}[a-z]$", text):
+        return 21
+    numbers = [int(n) for n in re.findall(r"\d+", text.split("-")[0])]
+    if not numbers:
+        return 17
+    if numbers[0] != 1:
+        return 21  # 연도 기반 버전 (예: 26.1)
+    minor = numbers[1] if len(numbers) > 1 else 0
+    patch = numbers[2] if len(numbers) > 2 else 0
+    if minor >= 21 or (minor == 20 and patch >= 5):
+        return 21
+    if minor >= 18:
+        return 17
+    if minor == 17:
+        return 16
+    return 8
+
+
 class JavaDetector:
     """Detect and validate Java installations."""
 
@@ -218,8 +244,9 @@ class JavaDetector:
         return major
 
     @staticmethod
-    def validate_for_minecraft(java_info, mc_version=None):
-        """Check if Java version meets Minecraft's minimum requirement."""
+    def validate_for_minecraft(java_info, mc_version=None, min_java=None):
+        """Check if Java version meets Minecraft's minimum requirement.
+        `min_java`(서버 jar의 version.json java_version)가 있으면 그 값을 쓴다."""
         issues = []
         if not java_info:
             issues.append({
@@ -231,23 +258,8 @@ class JavaDetector:
             return issues
 
         major = java_info.get("major_version", 0)
-        min_java = 17  # Safe default for modern MC
-
-        if mc_version:
-            try:
-                parts = mc_version.split(".")
-                mc_major = int(parts[1]) if len(parts) > 1 else 0
-                mc_minor = int(parts[2]) if len(parts) > 2 else 0
-                if mc_major >= 20 and mc_minor >= 5:
-                    min_java = 21
-                elif mc_major >= 18:
-                    min_java = 17
-                elif mc_major >= 17:
-                    min_java = 16
-                else:
-                    min_java = 8
-            except (ValueError, IndexError):
-                pass
+        if not isinstance(min_java, int) or min_java <= 0:
+            min_java = required_java(mc_version)
 
         if major < min_java:
             issues.append({
@@ -903,9 +915,12 @@ def validate(config):
     server_jar = _resolve_server_jar(config)
     working_dir = config.get("working_dir", "")
 
-    # Java
+    # Java: 서버 jar의 version.json(java_version, id)을 먼저 본다
     java_info = JavaDetector.find_java(java_path)
-    issues.extend(JavaDetector.validate_for_minecraft(java_info))
+    jar_info = _read_jar_version(*os.path.split(server_jar)) if server_jar else None
+    mc_version = config.get("server_version") or (jar_info or {}).get("version")
+    issues.extend(JavaDetector.validate_for_minecraft(
+        java_info, mc_version, min_java=(jar_info or {}).get("java_version")))
 
     # Server JAR
     if not server_jar:

@@ -1003,6 +1003,33 @@ def configure(config):
     }
 
 
+def _setting_types():
+    """module.toml [[settings.fields]]의 이름 → type. 숫자로 바꿔도 되는 필드를 가리는 데 쓴다"""
+    try:
+        import tomllib
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "module.toml"), "rb") as f:
+            fields = tomllib.load(f).get("settings", {}).get("fields", [])
+        return {f.get("name"): f.get("type") for f in fields if f.get("name")}
+    except Exception:
+        return {}
+
+
+def _coerce_setting(value, field_type):
+    """파일에서 읽은 문자열을 설정 타입에 맞춘다. number·boolean 필드만 바꾸고,
+    비밀번호·이름 같은 문자열은 그대로 둔다 ("000123"이 123이 되지 않게)"""
+    val = str(value).strip().strip('"')
+    # 스키마에 없는 키는 참/거짓만 바꾼다
+    if field_type in ("boolean", None) and val.lower() in ("true", "false"):
+        return val.lower() == "true"
+    if field_type == "number":
+        try:
+            f = float(val)
+            return int(f) if f == int(f) else f
+        except (ValueError, OverflowError):
+            return val
+    return val
+
+
 def import_settings(config):
     """Read PalWorldSettings.ini and return settings in saba-chan key format.
 
@@ -1020,24 +1047,14 @@ def import_settings(config):
     # Build reverse map: INI key → saba-chan key
     reverse_map = {v: k for k, v in _PALWORLD_KEY_MAP.items()}
 
+    types = _setting_types()
     settings = {}
     for ini_key, raw_value in ini_props.items():
         saba_key = reverse_map.get(ini_key)
         if saba_key is None:
             continue
 
-        # Type coercion: booleans, numbers, strings
-        val = str(raw_value).strip().strip('"')
-        if val.lower() == "true":
-            settings[saba_key] = True
-        elif val.lower() == "false":
-            settings[saba_key] = False
-        else:
-            try:
-                f = float(val)
-                settings[saba_key] = int(f) if f == int(f) else f
-            except (ValueError, OverflowError):
-                settings[saba_key] = val
+        settings[saba_key] = _coerce_setting(raw_value, types.get(saba_key))
 
     return {"success": True, "settings": settings}
 

@@ -10,10 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # i18n.py, daemon_rcon.py: 데몬이 모듈에 넣어 주는 공용 파일
+      # i18n.py, daemon_rcon.py: 데몬이 모듈에 넣어 주는 공용 파일.
+      # 데몬 저장소에 같은 이름의 브랜치가 있으면 그것을 쓴다 (모듈과 데몬을 같이 바꾸는 작업)
+      - name: Pick the saba-chan branch
+        id: core
+        run: |
+          b="${{ github.head_ref || github.ref_name }}"
+          if git ls-remote --exit-code --heads https://github.com/WareAoba/saba-chan "$b" >/dev/null; then
+            echo "ref=$b" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
         with:
           repository: WareAoba/saba-chan
+          ref: ${{ steps.core.outputs.ref }}
           path: saba-chan
           sparse-checkout: modules
       - uses: actions/setup-python@v5

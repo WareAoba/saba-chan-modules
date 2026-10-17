@@ -924,7 +924,9 @@ def get_launch_command(config):
     except (ValueError, TypeError):
         ram_gb = 4
     server_name = config.get("server_name", "servertest")
-    _enforce_rcon_policy(IniManager.get_ini_path(config))
+    preview = bool(config.get("preview"))  # 미리보기는 파일·폴더를 만들거나 고치지 않는다
+    if not preview:
+        _enforce_rcon_policy(IniManager.get_ini_path(config))
 
     # ── 1차: 배치/쉘 스크립트 파싱 ──
     parsed = _parse_launch_info(config, server_dir)
@@ -1006,7 +1008,8 @@ def get_launch_command(config):
     # 인스턴스마다 따로 둔 데이터 폴더 (없으면 PZ 기본 ~/Zomboid)
     if _cache_dir(config) or _legacy_config_dir(config):
         home = _zomboid_home(config)
-        os.makedirs(home, exist_ok=True)
+        if not preview:
+            os.makedirs(home, exist_ok=True)
         args.append(f"-cachedir={home}")
     
     return {

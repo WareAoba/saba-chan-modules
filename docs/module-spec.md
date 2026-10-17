@@ -70,6 +70,8 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 ### `[[settings.fields]]` ○
 인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`).
 - `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`·`rest_port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
+- `arg`: 이 값이 실행 인자로 들어가는 모양. 문자열 하나나 배열이고, 공백으로 나눈 토큰에 `{value}`는 많아야 한 번이다(`"--port={value}"`, `"-servername {value}"`, `["-Xmx{value}", "-Xms{value}"]`). `{value}`가 없으면 boolean 플래그다. `{value}`뿐인 모양은 로드 오류다. 실행 인자 미리보기가 사용자가 친 추가 인자를 이 필드로 되돌릴 때만 쓴다. 실제 실행 줄은 여전히 `get_launch_command`가 만들므로 같은 모양으로 넣는다. 실행 인자로 들어가는 필드에만 쓴다.
+- `format`: 값 형식. `memory_size`(숫자+K/M/G 한 글자, `4G`·`1024M`), `port`(1~65535), `integer`, `path`. `pattern`: 값 전체가 맞아야 하는 정규식. 둘 다 저장과 미리보기에서 검사하고, 틀리면 "잘못된 형식입니다"로 막는다(모듈이 안내 문구를 줄 필요는 없다).
 - 문자열 `default`의 `{instance_dir}`은 새 인스턴스 폴더로 바뀐다(인스턴스마다 따로 둘 게임 데이터 폴더 등). 기존 서버를 가져올 때는 빈 값이 들어가므로 모듈은 빈 값을 그 게임의 기본 위치로 다룬다(zomboid `cache_dir` 참고).
 데몬이 직접 의미를 아는 이름: `rest_port`, `rest_host`, `managed_start`, `log_sessions_keep`, `auto_restart`(크래시 때 다시 띄우기, 기본 true), `restart_on_unknown_exit`(원인 모를 종료도 다시 띄우기, 기본 false). 모듈이 선언하지 않아도 인스턴스 설정에 넣으면 데몬이 읽는다.
 
@@ -106,7 +108,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 | 함수 | 언제 | 돌려줄 것 |
 |---|---|---|
-| `get_launch_command` ✔ | 서버 시작 | `program`, `args[]`, `working_dir`, `env_vars{}` |
+| `get_launch_command` ✔ | 서버 시작, 실행 인자 미리보기 | `program`, `args[]`, `working_dir`, `env_vars{}`. config에 `extra_args`(사용자가 더한 인자)가 온다: 알맞은 자리에 넣었으면 `extra_args_placed: true`(없으면 데몬이 끝에 붙인다). `preview: true`이면 미리보기다: 설정 파일·폴더를 쓰지 말고 실행 줄만 돌려준다 |
 | `stop` | managed인데 stdin 정지 명령이 없거나 안 통할 때, 그리고 non-managed 정지 | `success` |
 | `status` | non-managed 상태 조회 | `status`, `pid` |
 | `command` | `method = "module"` 명령 | `success`, `message` |

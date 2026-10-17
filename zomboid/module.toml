@@ -11,7 +11,7 @@ icon = "icon.png"
 log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
-saba-core = ">=0.1.2"
+saba-core = ">=0.1.5"
 ext-steamcmd = ">=0.1.0"
 
 [permissions]
@@ -77,6 +77,7 @@ name = "ram"
 type = "number"
 label = "Memory (RAM)"
 description = "Maximum memory allocation in GB"
+arg = ["-Xms{value}g", "-Xmx{value}g"]
 default = 4
 min = 1
 max = 64
@@ -88,6 +89,7 @@ name = "server_name"
 type = "text"
 label = "Server Profile Name"
 description = "Name of the server profile (determines INI filename, default: servertest)"
+arg = "-servername {value}"
 default = "servertest"
 group = "saba-chan"
 
@@ -96,6 +98,7 @@ name = "admin_password"
 type = "password"
 label = "Admin Password"
 description = "Default admin account password (set on first launch)"
+arg = "-adminpassword {value}"
 required = false
 group = "saba-chan"
 
@@ -104,6 +107,7 @@ name = "no_steam"
 type = "boolean"
 label = "No Steam Mode"
 description = "Run server in non-Steam mode (allows GoG players to connect)"
+arg = "-nosteam"
 default = false
 group = "saba-chan"
 

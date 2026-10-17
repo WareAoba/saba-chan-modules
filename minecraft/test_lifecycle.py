@@ -168,6 +168,48 @@ def test_build_launch_info_fractional_ram():
         assert "-Xms512M" in result["args"]
 
 
+def test_memory_size_values_pass_through_and_old_numbers_still_work():
+    """ram은 "4G"·"1024M" 형식 그대로, 예전에 저장된 숫자(GB)도 읽는다."""
+    from minecraft.lifecycle import get_launch_command
+    with tempfile.TemporaryDirectory() as tmpdir:
+        jar = _make_fake_jar(tmpdir)
+        for ram, want in [("4G", "-Xmx4G"), ("1024M", "-Xmx1024M"), (4, "-Xmx4G"), ("bad", "-Xmx2G")]:
+            result = get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": ram})
+            assert want in result["args"], (ram, result["args"])
+
+
+def test_saved_settings_still_pass_the_declared_value_rules():
+    """예전에 숫자(GB)로 저장된 ram과 꺼짐을 뜻하는 관리 포트 0이 저장 검사에서 막히지 않는다."""
+    import re
+    fields = {f["name"]: f for f in _module_toml()["settings"]["fields"]}
+    ram = fields["ram"]
+    assert "format" not in ram
+    for ok in ["4G", "1024M", "512k", "4", "0.5"]:
+        assert re.fullmatch(ram["pattern"], ok), ok
+    for bad in ["4096", "4GB", "-Xmx4G", ""]:
+        assert not re.fullmatch(ram["pattern"], bad), bad
+    port = fields["management_server_port"]
+    assert "format" not in port and port["min"] == 0 and port["default"] == 0
+
+
+def test_extra_args_go_before_the_jar_and_preview_writes_nothing():
+    """사용자 추가 인자는 JVM 자리(-jar 앞)에, 미리보기는 server.properties를 만들지 않는다."""
+    from minecraft.lifecycle import get_launch_command
+    with tempfile.TemporaryDirectory() as tmpdir:
+        jar = _make_fake_jar(tmpdir)
+        result = get_launch_command({
+            "server_jar": jar,
+            "working_dir": tmpdir,
+            "ram": "2G",
+            "extra_args": ["-XX:+UseZGC"],
+            "preview": True,
+        })
+        assert result["extra_args_placed"] is True
+        args = result["args"]
+        assert args.index("-XX:+UseZGC") < args.index("-jar")
+        assert not os.path.exists(os.path.join(tmpdir, "server.properties"))
+
+
 def test_build_launch_info_aikar_flags():
     """get_launch_command includes Aikar flags when requested."""
     from minecraft.lifecycle import get_launch_command

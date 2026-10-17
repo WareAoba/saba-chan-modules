@@ -836,11 +836,11 @@ module_aliases = ["마인크래프트", "마크", "mc", "minecraft"]
 [aliases.commands]
 start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
 stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
-status = { aliases = ["상태", "상황", "확인"], description = "Check server status" }
+status = { aliases = ["상태", "상황", "확인", "정보", "info"], description = "Check server status" }
 say = { aliases = ["말", "채팅", "메시지"], description = "Broadcast a message" }
 give = { aliases = ["지급", "줘", "item"], description = "Give an item to a player" }
 save-all = { aliases = ["저장"], description = "Save the world" }
-list = { aliases = ["목록", "플레이어", "유저"], description = "View connected players" }
+list = { aliases = ["목록", "플레이어", "유저", "players"], description = "View connected players" }
 weather = { aliases = ["날씨", "웨더"], description = "Change the weather" }
 difficulty = { aliases = ["난이도", "어려움"], description = "Change game difficulty" }
 gamemode = { aliases = ["겜모드", "게임모드"], description = "Change game mode" }

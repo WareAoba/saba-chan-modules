@@ -11,7 +11,7 @@ icon = "icon.png"
 log_pattern = '/(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
 [module.dependencies]
-saba-core = ">=0.1.0"
+saba-core = ">=0.1.2"
 
 [protocols]
 supported = ["rcon", "stdin"]

@@ -16,7 +16,6 @@ Project Zomboid is a Java-based game server (Steam App 380870) that:
 import sys
 import json
 import subprocess
-import math
 import os
 import re
 import socket
@@ -402,13 +401,14 @@ class IniManager:
         
         try:
             with open(ini_path, 'r', encoding='utf-8', errors='replace') as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith('#'):
+                for raw in f:
+                    # 값은 첫 "=" 뒤를 그대로 둔다 (비밀번호의 앞뒤 공백도 값이다). 줄바꿈만 뗀다
+                    line = raw.rstrip('\r\n')
+                    if not line.strip() or line.lstrip().startswith('#'):
                         continue
                     if '=' in line:
                         key, _, value = line.partition('=')
-                        props[key.strip()] = value.strip()
+                        props[key.strip()] = value
         except (IOError, OSError) as e:
             print(f"Warning: Could not read {ini_path}: {e}", file=sys.stderr)
         
@@ -1335,37 +1335,6 @@ def configure(config):
         }
 
 
-def _setting_types():
-    """module.toml [[settings.fields]]의 이름 → type. 숫자로 바꿔도 되는 필드를 가리는 데 쓴다"""
-    try:
-        import tomllib
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "module.toml"), "rb") as f:
-            fields = tomllib.load(f).get("settings", {}).get("fields", [])
-        return {f.get("name"): f.get("type") for f in fields if f.get("name")}
-    except Exception:
-        return {}
-
-
-def _coerce_setting(value, field_type):
-    """파일에서 읽은 문자열을 설정 타입에 맞춘다. number·boolean 필드만 바꾸고,
-    비밀번호·이름 같은 문자열은 그대로 둔다 (앞뒤 공백도, "000123"도 그대로)"""
-    val = str(value)
-    # PZ ini는 따옴표를 쓰지 않는다: 따옴표도 값의 일부
-    text = val.strip()
-    # 스키마에 없는 키는 참/거짓만 바꾼다
-    if field_type in ("boolean", None) and text.lower() in ("true", "false"):
-        return text.lower() == "true"
-    if field_type == "number":
-        try:
-            f = float(text)
-        except (ValueError, OverflowError):
-            return val
-        if not math.isfinite(f):
-            return val
-        return int(f) if f == int(f) else f
-    return val
-
-
 def import_settings(config):
     """Read server INI and return settings in saba-chan key format.
 
@@ -1379,10 +1348,9 @@ def import_settings(config):
     if not raw_props:
         return {"success": True, "settings": {}, "message": "No properties found."}
 
-    types = _setting_types()
-    settings = {}
-    for key, raw_value in raw_props.items():
-        settings[key] = _coerce_setting(raw_value, types.get(key))
+    from daemon_rcon import coerce_setting, load_setting_types
+    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
+    settings = {key: coerce_setting(raw_value, types.get(key)) for key, raw_value in raw_props.items()}
 
     return {"success": True, "settings": settings}
 

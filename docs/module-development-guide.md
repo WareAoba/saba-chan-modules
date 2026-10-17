@@ -13,7 +13,6 @@
 3. [모듈 구조](#2-모듈-구조)
 4. [module.toml 완전 레퍼런스](#3-moduletoml-완전-레퍼런스)
    - 3.1 [module — 메타데이터](#31-module--메타데이터)
-   - 3.2 [update — 자동 업데이트](#32-update--자동-업데이트)
    - 3.3 [protocols — 통신 프로토콜](#33-protocols--통신-프로토콜)
    - 3.4 [credential_map — 자격증명 동기화](#34-credential_map--자격증명-동기화)
    - 3.5 [config — 기본 실행 설정](#35-config--기본-실행-설정)

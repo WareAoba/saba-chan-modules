@@ -1143,20 +1143,13 @@ def import_settings(config):
     # Build reverse map: server.properties key → saba-chan key
     reverse_map = {v: k for k, v in _PROPERTY_KEY_MAP.items()}
 
+    # 스키마 타입대로만 바꾼다: 숫자 같은 비밀번호("000123")나 이름은 문자열 그대로
+    from daemon_rcon import coerce_setting, load_setting_types
+    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
     settings = {}
     for prop_key, raw_value in raw_props.items():
         saba_key = reverse_map.get(prop_key, prop_key)
-        val = str(raw_value).strip()
-        if val.lower() == "true":
-            settings[saba_key] = True
-        elif val.lower() == "false":
-            settings[saba_key] = False
-        else:
-            try:
-                f = float(val)
-                settings[saba_key] = int(f) if f == int(f) else f
-            except (ValueError, OverflowError):
-                settings[saba_key] = val
+        settings[saba_key] = coerce_setting(raw_value, types.get(saba_key))
 
     return {"success": True, "settings": settings}
 

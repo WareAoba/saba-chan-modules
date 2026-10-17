@@ -1,0 +1,34 @@
+{
+  "name": "ViaVersion",
+  "match": ["ViaVersion"],
+  "docs": [
+    "https://github.com/ViaVersion/ViaVersion/blob/master/bukkit/src/main/resources/plugin.yml",
+    "https://github.com/ViaVersion/ViaVersion/blob/master/common/src/main/java/com/viaversion/viaversion/commands/ViaCommandHandler.java",
+    "https://github.com/ViaVersion/ViaVersion/tree/master/common/src/main/java/com/viaversion/viaversion/commands/defaultsubs"
+  ],
+  "commands": [
+    {"name": "viaversion", "label": "Help", "description": "Shows ViaVersion Version and more.", "risk": "safe", "console_template": "viaversion", "inputs": []},
+    {"name": "viaversion-list", "label": "Player versions", "description": "Shows lists of the versions from logged in players.", "risk": "safe", "console_template": "viaversion list", "inputs": []},
+    {"name": "viaversion-player", "label": "Player connection info", "description": "Shows connection information about one or all players.", "risk": "safe", "console_template": "viaversion player {player}", "inputs": [
+      {"name": "player", "type": "text", "label": "Player", "required": true, "placeholder": "Player name, or * for all"}
+    ]},
+    {"name": "viaversion-pps", "label": "Packets per second", "description": "Shows the packets per second of online players.", "risk": "safe", "console_template": "viaversion pps", "inputs": []},
+    {"name": "viaversion-dump", "label": "Dump", "description": "Dump information about your platform implementation, this is helpful if you report bugs.", "risk": "safe", "console_template": "viaversion dump", "inputs": []},
+    {"name": "viaversion-debug", "label": "Toggle debug", "description": "Toggles debug mode.", "risk": "caution", "console_template": "viaversion debug", "inputs": []},
+    {"name": "viaversion-debug-clear", "label": "Clear debug packets", "description": "Clears the packet types to log in debug mode.", "risk": "caution", "console_template": "viaversion debug clear", "inputs": []},
+    {"name": "viaversion-debug-pre", "label": "Toggle pre-transform logging", "description": "Toggles logging of packets before they are transformed.", "risk": "caution", "console_template": "viaversion debug pre", "inputs": []},
+    {"name": "viaversion-debug-post", "label": "Toggle post-transform logging", "description": "Toggles logging of packets after they are transformed.", "risk": "caution", "console_template": "viaversion debug post", "inputs": []},
+    {"name": "viaversion-debug-add", "label": "Add debug packet", "description": "Adds a packet type to debug logging.", "risk": "caution", "console_template": "viaversion debug add {packet}", "inputs": [
+      {"name": "packet", "type": "text", "label": "Packet type", "required": true, "placeholder": "Packet type name"}
+    ]},
+    {"name": "viaversion-debug-remove", "label": "Remove debug packet", "description": "Removes a packet type from debug logging.", "risk": "caution", "console_template": "viaversion debug remove {packet}", "inputs": [
+      {"name": "packet", "type": "text", "label": "Packet type", "required": true, "placeholder": "Packet type name"}
+    ]},
+    {"name": "viaversion-displayleaks", "label": "Leak detector level", "description": "Try to hunt memory leaks! Shows or sets the leak detector level.", "risk": "caution", "console_template": "viaversion displayleaks {level}", "inputs": [
+      {"name": "level", "type": "select", "label": "Level", "required": false, "options": ["DISABLED", "SIMPLE", "ADVANCED", "PARANOID"]}
+    ]},
+    {"name": "viaversion-autoteam", "label": "Toggle auto team", "description": "Toggle automatically teaming to prevent colliding.", "risk": "caution", "console_template": "viaversion autoteam", "inputs": []},
+    {"name": "viaversion-dontbugme", "label": "Toggle update checks", "description": "Toggle checking for updates.", "risk": "caution", "console_template": "viaversion dontbugme", "inputs": []},
+    {"name": "viaversion-reload", "label": "Reload config", "description": "Reload the config from the disk.", "risk": "danger", "console_template": "viaversion reload", "inputs": []}
+  ]
+}

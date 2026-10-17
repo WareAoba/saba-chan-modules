@@ -1,0 +1,3617 @@
+{
+  "name": "LuckPerms",
+  "match": [
+    "LuckPerms",
+    "luckperms"
+  ],
+  "docs": [
+    "https://luckperms.net/wiki/Command-Usage",
+    "https://luckperms.net/wiki/General-Commands",
+    "https://luckperms.net/wiki/User-Commands",
+    "https://luckperms.net/wiki/Group-Commands",
+    "https://luckperms.net/wiki/Permission-Commands",
+    "https://luckperms.net/wiki/Parent-Commands",
+    "https://luckperms.net/wiki/Meta-Commands",
+    "https://luckperms.net/wiki/Track-Commands",
+    "https://luckperms.net/wiki/Log-Commands",
+    "https://luckperms.net/wiki/Verbose",
+    "https://luckperms.net/wiki/Web-Editor",
+    "https://luckperms.net/wiki/Bulk-Editing",
+    "https://luckperms.net/wiki/Locale-and-Translations",
+    "https://luckperms.net/wiki/Permissions",
+    "https://github.com/LuckPerms/wiki",
+    "https://github.com/LuckPerms/LuckPerms/blob/master/common/src/main/java/me/lucko/luckperms/common/command/spec/CommandSpec.java",
+    "https://github.com/LuckPerms/LuckPerms/blob/master/common/src/main/java/me/lucko/luckperms/common/commands/misc/TrustEditorCommand.java"
+  ],
+  "commands": [
+    {
+      "name": "lp",
+      "label": "LuckPerms help",
+      "description": "Prints a list of the LuckPerms commands the sender has permission to use, with brief information about each.",
+      "risk": "safe",
+      "console_template": "lp",
+      "inputs": []
+    },
+    {
+      "name": "lp-sync",
+      "label": "Sync data",
+      "description": "Performs a refresh of all currently loaded data from storage.",
+      "risk": "caution",
+      "console_template": "lp sync",
+      "inputs": []
+    },
+    {
+      "name": "lp-info",
+      "label": "Plugin info",
+      "description": "Lists information about LuckPerms, including debugging output, statistics, settings and important configuration values.",
+      "risk": "safe",
+      "console_template": "lp info",
+      "inputs": []
+    },
+    {
+      "name": "lp-editor",
+      "label": "Open web editor",
+      "description": "Opens a web editor session to edit permissions data; saved changes must be applied with the command it gives.",
+      "risk": "safe",
+      "console_template": "lp editor {type} {filter}",
+      "inputs": [
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Type",
+          "required": false,
+          "options": [
+            "all",
+            "users",
+            "online",
+            "groups"
+          ]
+        },
+        {
+          "name": "filter",
+          "type": "text",
+          "label": "User filter",
+          "required": false,
+          "placeholder": "Only include users whose nodes start with this"
+        }
+      ]
+    },
+    {
+      "name": "lp-applyedits",
+      "label": "Apply web editor changes",
+      "description": "Applies the changes saved in a web editor session using the code it generated.",
+      "risk": "caution",
+      "console_template": "lp applyedits {code}",
+      "inputs": [
+        {
+          "name": "code",
+          "type": "text",
+          "label": "Editor code",
+          "required": true,
+          "placeholder": "Code from the web editor"
+        }
+      ]
+    },
+    {
+      "name": "lp-trusteditor",
+      "label": "Trust editor session",
+      "description": "Explicitly trusts a connected web editor session so its changes can be applied without running a command.",
+      "risk": "caution",
+      "console_template": "lp trusteditor {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Session id",
+          "required": true,
+          "placeholder": "Id shown by the web editor"
+        }
+      ]
+    },
+    {
+      "name": "lp-verbose",
+      "label": "Verbose logging",
+      "description": "Controls the verbose system that listens for permission checks: on, record, off or upload the recorded output.",
+      "risk": "caution",
+      "console_template": "lp verbose {action} {filter}",
+      "inputs": [
+        {
+          "name": "action",
+          "type": "select",
+          "label": "Action",
+          "required": true,
+          "options": [
+            "on",
+            "record",
+            "off",
+            "upload"
+          ]
+        },
+        {
+          "name": "filter",
+          "type": "text",
+          "label": "Filter",
+          "required": false,
+          "placeholder": "e.g. Luck & (essentials | worldedit)"
+        }
+      ]
+    },
+    {
+      "name": "lp-verbose-command",
+      "label": "Verbose check a command",
+      "description": "Executes a command as the given player and lists all permission checks made for that command.",
+      "risk": "caution",
+      "console_template": "lp verbose command {player} {command}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Online player name"
+        },
+        {
+          "name": "command",
+          "type": "text",
+          "label": "Command",
+          "required": true,
+          "placeholder": "e.g. warp spawn"
+        }
+      ]
+    },
+    {
+      "name": "lp-tree",
+      "label": "Permission tree",
+      "description": "Generates a tree view of the permissions registered to the server.",
+      "risk": "safe",
+      "console_template": "lp tree {scope} {player}",
+      "inputs": [
+        {
+          "name": "scope",
+          "type": "text",
+          "label": "Scope",
+          "required": false,
+          "placeholder": "e.g. luckperms.user (. for all)"
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": false,
+          "placeholder": "Online player to check against"
+        }
+      ]
+    },
+    {
+      "name": "lp-search",
+      "label": "Search permission",
+      "description": "Searches all users and groups for a specific permission and returns a paginated list of found entries.",
+      "risk": "safe",
+      "console_template": "lp search {query}",
+      "inputs": [
+        {
+          "name": "query",
+          "type": "text",
+          "label": "Search",
+          "required": true,
+          "placeholder": "[comparison ==, !=, ~~, !~] <permission> [page]"
+        }
+      ]
+    },
+    {
+      "name": "lp-networksync",
+      "label": "Network sync",
+      "description": "Refreshes all cached data from storage and asks all other connected servers to sync too.",
+      "risk": "caution",
+      "console_template": "lp networksync",
+      "inputs": []
+    },
+    {
+      "name": "lp-import",
+      "label": "Import data",
+      "description": "Imports data into LuckPerms from a file or a web export code; --replace overwrites the existing setup instead of merging.",
+      "risk": "danger",
+      "console_template": "lp import {source} {flags}",
+      "inputs": [
+        {
+          "name": "source",
+          "type": "text",
+          "label": "File or code",
+          "required": true,
+          "placeholder": "e.g. backup.json.gz"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--upload (for a code) --replace"
+        }
+      ]
+    },
+    {
+      "name": "lp-export",
+      "label": "Export data",
+      "description": "Exports LuckPerms data into a file in the plugin directory, or to the web with --upload.",
+      "risk": "caution",
+      "console_template": "lp export {file} {flags}",
+      "inputs": [
+        {
+          "name": "file",
+          "type": "text",
+          "label": "File",
+          "required": true,
+          "placeholder": "File name, or --upload"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--without-users --without-groups"
+        }
+      ]
+    },
+    {
+      "name": "lp-reloadconfig",
+      "label": "Reload config",
+      "description": "Reloads some values from the configuration file; some settings require a full restart.",
+      "risk": "danger",
+      "console_template": "lp reloadconfig",
+      "inputs": []
+    },
+    {
+      "name": "lp-bulkupdate",
+      "label": "Bulk update",
+      "description": "Performs a bulk modification to all permission data (console only).",
+      "risk": "danger",
+      "console_template": "lp bulkupdate {data_type} {action} {args}",
+      "inputs": [
+        {
+          "name": "data_type",
+          "type": "select",
+          "label": "Data type",
+          "required": true,
+          "options": [
+            "all",
+            "users",
+            "groups"
+          ]
+        },
+        {
+          "name": "action",
+          "type": "select",
+          "label": "Action",
+          "required": true,
+          "options": [
+            "update",
+            "delete"
+          ]
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Field, value and constraints",
+          "required": false,
+          "placeholder": "e.g. permission group.mod \"permission == group.moderator\""
+        }
+      ]
+    },
+    {
+      "name": "lp-translations",
+      "label": "Translations info",
+      "description": "Shows information about loaded translations.",
+      "risk": "safe",
+      "console_template": "lp translations",
+      "inputs": []
+    },
+    {
+      "name": "lp-translations-install",
+      "label": "Install translations",
+      "description": "Installs or updates the latest community provided translation bundles.",
+      "risk": "caution",
+      "console_template": "lp translations install",
+      "inputs": []
+    },
+    {
+      "name": "lp-creategroup",
+      "label": "Create group",
+      "description": "Creates a new group.",
+      "risk": "caution",
+      "console_template": "lp creategroup {name} {weight} {displayname}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Group name",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "weight",
+          "type": "number",
+          "label": "Weight",
+          "required": false
+        },
+        {
+          "name": "displayname",
+          "type": "text",
+          "label": "Display name",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "lp-deletegroup",
+      "label": "Delete group",
+      "description": "Permanently deletes a group.",
+      "risk": "danger",
+      "console_template": "lp deletegroup {name}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Group name",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-listgroups",
+      "label": "List groups",
+      "description": "Displays a list of all current groups.",
+      "risk": "safe",
+      "console_template": "lp listgroups {page}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "lp-createtrack",
+      "label": "Create track",
+      "description": "Creates a new track.",
+      "risk": "caution",
+      "console_template": "lp createtrack {name}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Track name",
+          "required": true,
+          "placeholder": "Track name"
+        }
+      ]
+    },
+    {
+      "name": "lp-deletetrack",
+      "label": "Delete track",
+      "description": "Permanently deletes a track.",
+      "risk": "danger",
+      "console_template": "lp deletetrack {name}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Track name",
+          "required": true,
+          "placeholder": "Track name"
+        }
+      ]
+    },
+    {
+      "name": "lp-listtracks",
+      "label": "List tracks",
+      "description": "Displays a list of all current tracks.",
+      "risk": "safe",
+      "console_template": "lp listtracks",
+      "inputs": []
+    },
+    {
+      "name": "lp-user-info",
+      "label": "User info",
+      "description": "Displays information about a user, including their username, primary group, parents and current contexts.",
+      "risk": "safe",
+      "console_template": "lp user {user} info",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-editor",
+      "label": "User web editor",
+      "description": "Opens a web editor session to edit the permissions of the specified user.",
+      "risk": "safe",
+      "console_template": "lp user {user} editor",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-promote",
+      "label": "Promote user",
+      "description": "Promotes a user along a track, adding them to the first group if they are not on it yet.",
+      "risk": "caution",
+      "console_template": "lp user {user} promote {track} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context and flags",
+          "required": false,
+          "placeholder": "e.g. server=survival --dont-add-to-first -s"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-demote",
+      "label": "Demote user",
+      "description": "Demotes a user down a track.",
+      "risk": "caution",
+      "console_template": "lp user {user} demote {track} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context and flags",
+          "required": false,
+          "placeholder": "e.g. server=survival --dont-remove-from-first -s"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-showtracks",
+      "label": "User tracks",
+      "description": "Displays a list of all of the tracks a user is currently on.",
+      "risk": "safe",
+      "console_template": "lp user {user} showtracks",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-clear",
+      "label": "Clear user",
+      "description": "Clears the user's permissions, parent groups and meta.",
+      "risk": "danger",
+      "console_template": "lp user {user} clear {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-clone",
+      "label": "Clone user",
+      "description": "Clones the user's data onto another user.",
+      "risk": "danger",
+      "console_template": "lp user {user} clone {target}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "target",
+          "type": "text",
+          "label": "Target user",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-info",
+      "label": "Group info",
+      "description": "Displays information about a group.",
+      "risk": "safe",
+      "console_template": "lp group {group} info",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-editor",
+      "label": "Group web editor",
+      "description": "Opens a web editor session to edit the permissions of the specified group.",
+      "risk": "safe",
+      "console_template": "lp group {group} editor",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-listmembers",
+      "label": "List group members",
+      "description": "Lists the users and groups which inherit directly from this group.",
+      "risk": "safe",
+      "console_template": "lp group {group} listmembers {page}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "lp-group-setweight",
+      "label": "Set group weight",
+      "description": "Sets the group's weight, which determines the order groups are considered in; higher value means higher weight.",
+      "risk": "caution",
+      "console_template": "lp group {group} setweight {weight}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "weight",
+          "type": "number",
+          "label": "Weight",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "lp-group-setdisplayname",
+      "label": "Set group display name",
+      "description": "Sets the group's display name, which can act as an alias for the group.",
+      "risk": "caution",
+      "console_template": "lp group {group} setdisplayname {name} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Display name",
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-showtracks",
+      "label": "Group tracks",
+      "description": "Displays a list of all of the tracks a group is currently on.",
+      "risk": "safe",
+      "console_template": "lp group {group} showtracks",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-clear",
+      "label": "Clear group",
+      "description": "Clears the group's permissions, parent groups and meta.",
+      "risk": "danger",
+      "console_template": "lp group {group} clear {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-rename",
+      "label": "Rename group",
+      "description": "Changes a group's name; existing members still point to the old name.",
+      "risk": "caution",
+      "console_template": "lp group {group} rename {name}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "New name",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-clone",
+      "label": "Clone group",
+      "description": "Makes an exact copy of the group under a different name.",
+      "risk": "caution",
+      "console_template": "lp group {group} clone {name}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Clone name",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-permission-info",
+      "label": "User permissions",
+      "description": "Displays a list of the permission nodes a user has.",
+      "risk": "safe",
+      "console_template": "lp user {user} permission info {page} {sort}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        },
+        {
+          "name": "sort",
+          "type": "select",
+          "label": "Sorting mode",
+          "required": false,
+          "options": [
+            "priority",
+            "!priority",
+            "abc",
+            "!abc"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lp-user-permission-set",
+      "label": "Set user permission",
+      "description": "Sets a permission for a user; a value of false negates it, and no context means global.",
+      "risk": "caution",
+      "console_template": "lp user {user} permission set {node} {value} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        },
+        {
+          "name": "value",
+          "type": "select",
+          "label": "Value",
+          "required": true,
+          "options": [
+            "true",
+            "false"
+          ],
+          "default": "true"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-permission-unset",
+      "label": "Unset user permission",
+      "description": "Unsets (removes) a permission for a user.",
+      "risk": "caution",
+      "console_template": "lp user {user} permission unset {node} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-permission-settemp",
+      "label": "Set temporary user permission",
+      "description": "Sets a permission temporarily for a user until the duration expires.",
+      "risk": "caution",
+      "console_template": "lp user {user} permission settemp {node} {value} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        },
+        {
+          "name": "value",
+          "type": "select",
+          "label": "Value",
+          "required": true,
+          "options": [
+            "true",
+            "false"
+          ],
+          "default": "true"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-permission-unsettemp",
+      "label": "Unset temporary user permission",
+      "description": "Unsets a temporary permission for a user, or subtracts a duration from it.",
+      "risk": "caution",
+      "console_template": "lp user {user} permission unsettemp {node} {duration} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": false,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-permission-check",
+      "label": "Check user permission",
+      "description": "Checks whether a user has a certain permission and what influenced the result.",
+      "risk": "safe",
+      "console_template": "lp user {user} permission check {node}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-permission-clear",
+      "label": "Clear user permissions",
+      "description": "Removes all permissions from the user.",
+      "risk": "danger",
+      "console_template": "lp user {user} permission clear {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-info",
+      "label": "User parents",
+      "description": "Displays a list of the user's parent groups (groups they inherit from).",
+      "risk": "safe",
+      "console_template": "lp user {user} parent info {page} {sort}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        },
+        {
+          "name": "sort",
+          "type": "select",
+          "label": "Sorting mode",
+          "required": false,
+          "options": [
+            "priority",
+            "!priority",
+            "abc",
+            "!abc"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-set",
+      "label": "Set user parent",
+      "description": "Sets the user's parent, clearing all existing parent groups in the given context.",
+      "risk": "caution",
+      "console_template": "lp user {user} parent set {group} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-add",
+      "label": "Add user parent",
+      "description": "Adds a parent group to the user without removing existing parents.",
+      "risk": "caution",
+      "console_template": "lp user {user} parent add {group} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-remove",
+      "label": "Remove user parent",
+      "description": "Removes a parent group from the user.",
+      "risk": "caution",
+      "console_template": "lp user {user} parent remove {group} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-settrack",
+      "label": "Set user track position",
+      "description": "Sets the user's position on a track, clearing only existing parents on that track.",
+      "risk": "caution",
+      "console_template": "lp user {user} parent settrack {track} {group} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group or index",
+          "required": true,
+          "placeholder": "Group name or position on the track"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-addtemp",
+      "label": "Add temporary user parent",
+      "description": "Adds a parent group to the user temporarily until the duration expires.",
+      "risk": "caution",
+      "console_template": "lp user {user} parent addtemp {group} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-removetemp",
+      "label": "Remove temporary user parent",
+      "description": "Removes a temporary parent from the user, or subtracts a duration from it.",
+      "risk": "caution",
+      "console_template": "lp user {user} parent removetemp {group} {duration} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": false,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-clear",
+      "label": "Clear user parents",
+      "description": "Removes all parents the user has, adding them back to the default group.",
+      "risk": "danger",
+      "console_template": "lp user {user} parent clear {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-cleartrack",
+      "label": "Clear user parents on track",
+      "description": "Removes all parents from the user on a given track.",
+      "risk": "caution",
+      "console_template": "lp user {user} parent cleartrack {track} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-parent-switchprimarygroup",
+      "label": "Switch primary group",
+      "description": "Changes a user's primary group, adding them to it if they are not already a member.",
+      "risk": "caution",
+      "console_template": "lp user {user} parent switchprimarygroup {group}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-info",
+      "label": "User meta",
+      "description": "Displays the user's inherited meta, prefixes and suffixes.",
+      "risk": "safe",
+      "console_template": "lp user {user} meta info",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-set",
+      "label": "Set user meta",
+      "description": "Sets a meta key-value pair for the user.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta set {key} {value} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": true,
+          "placeholder": "Wrap in quotes if it contains spaces"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-unset",
+      "label": "Unset user meta",
+      "description": "Unsets a meta key-value pair for the user.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta unset {key} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-settemp",
+      "label": "Set temporary user meta",
+      "description": "Sets a temporary meta key-value pair for the user.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta settemp {key} {value} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": true,
+          "placeholder": "Wrap in quotes if it contains spaces"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-unsettemp",
+      "label": "Unset temporary user meta",
+      "description": "Unsets a temporary meta key-value pair for the user.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta unsettemp {key} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-addprefix",
+      "label": "Add user prefix",
+      "description": "Adds a prefix to the user at the given priority.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta addprefix {priority} {prefix} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-setprefix",
+      "label": "Set user prefix",
+      "description": "Sets a prefix for the user, removing existing prefixes set in the same context.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta setprefix {priority} {prefix} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-removeprefix",
+      "label": "Remove user prefix",
+      "description": "Removes a prefix from the user at the given priority.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta removeprefix {priority} {prefix} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": false,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-addtempprefix",
+      "label": "Add temporary user prefix",
+      "description": "Adds a prefix to the user temporarily until the duration expires.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta addtempprefix {priority} {prefix} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-settempprefix",
+      "label": "Set temporary user prefix",
+      "description": "Sets a prefix for the user temporarily, removing existing prefixes set in the same context.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta settempprefix {priority} {prefix} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-removetempprefix",
+      "label": "Remove temporary user prefix",
+      "description": "Removes a temporary prefix from the user at the given priority.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta removetempprefix {priority} {prefix} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": false,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-addsuffix",
+      "label": "Add user suffix",
+      "description": "Adds a suffix to the user at the given priority.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta addsuffix {priority} {suffix} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-setsuffix",
+      "label": "Set user suffix",
+      "description": "Sets a suffix for the user, removing existing suffixes set in the same context.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta setsuffix {priority} {suffix} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-removesuffix",
+      "label": "Remove user suffix",
+      "description": "Removes a suffix from the user at the given priority.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta removesuffix {priority} {suffix} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": false,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-addtempsuffix",
+      "label": "Add temporary user suffix",
+      "description": "Adds a suffix to the user temporarily until the duration expires.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta addtempsuffix {priority} {suffix} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-settempsuffix",
+      "label": "Set temporary user suffix",
+      "description": "Sets a suffix for the user temporarily, removing existing suffixes set in the same context.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta settempsuffix {priority} {suffix} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-removetempsuffix",
+      "label": "Remove temporary user suffix",
+      "description": "Removes a temporary suffix from the user at the given priority.",
+      "risk": "caution",
+      "console_template": "lp user {user} meta removetempsuffix {priority} {suffix} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": false,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-user-meta-clear",
+      "label": "Clear user meta",
+      "description": "Removes all meta, prefixes and/or suffixes from the user.",
+      "risk": "danger",
+      "console_template": "lp user {user} meta clear {type} {context}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Type",
+          "required": false,
+          "options": [
+            "any",
+            "chat",
+            "meta",
+            "prefix",
+            "suffix"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-permission-info",
+      "label": "Group permissions",
+      "description": "Displays a list of the permission nodes a group has.",
+      "risk": "safe",
+      "console_template": "lp group {group} permission info {page} {sort}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        },
+        {
+          "name": "sort",
+          "type": "select",
+          "label": "Sorting mode",
+          "required": false,
+          "options": [
+            "priority",
+            "!priority",
+            "abc",
+            "!abc"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lp-group-permission-set",
+      "label": "Set group permission",
+      "description": "Sets a permission for a group; a value of false negates it, and no context means global.",
+      "risk": "caution",
+      "console_template": "lp group {group} permission set {node} {value} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        },
+        {
+          "name": "value",
+          "type": "select",
+          "label": "Value",
+          "required": true,
+          "options": [
+            "true",
+            "false"
+          ],
+          "default": "true"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-permission-unset",
+      "label": "Unset group permission",
+      "description": "Unsets (removes) a permission for a group.",
+      "risk": "caution",
+      "console_template": "lp group {group} permission unset {node} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-permission-settemp",
+      "label": "Set temporary group permission",
+      "description": "Sets a permission temporarily for a group until the duration expires.",
+      "risk": "caution",
+      "console_template": "lp group {group} permission settemp {node} {value} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        },
+        {
+          "name": "value",
+          "type": "select",
+          "label": "Value",
+          "required": true,
+          "options": [
+            "true",
+            "false"
+          ],
+          "default": "true"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-permission-unsettemp",
+      "label": "Unset temporary group permission",
+      "description": "Unsets a temporary permission for a group, or subtracts a duration from it.",
+      "risk": "caution",
+      "console_template": "lp group {group} permission unsettemp {node} {duration} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": false,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-permission-check",
+      "label": "Check group permission",
+      "description": "Checks whether a group has a certain permission and what influenced the result.",
+      "risk": "safe",
+      "console_template": "lp group {group} permission check {node}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "node",
+          "type": "text",
+          "label": "Permission node",
+          "required": true,
+          "placeholder": "e.g. essentials.fly"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-permission-clear",
+      "label": "Clear group permissions",
+      "description": "Removes all permissions from the group.",
+      "risk": "danger",
+      "console_template": "lp group {group} permission clear {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-info",
+      "label": "Group parents",
+      "description": "Displays a list of the group's parent groups (groups they inherit from).",
+      "risk": "safe",
+      "console_template": "lp group {group} parent info {page} {sort}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        },
+        {
+          "name": "sort",
+          "type": "select",
+          "label": "Sorting mode",
+          "required": false,
+          "options": [
+            "priority",
+            "!priority",
+            "abc",
+            "!abc"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-set",
+      "label": "Set group parent",
+      "description": "Sets the group's parent, clearing all existing parent groups in the given context.",
+      "risk": "caution",
+      "console_template": "lp group {group} parent set {parent} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "parent",
+          "type": "text",
+          "label": "Parent group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-add",
+      "label": "Add group parent",
+      "description": "Adds a parent group to the group without removing existing parents.",
+      "risk": "caution",
+      "console_template": "lp group {group} parent add {parent} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "parent",
+          "type": "text",
+          "label": "Parent group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-remove",
+      "label": "Remove group parent",
+      "description": "Removes a parent group from the group.",
+      "risk": "caution",
+      "console_template": "lp group {group} parent remove {parent} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "parent",
+          "type": "text",
+          "label": "Parent group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-settrack",
+      "label": "Set group track position",
+      "description": "Sets the group's position on a track, clearing only existing parents on that track.",
+      "risk": "caution",
+      "console_template": "lp group {group} parent settrack {track} {parent} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "parent",
+          "type": "text",
+          "label": "Group or index",
+          "required": true,
+          "placeholder": "Group name or position on the track"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-addtemp",
+      "label": "Add temporary group parent",
+      "description": "Adds a parent group to the group temporarily until the duration expires.",
+      "risk": "caution",
+      "console_template": "lp group {group} parent addtemp {parent} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "parent",
+          "type": "text",
+          "label": "Parent group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-removetemp",
+      "label": "Remove temporary group parent",
+      "description": "Removes a temporary parent from the group, or subtracts a duration from it.",
+      "risk": "caution",
+      "console_template": "lp group {group} parent removetemp {parent} {duration} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "parent",
+          "type": "text",
+          "label": "Parent group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": false,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-clear",
+      "label": "Clear group parents",
+      "description": "Removes all parents the group has, adding them back to the default group.",
+      "risk": "danger",
+      "console_template": "lp group {group} parent clear {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-parent-cleartrack",
+      "label": "Clear group parents on track",
+      "description": "Removes all parents from the group on a given track.",
+      "risk": "caution",
+      "console_template": "lp group {group} parent cleartrack {track} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-info",
+      "label": "Group meta",
+      "description": "Displays the group's inherited meta, prefixes and suffixes.",
+      "risk": "safe",
+      "console_template": "lp group {group} meta info",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-set",
+      "label": "Set group meta",
+      "description": "Sets a meta key-value pair for the group.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta set {key} {value} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": true,
+          "placeholder": "Wrap in quotes if it contains spaces"
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-unset",
+      "label": "Unset group meta",
+      "description": "Unsets a meta key-value pair for the group.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta unset {key} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-settemp",
+      "label": "Set temporary group meta",
+      "description": "Sets a temporary meta key-value pair for the group.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta settemp {key} {value} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": true,
+          "placeholder": "Wrap in quotes if it contains spaces"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-unsettemp",
+      "label": "Unset temporary group meta",
+      "description": "Unsets a temporary meta key-value pair for the group.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta unsettemp {key} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-addprefix",
+      "label": "Add group prefix",
+      "description": "Adds a prefix to the group at the given priority.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta addprefix {priority} {prefix} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-setprefix",
+      "label": "Set group prefix",
+      "description": "Sets a prefix for the group, removing existing prefixes set in the same context.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta setprefix {priority} {prefix} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-removeprefix",
+      "label": "Remove group prefix",
+      "description": "Removes a prefix from the group at the given priority.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta removeprefix {priority} {prefix} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": false,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-addtempprefix",
+      "label": "Add temporary group prefix",
+      "description": "Adds a prefix to the group temporarily until the duration expires.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta addtempprefix {priority} {prefix} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-settempprefix",
+      "label": "Set temporary group prefix",
+      "description": "Sets a prefix for the group temporarily, removing existing prefixes set in the same context.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta settempprefix {priority} {prefix} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-removetempprefix",
+      "label": "Remove temporary group prefix",
+      "description": "Removes a temporary prefix from the group at the given priority.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta removetempprefix {priority} {prefix} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "prefix",
+          "type": "text",
+          "label": "Prefix",
+          "required": false,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-addsuffix",
+      "label": "Add group suffix",
+      "description": "Adds a suffix to the group at the given priority.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta addsuffix {priority} {suffix} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-setsuffix",
+      "label": "Set group suffix",
+      "description": "Sets a suffix for the group, removing existing suffixes set in the same context.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta setsuffix {priority} {suffix} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-removesuffix",
+      "label": "Remove group suffix",
+      "description": "Removes a suffix from the group at the given priority.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta removesuffix {priority} {suffix} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": false,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-addtempsuffix",
+      "label": "Add temporary group suffix",
+      "description": "Adds a suffix to the group temporarily until the duration expires.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta addtempsuffix {priority} {suffix} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-settempsuffix",
+      "label": "Set temporary group suffix",
+      "description": "Sets a suffix for the group temporarily, removing existing suffixes set in the same context.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta settempsuffix {priority} {suffix} {duration} {modifier} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": true,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": true,
+          "placeholder": "e.g. 1mo3d13h45m or a unix timestamp"
+        },
+        {
+          "name": "modifier",
+          "type": "select",
+          "label": "Temporary modifier",
+          "required": false,
+          "options": [
+            "accumulate",
+            "replace",
+            "deny"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-removetempsuffix",
+      "label": "Remove temporary group suffix",
+      "description": "Removes a temporary suffix from the group at the given priority.",
+      "risk": "caution",
+      "console_template": "lp group {group} meta removetempsuffix {priority} {suffix} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "suffix",
+          "type": "text",
+          "label": "Suffix",
+          "required": false,
+          "placeholder": "Wrap in quotes to keep spaces, e.g. \"&c[Admin] \""
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-group-meta-clear",
+      "label": "Clear group meta",
+      "description": "Removes all meta, prefixes and/or suffixes from the group.",
+      "risk": "danger",
+      "console_template": "lp group {group} meta clear {type} {context}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Type",
+          "required": false,
+          "options": [
+            "any",
+            "chat",
+            "meta",
+            "prefix",
+            "suffix"
+          ]
+        },
+        {
+          "name": "context",
+          "type": "text",
+          "label": "Context",
+          "required": false,
+          "placeholder": "e.g. server=survival world=nether"
+        }
+      ]
+    },
+    {
+      "name": "lp-track-info",
+      "label": "Track info",
+      "description": "Displays the groups in the track.",
+      "risk": "safe",
+      "console_template": "lp track {track} info",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        }
+      ]
+    },
+    {
+      "name": "lp-track-editor",
+      "label": "Track web editor",
+      "description": "Opens a web editor session to edit the specified track.",
+      "risk": "safe",
+      "console_template": "lp track {track} editor",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        }
+      ]
+    },
+    {
+      "name": "lp-track-append",
+      "label": "Append group to track",
+      "description": "Adds a group onto the end of the track.",
+      "risk": "caution",
+      "console_template": "lp track {track} append {group}",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-track-insert",
+      "label": "Insert group into track",
+      "description": "Inserts a group at a specific position in the track; position 1 is the start.",
+      "risk": "caution",
+      "console_template": "lp track {track} insert {group} {position}",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "position",
+          "type": "number",
+          "label": "Position",
+          "required": true,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "lp-track-remove",
+      "label": "Remove group from track",
+      "description": "Removes a group from the track.",
+      "risk": "caution",
+      "console_template": "lp track {track} remove {group}",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        }
+      ]
+    },
+    {
+      "name": "lp-track-clear",
+      "label": "Clear track",
+      "description": "Removes all groups from the track.",
+      "risk": "danger",
+      "console_template": "lp track {track} clear",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        }
+      ]
+    },
+    {
+      "name": "lp-track-rename",
+      "label": "Rename track",
+      "description": "Changes a track's name.",
+      "risk": "caution",
+      "console_template": "lp track {track} rename {name}",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "New name",
+          "required": true,
+          "placeholder": "Track name"
+        }
+      ]
+    },
+    {
+      "name": "lp-track-clone",
+      "label": "Clone track",
+      "description": "Makes an exact copy of the track under a different name.",
+      "risk": "caution",
+      "console_template": "lp track {track} clone {name}",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Clone name",
+          "required": true,
+          "placeholder": "Track name"
+        }
+      ]
+    },
+    {
+      "name": "lp-log-recent",
+      "label": "Recent actions",
+      "description": "Shows a list of recent actions, optionally filtered by the user who performed them.",
+      "risk": "safe",
+      "console_template": "lp log recent {user} {page}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": false,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "lp-log-search",
+      "label": "Search log",
+      "description": "Searches for log entries matching the given query.",
+      "risk": "safe",
+      "console_template": "lp log search {query} {page}",
+      "inputs": [
+        {
+          "name": "query",
+          "type": "text",
+          "label": "Query",
+          "required": true,
+          "placeholder": "Wrap in quotes if it contains spaces"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "lp-log-notify",
+      "label": "Log notifications",
+      "description": "Toggles log notifications for the sender executing the command.",
+      "risk": "caution",
+      "console_template": "lp log notify {state}",
+      "inputs": [
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lp-log-userhistory",
+      "label": "User history",
+      "description": "Searches for log entries acting upon the given user.",
+      "risk": "safe",
+      "console_template": "lp log userhistory {user} {page}",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "text",
+          "label": "User",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "lp-log-grouphistory",
+      "label": "Group history",
+      "description": "Searches for log entries acting upon the given group.",
+      "risk": "safe",
+      "console_template": "lp log grouphistory {group} {page}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "Group name"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "lp-log-trackhistory",
+      "label": "Track history",
+      "description": "Searches for log entries acting upon the given track.",
+      "risk": "safe",
+      "console_template": "lp log trackhistory {track} {page}",
+      "inputs": [
+        {
+          "name": "track",
+          "type": "text",
+          "label": "Track",
+          "required": true,
+          "placeholder": "Track name"
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    }
+  ]
+}

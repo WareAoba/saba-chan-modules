@@ -191,6 +191,11 @@
             "$ref": "#/definitions/CommandFieldToml"
           },
           "type": "array"
+        },
+        "hook": {
+          "default": false,
+          "description": "lifecycle `instance_commands()`로 인스턴스별 명령을 더 받는다",
+          "type": "boolean"
         }
       },
       "type": "object"
@@ -596,6 +601,20 @@
       ],
       "type": "object"
     },
+    "OneOrMany": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "문자열 하나 또는 여럿 (`arg = \"-x\"` / `arg = [\"-a\", \"-b\"]`)"
+    },
     "ProtocolsSection": {
       "additionalProperties": false,
       "properties": {
@@ -631,10 +650,28 @@
     "SettingFieldToml": {
       "additionalProperties": false,
       "properties": {
+        "arg": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OneOrMany"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "실행 인자 모양. 문자열 하나나 배열 (`SettingField::arg`)"
+        },
         "default": {
           "default": null
         },
         "description": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "format": {
           "default": null,
           "type": [
             "string",
@@ -648,6 +685,11 @@
             "string",
             "null"
           ]
+        },
+        "install": {
+          "default": false,
+          "description": "서버를 만들 때 고르는 설정이면 true (설치할 파일이 달라지는 값)",
+          "type": "boolean"
         },
         "label": {
           "default": null,
@@ -682,6 +724,13 @@
           },
           "type": [
             "array",
+            "null"
+          ]
+        },
+        "pattern": {
+          "default": null,
+          "type": [
+            "string",
             "null"
           ]
         },

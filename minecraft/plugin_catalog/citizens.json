@@ -1,0 +1,3097 @@
+{
+  "name": "Citizens",
+  "match": [
+    "Citizens"
+  ],
+  "docs": [
+    "https://wiki.citizensnpcs.co/Citizens_Commands",
+    "https://github.com/CitizensDev/Citizens2/tree/master/main/src/main/java/net/citizensnpcs/commands",
+    "https://github.com/CitizensDev/Citizens2/blob/master/main/src/main/resources/en.json",
+    "https://github.com/CitizensDev/CitizensAPI/blob/master/src/main/java/net/citizensnpcs/api/command/RequirementsProcessor.java"
+  ],
+  "player_only": [
+    "npc tp",
+    "npc mount",
+    "npc inventory",
+    "npc drops",
+    "npc configgui",
+    "npc spectate",
+    "npc copier",
+    "npc equip",
+    "npc path",
+    "npc text",
+    "npc shop",
+    "npc command itemcost",
+    "npc fish",
+    "waypoints hpa"
+  ],
+  "commands": [
+    {
+      "name": "citizens",
+      "label": "Plugin info",
+      "description": "Shows basic Citizens plugin information.",
+      "risk": "safe",
+      "console_template": "citizens",
+      "inputs": []
+    },
+    {
+      "name": "citizens-reload",
+      "label": "Reload Citizens",
+      "description": "Loads Citizens fresh from disk without saving first; by default the command must be repeated within 5 seconds to confirm.",
+      "risk": "danger",
+      "console_template": "citizens reload",
+      "inputs": []
+    },
+    {
+      "name": "citizens-save",
+      "label": "Save NPCs",
+      "description": "Saves all NPCs to disk.",
+      "risk": "caution",
+      "console_template": "citizens save",
+      "inputs": []
+    },
+    {
+      "name": "npc-create",
+      "label": "Create NPC",
+      "description": "Creates a new NPC at the given location; extra flags such as -b, -u, -s, -t, --trait or --nameplate may be appended to the name.",
+      "risk": "caution",
+      "console_template": "npc create --at {location} --type {type} {name}",
+      "inputs": [
+        {
+          "name": "location",
+          "type": "text",
+          "label": "Location",
+          "required": true,
+          "placeholder": "x,y,z,world or player name"
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "label": "Entity type",
+          "required": true,
+          "placeholder": "e.g. PLAYER, VILLAGER, ZOMBIE",
+          "default": "PLAYER"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name",
+          "required": true,
+          "placeholder": "NPC name"
+        }
+      ]
+    },
+    {
+      "name": "npc-list",
+      "label": "List NPCs",
+      "description": "Lists NPCs, optionally filtered with -a, --owner, --type, --registry, --tag or --filter.",
+      "risk": "safe",
+      "console_template": "npc list {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Page / filters",
+          "required": false,
+          "placeholder": "e.g. 2 or --type VILLAGER"
+        }
+      ]
+    },
+    {
+      "name": "npc-select",
+      "label": "Select NPC",
+      "description": "Selects an NPC with the given ID or name.",
+      "risk": "safe",
+      "console_template": "npc select {npc}",
+      "inputs": [
+        {
+          "name": "npc",
+          "type": "text",
+          "label": "NPC",
+          "required": true,
+          "placeholder": "NPC ID or name"
+        }
+      ]
+    },
+    {
+      "name": "npc-deselect",
+      "label": "Deselect NPC",
+      "description": "Deselects the currently selected NPC.",
+      "risk": "safe",
+      "console_template": "npc deselect",
+      "inputs": []
+    },
+    {
+      "name": "npc-spawn",
+      "label": "Spawn NPC",
+      "description": "Spawns an existing NPC at its stored location.",
+      "risk": "caution",
+      "console_template": "npc spawn {npc}",
+      "inputs": [
+        {
+          "name": "npc",
+          "type": "text",
+          "label": "NPC",
+          "required": true,
+          "placeholder": "NPC ID or name"
+        }
+      ]
+    },
+    {
+      "name": "npc-despawn",
+      "label": "Despawn NPC",
+      "description": "Despawns an NPC.",
+      "risk": "caution",
+      "console_template": "npc despawn {npc}",
+      "inputs": [
+        {
+          "name": "npc",
+          "type": "text",
+          "label": "NPC",
+          "required": true,
+          "placeholder": "NPC ID or name"
+        }
+      ]
+    },
+    {
+      "name": "npc-remove",
+      "label": "Remove NPC",
+      "description": "Removes an NPC by ID or name, or all NPCs with all (also accepts --owner, --eid or --world).",
+      "risk": "danger",
+      "console_template": "npc remove {target}",
+      "inputs": [
+        {
+          "name": "target",
+          "type": "text",
+          "label": "Target",
+          "required": true,
+          "placeholder": "NPC ID, name, all, or --world <world>"
+        }
+      ]
+    },
+    {
+      "name": "npc-tpto",
+      "label": "Teleport entity to entity",
+      "description": "Teleports an NPC or player to another NPC or player.",
+      "risk": "caution",
+      "console_template": "npc tpto {from} {to}",
+      "inputs": [
+        {
+          "name": "from",
+          "type": "text",
+          "label": "From",
+          "required": true,
+          "placeholder": "Player name or NPC ID"
+        },
+        {
+          "name": "to",
+          "type": "text",
+          "label": "To",
+          "required": true,
+          "placeholder": "Player name or NPC ID"
+        }
+      ]
+    },
+    {
+      "name": "npc-undo",
+      "label": "Undo",
+      "description": "Undoes the last action (currently only create/remove supported).",
+      "risk": "caution",
+      "console_template": "npc undo {all}",
+      "inputs": [
+        {
+          "name": "all",
+          "type": "select",
+          "label": "Scope",
+          "required": false,
+          "options": [
+            "all"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "npc-showshop",
+      "label": "Show shop to player",
+      "description": "Shows the named NPC shop to the given player.",
+      "risk": "safe",
+      "console_template": "npc showshop {shop} --player {player}",
+      "inputs": [
+        {
+          "name": "shop",
+          "type": "text",
+          "label": "Shop name",
+          "required": true
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "npc-shopitem-reset_purchases",
+      "label": "Reset shop purchases",
+      "description": "Resets purchase records for a shop item, or for all items with all.",
+      "risk": "caution",
+      "console_template": "npc shopitem {shop} reset_purchases {item}",
+      "inputs": [
+        {
+          "name": "shop",
+          "type": "text",
+          "label": "Shop",
+          "required": true,
+          "placeholder": "Shop name/ID or all"
+        },
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item index",
+          "required": true,
+          "placeholder": "Item index or all"
+        }
+      ]
+    },
+    {
+      "name": "npc",
+      "label": "Selected NPC info",
+      "description": "Shows basic information about the selected NPC (select one first with npc select).",
+      "risk": "safe",
+      "console_template": "npc",
+      "inputs": []
+    },
+    {
+      "name": "npc-tphere",
+      "label": "Teleport NPC to location",
+      "description": "Teleports the NPC to the given location (console uses --location).",
+      "risk": "caution",
+      "console_template": "npc tphere --id {id} --location {location}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "label": "Location",
+          "required": true,
+          "placeholder": "x,y,z,world or player name"
+        }
+      ]
+    },
+    {
+      "name": "npc-rename",
+      "label": "Rename NPC",
+      "description": "Renames an NPC.",
+      "risk": "caution",
+      "console_template": "npc rename --id {id} {name}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "New name",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-copy",
+      "label": "Copy NPC",
+      "description": "Copies an NPC, optionally giving the copy a new name with --name.",
+      "risk": "caution",
+      "console_template": "npc copy --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--name <new name>"
+        }
+      ]
+    },
+    {
+      "name": "npc-type",
+      "label": "Set entity type",
+      "description": "Sets an NPC's entity type.",
+      "risk": "caution",
+      "console_template": "npc type --id {id} {type}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "label": "Entity type",
+          "required": true,
+          "placeholder": "e.g. VILLAGER"
+        }
+      ]
+    },
+    {
+      "name": "npc-owner",
+      "label": "Set owner",
+      "description": "Sets the owner of an NPC.",
+      "risk": "caution",
+      "console_template": "npc owner --id {id} {owner}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "owner",
+          "type": "text",
+          "label": "Owner",
+          "required": false,
+          "placeholder": "Player UUID or SERVER"
+        }
+      ]
+    },
+    {
+      "name": "npc-skin",
+      "label": "Set skin",
+      "description": "Sets an NPC's skin from a player name; use -l to always update to the latest skin, or --url / -t for custom skins.",
+      "risk": "caution",
+      "console_template": "npc skin --id {id} {args}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Skin",
+          "required": true,
+          "placeholder": "Player name, or -l <name>, or --url <url>"
+        }
+      ]
+    },
+    {
+      "name": "npc-skinlayers",
+      "label": "Skin layers",
+      "description": "Sets an NPC's skin layer visibility.",
+      "risk": "caution",
+      "console_template": "npc skinlayers --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--cape false --hat true"
+        }
+      ]
+    },
+    {
+      "name": "npc-name",
+      "label": "Nameplate visibility",
+      "description": "Toggles nameplate visibility, or only shows names on hover with -h.",
+      "risk": "caution",
+      "console_template": "npc name --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-h"
+        }
+      ]
+    },
+    {
+      "name": "npc-respawn",
+      "label": "Respawn delay",
+      "description": "Sets an NPC's respawn delay.",
+      "risk": "caution",
+      "console_template": "npc respawn --id {id} {delay}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "delay",
+          "type": "text",
+          "label": "Delay",
+          "required": false,
+          "placeholder": "e.g. 10s"
+        }
+      ]
+    },
+    {
+      "name": "npc-moveto",
+      "label": "Move to location",
+      "description": "Teleports an NPC to a given location.",
+      "risk": "caution",
+      "console_template": "npc moveto --id {id} {location}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "label": "Location",
+          "required": true,
+          "placeholder": "x:y:z:world"
+        }
+      ]
+    },
+    {
+      "name": "npc-speak",
+      "label": "Speak",
+      "description": "Says a message from the NPC (supports --target, --range and --bubble).",
+      "risk": "caution",
+      "console_template": "npc speak --id {id} {message}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-speed",
+      "label": "Set speed",
+      "description": "Sets the movement speed of an NPC as a percentage.",
+      "risk": "caution",
+      "console_template": "npc speed --id {id} {speed}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "speed",
+          "type": "number",
+          "label": "Speed",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-hurt",
+      "label": "Damage NPC",
+      "description": "Damages the NPC.",
+      "risk": "caution",
+      "console_template": "npc hurt --id {id} {damage}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "damage",
+          "type": "number",
+          "label": "Damage",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-jump",
+      "label": "Jump",
+      "description": "Makes the NPC jump.",
+      "risk": "caution",
+      "console_template": "npc jump --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-velocity",
+      "label": "Set velocity",
+      "description": "Sets the NPC's velocity.",
+      "risk": "caution",
+      "console_template": "npc velocity --id {id} {x} {y} {z}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "x",
+          "type": "number",
+          "label": "X",
+          "required": true
+        },
+        {
+          "name": "y",
+          "type": "number",
+          "label": "Y",
+          "required": true
+        },
+        {
+          "name": "z",
+          "type": "number",
+          "label": "Z",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-scaledmaxhealth",
+      "label": "Max health",
+      "description": "Controls the max health of an NPC, can use large numbers.",
+      "risk": "caution",
+      "console_template": "npc scaledmaxhealth --id {id} {health}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "health",
+          "type": "number",
+          "label": "Health",
+          "required": false,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-attribute",
+      "label": "Set attribute",
+      "description": "Sets various NPC attributes.",
+      "risk": "caution",
+      "console_template": "npc attribute --id {id} {attribute} {value}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "attribute",
+          "type": "text",
+          "label": "Attribute",
+          "required": true,
+          "placeholder": "e.g. generic.scale"
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "npc-age",
+      "label": "Set age",
+      "description": "Sets the age of an NPC; use -l to lock age over time.",
+      "risk": "caution",
+      "console_template": "npc age --id {id} {age} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "age",
+          "type": "text",
+          "label": "Age",
+          "required": true,
+          "placeholder": "Number, baby or adult"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-l"
+        }
+      ]
+    },
+    {
+      "name": "npc-activationrange",
+      "label": "Activation range",
+      "description": "Sets the activation range.",
+      "risk": "caution",
+      "console_template": "npc activationrange --id {id} {range}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "range",
+          "type": "number",
+          "label": "Range",
+          "required": false,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-trackingrange",
+      "label": "Tracking range",
+      "description": "Sets the tracking range.",
+      "risk": "caution",
+      "console_template": "npc trackingrange --id {id} {range}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "range",
+          "type": "number",
+          "label": "Range",
+          "required": false,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-entitypose",
+      "label": "Entity pose",
+      "description": "Controls entity pose.",
+      "risk": "caution",
+      "console_template": "npc entitypose --id {id} {pose}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "pose",
+          "type": "text",
+          "label": "Pose",
+          "required": true,
+          "placeholder": "e.g. SLEEPING"
+        }
+      ]
+    },
+    {
+      "name": "npc-metadata",
+      "label": "Metadata",
+      "description": "Manages NPC metadata (set, get or remove a key; -t for temporary).",
+      "risk": "caution",
+      "console_template": "npc metadata --id {id} {action} {key} {value}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "action",
+          "type": "select",
+          "label": "Action",
+          "required": true,
+          "options": [
+            "set",
+            "get",
+            "remove"
+          ]
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "npc-item",
+      "label": "Set item",
+      "description": "Sets the NPC's item.",
+      "risk": "caution",
+      "console_template": "npc item --id {id} {item}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true,
+          "placeholder": "e.g. diamond_sword"
+        }
+      ]
+    },
+    {
+      "name": "npc-setequipment",
+      "label": "Set equipment",
+      "description": "Sets equipment via commands (-c for cosmetic).",
+      "risk": "caution",
+      "console_template": "npc setequipment --id {id} {slot} {item}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "slot",
+          "type": "text",
+          "label": "Slot",
+          "required": true,
+          "placeholder": "e.g. HAND, OFF_HAND, HEAD, CHEST, LEGS, FEET"
+        },
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item",
+          "required": true,
+          "placeholder": "e.g. diamond_helmet"
+        }
+      ]
+    },
+    {
+      "name": "npc-playsound",
+      "label": "Play sound",
+      "description": "Plays a sound at the NPC's location (optionally category, volume, pitch, --to, --at).",
+      "risk": "caution",
+      "console_template": "npc playsound --id {id} {sound} {args}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "sound",
+          "type": "text",
+          "label": "Sound",
+          "required": true,
+          "placeholder": "e.g. entity.villager.ambient"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "(category) (volume) (pitch) --to <player>"
+        }
+      ]
+    },
+    {
+      "name": "npc-panimate",
+      "label": "Player animation",
+      "description": "Plays a player animation.",
+      "risk": "caution",
+      "console_template": "npc panimate --id {id} {animation}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "animation",
+          "type": "text",
+          "label": "Animation",
+          "required": true,
+          "placeholder": "e.g. ARM_SWING"
+        }
+      ]
+    },
+    {
+      "name": "npc-ai",
+      "label": "Vanilla AI",
+      "description": "Sets whether the NPC should use vanilla AI.",
+      "risk": "caution",
+      "console_template": "npc ai --id {id} {value}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "value",
+          "type": "select",
+          "label": "Value",
+          "required": false,
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "npc-flyable",
+      "label": "Flyable",
+      "description": "Toggles or sets an NPC's flyable status.",
+      "risk": "caution",
+      "console_template": "npc flyable --id {id} {value}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "value",
+          "type": "select",
+          "label": "Value",
+          "required": false,
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "npc-aggressive",
+      "label": "Aggressive",
+      "description": "Sets the aggressive status of the entity.",
+      "risk": "caution",
+      "console_template": "npc aggressive --id {id} {value}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "value",
+          "type": "select",
+          "label": "Value",
+          "required": false,
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "npc-gravity",
+      "label": "Toggle gravity",
+      "description": "Toggles gravity.",
+      "risk": "caution",
+      "console_template": "npc gravity --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-targetable",
+      "label": "Toggle targetable",
+      "description": "Toggles an NPC's targetability.",
+      "risk": "caution",
+      "console_template": "npc targetable --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-leashable",
+      "label": "Toggle leashable",
+      "description": "Toggles leashability.",
+      "risk": "caution",
+      "console_template": "npc leashable --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-vulnerable",
+      "label": "Toggle vulnerable",
+      "description": "Toggles an NPC's vulnerability (-t for temporary).",
+      "risk": "caution",
+      "console_template": "npc vulnerable --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-t"
+        }
+      ]
+    },
+    {
+      "name": "npc-chunkload",
+      "label": "Toggle chunk loading",
+      "description": "Toggles the NPC forcing chunks to stay loaded (-t for temporary).",
+      "risk": "caution",
+      "console_template": "npc chunkload --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-t"
+        }
+      ]
+    },
+    {
+      "name": "npc-collidable",
+      "label": "Toggle collidable",
+      "description": "Toggles an NPC's collidability.",
+      "risk": "caution",
+      "console_template": "npc collidable --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--fluids true"
+        }
+      ]
+    },
+    {
+      "name": "npc-knockback",
+      "label": "Toggle knockback",
+      "description": "Toggles NPC knockback.",
+      "risk": "caution",
+      "console_template": "npc knockback --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--explicit true"
+        }
+      ]
+    },
+    {
+      "name": "npc-nophysics",
+      "label": "No physics",
+      "description": "Manages no physics settings.",
+      "risk": "caution",
+      "console_template": "npc nophysics --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--explicit true"
+        }
+      ]
+    },
+    {
+      "name": "npc-glowing",
+      "label": "Toggle glowing",
+      "description": "Toggles an NPC's glowing status.",
+      "risk": "caution",
+      "console_template": "npc glowing --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--color red"
+        }
+      ]
+    },
+    {
+      "name": "npc-passive",
+      "label": "Passive",
+      "description": "Sets whether an NPC damages other entities or not.",
+      "risk": "caution",
+      "console_template": "npc passive --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--set true"
+        }
+      ]
+    },
+    {
+      "name": "npc-pickupitems",
+      "label": "Pick up items",
+      "description": "Allows the NPC to pick up items.",
+      "risk": "caution",
+      "console_template": "npc pickupitems --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--set true"
+        }
+      ]
+    },
+    {
+      "name": "npc-swim",
+      "label": "Swim",
+      "description": "Sets an NPC to swim or not.",
+      "risk": "caution",
+      "console_template": "npc swim --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--set true"
+        }
+      ]
+    },
+    {
+      "name": "npc-useitem",
+      "label": "Use held item",
+      "description": "Sets an NPC to be using their held items (-o for offhand).",
+      "risk": "caution",
+      "console_template": "npc useitem --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-o"
+        }
+      ]
+    },
+    {
+      "name": "npc-sitting",
+      "label": "Sitting",
+      "description": "Sets the NPC sitting.",
+      "risk": "caution",
+      "console_template": "npc sitting --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--explicit true --at x,y,z,world"
+        }
+      ]
+    },
+    {
+      "name": "npc-packet",
+      "label": "Packet NPC",
+      "description": "Controls packet NPC settings.",
+      "risk": "caution",
+      "console_template": "npc packet --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--enabled true"
+        }
+      ]
+    },
+    {
+      "name": "npc-mirror",
+      "label": "Mirror",
+      "description": "Controls mirroring of NPC skins and more.",
+      "risk": "caution",
+      "console_template": "npc mirror --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--name true --equipment true"
+        }
+      ]
+    },
+    {
+      "name": "npc-controllable",
+      "label": "Controllable",
+      "description": "Toggles whether the NPC can be ridden and controlled.",
+      "risk": "caution",
+      "console_template": "npc controllable --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-o --enabled true"
+        }
+      ]
+    },
+    {
+      "name": "npc-lookclose",
+      "label": "Look close",
+      "description": "Toggles whether an NPC will look when a player is near.",
+      "risk": "caution",
+      "console_template": "npc lookclose --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--range 5 -r"
+        }
+      ]
+    },
+    {
+      "name": "npc-sound",
+      "label": "Sounds",
+      "description": "Sets an NPC's played sounds.",
+      "risk": "caution",
+      "console_template": "npc sound --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--ambient <sound> -s"
+        }
+      ]
+    },
+    {
+      "name": "npc-disguise",
+      "label": "Disguise",
+      "description": "Manages entity disguises.",
+      "risk": "caution",
+      "console_template": "npc disguise --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--type ZOMBIE"
+        }
+      ]
+    },
+    {
+      "name": "npc-hitbox",
+      "label": "Hitbox",
+      "description": "Sets the NPC hitbox.",
+      "risk": "caution",
+      "console_template": "npc hitbox --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--scale 1.5"
+        }
+      ]
+    },
+    {
+      "name": "npc-forcefield",
+      "label": "Forcefield",
+      "description": "Creates a forcefield which pushes players close to the NPC away.",
+      "risk": "caution",
+      "console_template": "npc forcefield --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--width 2 --strength 1"
+        }
+      ]
+    },
+    {
+      "name": "npc-pathopt",
+      "label": "Pathfinding options",
+      "description": "Sets an NPC's pathfinding options.",
+      "risk": "caution",
+      "console_template": "npc pathopt --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--path-range 50 --open-doors true"
+        }
+      ]
+    },
+    {
+      "name": "npc-pausepathfinding",
+      "label": "Pathfinding pause",
+      "description": "Sets pathfinding pause.",
+      "risk": "caution",
+      "console_template": "npc pausepathfinding --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--onrightclick true --pauseduration 5s"
+        }
+      ]
+    },
+    {
+      "name": "npc-playerfilter",
+      "label": "Player filter",
+      "description": "Manages the NPC's player filter.",
+      "risk": "caution",
+      "console_template": "npc playerfilter --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "-a --add <uuid>"
+        }
+      ]
+    },
+    {
+      "name": "npc-home",
+      "label": "Home location",
+      "description": "Controls home location (use --location from console).",
+      "risk": "caution",
+      "console_template": "npc home --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--location x,y,z,world -t"
+        }
+      ]
+    },
+    {
+      "name": "npc-pose",
+      "label": "Poses",
+      "description": "Manages NPC poses.",
+      "risk": "caution",
+      "console_template": "npc pose --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--save <name> | --assume <name> | --remove <name>"
+        }
+      ]
+    },
+    {
+      "name": "npc-rotate",
+      "label": "Rotate",
+      "description": "Rotates the NPC.",
+      "risk": "caution",
+      "console_template": "npc rotate --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--body 90 --head 90 --pitch 0"
+        }
+      ]
+    },
+    {
+      "name": "npc-anchor",
+      "label": "Anchors",
+      "description": "Manages the NPC's location anchors; without flags lists them (from console, --save uses --location).",
+      "risk": "caution",
+      "console_template": "npc anchor --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--assume <name> | --remove <name> | --save <name> --location x,y,z,world"
+        }
+      ]
+    },
+    {
+      "name": "npc-debug",
+      "label": "Debug",
+      "description": "Displays debugging information.",
+      "risk": "caution",
+      "console_template": "npc debug --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "-p or -n"
+        }
+      ]
+    },
+    {
+      "name": "npc-armorstand",
+      "label": "Armor stand",
+      "description": "Edits armorstand properties.",
+      "risk": "caution",
+      "console_template": "npc armorstand --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--small true --arms true"
+        }
+      ]
+    },
+    {
+      "name": "npc-bat",
+      "label": "Bat",
+      "description": "Sets bat modifiers.",
+      "risk": "caution",
+      "console_template": "npc bat --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--awake true"
+        }
+      ]
+    },
+    {
+      "name": "npc-endercrystal",
+      "label": "End crystal",
+      "description": "Edits endercrystal modifiers.",
+      "risk": "caution",
+      "console_template": "npc endercrystal --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-b"
+        }
+      ]
+    },
+    {
+      "name": "npc-enderman",
+      "label": "Enderman",
+      "description": "Sets enderman modifiers.",
+      "risk": "caution",
+      "console_template": "npc enderman --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-a"
+        }
+      ]
+    },
+    {
+      "name": "npc-horse",
+      "label": "Horse",
+      "description": "Sets horse and horse-like entity modifiers.",
+      "risk": "caution",
+      "console_template": "npc horse --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--color WHITE --style NONE -c"
+        }
+      ]
+    },
+    {
+      "name": "npc-itemframe",
+      "label": "Item frame",
+      "description": "Sets itemframe modifiers.",
+      "risk": "caution",
+      "console_template": "npc itemframe --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": true,
+          "placeholder": "--item diamond --fixed true"
+        }
+      ]
+    },
+    {
+      "name": "npc-minecart",
+      "label": "Minecart",
+      "description": "Sets minecart item.",
+      "risk": "caution",
+      "console_template": "npc minecart --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--item <item>"
+        }
+      ]
+    },
+    {
+      "name": "npc-ocelot",
+      "label": "Ocelot",
+      "description": "Sets the ocelot type of an NPC and whether it is sitting.",
+      "risk": "caution",
+      "console_template": "npc ocelot --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--type <type> -s"
+        }
+      ]
+    },
+    {
+      "name": "npc-painting",
+      "label": "Painting",
+      "description": "Sets painting modifiers.",
+      "risk": "caution",
+      "console_template": "npc painting --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--art <art>"
+        }
+      ]
+    },
+    {
+      "name": "npc-powered",
+      "label": "Powered creeper",
+      "description": "Toggles a creeper NPC as powered.",
+      "risk": "caution",
+      "console_template": "npc powered --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--set true"
+        }
+      ]
+    },
+    {
+      "name": "npc-sheep",
+      "label": "Sheep",
+      "description": "Sets sheep modifiers.",
+      "risk": "caution",
+      "console_template": "npc sheep --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--color RED --sheared false"
+        }
+      ]
+    },
+    {
+      "name": "npc-wither",
+      "label": "Wither",
+      "description": "Sets wither modifiers.",
+      "risk": "caution",
+      "console_template": "npc wither --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--invulnerable true"
+        }
+      ]
+    },
+    {
+      "name": "npc-wolf",
+      "label": "Wolf",
+      "description": "Sets wolf modifiers.",
+      "risk": "caution",
+      "console_template": "npc wolf --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-s --collar RED --variant PALE"
+        }
+      ]
+    },
+    {
+      "name": "npc-playerlist",
+      "label": "Player list",
+      "description": "Sets whether the NPC is put in the playerlist.",
+      "risk": "caution",
+      "console_template": "npc playerlist --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-a or -r"
+        }
+      ]
+    },
+    {
+      "name": "npc-wander",
+      "label": "Wander",
+      "description": "Sets the NPC to wander around.",
+      "risk": "caution",
+      "console_template": "npc wander --id {id} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "xyrange <x> <y> | worldguardregion <region>"
+        }
+      ]
+    },
+    {
+      "name": "npc-gamemode",
+      "label": "Game mode",
+      "description": "Changes the gamemode.",
+      "risk": "caution",
+      "console_template": "npc gamemode --id {id} {gamemode}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "gamemode",
+          "type": "select",
+          "label": "Game mode",
+          "required": false,
+          "options": [
+            "survival",
+            "creative",
+            "adventure",
+            "spectator"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "npc-rabbittype",
+      "label": "Rabbit type",
+      "description": "Sets the NPC's rabbit type.",
+      "risk": "caution",
+      "console_template": "npc rabbittype --id {id} {type}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "type",
+          "type": "text",
+          "label": "Rabbit type",
+          "required": true,
+          "placeholder": "e.g. WHITE"
+        }
+      ]
+    },
+    {
+      "name": "npc-slimesize",
+      "label": "Slime size",
+      "description": "Sets the NPC's slime size.",
+      "risk": "caution",
+      "console_template": "npc slimesize --id {id} {size}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "label": "Size",
+          "required": false,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "npc-rotationsettings",
+      "label": "Rotation settings",
+      "description": "Edits NPC rotation settings.",
+      "risk": "caution",
+      "console_template": "npc rotationsettings --id {id} {mode} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "mode",
+          "type": "select",
+          "label": "Mode",
+          "required": true,
+          "options": [
+            "linear",
+            "immediate"
+          ]
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--link_body true --max_yaw_per_tick 10"
+        }
+      ]
+    },
+    {
+      "name": "npc-follow",
+      "label": "Follow",
+      "description": "Toggles the NPC following the given player or NPC.",
+      "risk": "caution",
+      "console_template": "npc follow --id {id} {target} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "target",
+          "type": "text",
+          "label": "Target",
+          "required": true,
+          "placeholder": "Player name or NPC ID"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-p --margin 2 --enable true"
+        }
+      ]
+    },
+    {
+      "name": "npc-target",
+      "label": "Target entity",
+      "description": "Targets a given entity (-a aggressive, -c cancel).",
+      "risk": "caution",
+      "console_template": "npc target --id {id} {target} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "target",
+          "type": "text",
+          "label": "Target",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-a or -c"
+        }
+      ]
+    },
+    {
+      "name": "npc-pathto",
+      "label": "Pathfind to",
+      "description": "Starts pathfinding to a certain location.",
+      "risk": "caution",
+      "console_template": "npc pathto --id {id} {x} {y} {z} {flags}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "x",
+          "type": "number",
+          "label": "X",
+          "required": true
+        },
+        {
+          "name": "y",
+          "type": "number",
+          "label": "Y",
+          "required": true
+        },
+        {
+          "name": "z",
+          "type": "number",
+          "label": "Z",
+          "required": true
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--margin 1 -s"
+        }
+      ]
+    },
+    {
+      "name": "npc-behavior",
+      "label": "Behavior tree",
+      "description": "Manages behavior trees.",
+      "risk": "caution",
+      "console_template": "npc behavior --id {id} {file}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "file",
+          "type": "text",
+          "label": "File",
+          "required": true,
+          "placeholder": "file.yml"
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-add",
+      "label": "Add hologram line",
+      "description": "Adds a hologram line (optionally with --duration).",
+      "risk": "caution",
+      "console_template": "npc hologram add --id {id} {text}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "label": "Text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-insert",
+      "label": "Insert hologram line",
+      "description": "Inserts a hologram line at the given index.",
+      "risk": "caution",
+      "console_template": "npc hologram insert --id {id} {line} {text}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "line",
+          "type": "number",
+          "label": "Line #",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "label": "Text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-set",
+      "label": "Set hologram line",
+      "description": "Sets the text of a hologram line.",
+      "risk": "caution",
+      "console_template": "npc hologram set --id {id} {line} {text}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "line",
+          "type": "number",
+          "label": "Line #",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "text",
+          "type": "text",
+          "label": "Text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-remove",
+      "label": "Remove hologram line",
+      "description": "Removes a hologram line.",
+      "risk": "caution",
+      "console_template": "npc hologram remove --id {id} {line}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "line",
+          "type": "number",
+          "label": "Line #",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-clear",
+      "label": "Clear hologram",
+      "description": "Clears all hologram lines.",
+      "risk": "caution",
+      "console_template": "npc hologram clear --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-lineheight",
+      "label": "Hologram line height",
+      "description": "Sets the hologram line height.",
+      "risk": "caution",
+      "console_template": "npc hologram lineheight --id {id} {height}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "label": "Height",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-viewrange",
+      "label": "Hologram view range",
+      "description": "Sets the hologram view range.",
+      "risk": "caution",
+      "console_template": "npc hologram viewrange --id {id} {range}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "range",
+          "type": "number",
+          "label": "Range",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-verticalviewrange",
+      "label": "Hologram vertical view range",
+      "description": "Sets the hologram vertical view range.",
+      "risk": "caution",
+      "console_template": "npc hologram verticalviewrange --id {id} {range}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "range",
+          "type": "number",
+          "label": "Range",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-updaterate",
+      "label": "Hologram update rate",
+      "description": "Sets the hologram update rate in ticks.",
+      "risk": "caution",
+      "console_template": "npc hologram updaterate --id {id} {ticks}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "ticks",
+          "type": "number",
+          "label": "Ticks",
+          "required": true,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-margintop",
+      "label": "Hologram top margin",
+      "description": "Sets the top margin of a hologram line.",
+      "risk": "caution",
+      "console_template": "npc hologram margintop --id {id} {line} {margin}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "line",
+          "type": "number",
+          "label": "Line #",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "margin",
+          "type": "number",
+          "label": "Margin",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-marginbottom",
+      "label": "Hologram bottom margin",
+      "description": "Sets the bottom margin of a hologram line.",
+      "risk": "caution",
+      "console_template": "npc hologram marginbottom --id {id} {line} {margin}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "line",
+          "type": "number",
+          "label": "Line #",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "margin",
+          "type": "number",
+          "label": "Margin",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-hologram-bgcolor",
+      "label": "Hologram background color",
+      "description": "Sets the background color of a hologram line.",
+      "risk": "caution",
+      "console_template": "npc hologram bgcolor --id {id} {line} {color}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "line",
+          "type": "number",
+          "label": "Line #",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "color",
+          "type": "text",
+          "label": "Color",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "npc-command",
+      "label": "List NPC commands",
+      "description": "Lists the commands which will be run when clicking on the NPC.",
+      "risk": "safe",
+      "console_template": "npc command --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-command-add",
+      "label": "Add NPC command",
+      "description": "Adds a command run when clicking the NPC (flags such as -l, -r, -p, -o, --cooldown, --delay or --n may be included).",
+      "risk": "danger",
+      "console_template": "npc command add --id {id} {command}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "command",
+          "type": "text",
+          "label": "Command",
+          "required": true,
+          "placeholder": "e.g. say hi <p> -p"
+        }
+      ]
+    },
+    {
+      "name": "npc-command-remove",
+      "label": "Remove NPC command",
+      "description": "Removes an NPC command by ID, or all commands.",
+      "risk": "caution",
+      "console_template": "npc command remove --id {id} {command_id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "command_id",
+          "type": "text",
+          "label": "Command ID",
+          "required": true,
+          "placeholder": "ID or all"
+        }
+      ]
+    },
+    {
+      "name": "npc-command-execute",
+      "label": "Execute NPC commands",
+      "description": "Triggers assigned commands as if the given player clicked the NPC.",
+      "risk": "danger",
+      "console_template": "npc command execute --id {id} {player} {hand}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        },
+        {
+          "name": "hand",
+          "type": "select",
+          "label": "Hand",
+          "required": true,
+          "options": [
+            "both",
+            "left",
+            "right"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "npc-command-permissions",
+      "label": "Grant temporary permissions",
+      "description": "Sets permissions granted to the clicking player, optionally for a duration.",
+      "risk": "danger",
+      "console_template": "npc command permissions --id {id} {permissions} {duration}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "permissions",
+          "type": "text",
+          "label": "Permissions",
+          "required": true,
+          "placeholder": "comma,separated"
+        },
+        {
+          "name": "duration",
+          "type": "text",
+          "label": "Duration",
+          "required": false,
+          "placeholder": "e.g. 10s"
+        }
+      ]
+    },
+    {
+      "name": "npc-command-cost",
+      "label": "Command cost",
+      "description": "Sets the money cost of the NPC commands.",
+      "risk": "caution",
+      "console_template": "npc command cost --id {id} {cost}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "cost",
+          "type": "number",
+          "label": "Cost",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-command-expcost",
+      "label": "Command experience cost",
+      "description": "Sets the experience cost of the NPC commands.",
+      "risk": "caution",
+      "console_template": "npc command expcost --id {id} {cost}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "cost",
+          "type": "number",
+          "label": "Experience cost",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-command-sequential",
+      "label": "Toggle sequential mode",
+      "description": "Toggles running NPC commands sequentially.",
+      "risk": "caution",
+      "console_template": "npc command sequential --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-command-cycle",
+      "label": "Toggle cycle mode",
+      "description": "Toggles cycling through NPC commands.",
+      "risk": "caution",
+      "console_template": "npc command cycle --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-command-random",
+      "label": "Toggle random mode",
+      "description": "Toggles running a random NPC command.",
+      "risk": "caution",
+      "console_template": "npc command random --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-command-hideerrors",
+      "label": "Toggle error messages",
+      "description": "Toggles hiding of NPC command error messages.",
+      "risk": "caution",
+      "console_template": "npc command hideerrors --id {id}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "npc-command-forgetplayer",
+      "label": "Forget player",
+      "description": "Forgets command usage data for a player.",
+      "risk": "caution",
+      "console_template": "npc command forgetplayer --id {id} {player}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        }
+      ]
+    },
+    {
+      "name": "npc-command-clearerror",
+      "label": "Clear command errors",
+      "description": "Clears stored command errors of the given type for a player.",
+      "risk": "caution",
+      "console_template": "npc command clearerror --id {id} {type} {player}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Error type",
+          "required": true,
+          "options": [
+            "GLOBAL_MAXIMUM_TIMES_USED",
+            "MAXIMUM_TIMES_USED",
+            "MISSING_EXPERIENCE",
+            "MISSING_ITEM",
+            "MISSING_MONEY",
+            "NO_PERMISSION",
+            "ON_COOLDOWN",
+            "ON_GLOBAL_COOLDOWN"
+          ]
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name or UUID"
+        }
+      ]
+    },
+    {
+      "name": "npc-command-errormessage",
+      "label": "Custom error message",
+      "description": "Sets a custom error message for the given error type.",
+      "risk": "caution",
+      "console_template": "npc command errormessage --id {id} {type} {message}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Error type",
+          "required": true,
+          "options": [
+            "GLOBAL_MAXIMUM_TIMES_USED",
+            "MAXIMUM_TIMES_USED",
+            "MISSING_EXPERIENCE",
+            "MISSING_ITEM",
+            "MISSING_MONEY",
+            "NO_PERMISSION",
+            "ON_COOLDOWN",
+            "ON_GLOBAL_COOLDOWN"
+          ]
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "trait",
+      "label": "Toggle traits",
+      "description": "Toggles traits on the NPC.",
+      "risk": "caution",
+      "console_template": "trait --id {id} {traits}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "traits",
+          "type": "text",
+          "label": "Traits",
+          "required": true,
+          "placeholder": "trait1, trait2"
+        }
+      ]
+    },
+    {
+      "name": "trait-add",
+      "label": "Add traits",
+      "description": "Adds traits to the NPC.",
+      "risk": "caution",
+      "console_template": "trait add --id {id} {traits}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "traits",
+          "type": "text",
+          "label": "Traits",
+          "required": true,
+          "placeholder": "trait1 trait2"
+        }
+      ]
+    },
+    {
+      "name": "trait-remove",
+      "label": "Remove traits",
+      "description": "Removes traits on the NPC.",
+      "risk": "caution",
+      "console_template": "trait remove --id {id} {traits}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "traits",
+          "type": "text",
+          "label": "Traits",
+          "required": true,
+          "placeholder": "trait1 trait2"
+        }
+      ]
+    },
+    {
+      "name": "trait-clearsaves",
+      "label": "Clear trait saves",
+      "description": "Clears trait information from saves.",
+      "risk": "danger",
+      "console_template": "trait clearsaves --id {id} {trait}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "trait",
+          "type": "text",
+          "label": "Trait",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "template-list",
+      "label": "List templates",
+      "description": "Lists available templates.",
+      "risk": "safe",
+      "console_template": "template list",
+      "inputs": []
+    },
+    {
+      "name": "template-apply",
+      "label": "Apply template",
+      "description": "Applies a template to the NPC.",
+      "risk": "caution",
+      "console_template": "template apply --id {id} {template}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "template",
+          "type": "text",
+          "label": "Template",
+          "required": true,
+          "placeholder": "(namespace:)name"
+        }
+      ]
+    },
+    {
+      "name": "template-generate",
+      "label": "Generate template",
+      "description": "Generates a template from the NPC.",
+      "risk": "caution",
+      "console_template": "template generate --id {id} {name}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Template name",
+          "required": true,
+          "placeholder": "(namespace:)name"
+        }
+      ]
+    },
+    {
+      "name": "waypoints-add",
+      "label": "Add waypoint",
+      "description": "Adds a waypoint at a point.",
+      "risk": "caution",
+      "console_template": "waypoints add --id {id} {x} {y} {z} {world}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "x",
+          "type": "number",
+          "label": "X",
+          "required": true
+        },
+        {
+          "name": "y",
+          "type": "number",
+          "label": "Y",
+          "required": true
+        },
+        {
+          "name": "z",
+          "type": "number",
+          "label": "Z",
+          "required": true
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "waypoints-remove",
+      "label": "Remove waypoint",
+      "description": "Removes a waypoint at a point or by --index.",
+      "risk": "caution",
+      "console_template": "waypoints remove --id {id} {args}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Waypoint",
+          "required": true,
+          "placeholder": "x y z world, or --index <idx>"
+        }
+      ]
+    },
+    {
+      "name": "waypoints-provider",
+      "label": "Waypoint provider",
+      "description": "Sets the current waypoint provider.",
+      "risk": "caution",
+      "console_template": "waypoints provider --id {id} {provider}",
+      "inputs": [
+        {
+          "name": "id",
+          "type": "number",
+          "label": "NPC ID",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "provider",
+          "type": "text",
+          "label": "Provider",
+          "required": false,
+          "placeholder": "e.g. linear, wander, guided"
+        }
+      ]
+    }
+  ]
+}

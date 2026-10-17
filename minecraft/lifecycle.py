@@ -27,6 +27,10 @@ import zipfile
 from pathlib import Path
 from i18n import I18n
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더의 server_types, plugins
+
+import plugins
+import server_types
 from daemon_rcon import force_kill, is_process_alive, wait_for_exit
 
 # ─── Init ─────────────────────────────────────────────────────
@@ -914,8 +918,11 @@ def validate(config):
     issues.extend(JavaDetector.validate_for_minecraft(
         java_info, mc_version, min_java=(jar_info or {}).get("java_version")))
 
-    # Server JAR
-    if not server_jar:
+    # Server JAR (인자 파일로 뜨는 Forge/NeoForge는 jar가 없어도 된다)
+    launchable, _ = server_types.launch_target(config, server_jar, working_dir)
+    if launchable:
+        pass
+    elif not server_jar:
         issues.append({
             "code": "NO_SERVER_JAR", "severity": "critical",
             "message": i18n.t("errors.server_jar_not_specified"),
@@ -926,6 +933,16 @@ def validate(config):
             "code": "JAR_NOT_FOUND", "severity": "critical",
             "message": i18n.t("errors.server_jar_not_found", path=server_jar),
             "solution": i18n.t("errors.solutions.server_jar_not_found"),
+        })
+
+    # 고른 서버 종류와 실제 서버 파일이 다르면 알린다 (설정만 바꾸고 다시 설치하지 않은 경우)
+    detected = server_types.detect(working_dir, server_jar) if working_dir else {}
+    chosen = config.get("server_type") or "vanilla"
+    if detected.get("type") and detected["type"] != chosen:
+        issues.append({
+            "code": "SERVER_TYPE_MISMATCH", "severity": "warning",
+            "message": i18n.t("errors.server_type_mismatch", chosen=chosen, detected=detected["type"]),
+            "solution": i18n.t("errors.solutions.server_type_mismatch"),
         })
 
     # Working directory
@@ -1015,7 +1032,12 @@ def get_launch_command(config):
     working_dir = config.get("working_dir")
     extra_jvm_args = config.get("jvm_args", [])
 
-    if not server_jar:
+    if not working_dir and server_jar:
+        working_dir = os.path.dirname(os.path.abspath(server_jar))
+
+    # 실행 대상: 대부분 `-jar <서버 jar> nogui`, 1.17+ Forge/NeoForge는 인자 파일 (server_types)
+    target, _ = server_types.launch_target(config, server_jar, working_dir)
+    if target is None and not server_jar:
         return {
             "success": False,
             "action_required": "server_jar_not_found",
@@ -1023,7 +1045,7 @@ def get_launch_command(config):
             "options": ["update_path", "install_new"],
         }
 
-    if not os.path.isfile(server_jar):
+    if target is None:
         return {
             "success": False,
             "action_required": "server_jar_not_found",
@@ -1033,9 +1055,6 @@ def get_launch_command(config):
         }
 
     java_path = _launch_java(config, server_jar)
-
-    if not working_dir:
-        working_dir = os.path.dirname(os.path.abspath(server_jar))
 
     args = [f"-Xmx{ram}", f"-Xms{ram}"]
 
@@ -1060,7 +1079,7 @@ def get_launch_command(config):
     elif isinstance(extra_jvm_args, str):
         args.extend(extra_jvm_args.split())
 
-    args.extend(["-jar", os.path.abspath(server_jar), "nogui"])
+    args.extend(target)
 
     abs_working_dir = os.path.abspath(working_dir)
 
@@ -1110,14 +1129,30 @@ def import_settings(config):
     """Read server.properties and return settings in saba-chan key format.
 
     Used during migration to import existing server settings into saba-chan.
+    서버 종류(바닐라·페이퍼·패브릭…)와 설치된 플러그인·모드도 jar 안의 메타데이터로 판정해
+    `settings.server_type`, `executable_path`(작업 폴더 기준 서버 jar), `detected`로 돌려준다.
     """
+    working_dir = config.get("working_dir") or ""
+    detected = server_types.detect(working_dir, _resolve_server_jar(config))
+    found = {}
+    if detected.get("type"):
+        found["server_type"] = detected["type"]
+    extra = {"detected": {
+        "server_type": detected.get("type"),
+        "version": detected.get("version"),
+        "evidence": detected.get("evidence", []),
+        "components": plugins.instance_commands(working_dir)["components"],
+    }}
+    if detected.get("jar"):
+        extra["executable_path"] = detected["jar"]
+
     result = read_properties(config)
     if not result.get("success"):
         return result
 
     raw_props = result.get("properties", {})
     if not raw_props:
-        return {"success": True, "settings": {}, "message": "No properties found."}
+        return {"success": True, "settings": found, "message": "No properties found.", **extra}
 
     # Build reverse map: server.properties key → saba-chan key
     reverse_map = {v: k for k, v in _PROPERTY_KEY_MAP.items()}
@@ -1129,8 +1164,20 @@ def import_settings(config):
     for prop_key, raw_value in raw_props.items():
         saba_key = reverse_map.get(prop_key, prop_key)
         settings[saba_key] = coerce_setting(raw_value, types.get(saba_key))
+    settings.update(found)
 
-    return {"success": True, "settings": settings}
+    return {"success": True, "settings": settings, **extra}
+
+
+def instance_commands(config):
+    """이 서버에 설치된 플러그인·모드가 콘솔에서 받는 명령 (데몬 `[commands] hook = true`)
+
+    돌려주는 값: {success, commands: [명령 필드 + group], components: [판정한 플러그인·모드]}
+    """
+    working_dir = config.get("working_dir")
+    if not working_dir:
+        return {"success": False, "message": i18n.t("errors.no_working_dir")}
+    return {"success": True, **plugins.instance_commands(working_dir)}
 
 
 def read_properties(config):
@@ -1419,6 +1466,10 @@ def get_installed_version(config):
     info = _read_jar_version(install_dir, jar_name)
     if info:
         return {"success": True, **info}
+    # 페이퍼 등 Paperclip jar는 version.json 대신 versions.list에 버전이 있다
+    forked = server_types.inspect_jar(jar_path)
+    if forked and forked.get("version"):
+        return {"success": True, "version": forked["version"], "server_type": forked["type"]}
     return {"success": False, "message": "Could not read version info from server jar"}
 
 
@@ -1589,7 +1640,7 @@ class ServerInstaller:
 
     @staticmethod
     def install_server(version_id, install_dir, jar_name="server.jar",
-                       accept_eula=False, initial_settings=None):
+                       accept_eula=False, initial_settings=None, server_type="vanilla"):
         """Download and install a Minecraft server.
 
         Args:
@@ -1617,6 +1668,26 @@ class ServerInstaller:
 
         download_url = details["download_url"]
         expected_sha1 = details.get("sha1")
+        expected_sha256 = expected_md5 = None
+        build = None
+        if server_type != "vanilla":
+            # 바닐라 외 종류는 그 프로젝트의 빌드를 받는다. Java 요구는 같은 마인크래프트 버전을 따른다
+            try:
+                source = server_types.resolve_download(server_type, version_id)
+            except ValueError as e:
+                key = str(e) if str(e) in ("install_unsupported", "version_unavailable") else "version_unavailable"
+                return {"success": False,
+                        "message": i18n.t(f"errors.server_type_{key}", type=server_type, version=version_id)}
+            except Exception as e:
+                return {"success": False, "message": f"Download lookup failed: {e}"}
+            download_url = source["url"]
+            expected_sha1 = None
+            expected_sha256 = source.get("sha256")
+            expected_md5 = source.get("md5")
+            build = source.get("build")
+            # Fabric 런처는 처음 뜰 때 바닐라 server.jar를 같은 폴더에 받는다 — 이름이 겹치면 안 된다
+            if server_type == "fabric" and jar_name == "server.jar":
+                jar_name = "fabric-server-launch.jar"
 
         # Create install directory
         install_path = os.path.abspath(install_dir)
@@ -1641,6 +1712,8 @@ class ServerInstaller:
             with urllib.request.urlopen(req, timeout=120) as resp:
                 total = int(resp.headers.get("Content-Length", 0))
                 sha1 = hashlib.sha1()
+                sha256 = hashlib.sha256()
+                md5 = hashlib.md5()
                 downloaded = 0
                 chunk_size = 65536
 
@@ -1651,6 +1724,8 @@ class ServerInstaller:
                             break
                         f.write(chunk)
                         sha1.update(chunk)
+                        sha256.update(chunk)
+                        md5.update(chunk)
                         downloaded += len(chunk)
                         if total > 0:
                             pct = downloaded * 100 // total
@@ -1679,7 +1754,13 @@ class ServerInstaller:
                 "message": f"SHA1 mismatch: expected {expected_sha1}, got {actual_sha1}",
             }
 
-        print(f"  SHA1 verified: {actual_sha1}", file=sys.stderr)
+        for name, expected, digest in (("SHA256", expected_sha256, sha256), ("MD5", expected_md5, md5)):
+            if expected and digest.hexdigest() != expected.lower():
+                os.remove(jar_path)
+                return {"success": False,
+                        "message": f"{name} mismatch: expected {expected}, got {digest.hexdigest()}"}
+
+        print(f"  Checksum verified: {actual_sha1}", file=sys.stderr)
 
         # Post-install setup
         result = {
@@ -1687,6 +1768,9 @@ class ServerInstaller:
             "install_path": install_path,
             "jar_path": jar_path,
             "jar_name": jar_name,
+            "executable_path": jar_path,
+            "server_type": server_type,
+            "build": build,
             "version": version_id,
             "sha1": actual_sha1,
             "size": downloaded,
@@ -1813,6 +1897,8 @@ def install_server(config):
         jar_name = config.get("jar_name", "server.jar")
         do_eula = config.get("accept_eula", False)
         initial_settings = config.get("initial_settings")
+        # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다
+        server_type = (config.get("settings") or {}).get("server_type") or config.get("server_type") or "vanilla"
 
         return ServerInstaller.install_server(
             version_id=version_id,
@@ -1820,6 +1906,7 @@ def install_server(config):
             jar_name=jar_name,
             accept_eula=do_eula,
             initial_settings=initial_settings,
+            server_type=server_type,
         )
     except Exception as e:
         import traceback
@@ -1848,6 +1935,7 @@ FUNCTIONS = {
     "get_version_details": get_version_details,
     "install_server": install_server,
     "get_installed_version": get_installed_version,
+    "instance_commands": instance_commands,
 }
 
 if __name__ == "__main__":

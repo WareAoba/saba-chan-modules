@@ -45,7 +45,7 @@ install_subdir = "server"
 process_patterns = ["java.exe", "java", "minecraft_server", "server.jar"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Minecraft 서버를 식별하는 패턴
 # 같은 java.exe를 쓰는 다른 게임 서버(예: Zomboid)와 구분하기 위해 사용
-cmd_patterns = ["server.jar", "minecraft_server", "nogui", "net.minecraft"]
+cmd_patterns = ["server.jar", "minecraft_server", "nogui", "net.minecraft", "paper-", "purpur-", "folia-", "fabric-server-launch", "net.minecraftforge", "net.neoforged"]
 # dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴
 # 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
 dir_signatures = ["server.jar"]
@@ -57,6 +57,16 @@ crash_artifacts = ["crash-reports/*.txt", "hs_err_pid*.log"]
 [settings]
 
 # ========== saba-chan 전용 설정 (server.properties 아님) ==========
+
+[[settings.fields]]
+name = "server_type"
+type = "select"
+label = "Server Type"
+description = "Which server software runs this world. Vanilla, Paper, Folia, Purpur and Fabric can be installed by saba-chan; the others are detected when you import an existing server."
+options = ["vanilla", "paper", "folia", "purpur", "pufferfish", "spigot", "craftbukkit", "fabric", "quilt", "forge", "neoforge"]
+default = "vanilla"
+install = true
+group = "saba-chan"
 
 [[settings.fields]]
 name = "java_path"
@@ -613,6 +623,8 @@ default = false
 # ─── Commands (displayed in GUI command palette) ──────────────
 
 [commands]
+# 서버에 설치된 플러그인·모드 명령은 lifecycle instance_commands()가 준다 (plugins.py, plugin_catalog/)
+hook = true
 
 [[commands.fields]]
 name = "say"

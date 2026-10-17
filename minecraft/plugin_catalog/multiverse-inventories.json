@@ -1,0 +1,624 @@
+{
+  "name": "Multiverse-Inventories",
+  "match": [
+    "Multiverse-Inventories"
+  ],
+  "docs": [
+    "https://mvplugins.org/inventories/fundamentals/commands-usage/",
+    "https://github.com/Multiverse/Multiverse-Inventories/tree/main/src/main/java/org/mvplugins/multiverse/inventories/commands"
+  ],
+  "player_only": [
+    "mvinv view",
+    "mvinv modify"
+  ],
+  "commands": [
+    {
+      "name": "mvinv-help",
+      "label": "Help",
+      "description": "Displays a list of available commands.",
+      "risk": "safe",
+      "console_template": "mvinv help {query}",
+      "inputs": [
+        {
+          "name": "query",
+          "type": "text",
+          "label": "Filter / page",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "mvinv-list",
+      "label": "List groups",
+      "description": "Lists world groups.",
+      "risk": "safe",
+      "console_template": "mvinv list",
+      "inputs": []
+    },
+    {
+      "name": "mvinv-info",
+      "label": "World/group info",
+      "description": "Shows details for a world or group.",
+      "risk": "safe",
+      "console_template": "mvinv info {name}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "World or group",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "mvinv-reload",
+      "label": "Reload",
+      "description": "Reloads config.yml and groups.yml and clears the cache.",
+      "risk": "danger",
+      "console_template": "mvinv reload",
+      "inputs": []
+    },
+    {
+      "name": "mvinv-config",
+      "label": "Config",
+      "description": "Shows or sets a config value.",
+      "risk": "caution",
+      "console_template": "mvinv config {name} {value}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Config name",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": false,
+          "placeholder": "Leave empty to show the current value"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-create-group",
+      "label": "Create group",
+      "description": "Creates a new world group.",
+      "risk": "caution",
+      "console_template": "mvinv create-group {name} {args}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Group name",
+          "required": true
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Worlds and shares",
+          "required": false,
+          "placeholder": "world1,world2 share1,share2"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-delete-group",
+      "label": "Delete group",
+      "description": "Deletes a world group.",
+      "risk": "danger",
+      "console_template": "mvinv delete-group {group}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "World group name"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-add-worlds",
+      "label": "Add worlds",
+      "description": "Adds worlds to a world group.",
+      "risk": "caution",
+      "console_template": "mvinv add-worlds {group} {worlds} {flags}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "World group name"
+        },
+        {
+          "name": "worlds",
+          "type": "text",
+          "label": "Worlds",
+          "required": true,
+          "placeholder": "world1,world2"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--skip-exist-check"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-remove-worlds",
+      "label": "Remove worlds",
+      "description": "Removes worlds from a world group.",
+      "risk": "caution",
+      "console_template": "mvinv remove-worlds {group} {worlds}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "World group name"
+        },
+        {
+          "name": "worlds",
+          "type": "text",
+          "label": "Worlds",
+          "required": true,
+          "placeholder": "world1,world2"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-add-shares",
+      "label": "Add shares",
+      "description": "Adds one or more shares to a group.",
+      "risk": "caution",
+      "console_template": "mvinv add-shares {group} {shares}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "World group name"
+        },
+        {
+          "name": "shares",
+          "type": "text",
+          "label": "Shares",
+          "required": true,
+          "placeholder": "share1,share2 (or all)"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-remove-shares",
+      "label": "Remove shares",
+      "description": "Removes one or more shares from a group.",
+      "risk": "caution",
+      "console_template": "mvinv remove-shares {group} {shares}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "World group name"
+        },
+        {
+          "name": "shares",
+          "type": "text",
+          "label": "Shares",
+          "required": true,
+          "placeholder": "share1,share2 (or all)"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-add-disabled-shares",
+      "label": "Add disabled shares",
+      "description": "Adds one or more disabled shares to a group.",
+      "risk": "caution",
+      "console_template": "mvinv add-disabled-shares {group} {shares}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "World group name"
+        },
+        {
+          "name": "shares",
+          "type": "text",
+          "label": "Shares",
+          "required": true,
+          "placeholder": "share1,share2 (or all)"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-remove-disabled-shares",
+      "label": "Remove disabled shares",
+      "description": "Removes one or more disabled shares from a group.",
+      "risk": "caution",
+      "console_template": "mvinv remove-disabled-shares {group} {shares}",
+      "inputs": [
+        {
+          "name": "group",
+          "type": "text",
+          "label": "Group",
+          "required": true,
+          "placeholder": "World group name"
+        },
+        {
+          "name": "shares",
+          "type": "text",
+          "label": "Shares",
+          "required": true,
+          "placeholder": "share1,share2 (or all)"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-toggle",
+      "label": "Toggle optional share",
+      "description": "Toggles the usage of optional sharables.",
+      "risk": "caution",
+      "console_template": "mvinv toggle {share}",
+      "inputs": [
+        {
+          "name": "share",
+          "type": "text",
+          "label": "Share",
+          "required": true,
+          "placeholder": "Optional share name"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-check-group-conflicts",
+      "label": "Check group conflicts",
+      "description": "Checks for conflicts in world groups.",
+      "risk": "safe",
+      "console_template": "mvinv check-group-conflicts",
+      "inputs": []
+    },
+    {
+      "name": "mvinv-give",
+      "label": "Give item",
+      "description": "Gives a player an item for a world or group, even if they are offline.",
+      "risk": "caution",
+      "console_template": "mvinv give {player} {world} {item}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "item",
+          "type": "text",
+          "label": "Item (and amount)",
+          "required": true,
+          "placeholder": "[gamemode] <item> [amount], e.g. diamond 5 (gamemode only with gamemode-share-handling)"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-cache-stats",
+      "label": "Cache stats",
+      "description": "Shows cache statistics.",
+      "risk": "safe",
+      "console_template": "mvinv cache stats",
+      "inputs": []
+    },
+    {
+      "name": "mvinv-cache-invalidate-all",
+      "label": "Invalidate all cache",
+      "description": "Clears all cached player data.",
+      "risk": "caution",
+      "console_template": "mvinv cache invalidate all",
+      "inputs": []
+    },
+    {
+      "name": "mvinv-cache-invalidate-player",
+      "label": "Invalidate player cache",
+      "description": "Clears cached data for one player.",
+      "risk": "caution",
+      "console_template": "mvinv cache invalidate player {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-migrate",
+      "label": "Migrate from plugin",
+      "description": "Imports inventories from MultiInv, WorldInventories or PerWorldInventory.",
+      "risk": "danger",
+      "console_template": "mvinv migrate {plugin}",
+      "inputs": [
+        {
+          "name": "plugin",
+          "type": "select",
+          "label": "Source plugin",
+          "required": true,
+          "options": [
+            "MultiInv",
+            "WorldInventories",
+            "PerWorldInventory"
+          ],
+          "default": "MultiInv"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-playerdata-import",
+      "label": "Import player data",
+      "description": "Imports player data from the world's playerdata folder.",
+      "risk": "caution",
+      "console_template": "mvinv playerdata import {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-bulkedit-globalprofile-clear",
+      "label": "Clear global profiles",
+      "description": "Clears global profile data for players.",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit globalprofile clear {players} {flags}",
+      "inputs": [
+        {
+          "name": "players",
+          "type": "text",
+          "label": "Players",
+          "required": true,
+          "placeholder": "Player name(s), comma-separated"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--clear-all-player-profiles"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-bulkedit-globalprofile-modify",
+      "label": "Modify global profiles",
+      "description": "Changes a global profile property for players.",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit globalprofile modify {property} {value} {players}",
+      "inputs": [
+        {
+          "name": "property",
+          "type": "select",
+          "label": "Property",
+          "required": true,
+          "options": [
+            "last-known-name",
+            "last-world",
+            "load-on-login"
+          ],
+          "default": "last-world"
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": true
+        },
+        {
+          "name": "players",
+          "type": "text",
+          "label": "Players",
+          "required": true,
+          "placeholder": "Player name(s), comma-separated"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-bulkedit-playerprofile-clear",
+      "label": "Clear player profiles",
+      "description": "Clears player profile data for players.",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit playerprofile clear {players} {targets} {args}",
+      "inputs": [
+        {
+          "name": "players",
+          "type": "text",
+          "label": "Players",
+          "required": true,
+          "placeholder": "Player name(s), comma-separated"
+        },
+        {
+          "name": "targets",
+          "type": "text",
+          "label": "Groups/worlds",
+          "required": true,
+          "placeholder": "group1,world1,..."
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Profile type / flags",
+          "required": false,
+          "placeholder": "[profile-type] [--include-groups-worlds]"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-bulkedit-playerprofile-clone-player",
+      "label": "Clone player profile",
+      "description": "Copies profile data from one player to others, overwriting their profiles.",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit playerprofile clone-player {from_player} {to_player} {targets} {args}",
+      "inputs": [
+        {
+          "name": "from_player",
+          "type": "text",
+          "label": "From player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "to_player",
+          "type": "text",
+          "label": "To player(s)",
+          "required": true,
+          "placeholder": "Player name(s), comma-separated"
+        },
+        {
+          "name": "targets",
+          "type": "text",
+          "label": "Groups/worlds",
+          "required": true,
+          "placeholder": "group1,world1,..."
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Profile type / flags",
+          "required": false,
+          "placeholder": "[profile-type] [--include-groups-worlds]"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-bulkedit-playerprofile-clone-world-group",
+      "label": "Clone world/group profile",
+      "description": "Copies players' profile data from one world or group to others.",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit playerprofile clone-world-group {players} {from} {to} {args}",
+      "inputs": [
+        {
+          "name": "players",
+          "type": "text",
+          "label": "Players",
+          "required": true,
+          "placeholder": "Player name(s), comma-separated"
+        },
+        {
+          "name": "from",
+          "type": "text",
+          "label": "From group/world",
+          "required": true
+        },
+        {
+          "name": "to",
+          "type": "text",
+          "label": "To groups/worlds",
+          "required": true,
+          "placeholder": "group1,world1,..."
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Profile type / flags",
+          "required": false,
+          "placeholder": "[profile-type] [--include-groups-worlds]"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-bulkedit-playerprofile-delete",
+      "label": "Delete sharable data",
+      "description": "Deletes one sharable's data from player profiles.",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit playerprofile delete {sharable} {players} {targets} {args}",
+      "inputs": [
+        {
+          "name": "sharable",
+          "type": "text",
+          "label": "Sharable",
+          "required": true,
+          "placeholder": "e.g. inventory"
+        },
+        {
+          "name": "players",
+          "type": "text",
+          "label": "Players",
+          "required": true,
+          "placeholder": "Player name(s), comma-separated"
+        },
+        {
+          "name": "targets",
+          "type": "text",
+          "label": "Groups/worlds",
+          "required": true,
+          "placeholder": "group1,world1,..."
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Profile type / flags",
+          "required": false,
+          "placeholder": "[profile-type] [--include-groups-worlds]"
+        }
+      ]
+    },
+    {
+      "name": "mvinv-bulkedit-migrate-player-name",
+      "label": "Migrate player name",
+      "description": "Renames stored profile data after a name change when automatic migration failed.",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit migrate player-name {current_name} {new_name}",
+      "inputs": [
+        {
+          "name": "current_name",
+          "type": "text",
+          "label": "Current name",
+          "required": true
+        },
+        {
+          "name": "new_name",
+          "type": "text",
+          "label": "New name",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "mvinv-bulkedit-migrate-inventory-serialization-nbt",
+      "label": "Migrate inventories to NBT",
+      "description": "Converts all stored inventory data to the NBT format (requires Paper).",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit migrate inventory-serialization nbt",
+      "inputs": []
+    },
+    {
+      "name": "mvinv-bulkedit-migrate-inventory-serialization-bukkit",
+      "label": "Migrate inventories to Bukkit",
+      "description": "Converts all stored inventory data to the Bukkit format.",
+      "risk": "danger",
+      "console_template": "mvinv bulkedit migrate inventory-serialization bukkit",
+      "inputs": []
+    }
+  ]
+}

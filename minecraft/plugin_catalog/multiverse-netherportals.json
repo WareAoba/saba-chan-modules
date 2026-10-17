@@ -1,0 +1,107 @@
+{
+  "name": "Multiverse-NetherPortals",
+  "match": [
+    "Multiverse-NetherPortals"
+  ],
+  "docs": [
+    "https://mvplugins.org/netherportals/fundamentals/commands-usage/",
+    "https://github.com/Multiverse/Multiverse-NetherPortals/tree/main/src/main/java/org/mvplugins/multiverse/netherportals/commands",
+    "https://github.com/Multiverse/Multiverse-NetherPortals/blob/main/src/main/resources/multiverse-netherportals_en.properties"
+  ],
+  "commands": [
+    {
+      "name": "mvnp-list",
+      "label": "List links",
+      "description": "Displays all configured portal links.",
+      "risk": "safe",
+      "console_template": "mvnp list {type}",
+      "inputs": [
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Portal type",
+          "required": false,
+          "options": [
+            "nether",
+            "end"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mvnp-link",
+      "label": "Link portals",
+      "description": "Sets the destination world for Nether or End portals.",
+      "risk": "caution",
+      "console_template": "mvnp link {type} {from_world} {to_world} {flags}",
+      "inputs": [
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Portal type",
+          "required": true,
+          "options": [
+            "nether",
+            "end"
+          ],
+          "default": "nether"
+        },
+        {
+          "name": "from_world",
+          "type": "text",
+          "label": "From world",
+          "required": true,
+          "placeholder": "World containing the portals"
+        },
+        {
+          "name": "to_world",
+          "type": "text",
+          "label": "To world",
+          "required": true,
+          "placeholder": "World the portals should lead to"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--bidirectional"
+        }
+      ]
+    },
+    {
+      "name": "mvnp-unlink",
+      "label": "Unlink portals",
+      "description": "Removes a Nether or End portal link from a world.",
+      "risk": "caution",
+      "console_template": "mvnp unlink {type} {from_world} {flags}",
+      "inputs": [
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Portal type",
+          "required": true,
+          "options": [
+            "nether",
+            "end"
+          ],
+          "default": "nether"
+        },
+        {
+          "name": "from_world",
+          "type": "text",
+          "label": "From world",
+          "required": true,
+          "placeholder": "World containing the portals"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--bidirectional"
+        }
+      ]
+    }
+  ]
+}

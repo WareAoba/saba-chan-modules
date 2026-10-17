@@ -1,0 +1,32 @@
+{
+  "name": "EssentialsX Spawn",
+  "match": [
+    "EssentialsSpawn"
+  ],
+  "docs": [
+    "https://github.com/EssentialsX/Essentials/blob/2.x/EssentialsSpawn/src/main/resources/plugin.yml",
+    "https://github.com/EssentialsX/Essentials/tree/2.x/EssentialsSpawn/src/main/java/com/earth2me/essentials/spawn",
+    "https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/main/resources/messages.properties"
+  ],
+  "player_only": [
+    "setspawn"
+  ],
+  "commands": [
+    {
+      "name": "spawn",
+      "label": "Send player to spawn",
+      "description": "Teleports the specified player to the spawn point.",
+      "risk": "caution",
+      "console_template": "spawn {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    }
+  ]
+}

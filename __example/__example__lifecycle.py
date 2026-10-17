@@ -41,7 +41,7 @@
   status(config)                 주기적 상태 조회
   configure(config)              시작 전 + 사용자가 설정 변경 시
   import_settings(config)        인스턴스 최초 등록 시 (기존 설정 가져오기)
-  command(config)                method="stdin" 템플릿으로 안 되는 커스텀 명령어 실행 시
+  command(config)                method="console" 템플릿으로 안 되는 커스텀 명령어 실행 시
 
   선택 (게임에 따라):
   ─────────────────
@@ -91,7 +91,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
 #   daemon_stdin_command(instance_id, line): 데몬이 관리하는 서버 콘솔(stdin)에 한 줄 보내기
 #   is_process_alive / wait_for_exit / force_kill: OS별 프로세스 처리 (직접 만들지 마세요)
-from daemon_rcon import daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
+from daemon_rcon import daemon_stdin_command, force_kill, is_process_alive, run_lifecycle, wait_for_exit
 
 # 일반 정지 후 프로세스가 끝나길 기다리는 시간 (초). 지나면 강제 종료
 STOP_TIMEOUT = 30
@@ -352,7 +352,7 @@ def import_settings(config):
 #  config["command"]: 명령어 이름 (module.toml [[commands.fields]]의 name)
 #  config["args"]: 명령어 인자 dict
 #
-#  module.toml에서 method="stdin" + input_template 을 정의한 명령어는
+#  module.toml에서 method="console" + console_template 을 정의한 명령어는
 #  데몬이 직접 콘솔(stdin)로 보내므로, lifecycle.py에 도달하지 않습니다.
 #  여기에는 커스텀 로직이 필요한 명령어만 구현하면 됩니다.
 #
@@ -488,24 +488,5 @@ FUNCTIONS = {
 }
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(json.dumps({"success": False, "message": "Usage: lifecycle.py <function>"}))
-        sys.exit(1)
-
-    function_name = sys.argv[1]
-
-    # config JSON을 stdin에서 읽기
-    try:
-        config_str = sys.stdin.read()
-        config = json.loads(config_str) if config_str.strip() else {}
-    except json.JSONDecodeError:
-        print(json.dumps({"success": False, "message": "Invalid JSON config on stdin"}))
-        sys.exit(1)
-
-    fn = FUNCTIONS.get(function_name)
-    if fn:
-        result = fn(config)
-    else:
-        result = {"success": False, "message": f"Unknown function: {function_name}"}
-
-    print(json.dumps(result, ensure_ascii=False))
+    # 알 수 없는 함수·잘못된 JSON·예외도 JSON으로 답하고 종료 코드 0을 지킨다
+    run_lifecycle(FUNCTIONS)

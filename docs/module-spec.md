@@ -44,7 +44,7 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 `supported` (`"stdin"` `"rest"` 중. `"rcon"`은 보안 정책상 쓰지 않는다), `default`, `interaction_mode` (`"console"` 콘솔 화면 / `"commands"` 명령 버튼만).
 
 ### `[config]` ○
-`server_executable`(작업 폴더 안 실행 파일 이름), `executable_path`, `process_name`, `default_port`, `stop_command`(stdin으로 보낼 정지 명령), `stop_timeout`(초, 기본 30).
+`server_executable`(작업 폴더 안 실행 파일 이름), `executable_path`, `process_name`, `default_port`, `stop_command`(stdin으로 보낼 정지 명령), `stop_timeout`(초, 기본 30), `announce_command`(게임 안 공지에 쓰는 `[[commands.fields]]` 이름, `message` 입력 하나. 예약 재시작·업데이트 예고와 공지 예약에 쓴다).
 
 ### `[launch]` ○
 `log_files`: 서버가 콘솔 대신 파일에만 로그를 쓸 때, 그 파일들을 콘솔에 합친다. 와일드카드 `*` `?`는 마지막 칸에만.
@@ -69,9 +69,9 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 ### `[[settings.fields]]` ○
 인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`).
-- `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`·`rcon_port`·`rest_port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
+- `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`·`rest_port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
 - 문자열 `default`의 `{instance_dir}`은 새 인스턴스 폴더로 바뀐다(인스턴스마다 따로 둘 게임 데이터 폴더 등). 기존 서버를 가져올 때는 빈 값이 들어가므로 모듈은 빈 값을 그 게임의 기본 위치로 다룬다(zomboid `cache_dir` 참고).
-데몬이 직접 의미를 아는 이름: `rcon_port`, `rest_port`, `rest_host`, `managed_start`, `log_sessions_keep`, `auto_restart`(크래시 때 다시 띄우기, 기본 true), `restart_on_unknown_exit`(원인 모를 종료도 다시 띄우기, 기본 false). 모듈이 선언하지 않아도 인스턴스 설정에 넣으면 데몬이 읽는다.
+데몬이 직접 의미를 아는 이름: `rest_port`, `rest_host`, `managed_start`, `log_sessions_keep`, `auto_restart`(크래시 때 다시 띄우기, 기본 true), `restart_on_unknown_exit`(원인 모를 종료도 다시 띄우기, 기본 false). 모듈이 선언하지 않아도 인스턴스 설정에 넣으면 데몬이 읽는다.
 
 ### `[[commands.fields]]` ○
 명령 카탈로그에 실리는 게임 명령. GUI 버튼, CLI, 디스코드, AI 명령 해석이 모두 이 선언을 쓴다.
@@ -85,6 +85,9 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `console_template` | console | 예: `"kick {player}"`. `{입력 이름}`이 치환된다. 예전 이름 `rcon_template` |
 | `http_method`, `endpoint_template` | rest | REST 호출 |
 | `inputs` | ○ | `{ name ✔, label, type, required, placeholder, default, min, max, options }` 목록. 데몬이 실행 전에 required·min·max·options를 검사한다 |
+
+### `[backup]` ○
+백업(수동·예약·업데이트 전·복원 전)에 묶을 것. `paths`(작업 폴더 기준 폴더·파일, `{설정 이름}`은 인스턴스 설정 값으로 바뀐다), `save_command`(묶기 전에 실행할 `[[commands.fields]]` 이름, 예: `save-all`), `hook`(true면 진입 파일 `backup_paths(config)`가 `{"success": true, "paths": [...]}`로 경로를 더 준다. 실패하면 백업과 그 뒤 작업이 멈춘다). 없으면 수동 백업은 `backup_unsupported`, 업데이트 전·예약 백업은 건너뛴다.
 
 ### 그 밖
 - `[aliases]`: `module_aliases`(모듈 별명), `[aliases.commands.<명령>]` `aliases`·`description`.
@@ -107,7 +110,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `stop` | managed인데 stdin 정지 명령이 없거나 안 통할 때, 그리고 non-managed 정지 | `success` |
 | `status` | non-managed 상태 조회 | `status`, `pid` |
 | `command` | `method = "module"` 명령 | `success`, `message` |
-| `get_credentials` | RCON/REST 접속 정보가 필요할 때 | `rcon_port`, `rcon_password`, `rest_username`, `rest_password` |
+| `get_credentials` | REST 접속 정보가 필요할 때 | `rest_username`, `rest_password` |
 | `validate`, `configure`, `read_properties`, `reset_properties`, `reset_server` | 설정 화면 | `success` (+ 읽은 값) |
 | `accept_eula`, `diagnose_log` | EULA 동의, 로그 진단 | `success` |
 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록 / `executable_path`, `install_path` / `version` |

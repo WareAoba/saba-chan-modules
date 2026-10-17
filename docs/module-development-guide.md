@@ -110,8 +110,8 @@ saba-chan 모듈은 특정 게임 서버의 생명주기를 관리하는 Python 
   └─ status(config)                 PID 전달, running/stopped 반환
 
 ■ 명령어 실행 (예: say, kick)
-  ├─ [rcon_template 있으면]          데몬이 직접 RCON 전송 (lifecycle.py 안 거침)
-  └─ [rcon_template 없으면]          command(config) 호출
+  ├─ [console_template 있으면]       데몬이 서버 콘솔(stdin)로 직접 전송 (lifecycle.py 안 거침)
+  └─ [console_template 없으면]       command(config) 호출
 
 ■ 인스턴스 최초 등록 / 기존 서버 연결
   └─ import_settings(config)        게임 설정 파일 → saba-chan 키로 가져오기
@@ -165,7 +165,7 @@ saba-chan 모듈은 특정 게임 서버의 생명주기를 관리하는 Python 
 }
 ```
 
-`command` 호출 시 (`rcon_template` 없는 커스텀 명령어):
+`command` 호출 시 (`console_template` 없는 커스텀 명령어):
 
 ```json
 {
@@ -209,9 +209,9 @@ entry = "lifecycle.py"
 version = "0.1.0"
 
 [protocols]
-supported = ["rcon"]                     # ← 게임이 RCON 없으면 ["stdin"]으로
-default = "rcon"
-interaction_mode = "commands"            # ← stdin 쓰면 "console"로
+supported = ["stdin"]                    # ← 콘솔이 없고 REST만 있으면 ["rest"]
+default = "stdin"
+interaction_mode = "console"             # ← 명령 버튼만 쓰면 "commands"
 
 [config]
 server_executable = "GameServer.exe"     # ← 실제 실행 파일명
@@ -404,8 +404,8 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 
 ```toml
 [protocols]
-supported = ["rcon", "stdin"]           # 지원하는 프로토콜 목록
-default = "rcon"                        # 기본 사용 프로토콜
+supported = ["stdin"]                   # 지원하는 프로토콜 목록
+default = "stdin"                       # 기본 사용 프로토콜
 interaction_mode = "console"            # GUI 상호작용 방식
 ```
 
@@ -413,7 +413,6 @@ interaction_mode = "console"            # GUI 상호작용 방식
 
 | 프로토콜 | 설명 | 사용 게임 예시 |
 |----------|------|----------------|
-| `"rcon"` | Valve Source RCON 프로토콜 | Minecraft, Zomboid |
 | `"rest"` | HTTP REST API | Palworld |
 | `"stdin"` | 표준 입력 (ManagedProcess의 stdin으로 명령 전송) | Minecraft, Zomboid |
 
@@ -425,7 +424,8 @@ interaction_mode = "console"            # GUI 상호작용 방식
 | `"commands"` | 정해진 명령어 버튼만 표시. `[commands]`에 정의된 명령어만 실행 | Palworld |
 
 **선택 가이드:**
-- 게임 서버가 stdin으로 명령어를 받을 수 있다면 → `"console"` + `supported = ["rcon", "stdin"]`
+- 게임 서버가 stdin으로 명령어를 받을 수 있다면 → `"console"` + `supported = ["stdin"]`
+- RCON은 보안 정책상 쓰지 않습니다. 게임에 RCON 설정이 있으면 모듈이 늘 끄세요.
 - REST API만 제공한다면 → `"commands"` + `supported = ["rest"]`
 
 ---
@@ -760,8 +760,8 @@ GUI에서 실행할 수 있는 서버 명령어를 정의합니다.
 name = "say"                            # 명령어 식별자
 label = "Send Message"                  # 표시 라벨
 description = "Broadcast a message"     # 설명
-method = "rcon"                         # 통신 방식: "rcon" 또는 "rest"
-rcon_template = "say {message}"         # RCON 명령어 템플릿 ({변수}는 inputs에서 치환)
+method = "console"                      # 통신 방식: "console" 또는 "rest"
+console_template = "say {message}"      # 콘솔 명령어 템플릿 ({변수}는 inputs에서 치환)
 inputs = [                              # 입력 필드 배열
     { name = "message", type = "text", label = "Message", required = true, placeholder = "Enter message" }
 ]
@@ -789,8 +789,8 @@ inputs = [
 name = "save"
 label = "Save World"
 description = "Save the game world"
-method = "rcon"
-rcon_template = "save-all"
+method = "console"
+console_template = "save-all"
 inputs = []                             # 빈 배열 = 입력 없음
 ```
 
@@ -809,8 +809,8 @@ inputs = []                             # 빈 배열 = 입력 없음
 name = "give"
 label = "Give Item"
 description = "Give an item to a player"
-method = "rcon"
-rcon_template = "give {player} {item} {amount}"
+method = "console"
+console_template = "give {player} {item} {amount}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player nickname" },
     { name = "item", type = "text", label = "Item ID", required = true, placeholder = "e.g. diamond" },
@@ -818,15 +818,15 @@ inputs = [
 ]
 ```
 
-#### RCON vs REST 선택
+#### console vs REST 선택
 
 | 상황 | 사용할 method |
 |------|---------------|
-| 게임이 RCON을 지원 | `"rcon"` + `rcon_template` |
+| 게임 서버 콘솔(stdin)로 명령을 받음 | `"console"` + `console_template` |
 | 게임이 REST API를 제공 | `"rest"` + `http_method` + `endpoint_template` |
 | 커스텀 로직 필요 | `method` 생략, lifecycle.py의 `command()`에서 처리 |
 
-> **참고**: `method = "rcon"` + `rcon_template`이 정의된 명령어는 데몬이 직접 RCON으로 전송합니다. lifecycle.py의 `command()`에는 도달하지 않습니다. 커스텀 로직이 필요하면 rcon_template을 생략하세요.
+> **참고**: `method = "console"` + `console_template`이 정의된 명령어는 데몬이 서버 콘솔(stdin)로 직접 보냅니다. lifecycle.py의 `command()`에는 도달하지 않습니다. 커스텀 로직이 필요하면 console_template을 생략하세요. 예전 이름 `method = "rcon"`, `rcon_template`도 읽습니다.
 
 ---
 
@@ -2226,8 +2226,8 @@ max = 64
 [[commands.fields]]
 name = "save"
 label = "Save"
-method = "rcon"
-rcon_template = "save"
+method = "console"
+console_template = "save"
 inputs = []
 
 [aliases]
@@ -2436,8 +2436,8 @@ group = "advanced"
 name = "say"
 label = "Send Message"
 description = "Broadcast a message to all players"
-method = "rcon"
-rcon_template = "say {message}"
+method = "console"
+console_template = "say {message}"
 inputs = [
     { name = "message", type = "text", label = "Message", required = true }
 ]
@@ -2445,15 +2445,15 @@ inputs = [
 [[commands.fields]]
 name = "save"
 label = "Save World"
-method = "rcon"
-rcon_template = "save"
+method = "console"
+console_template = "save"
 inputs = []
 
 [[commands.fields]]
 name = "kick"
 label = "Kick Player"
-method = "rcon"
-rcon_template = "kick {player} {reason}"
+method = "console"
+console_template = "kick {player} {reason}"
 inputs = [
     { name = "player", type = "text", label = "Player", required = true },
     { name = "reason", type = "text", label = "Reason", required = false }
@@ -2462,8 +2462,8 @@ inputs = [
 [[commands.fields]]
 name = "ban"
 label = "Ban Player"
-method = "rcon"
-rcon_template = "ban {player}"
+method = "console"
+console_template = "ban {player}"
 inputs = [
     { name = "player", type = "text", label = "Player", required = true }
 ]

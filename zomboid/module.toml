@@ -1110,8 +1110,8 @@ name = "servermsg"
 risk = "safe"
 label = "Broadcast Message"
 description = "Broadcast a message to all connected players"
-method = "rcon"
-rcon_template = "servermsg \"{message}\""
+method = "console"
+console_template = "servermsg \"{message}\""
 inputs = [
     { name = "message", type = "text", label = "Message", required = true, placeholder = "Enter message to broadcast" }
 ]
@@ -1121,8 +1121,8 @@ name = "players"
 risk = "safe"
 label = "Player List"
 description = "View list of connected players"
-method = "rcon"
-rcon_template = "players"
+method = "console"
+console_template = "players"
 inputs = []
 
 [[commands.fields]]
@@ -1130,8 +1130,8 @@ name = "save"
 risk = "safe"
 label = "Save World"
 description = "Save the current game world"
-method = "rcon"
-rcon_template = "save"
+method = "console"
+console_template = "save"
 inputs = []
 
 [[commands.fields]]
@@ -1139,8 +1139,8 @@ name = "kick"
 risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
-method = "rcon"
-rcon_template = "kick \"{player}\" -r \"{reason}\""
+method = "console"
+console_template = "kick \"{player}\" -r \"{reason}\""
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional kick reason" }
@@ -1151,8 +1151,8 @@ name = "banuser"
 risk = "danger"
 label = "Ban Player"
 description = "Ban a player from the server"
-method = "rcon"
-rcon_template = "banuser \"{player}\" -r \"{reason}\""
+method = "console"
+console_template = "banuser \"{player}\" -r \"{reason}\""
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional ban reason" }
@@ -1163,8 +1163,8 @@ name = "unbanuser"
 risk = "caution"
 label = "Unban Player"
 description = "Unban a previously banned player"
-method = "rcon"
-rcon_template = "unbanuser \"{player}\""
+method = "console"
+console_template = "unbanuser \"{player}\""
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" }
 ]
@@ -1174,8 +1174,8 @@ name = "adduser"
 risk = "caution"
 label = "Add User"
 description = "Add a new user to the whitelist"
-method = "rcon"
-rcon_template = "adduser \"{username}\" \"{password}\""
+method = "console"
+console_template = "adduser \"{username}\" \"{password}\""
 inputs = [
     { name = "username", type = "text", label = "Username", required = true, placeholder = "Account username" },
     { name = "password", type = "password", label = "Password", required = true, placeholder = "Account password" }
@@ -1186,8 +1186,8 @@ name = "setaccesslevel"
 risk = "danger"
 label = "Set Access Level"
 description = "Set a player's access level"
-method = "rcon"
-rcon_template = "setaccesslevel \"{player}\" \"{level}\""
+method = "console"
+console_template = "setaccesslevel \"{player}\" \"{level}\""
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "level", type = "select", label = "Access Level", required = true, options = ["admin", "moderator", "overseer", "gm", "observer", "none"] }
@@ -1198,8 +1198,8 @@ name = "teleport"
 risk = "caution"
 label = "Teleport"
 description = "Teleport to a player"
-method = "rcon"
-rcon_template = "teleport \"{player}\" \"{target}\""
+method = "console"
+console_template = "teleport \"{player}\" \"{target}\""
 inputs = [
     { name = "player", type = "text", label = "Player", required = true, placeholder = "Player to teleport" },
     { name = "target", type = "text", label = "Target", required = true, placeholder = "Destination player" }
@@ -1210,8 +1210,8 @@ name = "teleportto"
 risk = "caution"
 label = "Teleport To Coords"
 description = "Teleport to specific coordinates"
-method = "rcon"
-rcon_template = "teleportto {coords}"
+method = "console"
+console_template = "teleportto {coords}"
 inputs = [
     { name = "coords", type = "text", label = "Coordinates", required = true, placeholder = "x,y,z (e.g. 10000,11000,0)" }
 ]
@@ -1221,8 +1221,8 @@ name = "createhorde"
 risk = "caution"
 label = "Create Horde"
 description = "Spawn a zombie horde near a player"
-method = "rcon"
-rcon_template = "createhorde {count} \"{player}\""
+method = "console"
+console_template = "createhorde {count} \"{player}\""
 inputs = [
     { name = "count", type = "number", label = "Zombie Count", required = true, default = 50, min = 1, max = 500 },
     { name = "player", type = "text", label = "Player (optional)", required = false, placeholder = "Target player" }
@@ -1233,8 +1233,8 @@ name = "godmod"
 risk = "caution"
 label = "God Mode"
 description = "Make a player invincible"
-method = "rcon"
-rcon_template = "godmod \"{player}\" -{value}"
+method = "console"
+console_template = "godmod \"{player}\" -{value}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "value", type = "select", label = "Enabled", required = true, options = ["true", "false"] }
@@ -1245,8 +1245,8 @@ name = "invisible"
 risk = "caution"
 label = "Invisible"
 description = "Make a player invisible to zombies"
-method = "rcon"
-rcon_template = "invisible \"{player}\" -{value}"
+method = "console"
+console_template = "invisible \"{player}\" -{value}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "value", type = "select", label = "Enabled", required = true, options = ["true", "false"] }
@@ -1257,8 +1257,8 @@ name = "startrain"
 risk = "caution"
 label = "Start Rain"
 description = "Start raining on the server"
-method = "rcon"
-rcon_template = "startrain"
+method = "console"
+console_template = "startrain"
 inputs = []
 
 [[commands.fields]]
@@ -1266,8 +1266,8 @@ name = "stoprain"
 risk = "caution"
 label = "Stop Rain"
 description = "Stop raining on the server"
-method = "rcon"
-rcon_template = "stoprain"
+method = "console"
+console_template = "stoprain"
 inputs = []
 
 [[commands.fields]]
@@ -1275,8 +1275,8 @@ name = "chopper"
 risk = "caution"
 label = "Helicopter Event"
 description = "Trigger a helicopter event on a random player"
-method = "rcon"
-rcon_template = "chopper"
+method = "console"
+console_template = "chopper"
 inputs = []
 
 [[commands.fields]]
@@ -1284,8 +1284,8 @@ name = "gunshot"
 risk = "caution"
 label = "Gunshot Sound"
 description = "Place a gunshot sound on a random player"
-method = "rcon"
-rcon_template = "gunshot"
+method = "console"
+console_template = "gunshot"
 inputs = []
 
 [[commands.fields]]
@@ -1293,8 +1293,8 @@ name = "additem"
 risk = "caution"
 label = "Give Item"
 description = "Give an item to a player"
-method = "rcon"
-rcon_template = "additem \"{player}\" \"{item}\" {count}"
+method = "console"
+console_template = "additem \"{player}\" \"{item}\" {count}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "item", type = "text", label = "Item ID", required = true, placeholder = "e.g. Base.Axe" },
@@ -1306,8 +1306,8 @@ name = "addxp"
 risk = "caution"
 label = "Give XP"
 description = "Give experience to a player"
-method = "rcon"
-rcon_template = "addxp \"{player}\" {perk}={amount}"
+method = "console"
+console_template = "addxp \"{player}\" {perk}={amount}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "perk", type = "text", label = "Perk Name", required = true, placeholder = "e.g. Woodwork, Cooking" },
@@ -1319,8 +1319,8 @@ name = "showoptions"
 risk = "safe"
 label = "Show Server Options"
 description = "Display current server option values"
-method = "rcon"
-rcon_template = "showoptions"
+method = "console"
+console_template = "showoptions"
 inputs = []
 
 [[commands.fields]]
@@ -1328,8 +1328,8 @@ name = "reloadoptions"
 risk = "caution"
 label = "Reload Options"
 description = "Reload server options from INI file"
-method = "rcon"
-rcon_template = "reloadoptions"
+method = "console"
+console_template = "reloadoptions"
 inputs = []
 
 [[commands.fields]]
@@ -1337,8 +1337,8 @@ name = "changeoption"
 risk = "caution"
 label = "Change Option"
 description = "Change a server option at runtime"
-method = "rcon"
-rcon_template = "changeoption {option} \"{value}\""
+method = "console"
+console_template = "changeoption {option} \"{value}\""
 inputs = [
     { name = "option", type = "text", label = "Option Name", required = true, placeholder = "e.g. MaxPlayers" },
     { name = "value", type = "text", label = "New Value", required = true, placeholder = "New value" }
@@ -1349,8 +1349,8 @@ name = "quit"
 risk = "danger"
 label = "Shutdown Server"
 description = "Save and gracefully shut down the server"
-method = "rcon"
-rcon_template = "quit"
+method = "console"
+console_template = "quit"
 inputs = []
 
 # ═══════════════════════════════════════════════════════════

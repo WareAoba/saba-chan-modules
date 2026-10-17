@@ -46,6 +46,14 @@
     "CommandFieldToml": {
       "additionalProperties": false,
       "properties": {
+        "console_template": {
+          "default": null,
+          "description": "콘솔에 보낼 줄. 예전 이름 `rcon_template`도 받는다",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "description": {
           "default": null,
           "type": [
@@ -89,13 +97,6 @@
         },
         "name": {
           "type": "string"
-        },
-        "rcon_template": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
         },
         "risk": {
           "default": null,

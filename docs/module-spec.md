@@ -41,7 +41,7 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 | `[module.dependencies]` | ○ | 컴포넌트 → 최소 버전(`>=` 만). 키는 `versions.toml`과 같다: `saba-core`, `ext-<id>`, `gui`, `cli`. 예: `"saba-core" = ">=0.3.0"`. 데몬이 saba-core를 못 맞추면 모듈을 로드하지 않고, 나머지가 안 맞으면 `GET /api/modules`의 `unmet_dependencies`에 보인다 |
 
 ### `[protocols]` ○
-`supported` (`"rcon"` `"rest"` `"stdin"` 중), `default`, `interaction_mode` (`"console"` 콘솔 화면 / `"commands"` 명령 버튼만).
+`supported` (`"stdin"` `"rest"` 중. `"rcon"`은 보안 정책상 쓰지 않는다), `default`, `interaction_mode` (`"console"` 콘솔 화면 / `"commands"` 명령 버튼만).
 
 ### `[config]` ○
 `server_executable`(작업 폴더 안 실행 파일 이름), `executable_path`, `process_name`, `default_port`, `stop_command`(stdin으로 보낼 정지 명령), `stop_timeout`(초, 기본 30).
@@ -81,8 +81,8 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `name` | ✔ | 명령 이름 |
 | `label`, `description` | ○ | 표시용. description은 AI가 명령을 고를 때도 읽는다 |
 | `risk` | ○ | `"safe"`(조회·채팅) / `"caution"`(게임 상태 변경, 기본) / `"danger"`(서버 종료, 추방·차단, 권한 변경). AI가 추론한 명령을 실행 전에 확인받을지 정한다 |
-| `method` | ○ | `"rcon"` / `"rest"` / `"module"`(진입 파일의 `command()`, 기본) |
-| `rcon_template` | rcon | 예: `"kick {player}"`. `{입력 이름}`이 치환된다 |
+| `method` | ○ | `"console"`(서버 콘솔 stdin) / `"rest"` / `"module"`(진입 파일의 `command()`, 기본). 예전 이름 `"rcon"`은 `"console"`로 읽는다 |
+| `console_template` | console | 예: `"kick {player}"`. `{입력 이름}`이 치환된다. 예전 이름 `rcon_template` |
 | `http_method`, `endpoint_template` | rest | REST 호출 |
 | `inputs` | ○ | `{ name ✔, label, type, required, placeholder, default, min, max, options }` 목록. 데몬이 실행 전에 required·min·max·options를 검사한다 |
 

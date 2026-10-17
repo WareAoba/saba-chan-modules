@@ -614,8 +614,8 @@ name = "say"
 risk = "safe"
 label = "Send Chat Message"
 description = "Broadcast a message to the server"
-method = "rcon"
-rcon_template = "say {message}"
+method = "console"
+console_template = "say {message}"
 inputs = [
     { name = "message", type = "text", label = "Message", required = true, placeholder = "Enter message to send" }
 ]
@@ -625,8 +625,8 @@ name = "give"
 risk = "caution"
 label = "Give Item"
 description = "Give an item to a player"
-method = "rcon"
-rcon_template = "give {player} {item} {amount}"
+method = "console"
+console_template = "give {player} {item} {amount}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player nickname" },
     { name = "item", type = "text", label = "Item ID", required = true, placeholder = "e.g. diamond, iron_ore" },
@@ -638,8 +638,8 @@ name = "save-all"
 risk = "safe"
 label = "Save World"
 description = "Save the game world"
-method = "rcon"
-rcon_template = "save-all"
+method = "console"
+console_template = "save-all"
 inputs = []
 
 [[commands.fields]]
@@ -647,8 +647,8 @@ name = "list"
 risk = "safe"
 label = "Player List"
 description = "View list of connected players"
-method = "rcon"
-rcon_template = "list"
+method = "console"
+console_template = "list"
 inputs = []
 
 [[commands.fields]]
@@ -656,8 +656,8 @@ name = "weather"
 risk = "caution"
 label = "Change Weather"
 description = "Change the server weather"
-method = "rcon"
-rcon_template = "weather {type} {duration}"
+method = "console"
+console_template = "weather {type} {duration}"
 inputs = [
     { name = "type", type = "select", label = "Weather", required = true, options = ["clear", "rain", "thunder"] },
     { name = "duration", type = "number", label = "Duration (seconds)", required = true, default = 1000, min = 1, max = 1000000 }
@@ -668,8 +668,8 @@ name = "difficulty"
 risk = "caution"
 label = "Change Difficulty"
 description = "Change the game difficulty"
-method = "rcon"
-rcon_template = "difficulty {level}"
+method = "console"
+console_template = "difficulty {level}"
 inputs = [
     { name = "level", type = "select", label = "Difficulty", required = true, options = ["peaceful", "easy", "normal", "hard"] }
 ]
@@ -679,8 +679,8 @@ name = "gamemode"
 risk = "caution"
 label = "Change Game Mode"
 description = "Change a player's game mode"
-method = "rcon"
-rcon_template = "gamemode {mode} {player}"
+method = "console"
+console_template = "gamemode {mode} {player}"
 inputs = [
     { name = "mode", type = "select", label = "Game Mode", required = true, options = ["survival", "creative", "adventure", "spectator"] },
     { name = "player", type = "text", label = "Player Name", required = false, placeholder = "Leave empty for all" }
@@ -691,8 +691,8 @@ name = "time"
 risk = "caution"
 label = "Set Time"
 description = "Change the time of day"
-method = "rcon"
-rcon_template = "time set {value}"
+method = "console"
+console_template = "time set {value}"
 inputs = [
     { name = "value", type = "select", label = "Time", required = true, options = ["day", "noon", "night", "midnight", "0", "6000", "12000", "18000"] }
 ]
@@ -702,8 +702,8 @@ name = "tp"
 risk = "caution"
 label = "Teleport"
 description = "Teleport a player"
-method = "rcon"
-rcon_template = "tp {player} {target}"
+method = "console"
+console_template = "tp {player} {target}"
 inputs = [
     { name = "player", type = "text", label = "Player", required = true, placeholder = "Player to teleport" },
     { name = "target", type = "text", label = "Destination", required = true, placeholder = "Target player or coordinates (x y z)" }
@@ -714,8 +714,8 @@ name = "kick"
 risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
-method = "rcon"
-rcon_template = "kick {player} {reason}"
+method = "console"
+console_template = "kick {player} {reason}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Reason for kick" }
@@ -726,8 +726,8 @@ name = "ban"
 risk = "danger"
 label = "Ban Player"
 description = "Ban a player from the server"
-method = "rcon"
-rcon_template = "ban {player} {reason}"
+method = "console"
+console_template = "ban {player} {reason}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Reason for ban" }
@@ -738,8 +738,8 @@ name = "pardon"
 risk = "caution"
 label = "Unban Player"
 description = "Remove a player's ban"
-method = "rcon"
-rcon_template = "pardon {player}"
+method = "console"
+console_template = "pardon {player}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true }
 ]
@@ -749,8 +749,8 @@ name = "op"
 risk = "danger"
 label = "Op Player"
 description = "Give operator permissions"
-method = "rcon"
-rcon_template = "op {player}"
+method = "console"
+console_template = "op {player}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true }
 ]
@@ -760,8 +760,8 @@ name = "deop"
 risk = "caution"
 label = "Deop Player"
 description = "Remove operator permissions"
-method = "rcon"
-rcon_template = "deop {player}"
+method = "console"
+console_template = "deop {player}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true }
 ]
@@ -771,8 +771,8 @@ name = "whitelist"
 risk = "caution"
 label = "Whitelist"
 description = "Manage the server whitelist"
-method = "rcon"
-rcon_template = "whitelist {action} {player}"
+method = "console"
+console_template = "whitelist {action} {player}"
 inputs = [
     { name = "action", type = "select", label = "Action", required = true, options = ["add", "remove", "list", "on", "off", "reload"] },
     { name = "player", type = "text", label = "Player Name", required = false, placeholder = "Player name (for add/remove)" }
@@ -783,8 +783,8 @@ name = "seed"
 risk = "safe"
 label = "Show Seed"
 description = "Display the world seed"
-method = "rcon"
-rcon_template = "seed"
+method = "console"
+console_template = "seed"
 inputs = []
 
 [[commands.fields]]
@@ -792,8 +792,8 @@ name = "stop"
 risk = "danger"
 label = "Stop Server"
 description = "Gracefully stop the server"
-method = "rcon"
-rcon_template = "stop"
+method = "console"
+console_template = "stop"
 inputs = []
 
 # ─── Error definitions ────────────────────────────────────────

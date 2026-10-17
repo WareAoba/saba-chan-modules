@@ -5,8 +5,6 @@
   },
   "settings": {
     "port": { "label": "Server Port", "description": "Game server port" },
-    "rcon_port": { "label": "RCON Port", "description": "RCON port" },
-    "rcon_password": { "label": "RCON Password", "description": "Remote command execution password" },
     "rest_host": { "label": "REST API Host", "description": "REST API host (default 127.0.0.1)" },
     "rest_port": { "label": "REST API Port", "description": "REST API port (default 8212)" },
     "rest_username": { "label": "REST Username", "description": "REST Basic Auth username" },
@@ -17,7 +15,6 @@
     "max_players": { "label": "Max Players", "description": "Maximum number of players (1-32)" },
     "coop_max_players": { "label": "Co-op Max Players", "description": "Maximum number of players in co-op party" },
     "public_ip": { "label": "Public IP", "description": "Public IP address (leave empty for auto)" },
-    "rcon_enabled": { "label": "RCON Enabled", "description": "Enable RCON remote command execution" },
     "difficulty": { "label": "Difficulty", "description": "Overall game difficulty" },
     "is_pvp": { "label": "PvP", "description": "Enable Player vs Player combat" },
     "death_penalty": { "label": "Death Penalty", "description": "What drops on player death" },
@@ -52,15 +49,85 @@
     "enable_friendly_fire": { "label": "Friendly Fire", "description": "Allow guild members to damage each other" },
     "base_camp_worker_max_num": { "label": "Base Camp Workers", "description": "Maximum number of Pals working at a base (1-20)" },
     "base_camp_max_num": { "label": "Max Base Camps", "description": "Maximum number of base camps that can be built" },
-    "work_speed_rate": { "label": "Work Speed Rate", "description": "Work speed multiplier" }
+    "work_speed_rate": { "label": "Work Speed Rate", "description": "Work speed multiplier" },
+    "region": { "label": "Region", "description": "Server region tag shown in the server browser" },
+    "use_auth": { "label": "Use Steam Auth", "description": "Require Steam authentication to join the server" },
+    "allow_client_mod": { "label": "Allow Client Mods", "description": "Allow players to join with client-side mods enabled" },
+    "ban_list_url": { "label": "Ban List URL", "description": "URL of the shared ban list applied to this server" },
+    "show_player_list": { "label": "Show Player List", "description": "Expose the connected player list via the REST API" },
+    "crossplay_platforms": { "label": "Crossplay Platforms", "description": "Allowed crossplay platforms, e.g. (Steam,Xbox,PS5,Mac)" },
+    "chat_post_limit_per_minute": { "label": "Chat Rate Limit", "description": "Maximum chat messages a player can send per minute" },
+    "is_show_join_left_message": { "label": "Show Join/Leave Messages", "description": "Announce player join/leave events in chat" },
+    "enable_voice_chat": { "label": "Voice Chat", "description": "Enable in-game proximity voice chat" },
+    "voice_chat_max_volume_distance": { "label": "Voice Chat Max Volume Distance", "description": "Distance at which voice chat reaches full volume" },
+    "voice_chat_zero_volume_distance": { "label": "Voice Chat Cutoff Distance", "description": "Distance beyond which voice chat is inaudible" },
+    "build_object_hp_rate": { "label": "Structure HP Rate", "description": "Structure HP multiplier (0.1-5.0)" },
+    "build_area_limit": { "label": "Building Area Limit", "description": "Restrict building to a limited area around base camps" },
+    "max_building_limit_num": { "label": "Max Building Count", "description": "Maximum number of buildable objects per base (0 = unlimited)" },
+    "base_camp_max_num_in_guild": { "label": "Max Base Camps Per Guild", "description": "Maximum number of base camps a single guild can own" },
+    "guild_rejoin_cooldown_minutes": { "label": "Guild Rejoin Cooldown", "description": "Cooldown (minutes) before a player can rejoin a guild after leaving" },
+    "auto_reset_guild_no_online_players": { "label": "Auto-Disband Inactive Guilds", "description": "Automatically reset guilds with no online members for a long time" },
+    "auto_reset_guild_time_no_online_players": { "label": "Inactive Guild Reset Time", "description": "Hours of guild inactivity before auto-reset triggers" },
+    "can_pickup_other_guild_death_penalty_drop": { "label": "Loot Other Guilds' Death Drops", "description": "Allow players to pick up death-penalty drops from other guilds" },
+    "enable_defense_other_guild_player": { "label": "Defend Against Other Guilds", "description": "Allow base defenses to target players from other guilds" },
+    "invisible_other_guild_base_camp_area_fx": { "label": "Hide Other Guilds' Base Camp FX", "description": "Hide base camp area visual effects belonging to other guilds" },
+    "drop_item_max_num_unko": { "label": "UNKO Item Cap", "description": "Maximum number of UNKO (poop) items in the world" },
+    "drop_item_alive_max_hours": { "label": "Dropped Item Lifetime", "description": "Hours a dropped item stays in the world before disappearing" },
+    "active_unko": { "label": "Active UNKO", "description": "Enable the UNKO (poop) item drop mechanic" },
+    "physics_active_drop_item_max_num": { "label": "Physics-Active Drop Item Cap", "description": "Maximum number of dropped items with active physics (-1 = unlimited)" },
+    "enable_fast_travel_only_base_camp": { "label": "Fast Travel: Base Camps Only", "description": "Restrict fast travel destinations to base camps only" },
+    "is_start_location_select_by_map": { "label": "Select Start Location On Map", "description": "Let new players pick their starting location on the map" },
+    "exist_player_after_logout": { "label": "Keep Player Character After Logout", "description": "Keep the player character present in the world after logging out" },
+    "enable_non_login_penalty": { "label": "Offline Penalty", "description": "Apply hunger/stamina penalties while a player is offline" },
+    "enable_aim_assist_pad": { "label": "Aim Assist (Gamepad)", "description": "Enable aim assist for gamepad players" },
+    "enable_aim_assist_keyboard": { "label": "Aim Assist (Keyboard/Mouse)", "description": "Enable aim assist for keyboard/mouse players" },
+    "is_use_backup_save_data": { "label": "Use Backup Save Data", "description": "Keep rolling backups of world save data" },
+    "log_format_type": { "label": "Log Format", "description": "Server log output format" },
+    "server_replicate_pawn_cull_distance": { "label": "Pawn Replication Cull Distance", "description": "Distance beyond which characters/Pals stop being network-replicated (performance tuning)" },
+    "allow_global_palbox_export": { "label": "Allow Global Palbox Export", "description": "Allow Pals to be exported from the global Palbox" },
+    "allow_global_palbox_import": { "label": "Allow Global Palbox Import", "description": "Allow Pals to be imported into the global Palbox" },
+    "deny_technology_list": { "label": "Denied Technology List", "description": "Comma-separated list of technology IDs disabled on this server" },
+    "block_respawn_time": { "label": "Respawn Block Time", "description": "Seconds a player must wait before respawning" },
+    "respawn_penalty_duration_threshold": { "label": "Respawn Penalty Threshold", "description": "Time-of-death threshold (seconds) before respawn penalty scaling applies" },
+    "respawn_penalty_time_scale": { "label": "Respawn Penalty Time Scale", "description": "Multiplier applied to respawn wait time as a penalty" },
+    "display_pvp_item_num_on_world_map_base_camp": { "label": "Show PvP Item Count (Base Camps)", "description": "Show item counts for base camps on the world map in PvP mode" },
+    "display_pvp_item_num_on_world_map_player": { "label": "Show PvP Item Count (Players)", "description": "Show item counts for players on the world map in PvP mode" },
+    "additional_drop_item_when_player_killing_in_pvp_mode_enabled": { "label": "Extra PvP Kill Drop", "description": "Drop an additional item when a player kills another player in PvP mode" },
+    "additional_drop_item_when_player_killing_in_pvp_mode": { "label": "Extra PvP Kill Drop Item", "description": "Item ID dropped on a PvP kill (used when the toggle above is enabled)" },
+    "additional_drop_item_num_when_player_killing_in_pvp_mode": { "label": "Extra PvP Kill Drop Count", "description": "Number of the extra item dropped on a PvP kill" },
+    "allow_enhance_stat_health": { "label": "Allow Stat Enhance: Health", "description": "Allow players to enhance the Health stat" },
+    "allow_enhance_stat_attack": { "label": "Allow Stat Enhance: Attack", "description": "Allow players to enhance the Attack stat" },
+    "allow_enhance_stat_stamina": { "label": "Allow Stat Enhance: Stamina", "description": "Allow players to enhance the Stamina stat" },
+    "allow_enhance_stat_weight": { "label": "Allow Stat Enhance: Weight", "description": "Allow players to enhance the Weight stat" },
+    "allow_enhance_stat_work_speed": { "label": "Allow Stat Enhance: Work Speed", "description": "Allow players to enhance the Work Speed stat" },
+    "item_container_force_mark_dirty_interval": { "label": "Item Container Sync Interval", "description": "Interval (seconds) for forcing item container save-state sync" },
+    "item_corruption_multiplier": { "label": "Item Corruption Multiplier", "description": "Multiplier for item corruption chance" },
+    "equipment_durability_damage_rate": { "label": "Equipment Durability Loss Rate", "description": "Equipment durability damage multiplier (0.0-10.0)" },
+    "randomizer_type": { "label": "Randomizer Type", "description": "World randomizer mode (e.g. None, Region, Boss) — set before first world generation" },
+    "randomizer_seed": { "label": "Randomizer Seed", "description": "Seed used by the world randomizer — set before first world generation" },
+    "randomizer_pal_level_random": { "label": "Randomize Pal Levels", "description": "Randomize Pal levels when the world randomizer is active" },
+    "hardcore": { "label": "Hardcore Mode", "description": "Enable hardcore mode (harsher death consequences)" },
+    "character_recreate_in_hardcore": { "label": "Recreate Character In Hardcore", "description": "Allow recreating a character after death in hardcore mode" },
+    "is_multiplay": { "label": "Multiplay Mode", "description": "Enable the dedicated multiplay ruleset" },
+    "enable_predator_boss_pal": { "label": "Predator Boss Pals", "description": "Enable rare predator/boss Pal spawns" },
+    "player_data_pal_storage_update_check_tick_interval": { "label": "Pal Storage Sync Interval", "description": "Tick interval (seconds) for checking Pal storage data updates" },
+    "monster_farm_action_speed_rate": { "label": "Monster Farm Action Speed", "description": "Action speed multiplier for Pals working at monster farms" },
+    "auto_transfer_master_check_interval_seconds": { "label": "Auto-Transfer Ownership Check Interval", "description": "Interval (seconds) for checking auto-transfer of guild master ownership" },
+    "auto_transfer_master_threshold_days": { "label": "Auto-Transfer Ownership Threshold", "description": "Days of guild master inactivity before ownership auto-transfers" },
+    "max_guilds_per_frame": { "label": "Max Guild Updates Per Frame", "description": "Performance tuning: max guilds processed per server tick" },
+    "enable_building_player_uid_display": { "label": "Show Builder Name On Buildings", "description": "Display the owning player's name/UID on placed buildings" },
+    "building_name_display_cache_ttl_seconds": { "label": "Building Name Display Cache TTL", "description": "Cache lifetime (seconds) for the building owner name display" },
+    "pal_lost": { "label": "Pal Lost", "description": "Pals are permanently lost (removed from party) on death" },
+    "enable_fast_travel": { "label": "Fast Travel", "description": "Enable fast travel between discovered locations" },
+    "item_weight_rate": { "label": "Item Weight Rate", "description": "Item weight multiplier (affects inventory capacity, 0.1-10.0)" },
+    "auto_save_span": { "label": "Auto-Save Interval", "description": "Interval between automatic world saves, in minutes" },
+    "supply_drop_span": { "label": "Supply Drop Interval", "description": "Interval between supply drop events, in minutes" }
   },
   "commands": {
     "announce": {
       "label": "Send Announcement",
       "description": "Broadcast a message to the server",
-      "inputs": {
-        "message": { "label": "Announcement Message", "placeholder": "Enter announcement message" }
-      }
+      "inputs": { "message": { "label": "Announcement Message", "placeholder": "Enter announcement message" } }
     },
     "info": { "label": "Server Info", "description": "View server information" },
     "players": { "label": "Player List", "description": "List currently connected players" },
@@ -68,34 +135,25 @@
     "shutdown": {
       "label": "Shutdown Server",
       "description": "Shutdown the server (with optional delay)",
-      "inputs": {
-        "waittime": { "label": "Shutdown Delay (seconds)" },
-        "message": { "label": "Shutdown Message", "placeholder": "Server shutdown announcement" }
-      }
+      "inputs": { "waittime": { "label": "Shutdown Delay (seconds)" }, "message": { "label": "Shutdown Message", "placeholder": "Server shutdown announcement" } }
     },
     "kick": {
       "label": "Kick Player",
       "description": "Kick a player from the server",
-      "inputs": {
-        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" },
-        "message": { "label": "Kick Message", "placeholder": "Optional: kick message" }
-      }
+      "inputs": { "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" }, "message": { "label": "Kick Message", "placeholder": "Optional: kick message" } }
     },
     "ban": {
       "label": "Ban Player",
       "description": "Permanently ban a player",
-      "inputs": {
-        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" },
-        "message": { "label": "Ban Message", "placeholder": "Optional: ban message" }
-      }
+      "inputs": { "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" }, "message": { "label": "Ban Message", "placeholder": "Optional: ban message" } }
     },
     "unban": {
       "label": "Unban Player",
       "description": "Unban a banned player",
-      "inputs": {
-        "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" }
-      }
-    }
+      "inputs": { "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" } }
+    },
+    "metrics": { "label": "Server Metrics", "description": "View server FPS, player count and uptime" },
+    "settings": { "label": "View Settings", "description": "View current server settings" }
   },
   "errors": {
     "failed_to_start": "Failed to start: {{error}}",
@@ -143,22 +201,8 @@
     "install_via_steamcmd": "Palworld dedicated server must be installed via SteamCMD.",
     "versions_via_steam": "Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Use SteamCMD to install or update.",
     "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update.",
-    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings \u2192 Extensions first."
-  },
-  "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}",
-    "invalid_password": "Invalid password",
-    "receiving_response": "Receiving response...",
-    "partial_response": "Partial response received ({{bytes}} bytes)",
-    "response_complete": "Response complete ({{bytes}} bytes total)",
-    "closed": "RCON connection closed"
+    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
+    "extension_missing": "The {{extension}} extension is required. Install and enable it in Settings → Extensions."
   },
   "reset": {
     "no_path": "Cannot determine server directory. Set working_dir or server_executable.",

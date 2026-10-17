@@ -11,42 +11,42 @@
 #
 #    1단계: [module]의 name, display_name을 내 게임에 맞게 바꾸기
 #    2단계: [protocols]에서 게임이 지원하는 프로토콜 선택하기
-#           - RCON 지원 → supported = ["rcon", "stdin"]
+#           - 콘솔 명령을 받는 서버(대부분) → supported = ["stdin"]
 #           - REST API만 → supported = ["rest"]
-#           - 아무것도 없으면 → supported = ["stdin"]
+#           - RCON은 쓰지 않습니다 (saba-chan 보안 정책). 게임에 RCON 설정이 있으면 lifecycle.py에서 끄세요
 #    3단계: [config]에서 실행 파일명, 프로세스명, 포트 채우기
 #           (작업관리자에서 서버 프로세스 이름을 확인하세요)
 #    4단계: [settings]에 GUI에서 조절할 항목 추가하기
 #    5단계: lifecycle.py의 get_launch_command()에서 실행 인자 맞추기
 #           (서버를 수동으로 한번 실행해보고 커맨드라인 인자를 확인하세요)
 #
-#  나머지 섹션(docker, install, commands 등)은 기본 동작 확인 후 추가하세요.
+#  나머지 섹션(install, commands 등)은 기본 동작 확인 후 추가하세요.
+#
+#  ★ 스키마 v1 규칙: 데몬은 schema_version = 1인 파일에서 모르는 키를 찾으면
+#    모듈을 로드하지 않습니다(오타가 조용히 무시되지 않도록). 검사는
+#      saba-core module validate <모듈 폴더>
+#    로 미리 할 수 있고, 키 목록과 뜻은 docs/module-spec.md에 있습니다.
 # ─────────────────────────────────────────────────────────────────
-
 
 # ── [module] 필수 메타데이터 ──────────────────────────────────────
 [module]
+schema_version = 1                      # module.toml 스키마 버전 (지금은 1)
 name = "mygame"                         # ★ 바꾸세요: 폴더명과 동일, 영문 소문자
 version = "0.1.0"                       # 모듈 버전 (semver)
 description = "MyGame server module"    # ★ 바꾸세요: 한 줄 설명
 game_name = "MyGame"                    # ★ 바꾸세요: 전체 게임 이름
 display_name = "MyGame"                 # ★ 바꾸세요: GUI에 표시되는 이름
-entry = "lifecycle.py"                  # 진입점 스크립트 (항상 lifecycle.py)
+entry = "lifecycle.py"                  # 진입점 스크립트 (모듈 폴더 기준 경로)
+# author = "your-name"                  # 선택: 만든 사람
 icon = "icon.png"                       # 아이콘 파일 (모듈 폴더 내)
 log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 정규식
-
-
-# ── [update] 모듈 자동 업데이트 ──────────────────────────────────
-[update]
-github_repo = "saba-chan-modules"        # GitHub 레포 이름 (github_owner는 본체 설정에서 상속)
-
 
 # ── [protocols] 통신 프로토콜 ────────────────────────────────────
 #
 #  supported: 이 모듈이 지원하는 프로토콜 목록
-#    - "rcon"  : RCON 프로토콜 (Valve Source RCON)
-#    - "rest"  : HTTP REST API
-#    - "stdin" : 표준 입력 (managed process의 stdin으로 명령 전송)
+#    - "stdin" : 표준 입력 (데몬이 managed process의 콘솔 stdin으로 명령 전송)
+#    - "rest"  : HTTP REST API (게임이 제공할 때)
+#    RCON은 보안 정책으로 막혀 있어 선언하지 않습니다.
 #
 #  default: 기본 사용 프로토콜 (supported 중 하나)
 #
@@ -54,11 +54,22 @@ github_repo = "saba-chan-modules"        # GitHub 레포 이름 (github_owner는
 #    - "console"  : stdin 지원, 실시간 콘솔 UI 표시 (Minecraft, Zomboid)
 #    - "commands" : 정해진 명령어 버튼만 표시 (Palworld)
 #
-[protocols]
-supported = ["rcon", "stdin"]           # ← 게임에 맞게 선택
-default = "rcon"
-interaction_mode = "console"            # "console" 또는 "commands"
+# ── [permissions] 코드가 쓰는 능력 (M12) ─────────────────────
+#  lifecycle 코드가 쓰는 능력을 선언합니다. 데몬(`saba-core module audit`, 모듈 화면)과
+#  적합성 키트가 코드를 검사해 선언하지 않은 사용을 알립니다. 쓰지 않는 것은 빼세요.
+#    network             네트워크 접속 (socket, urllib, requests). 데몬 API 호출은 제외
+#    spawn_process       프로그램 실행·프로세스 신호 (subprocess, os.system, os.kill)
+#    native_code         ctypes, cffi, winreg
+#    dynamic_code        eval, exec, compile, 동적 __import__, pickle, importlib
+#    env_secrets         환경 변수 전체 읽기 (dict(os.environ))
+#    fs_outside_instance 서버 작업 폴더 밖에 파일 쓰기 (검사로는 못 찾으니 정직하게 선언)
+[permissions]
+spawn_process = true
 
+[protocols]
+supported = ["stdin"]                   # ← 게임에 맞게 선택 ("stdin" | "rest")
+default = "stdin"
+interaction_mode = "console"            # "console" 또는 "commands"
 
 # ── [credential_map] 자격증명 자동 동기화 ────────────────────────
 #
@@ -69,22 +80,16 @@ interaction_mode = "console"            # "console" 또는 "commands"
 #  사용 가능한 데몬 키:
 #    - rest_password  : REST API 비밀번호
 #    - rest_username  : REST API 사용자명
-#    - rcon_password  : RCON 비밀번호
 #
 #  예시: Palworld는 REST API 비밀번호가 INI의 AdminPassword와 같음
 #    [credential_map]
 #    rest_password = "AdminPassword"
 #
-#  예시: 게임이 RCON 비밀번호를 자체 설정 파일에서 관리하는 경우
-#    [credential_map]
-#    rcon_password = "ServerRconPassword"
-#
 #  매핑을 선언하면 lifecycle.py에서 rest_credentials를 직접 반환할
 #  필요 없이, 게임 키 값만 launch_result 최상위에 포함하면 됩니다.
 #
 # [credential_map]
-# rcon_password = "GameSpecificRconKey"
-
+# rest_password = "GameSpecificAdminPassword"
 
 # ── [config] 기본 실행 설정 ──────────────────────────────────────
 [config]
@@ -92,9 +97,7 @@ executable_path = ""                    # 기본 실행 파일 전체 경로 (�
 server_executable = "MyGameServer.exe"  # 실행 파일명 (프로세스 탐지용)
 process_name = "MyGameServer"           # 프로세스 이름 (tasklist/pgrep 탐지용)
 default_port = 7777                     # 기본 게임 포트
-# rcon_port = 25575                     # RCON 포트 (RCON 지원 시)
 stop_command = "quit"                   # stdin으로 전송하는 graceful 종료 명령어
-
 
 # ── [install] 서버 설치 방법 ─────────────────────────────────────
 #
@@ -113,35 +116,26 @@ requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
 # download_url = "https://..."          # method="download"일 때 사용
 # beta_branch = "experimental"          # 베타 브랜치 이름 (선택)
 
-
-# ── [docker] 컨테이너 실행 설정 ──────────────────────────────────
-#  Docker 확장이 설치된 경우 컨테이너로 실행할 수 있습니다.
-#  { } 안의 변수는 인스턴스 설정에서 자동 치환됩니다.
-#
-[docker]
-image = "steamcmd/steamcmd:latest"
-working_dir = "/server"
-restart = "unless-stopped"
-entrypoint = "/bin/bash -c"
-command = "exec /server/MyGameServer -port={port}"
-ports = ["{port}:{port}/udp"]
-volumes = ["./server:/server"]
-
-[docker.environment]
-PORT = "{port}"
-
-
 # ── [detection] 자동 감지 ────────────────────────────────────────
 #  이미 실행 중인 서버를 자동으로 찾기 위한 패턴입니다.
 #
 [detection]
 process_patterns = ["MyGameServer"]     # 프로세스 이름 패턴 (부분 일치)
 # cmd_patterns = ["zombie.network"]     # 커맨드라인 패턴 (같은 실행파일을 쓰는 게임 구분용)
-common_paths = [                        # 자주 사용되는 설치 경로
-    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\MyGame",
-]
 dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해당 게임으로 판정
+# 서버가 끝났을 때 사용자가 끈 것인지, 크래시인지 가리는 데 씁니다 (크래시만 자동 재시작)
+# graceful_exit_patterns = ["Server stopped"]   # 정상 종료 때 콘솔에 찍히는 문구 (정규식)
+# crash_artifacts = ["crash-reports/*.txt"]     # 크래시 때 생기는 파일 (작업 폴더 기준, 마지막 칸만 * ?)
 
+# ── [launch] 실행 관련 ───────────────────────────────────────────
+#  콘솔에 아무것도 안 찍고 파일에만 로그를 쓰는 서버라면, 그 파일을 콘솔에 합칩니다.
+# [launch]
+# log_files = ["Logs/*.log"]            # 작업 폴더 기준, 마지막 칸만 * ?
+
+# ── [extensions.<익스텐션 id>] 익스텐션별 설정 ───────────────────
+#  익스텐션이 읽는 모듈별 설정을 여기에 둡니다. 데몬은 내용을 보지 않고 넘깁니다.
+# [extensions.myext]
+# some_option = true
 
 # ═══════════════════════════════════════════════════════════════════
 #                         SETTINGS
@@ -160,25 +154,7 @@ dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해�
 # ── saba-chan 전용 설정 ──
 
 [[settings.fields]]
-name = "rcon_port"                      # 내부 키 이름 (config에서 참조)
-type = "number"
-label = "RCON Port"
-description = "RCON remote console port"
-default = 25575
-min = 1
-max = 65535
-group = "saba-chan"
-
-[[settings.fields]]
-name = "rcon_password"
-type = "password"
-label = "RCON Password"
-description = "RCON authentication password (auto-managed)"
-required = false
-group = "saba-chan"
-
-[[settings.fields]]
-name = "managed_start"
+name = "managed_start"                  # 내부 키 이름 (config에서 참조)
 type = "boolean"
 label = "Managed Start (Console)"
 description = "Start in managed mode with stdin/stdout console"
@@ -256,15 +232,20 @@ min = 10
 max = 128
 group = "advanced"
 
-
 # ═══════════════════════════════════════════════════════════════════
 #                         COMMANDS
 # ═══════════════════════════════════════════════════════════════════
 #
 #  GUI에서 버튼으로 실행할 수 있는 서버 명령어를 정의합니다.
 #
-#  ── RCON 명령어 (method = "rcon") ──
-#  rcon_template: RCON으로 전송할 명령어 템플릿
+#  risk: 명령의 위험도. "safe"(조회·채팅) | "caution"(게임 상태 변경, 기본값) |
+#        "danger"(서버 종료, 추방·차단, 권한 변경). AI가 추론한 명령을 실행하기 전에
+#        확인을 받을지 정할 때 씁니다.
+#
+#  ── 콘솔 명령어 (method = "console") ──
+#  console_template: 콘솔에 보낼 명령어 템플릿. 데몬은 managed 서버의 stdin으로
+#  한 줄을 보낸 뒤 콘솔 출력을 잠깐 모아 응답으로 돌려줍니다.
+#  (예전 이름 method = "rcon" / rcon_template도 읽지만 새 모듈은 이 이름을 쓰세요)
 #  {변수명}은 inputs에 정의된 값으로 치환됩니다.
 #
 #  ── REST 명령어 (method = "rest") ──
@@ -274,31 +255,34 @@ group = "advanced"
 #
 [commands]
 
-# RCON 명령어 예시
+# 콘솔 명령어 예시
 [[commands.fields]]
 name = "say"
+risk = "safe"
 label = "Send Message"
 description = "Broadcast a message to all players"
-method = "rcon"                         # "rcon" 또는 "rest"
-rcon_template = "say {message}"         # {변수}는 inputs에서 치환
+method = "console"                         # 콘솔(stdin) 명령. REST면 "rest"
+console_template = "say {message}"         # stdin으로 보낼 줄. {변수}는 inputs에서 치환
 inputs = [
     { name = "message", type = "text", label = "Message", required = true, placeholder = "Enter message" }
 ]
 
 [[commands.fields]]
 name = "save"
+risk = "safe"
 label = "Save World"
 description = "Save the game world"
-method = "rcon"
-rcon_template = "save"
+method = "console"
+console_template = "save"
 inputs = []                             # 입력 없는 명령어
 
 [[commands.fields]]
 name = "kick"
+risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
-method = "rcon"
-rcon_template = "kick {player} {reason}"
+method = "console"
+console_template = "kick {player} {reason}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player name" },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional reason" }
@@ -316,7 +300,6 @@ inputs = [
 #     { name = "message", type = "text", label = "Message", required = true }
 # ]
 
-
 # ═══════════════════════════════════════════════════════════════════
 #                         ALIASES
 # ═══════════════════════════════════════════════════════════════════
@@ -333,7 +316,6 @@ status = { aliases = ["상태", "확인"], description = "Check server status" }
 say = { aliases = ["말하기", "채팅"], description = "Send a message" }
 save = { aliases = ["저장"], description = "Save the world" }
 kick = { aliases = ["킥", "강퇴"], description = "Kick a player" }
-
 
 # ═══════════════════════════════════════════════════════════════════
 #                    SYNTAX HIGHLIGHTING

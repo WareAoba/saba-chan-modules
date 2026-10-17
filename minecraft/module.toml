@@ -1,4 +1,5 @@
 [module]
+schema_version = 1
 name = "minecraft"
 version = "0.1.0"
 description = "Minecraft server management module with full lifecycle control"
@@ -9,25 +10,29 @@ entry = "lifecycle.py"
 icon = "icon.png"
 log_pattern = '/(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
-# 모듈 업데이트 설정 — 모듈은 별도 GitHub 레포지토리에서 관리됩니다
-[update]
-github_repo = "saba-chan-modules"  # github_owner는 본체 설정에서 상속
+[module.dependencies]
+saba-core = ">=0.1.2"
+
+[permissions]
+network = true          # 서버 파일 내려받기, 포트 확인
+spawn_process = true    # 서버 실행 파일 호출, PID로 종료
 
 [protocols]
-supported = ["rcon", "stdin"]
-default = "rcon"
+supported = ["stdin"]
+default = "stdin"
 interaction_mode = "console"  # console: stdin 지원, 콘솔 UI 표시 | commands: 정해진 명령어만 실행
 
 [config]
 executable_path = ""
-java_path = "java"
-server_jar = "server.jar"
 server_executable = "server.jar"
-eula = true
 process_name = "java.exe"
 default_port = 25565
-rcon_port = 25575
-ram = "4G"
+announce_command = "say"
+
+# 월드 백업 (A2). Bukkit 계열은 네더·엔드를 따로 둔다 (없으면 빠진다)
+[backup]
+paths = ["{level_name}", "{level_name}_nether", "{level_name}_the_end"]
+save_command = "save-all"
 
 [install]
 method = "download"
@@ -35,40 +40,16 @@ method = "download"
 download_url = "https://piston-data.mojang.com/v1/objects/{version_hash}/server.jar"
 install_subdir = "server"
 
-[docker]
-image = "eclipse-temurin:{java_version}-jre-jammy"
-working_dir = "/server"
-restart = "unless-stopped"
-command = "java -Xmx{ram}G -Xms{ram}G -jar server.jar nogui"
-ports = ["{port}:{port}/tcp", "{rcon_port}:{rcon_port}/tcp"]
-volumes = ["./server:/server"]
-
-[docker.environment]
-EULA = "TRUE"
-
 [detection]
 process_patterns = ["java.exe", "java", "minecraft_server", "server.jar"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Minecraft 서버를 식별하는 패턴
 # 같은 java.exe를 쓰는 다른 게임 서버(예: Zomboid)와 구분하기 위해 사용
 cmd_patterns = ["server.jar", "minecraft_server", "nogui", "net.minecraft"]
-common_paths = [
-    "C:\\Users\\*\\Desktop\\MinecraftServer",
-    "C:\\MinecraftServer",
-    "C:\\Games\\Minecraft\\server",
-    "D:\\MinecraftServer"
-]
 # dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴
 # 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
-dir_signatures = ["server.jar", "server.properties"]
-
-[detection.linux]
-process_name = "java"
-common_paths = [
-    "/home/*/minecraft-server",
-    "/opt/minecraft-server",
-    "/srv/minecraft",
-    "/home/*/server",
-]
+dir_signatures = ["server.jar"]
+graceful_exit_patterns = ["Stopping the server"]
+crash_artifacts = ["crash-reports/*.txt", "hs_err_pid*.log"]
 
 # ─── Settings (displayed in GUI for instance configuration) ───
 
@@ -105,7 +86,7 @@ group = "saba-chan"
 name = "managed_start"
 type = "boolean"
 label = "Managed Start (Console)"
-description = "Start in managed mode with stdin/stdout console (RCON disabled). Disable for native mode (RCON auto-enabled)."
+description = "Start through saba-runner with a stdin/stdout console (RCON stays off in every mode). Disable to leave the server unmanaged: then saba-chan cannot send it commands."
 default = true
 group = "saba-chan"
 
@@ -146,14 +127,6 @@ name = "broadcast_console_to_ops"
 type = "boolean"
 label = "Broadcast Console to Ops"
 description = "Send console output to all online ops"
-default = true
-group = "advanced"
-
-[[settings.fields]]
-name = "broadcast_rcon_to_ops"
-type = "boolean"
-label = "Broadcast RCON to Ops"
-description = "Send RCON command output to all online ops (only applies when Managed Start is disabled)"
 default = true
 group = "advanced"
 
@@ -203,7 +176,6 @@ label = "Enable Query"
 description = "Enable the GameSpy4 query protocol"
 default = false
 group = "advanced"
-
 
 [[settings.fields]]
 name = "enable_status"
@@ -425,6 +397,7 @@ group = "advanced"
 [[settings.fields]]
 name = "port"
 type = "number"
+port = true
 label = "Server Port"
 description = "Game server port"
 default = 25565
@@ -459,6 +432,7 @@ default = true
 [[settings.fields]]
 name = "query_port"
 type = "number"
+port = true
 label = "Query Port"
 description = "Port for GameSpy4 query protocol"
 default = 25565
@@ -474,24 +448,6 @@ description = "Max packets per second before disconnect (0 to disable)"
 default = 0
 min = 0
 max = 100000
-group = "advanced"
-
-[[settings.fields]]
-name = "rcon_password"
-type = "password"
-label = "RCON Password"
-description = "RCON access password (auto-managed when Managed Start is enabled)"
-default = ""
-group = "advanced"
-
-[[settings.fields]]
-name = "rcon_port"
-type = "number"
-label = "RCON Port"
-description = "RCON server port (only used when Managed Start is disabled)"
-default = 25575
-min = 1024
-max = 65535
 group = "advanced"
 
 [[settings.fields]]
@@ -659,20 +615,22 @@ default = false
 
 [[commands.fields]]
 name = "say"
+risk = "safe"
 label = "Send Chat Message"
 description = "Broadcast a message to the server"
-method = "rcon"
-rcon_template = "say {message}"
+method = "console"
+console_template = "say {message}"
 inputs = [
     { name = "message", type = "text", label = "Message", required = true, placeholder = "Enter message to send" }
 ]
 
 [[commands.fields]]
 name = "give"
+risk = "caution"
 label = "Give Item"
 description = "Give an item to a player"
-method = "rcon"
-rcon_template = "give {player} {item} {amount}"
+method = "console"
+console_template = "give {player} {item} {amount}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player nickname" },
     { name = "item", type = "text", label = "Item ID", required = true, placeholder = "e.g. diamond, iron_ore" },
@@ -681,26 +639,29 @@ inputs = [
 
 [[commands.fields]]
 name = "save-all"
+risk = "safe"
 label = "Save World"
 description = "Save the game world"
-method = "rcon"
-rcon_template = "save-all"
+method = "console"
+console_template = "save-all"
 inputs = []
 
 [[commands.fields]]
 name = "list"
+risk = "safe"
 label = "Player List"
 description = "View list of connected players"
-method = "rcon"
-rcon_template = "list"
+method = "console"
+console_template = "list"
 inputs = []
 
 [[commands.fields]]
 name = "weather"
+risk = "caution"
 label = "Change Weather"
 description = "Change the server weather"
-method = "rcon"
-rcon_template = "weather {type} {duration}"
+method = "console"
+console_template = "weather {type} {duration}"
 inputs = [
     { name = "type", type = "select", label = "Weather", required = true, options = ["clear", "rain", "thunder"] },
     { name = "duration", type = "number", label = "Duration (seconds)", required = true, default = 1000, min = 1, max = 1000000 }
@@ -708,20 +669,22 @@ inputs = [
 
 [[commands.fields]]
 name = "difficulty"
+risk = "caution"
 label = "Change Difficulty"
 description = "Change the game difficulty"
-method = "rcon"
-rcon_template = "difficulty {level}"
+method = "console"
+console_template = "difficulty {level}"
 inputs = [
     { name = "level", type = "select", label = "Difficulty", required = true, options = ["peaceful", "easy", "normal", "hard"] }
 ]
 
 [[commands.fields]]
 name = "gamemode"
+risk = "caution"
 label = "Change Game Mode"
 description = "Change a player's game mode"
-method = "rcon"
-rcon_template = "gamemode {mode} {player}"
+method = "console"
+console_template = "gamemode {mode} {player}"
 inputs = [
     { name = "mode", type = "select", label = "Game Mode", required = true, options = ["survival", "creative", "adventure", "spectator"] },
     { name = "player", type = "text", label = "Player Name", required = false, placeholder = "Leave empty for all" }
@@ -729,20 +692,22 @@ inputs = [
 
 [[commands.fields]]
 name = "time"
+risk = "caution"
 label = "Set Time"
 description = "Change the time of day"
-method = "rcon"
-rcon_template = "time set {value}"
+method = "console"
+console_template = "time set {value}"
 inputs = [
     { name = "value", type = "select", label = "Time", required = true, options = ["day", "noon", "night", "midnight", "0", "6000", "12000", "18000"] }
 ]
 
 [[commands.fields]]
 name = "tp"
+risk = "caution"
 label = "Teleport"
 description = "Teleport a player"
-method = "rcon"
-rcon_template = "tp {player} {target}"
+method = "console"
+console_template = "tp {player} {target}"
 inputs = [
     { name = "player", type = "text", label = "Player", required = true, placeholder = "Player to teleport" },
     { name = "target", type = "text", label = "Destination", required = true, placeholder = "Target player or coordinates (x y z)" }
@@ -750,10 +715,11 @@ inputs = [
 
 [[commands.fields]]
 name = "kick"
+risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
-method = "rcon"
-rcon_template = "kick {player} {reason}"
+method = "console"
+console_template = "kick {player} {reason}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Reason for kick" }
@@ -761,10 +727,11 @@ inputs = [
 
 [[commands.fields]]
 name = "ban"
+risk = "danger"
 label = "Ban Player"
 description = "Ban a player from the server"
-method = "rcon"
-rcon_template = "ban {player} {reason}"
+method = "console"
+console_template = "ban {player} {reason}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Reason for ban" }
@@ -772,40 +739,44 @@ inputs = [
 
 [[commands.fields]]
 name = "pardon"
+risk = "caution"
 label = "Unban Player"
 description = "Remove a player's ban"
-method = "rcon"
-rcon_template = "pardon {player}"
+method = "console"
+console_template = "pardon {player}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true }
 ]
 
 [[commands.fields]]
 name = "op"
+risk = "danger"
 label = "Op Player"
 description = "Give operator permissions"
-method = "rcon"
-rcon_template = "op {player}"
+method = "console"
+console_template = "op {player}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true }
 ]
 
 [[commands.fields]]
 name = "deop"
+risk = "caution"
 label = "Deop Player"
 description = "Remove operator permissions"
-method = "rcon"
-rcon_template = "deop {player}"
+method = "console"
+console_template = "deop {player}"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true }
 ]
 
 [[commands.fields]]
 name = "whitelist"
+risk = "caution"
 label = "Whitelist"
 description = "Manage the server whitelist"
-method = "rcon"
-rcon_template = "whitelist {action} {player}"
+method = "console"
+console_template = "whitelist {action} {player}"
 inputs = [
     { name = "action", type = "select", label = "Action", required = true, options = ["add", "remove", "list", "on", "off", "reload"] },
     { name = "player", type = "text", label = "Player Name", required = false, placeholder = "Player name (for add/remove)" }
@@ -813,18 +784,20 @@ inputs = [
 
 [[commands.fields]]
 name = "seed"
+risk = "safe"
 label = "Show Seed"
 description = "Display the world seed"
-method = "rcon"
-rcon_template = "seed"
+method = "console"
+console_template = "seed"
 inputs = []
 
 [[commands.fields]]
 name = "stop"
+risk = "danger"
 label = "Stop Server"
 description = "Gracefully stop the server"
-method = "rcon"
-rcon_template = "stop"
+method = "console"
+console_template = "stop"
 inputs = []
 
 # ─── Error definitions ────────────────────────────────────────
@@ -845,11 +818,11 @@ module_aliases = ["마인크래프트", "마크", "mc", "minecraft"]
 [aliases.commands]
 start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
 stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
-status = { aliases = ["상태", "상황", "확인"], description = "Check server status" }
+status = { aliases = ["상태", "상황", "확인", "정보", "info"], description = "Check server status" }
 say = { aliases = ["말", "채팅", "메시지"], description = "Broadcast a message" }
 give = { aliases = ["지급", "줘", "item"], description = "Give an item to a player" }
 save-all = { aliases = ["저장"], description = "Save the world" }
-list = { aliases = ["목록", "플레이어", "유저"], description = "View connected players" }
+list = { aliases = ["목록", "플레이어", "유저", "players"], description = "View connected players" }
 weather = { aliases = ["날씨", "웨더"], description = "Change the weather" }
 difficulty = { aliases = ["난이도", "어려움"], description = "Change game difficulty" }
 gamemode = { aliases = ["겜모드", "게임모드"], description = "Change game mode" }
@@ -872,207 +845,298 @@ whitelist = { aliases = ["화이트리스트", "화리"], description = "Manage 
 
 [syntax_highlight]
 
+# ── 스택트레이스 (최우선: 전체 라인 선점) ────────────────
+
+# Caused by: ... (Java 예외 연쇄 시작점)
+[[syntax_highlight.rules]]
+name = "stacktrace_caused"
+pattern = '^Caused by:.*'
+color = "error"
+priority = 100
+
+# "at pkg.Class.method(Src.java:42)" 스택 프레임
+[[syntax_highlight.rules]]
+name = "stacktrace_at"
+pattern = '^\s+at .*'
+color = "dim"
+italic = true
+priority = 100
+
+# Exception / Error 클래스 완전 이름 (java.lang.NullPointerException, OutOfMemoryError 등)
+[[syntax_highlight.rules]]
+name = "exception_class"
+pattern = '(?P<hl>[a-z][\w.]*\.[A-Z]\w*(?:Exception|Error))'
+color = "error"
+bold = true
+priority = 90
+
 # ── 구조: 타임스탬프 + 스레드/레벨 ──────────────────────
 
-# 1. 타임스탬프 [HH:MM:SS]
+# 타임스탬프 [HH:MM:SS]
 [[syntax_highlight.rules]]
 name = "timestamp"
 pattern = '^\[\d{2}:\d{2}:\d{2}\]'
 color = "timestamp"
+priority = 80
 
-# 2. 스레드/레벨 — INFO (기본, 어둡게)
+# 스레드/레벨 — ERROR / FATAL
 [[syntax_highlight.rules]]
-name = "level_info"
-pattern = '\[(?P<hl>[^\]]+/INFO)\]'
-color = "dim"
+name = "level_error"
+pattern = '\[(?P<hl>[^\]]+/(?:ERROR|FATAL))\]'
+color = "error"
+bold = true
+priority = 75
 
-# 3. 스레드/레벨 — WARN
+# 스레드/레벨 — WARN
 [[syntax_highlight.rules]]
 name = "level_warn"
 pattern = '\[(?P<hl>[^\]]+/WARN)\]'
 color = "warn"
 bold = true
+priority = 75
 
-# 4. 스레드/레벨 — ERROR / FATAL
-[[syntax_highlight.rules]]
-name = "level_error"
-pattern = '\[(?P<hl>[^\]]+/(ERROR|FATAL))\]'
-color = "error"
-bold = true
-
-# 5. 스레드/레벨 — DEBUG
+# 스레드/레벨 — DEBUG
 [[syntax_highlight.rules]]
 name = "level_debug"
 pattern = '\[(?P<hl>[^\]]+/DEBUG)\]'
 color = "debug"
 italic = true
+priority = 75
 
-# ── 서버 이벤트: 시작/완료/종료 ──────────────────────────
+# 스레드/레벨 — INFO (기본, 어둡게)
+[[syntax_highlight.rules]]
+name = "level_info"
+pattern = '\[(?P<hl>[^\]]+/INFO)\]'
+color = "dim"
+priority = 70
 
-# 6. Done 메시지 (서버 준비 완료)
+# ── 서버 이벤트: 시작/완료/종료/저장 ─────────────────────
+
+# Done (Xs)! — 서버 준비 완료
 [[syntax_highlight.rules]]
 name = "done_message"
 pattern = '(?P<hl>Done \([^)]+\)!.*)'
 color = "success"
 bold = true
+priority = 60
 
-# 7. Starting minecraft server version X.Y.Z
+# Starting minecraft server version X.Y.Z
 [[syntax_highlight.rules]]
 name = "server_version"
 pattern = '(?P<hl>Starting minecraft server version .+)'
 color = "info"
 bold = true
+priority = 60
 
-# 8. Stopping the server / Stopping server
+# Stopping server / Stopping the server
 [[syntax_highlight.rules]]
 name = "server_stopping"
-pattern = '(?P<hl>Stopping the server|Stopping server)'
+pattern = '(?P<hl>Stopping (?:the )?server)'
 color = "warn"
 bold = true
+priority = 60
 
-# ── 플레이어 ─────────────────────────────────────────────
-
-# 9. 채팅 <Player>
+# Saving chunks/players/worlds
 [[syntax_highlight.rules]]
-name = "chat_name"
-pattern = '<(?P<hl>\w{3,16})>'
-color = "player"
-bold = true
+name = "server_saving"
+pattern = '(?P<hl>Saving (?:chunks|players|worlds).*)'
+color = "info"
+priority = 55
 
-# 10. 접속 — "Player joined the game"
+# Preparing spawn area / start region (초기 로딩)
 [[syntax_highlight.rules]]
-name = "player_join"
-pattern = '(?P<hl>\w{3,16}) joined the game'
-color = "#a6e3a1"
-bold = true
+name = "preparing_spawn"
+pattern = '(?P<hl>Preparing (?:spawn area|start region))'
+color = "info"
+priority = 55
 
-# 11. 퇴장 — "Player left the game"
-[[syntax_highlight.rules]]
-name = "player_leave"
-pattern = '(?P<hl>\w{3,16}) left the game'
-color = "#f9e2af"
+# ── 치명적 경고 ──────────────────────────────────────────
 
-# 12. 접속 로그 — "Player[/IP:port] logged in"
-[[syntax_highlight.rules]]
-name = "player_login"
-pattern = '(?P<hl>\w{3,16})\[/'
-color = "player"
-bold = true
-
-# 13. 사망 메시지 — "Player was slain by ...", "Player drowned", etc.
-[[syntax_highlight.rules]]
-name = "death_message"
-pattern = ': (?P<hl>\w{3,16} (was (slain|shot|blown|pummeled|squished|killed|stung|fireballed|obliterated|skewered|impaled)|drowned|burned|suffocated|fell|hit the ground|went off|walked into|tried to swim|experienced kinetic|starved|withered|died|was pricked|was roasted).*)'
-color = "#f38ba8"
-
-# ── 네트워크·식별자 ──────────────────────────────────────
-
-# 14. UUID
-[[syntax_highlight.rules]]
-name = "uuid"
-pattern = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
-color = "uuid"
-
-# 15. IP 주소(:포트)
-[[syntax_highlight.rules]]
-name = "ip_address"
-pattern = '/(?P<hl>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?)'
-color = "ip"
-
-# 16. 좌표 (x, y, z) — 소수점 포함
-[[syntax_highlight.rules]]
-name = "coordinates"
-pattern = '(?P<hl>-?\d+\.?\d*, -?\d+\.?\d*, -?\d+\.?\d*)'
-color = "number"
-
-# ── 리소스·네임스페이스 ──────────────────────────────────
-
-# 17. minecraft:xxx 리소스 식별자
-[[syntax_highlight.rules]]
-name = "resource_id"
-pattern = '(?P<hl>minecraft:\w+(/\w+)*)'
-color = "keyword"
-
-# 18. 어드밴스먼트 — "has made the advancement [Name]"
-[[syntax_highlight.rules]]
-name = "advancement"
-pattern = 'the advancement \[(?P<hl>[A-Z][A-Za-z !]+)\]'
-color = "success"
-
-# ── 퍼센트·숫자 ──────────────────────────────────────────
-
-# 19. 퍼센트 표시 (Preparing spawn area: 52%)
-[[syntax_highlight.rules]]
-name = "percentage"
-pattern = '(?P<hl>\d+%)'
-color = "number"
-bold = true
-
-# ── Java 스택트레이스 ────────────────────────────────────
-
-# 20. 스택트레이스 "at" 라인
-[[syntax_highlight.rules]]
-name = "stacktrace_at"
-pattern = '^\s+at .*'
-color = "#585b70"
-
-# 21. "Caused by:" 라인
-[[syntax_highlight.rules]]
-name = "stacktrace_caused"
-pattern = '^Caused by:.*'
-color = "error"
-
-# 22. Exception 클래스명
-[[syntax_highlight.rules]]
-name = "exception_class"
-pattern = '(?P<hl>[a-z]+(\.[a-z]+)*\.[A-Z]\w*Exception)'
-color = "error"
-bold = true
-
-# ── 경고·에러 특수 메시지 ────────────────────────────────
-
-# 23. Can't keep up!
+# Can't keep up! Is the server overloaded?
 [[syntax_highlight.rules]]
 name = "cant_keep_up"
 pattern = "(?P<hl>Can't keep up!.*)"
 color = "warn"
 bold = true
+priority = 65
 
-# 24. EULA 동의 필요
+# Player moved too quickly / wrongly
+[[syntax_highlight.rules]]
+name = "moved_incorrectly"
+pattern = '(?P<hl>\w{3,16} moved (?:too quickly|wrongly)!?)'
+color = "warn"
+priority = 60
+
+# EULA 미동의 경고
 [[syntax_highlight.rules]]
 name = "eula_warning"
 pattern = '(?P<hl>You need to agree to the EULA.*)'
 color = "error"
 bold = true
+priority = 65
 
-# 25. [Server] 시스템 메시지
+# ── 플레이어 이벤트 ──────────────────────────────────────
+
+# 채팅 <Player>
+[[syntax_highlight.rules]]
+name = "chat_name"
+pattern = '<(?P<hl>\w{3,16})>'
+color = "player"
+bold = true
+priority = 50
+
+# 접속 — "Player joined the game"
+[[syntax_highlight.rules]]
+name = "player_join"
+pattern = '(?P<hl>\w{3,16}) joined the game'
+color = "success"
+bold = true
+priority = 50
+
+# 퇴장 — "Player left the game"
+[[syntax_highlight.rules]]
+name = "player_leave"
+pattern = '(?P<hl>\w{3,16}) left the game'
+color = "warning"
+priority = 50
+
+# 로그인 — "Player[/IP:port] logged in ..." (이름 부분만)
+[[syntax_highlight.rules]]
+name = "player_login"
+pattern = '(?P<hl>\w{3,16})\[/'
+color = "player"
+bold = true
+priority = 50
+
+# 연결 끊김 사유 — "Player lost connection: <reason>"
+[[syntax_highlight.rules]]
+name = "player_disconnect_reason"
+pattern = '\w{3,16} lost connection: (?P<hl>.+)'
+color = "info"
+priority = 50
+
+# ── 사망 메시지 (Minecraft Java 1.21.11 기준 동사 집합) ─
+#   공식 wiki death.attack.* 번역 키 전수 조사 기반.
+#   "was <verb>" 형과 독립 동사("drowned", "froze", ...) 형 모두 커버.
+
+[[syntax_highlight.rules]]
+name = "death_message"
+pattern = ': (?P<hl>\w{3,16} (?:was (?:slain|shot|blown|pummeled|squished|killed|stung|fireballed|obliterated|skewered|impaled|struck|pricked|poked|smashed|speared|roasted|squashed|burned|frozen|doomed|sniped|spitballed)|drowned|burned|suffocated|froze|fell|hit the ground|went (?:up|off)|walked into|tried to swim|experienced kinetic|starved|withered|died|discovered|left the confines).*)'
+color = "error"
+priority = 45
+
+# ── 관리자 명령 피드백 ───────────────────────────────────
+
+# [Player: Action description]  — 예: "[Steve: Set own game mode to Creative Mode]"
+[[syntax_highlight.rules]]
+name = "admin_action"
+pattern = '\[(?P<hl>\w{3,16}: [A-Z][^\]]+)\]'
+color = "info"
+italic = true
+priority = 40
+
+# Opped / Deopped / Banned / Pardoned / Kicked / Whitelisted / Teleported <player>
+[[syntax_highlight.rules]]
+name = "admin_target"
+pattern = '(?P<hl>(?:Opped|De-?opped|Banned(?: player)?|Unbanned|Pardoned|Kicked|Whitelisted|Teleported) \w{3,16})'
+color = "info"
+bold = true
+priority = 40
+
+# ── 네트워크·식별자 ──────────────────────────────────────
+
+# UUID (대소문자 모두 허용) — 파일 경로/식별자 안에 포함된 경우는 제외
+[[syntax_highlight.rules]]
+name = "uuid"
+pattern = '(?<![\w/-])(?P<hl>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?![\w/-])'
+color = "uuid"
+priority = 30
+
+# IP 주소(:포트) — "/" prefix (Netty 표기)
+[[syntax_highlight.rules]]
+name = "ip_address"
+pattern = '/(?P<hl>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?)'
+color = "ip"
+priority = 30
+
+# 좌표 (x, y, z) — 소수점 포함 3-tuple
+[[syntax_highlight.rules]]
+name = "coordinates"
+pattern = '(?P<hl>-?\d+\.?\d*, -?\d+\.?\d*, -?\d+\.?\d*)'
+color = "number"
+priority = 30
+
+# ── 리소스·네임스페이스 ──────────────────────────────────
+
+# minecraft:block/stone, minecraft:stone 등
+[[syntax_highlight.rules]]
+name = "resource_id"
+pattern = '(?P<hl>minecraft:[\w/]+)'
+color = "keyword"
+priority = 25
+
+# "the advancement [Name]"
+[[syntax_highlight.rules]]
+name = "advancement"
+pattern = 'the advancement \[(?P<hl>[A-Z][A-Za-z !]+)\]'
+color = "success"
+priority = 25
+
+# 아이템 대괄호 — "Gave N [Item] to Player" / "Summoned [Entity]"
+[[syntax_highlight.rules]]
+name = "item_bracket"
+pattern = '(?:Gave|Summoned|Replaced) [^\[]*\[(?P<hl>[A-Z][\w ]+)\]'
+color = "string"
+priority = 25
+
+# ── 숫자·단위 ────────────────────────────────────────────
+
+# 퍼센트 (Preparing spawn area: 52%)
+[[syntax_highlight.rules]]
+name = "percentage"
+pattern = '(?P<hl>\d+%)'
+color = "number"
+bold = true
+priority = 20
+
+# ── 시스템 메시지 ────────────────────────────────────────
+
+# [Server] 브로드캐스트 (say 명령)
 [[syntax_highlight.rules]]
 name = "server_broadcast"
 pattern = '\[(?P<hl>Server)\]'
 color = "command"
+priority = 20
 
-# ── 명령어·셀렉터 (인게임 /command 구문 색상 참고) ────────
+# [Rcon] 레이블
+[[syntax_highlight.rules]]
+name = "rcon_label"
+pattern = '\[(?P<hl>Rcon)\]'
+color = "command"
+priority = 20
 
-# 26. 슬래시 명령어 — /tp, /execute, /say, /give 등
-#     Minecraft 인게임에서 연한 회색/흰색으로 표시되는 명령어 본체
-#     콘솔에서는 command 토큰(핑크)으로 강조
+# ── 명령어·셀렉터 (인게임 색상 관례 참고) ─────────────────
+
+# /command — 인게임에서는 연회색, 콘솔에서는 command 토큰(핑크)
+# URL/파일 경로(/api, /jace5 등)와 혼동되지 않도록 줄 시작 또는 공백 뒤에서만 매칭
 [[syntax_highlight.rules]]
 name = "slash_command"
-pattern = '(?P<hl>/[a-z]{2,}\w*)'
+pattern = '(?<=^|\s)(?P<hl>/[a-z][a-z0-9_-]+)\b'
 color = "command"
 bold = true
+priority = 15
 
-# 27. 엔티티 셀렉터 — @p, @a, @e, @r, @s (+ 선택적 [조건])
-#     인게임에서 노란색으로 표시되는 엔티티 셀렉터
+# @p, @a, @e, @r, @s, @n — 엔티티 셀렉터 (1.20.5+ @n 추가)
 [[syntax_highlight.rules]]
 name = "entity_selector"
-pattern = '(?P<hl>@[paers](\[[^\]]*\])?)'
+pattern = '(?P<hl>@[paersn](?:\[[^\]]*\])?)'
 color = "selector"
 bold = true
+priority = 15
 
-# 28. 문자열 리터럴 — "quoted text"
-#     인게임에서 연두색 계열로 표시되는 문자열
+# "quoted string"
 [[syntax_highlight.rules]]
 name = "string_literal"
 pattern = '(?P<hl>"[^"]*")'
 color = "string"
+priority = 10

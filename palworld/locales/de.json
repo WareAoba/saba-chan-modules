@@ -5,19 +5,57 @@
   },
   "settings": {
     "port": { "label": "Server-Port", "description": "Spielserver-Port" },
-    "rcon_port": { "label": "RCON-Port", "description": "RCON-Port" },
-    "rcon_password": { "label": "RCON-Passwort", "description": "Passwort für Fernbefehlsausführung" },
     "rest_host": { "label": "REST-API-Host", "description": "REST-API-Host (Standard 127.0.0.1)" },
     "rest_port": { "label": "REST-API-Port", "description": "REST-API-Port (Standard 8212)" },
-    "rest_username": { "label": "REST-Benutzername", "description": "REST Basic Auth Benutzername" }
+    "rest_username": { "label": "REST-Benutzername", "description": "REST Basic Auth Benutzername" },
+    "server_name": { "label": "Server Name", "description": "Name displayed in the server browser" },
+    "server_description": { "label": "Server Description", "description": "Server description" },
+    "server_password": { "label": "Server Password", "description": "Password required to join the server" },
+    "admin_password": { "label": "Admin Password", "description": "Administrator access password" },
+    "max_players": { "label": "Max Players", "description": "Maximum number of players (1-32)" },
+    "coop_max_players": { "label": "Co-op Max Players", "description": "Maximum number of players in co-op party" },
+    "public_ip": { "label": "Public IP", "description": "Public IP address (leave empty for auto)" },
+    "difficulty": { "label": "Difficulty", "description": "Overall game difficulty" },
+    "is_pvp": { "label": "PvP", "description": "Enable Player vs Player combat" },
+    "death_penalty": { "label": "Death Penalty", "description": "What drops on player death" },
+    "exp_rate": { "label": "EXP Rate", "description": "Experience gain multiplier (0.1-20.0)" },
+    "day_time_speed_rate": { "label": "Day Time Speed", "description": "Daytime duration multiplier (0.1-5.0)" },
+    "night_time_speed_rate": { "label": "Night Time Speed", "description": "Nighttime duration multiplier (0.1-5.0)" },
+    "pal_capture_rate": { "label": "Pal Capture Rate", "description": "Pal capture chance multiplier (0.5-2.0)" },
+    "pal_spawn_num_rate": { "label": "Pal Spawn Rate", "description": "Pal spawn count multiplier (0.5-3.0)" },
+    "pal_damage_rate_attack": { "label": "Pal Attack Damage", "description": "Pal attack damage multiplier (0.1-5.0)" },
+    "pal_damage_rate_defense": { "label": "Pal Defense", "description": "Pal damage received multiplier (0.1-5.0)" },
+    "pal_stomach_decrease_rate": { "label": "Pal Hunger Rate", "description": "Pal hunger decrease multiplier (0.1-5.0)" },
+    "pal_stamina_decrease_rate": { "label": "Pal Stamina Rate", "description": "Pal stamina decrease multiplier (0.1-5.0)" },
+    "pal_auto_hp_regen_rate": { "label": "Pal HP Regen", "description": "Pal HP auto-regeneration multiplier (0.1-5.0)" },
+    "pal_auto_hp_regen_rate_in_sleep": { "label": "Pal Sleep HP Regen", "description": "Pal HP regeneration during sleep multiplier (0.1-5.0)" },
+    "player_damage_rate_attack": { "label": "Player Attack Damage", "description": "Player attack damage multiplier (0.1-5.0)" },
+    "player_damage_rate_defense": { "label": "Player Defense", "description": "Player damage received multiplier (0.1-5.0)" },
+    "player_stomach_decrease_rate": { "label": "Player Hunger Rate", "description": "Player hunger decrease multiplier (0.1-5.0)" },
+    "player_stamina_decrease_rate": { "label": "Player Stamina Rate", "description": "Player stamina decrease multiplier (0.1-5.0)" },
+    "player_auto_hp_regen_rate": { "label": "Player HP Regen", "description": "Player HP auto-regeneration multiplier (0.1-5.0)" },
+    "player_auto_hp_regen_rate_in_sleep": { "label": "Player Sleep HP Regen", "description": "Player HP regeneration during sleep multiplier (0.1-5.0)" },
+    "build_object_damage_rate": { "label": "Structure Damage Rate", "description": "Damage dealt to structures multiplier (0.5-3.0)" },
+    "build_object_deterioration_damage_rate": { "label": "Structure Decay Rate", "description": "Structure deterioration/aging damage multiplier (0-10)" },
+    "drop_item_max_num": { "label": "Drop Item Max", "description": "Maximum number of dropped items in the world (0-3000)" },
+    "collection_drop_rate": { "label": "Gathering Drop Rate", "description": "Gathering item drop multiplier (0.5-3.0)" },
+    "collection_object_hp_rate": { "label": "Gathering Object HP", "description": "Gathering object HP multiplier (0.5-3.0)" },
+    "collection_object_respawn_speed_rate": { "label": "Gathering Respawn Speed", "description": "Gathering object respawn speed multiplier (0.5-3.0)" },
+    "enemy_drop_item_rate": { "label": "Enemy Drop Rate", "description": "Enemy item drop multiplier (0.5-3.0)" },
+    "pal_egg_default_hatching_time": { "label": "Egg Hatching Time", "description": "Default egg hatching time in hours (0-240)" },
+    "enable_invader_enemy": { "label": "Raid Events", "description": "Enable base raid events" },
+    "guild_player_max_num": { "label": "Guild Max Players", "description": "Maximum number of players in a guild (1-100)" },
+    "enable_player_to_player_damage": { "label": "Player vs Player Damage", "description": "Allow players to damage each other" },
+    "enable_friendly_fire": { "label": "Friendly Fire", "description": "Allow guild members to damage each other" },
+    "base_camp_worker_max_num": { "label": "Base Camp Workers", "description": "Maximum number of Pals working at a base (1-20)" },
+    "base_camp_max_num": { "label": "Max Base Camps", "description": "Maximum number of base camps that can be built" },
+    "work_speed_rate": { "label": "Work Speed Rate", "description": "Work speed multiplier" }
   },
   "commands": {
     "announce": {
       "label": "Ankündigung senden",
       "description": "Nachricht an den Server senden",
-      "inputs": {
-        "message": { "label": "Ankündigungsnachricht", "placeholder": "Ankündigungsnachricht eingeben" }
-      }
+      "inputs": { "message": { "label": "Ankündigungsnachricht", "placeholder": "Ankündigungsnachricht eingeben" } }
     },
     "info": { "label": "Serverinformationen", "description": "Serverinformationen anzeigen" },
     "players": { "label": "Spielerliste", "description": "Aktuell verbundene Spieler auflisten" },
@@ -25,34 +63,25 @@
     "shutdown": {
       "label": "Server herunterfahren",
       "description": "Server herunterfahren (mit optionaler Verzögerung)",
-      "inputs": {
-        "waittime": { "label": "Abschaltverzögerung (Sekunden)" },
-        "message": { "label": "Abschaltnachricht", "placeholder": "Server-Abschaltankündigung" }
-      }
+      "inputs": { "waittime": { "label": "Abschaltverzögerung (Sekunden)" }, "message": { "label": "Abschaltnachricht", "placeholder": "Server-Abschaltankündigung" } }
     },
     "kick": {
       "label": "Spieler kicken",
       "description": "Einen Spieler vom Server kicken",
-      "inputs": {
-        "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" },
-        "message": { "label": "Kick-Nachricht", "placeholder": "Optional: Kick-Nachricht" }
-      }
+      "inputs": { "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" }, "message": { "label": "Kick-Nachricht", "placeholder": "Optional: Kick-Nachricht" } }
     },
     "ban": {
       "label": "Spieler bannen",
       "description": "Einen Spieler dauerhaft bannen",
-      "inputs": {
-        "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" },
-        "message": { "label": "Ban-Nachricht", "placeholder": "Optional: Ban-Nachricht" }
-      }
+      "inputs": { "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" }, "message": { "label": "Ban-Nachricht", "placeholder": "Optional: Ban-Nachricht" } }
     },
     "unban": {
       "label": "Spieler entbannen",
       "description": "Einen gebannten Spieler entbannen",
-      "inputs": {
-        "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" }
-      }
-    }
+      "inputs": { "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" } }
+    },
+    "metrics": { "label": "Server-Metriken", "description": "Server-FPS, Spielerzahl und Laufzeit anzeigen" },
+    "settings": { "label": "Einstellungen anzeigen", "description": "Aktuelle Servereinstellungen anzeigen" }
   },
   "errors": {
     "failed_to_start": "Start fehlgeschlagen: {{error}}",
@@ -63,7 +92,15 @@
     "invalid_json_response": "Ungültige JSON-Antwort vom Daemon: {{error}}",
     "daemon_error": "Daemon-Fehler: {{error}}",
     "player_list_failed": "Fehler beim Abrufen der Spielerliste: {{error}}",
-    "server_info_failed": "Fehler beim Abrufen der Serverinformationen: {{error}}"
+    "server_info_failed": "Fehler beim Abrufen der Serverinformationen: {{error}}",
+    "failed_to_stop_process": "Failed to stop process: {{error}}",
+    "no_executable": "server_executable not specified in instance configuration. Please add the path to PalServer.exe",
+    "executable_not_found": "Executable not found: {{path}}. Please check the path in instance settings.",
+    "failed_to_get_status": "Failed to get status: {{error}}",
+    "no_settings": "No settings provided.",
+    "no_server_dir": "Cannot determine server directory. Set working_dir or server_executable.",
+    "settings_write_failed": "Failed to write settings file.",
+    "settings_not_found": "Settings file not found. Start the server once to generate it."
   },
   "messages": {
     "starting_server": "Server wird gestartet: {{command}}",
@@ -80,12 +117,32 @@
     "shutdown_initiated": "Server-Herunterfahren eingeleitet ({{seconds}}s Countdown)",
     "rest_api_forced_on": "[Richtlinie] REST API erzwungen aktiviert",
     "rcon_forced_off": "[Richtlinie] RCON erzwungen deaktiviert (veraltet)",
-    "admin_password_generated": "[Richtlinie] AdminPassword automatisch f\u00fcr REST API-Authentifizierung generiert"
+    "admin_password_generated": "[Richtlinie] AdminPassword automatisch für REST API-Authentifizierung generiert",
+    "terminated": "Terminated {{name}}",
+    "process_running": "{{name}} is running",
+    "process_not_running": "{{name}} is not running",
+    "settings_updated": "Settings updated successfully.",
+    "using_defaults": "Using defaults from DefaultPalWorldSettings.ini (server not yet configured).",
+    "no_eula_needed": "Palworld does not require separate EULA acceptance.",
+    "install_via_steamcmd": "Palworld dedicated server must be installed via SteamCMD.",
+    "versions_via_steam": "Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Use SteamCMD to install or update.",
+    "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update.",
+    "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first."
   },
   "reset": {
     "no_path": "Server-Verzeichnis kann nicht ermittelt werden. Setzen Sie working_dir oder server_executable.",
     "not_found": "Einstellungsdatei nicht gefunden. Starten Sie den Server einmal, um sie zu generieren.",
     "settings_success": "Alle Servereinstellungen wurden auf die Werkseinstellungen zurückgesetzt. Weltdaten bleiben erhalten.",
     "settings_failed": "Schreiben der Standardeinstellungen in die Konfigurationsdatei fehlgeschlagen."
+  },
+  "validate": {
+    "no_executable": "Server executable path not specified.",
+    "no_executable_hint": "Set the path to PalServer.exe in instance settings.",
+    "executable_not_found": "Executable not found: {{path}}",
+    "executable_not_found_hint": "Check the executable path or reinstall the server.",
+    "cannot_create_dir": "Cannot create working directory: {{path}}",
+    "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
+    "port_in_use": "Port {{port}} is already in use.",
+    "port_in_use_hint": "Stop the other process using port {{port}} or change the port."
   }
 }

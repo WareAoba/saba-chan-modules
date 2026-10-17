@@ -4,6 +4,7 @@
     "description": "Project Zomboid 専用サーバー管理モジュール（完全なライフサイクル制御）"
   },
   "settings": {
+    "cache_dir": { "label": "データフォルダー", "description": "このサーバーの設定・セーブ・ログを置くフォルダー (-cachedir)。空欄なら ~/Zomboid" },
     "ram": { "label": "メモリ (RAM)", "description": "最大メモリ割り当て量 (GB)" },
     "server_name": { "label": "サーバープロファイル名", "description": "サーバープロファイル名（INIファイル名を決定）" },
     "rcon_port": { "label": "RCONポート", "description": "RCONリモートコンソールのポート" },
@@ -47,35 +48,42 @@
     "max_accounts_per_user": { "label": "ユーザー当たり最大アカウント", "description": "Steamユーザー当たりのアカウント制限" }
   },
   "commands": {
-    "servermsg": { "label": "全体メッセージ送信", "description": "全プレイヤーにメッセージを送信", "inputs": { "message": { "label": "メッセージ", "placeholder": "送信するメッセージを入力" } } },
+    "servermsg": {
+      "label": "全体メッセージ送信",
+      "description": "全プレイヤーにメッセージを送信",
+      "inputs": { "message": { "label": "メッセージ", "placeholder": "送信するメッセージを入力" } }
+    },
     "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤーを表示" },
     "save": { "label": "ワールド保存", "description": "現在のゲームワールドを保存" },
-    "kick": { "label": "プレイヤーキック", "description": "プレイヤーをサーバーからキック", "inputs": { "player": { "label": "プレイヤー名" }, "reason": { "label": "理由" } } },
-    "banuser": { "label": "プレイヤーBAN", "description": "プレイヤーをBANする", "inputs": { "player": { "label": "プレイヤー名" }, "reason": { "label": "理由" } } },
-    "unbanuser": { "label": "BAN解除", "description": "プレイヤーのBANを解除", "inputs": { "player": { "label": "プレイヤー名" } } },
+    "kick": {
+      "label": "プレイヤーキック",
+      "description": "プレイヤーをサーバーからキック",
+      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "Player username" }, "reason": { "label": "理由", "placeholder": "Optional reason" } }
+    },
+    "banuser": {
+      "label": "プレイヤーBAN",
+      "description": "プレイヤーをBANする",
+      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "Player username" }, "reason": { "label": "理由", "placeholder": "Optional reason" } }
+    },
+    "unbanuser": {
+      "label": "BAN解除",
+      "description": "プレイヤーのBANを解除",
+      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "Player username" } }
+    },
     "adduser": {
       "label": "ユーザー追加",
       "description": "サーバーに新しいユーザーを追加",
-      "inputs": {
-        "username": { "label": "ユーザー名", "placeholder": "アカウントのユーザー名" },
-        "password": { "label": "パスワード", "placeholder": "アカウントのパスワード" }
-      }
+      "inputs": { "username": { "label": "ユーザー名", "placeholder": "アカウントのユーザー名" }, "password": { "label": "パスワード", "placeholder": "アカウントのパスワード" } }
     },
     "setaccesslevel": {
       "label": "アクセスレベル設定",
       "description": "プレイヤーのアクセスレベルを設定",
-      "inputs": {
-        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
-        "level": { "label": "アクセスレベル" }
-      }
+      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "level": { "label": "アクセスレベル" } }
     },
     "teleport": {
       "label": "テレポート",
       "description": "プレイヤーにテレポート",
-      "inputs": {
-        "player": { "label": "プレイヤー", "placeholder": "移動するプレイヤー" },
-        "target": { "label": "対象", "placeholder": "移動先のプレイヤー" }
-      }
+      "inputs": { "player": { "label": "プレイヤー", "placeholder": "移動するプレイヤー" }, "target": { "label": "対象", "placeholder": "移動先のプレイヤー" } }
     },
     "teleportto": {
       "label": "座標テレポート",
@@ -85,26 +93,17 @@
     "createhorde": {
       "label": "ゾンビ群生成",
       "description": "プレイヤー付近にゾンビ群を生成",
-      "inputs": {
-        "count": { "label": "ゾンビ数" },
-        "player": { "label": "プレイヤー (任意)", "placeholder": "対象プレイヤー" }
-      }
+      "inputs": { "count": { "label": "ゾンビ数" }, "player": { "label": "プレイヤー (任意)", "placeholder": "対象プレイヤー" } }
     },
     "godmod": {
       "label": "ゴッドモード",
       "description": "プレイヤーを無敵にする",
-      "inputs": {
-        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
-        "value": { "label": "有効化" }
-      }
+      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "value": { "label": "有効化" } }
     },
     "invisible": {
       "label": "透明化",
       "description": "ゾンビから見えなくする",
-      "inputs": {
-        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
-        "value": { "label": "有効化" }
-      }
+      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "value": { "label": "有効化" } }
     },
     "startrain": { "label": "雨開始", "description": "サーバーで雨を開始" },
     "stoprain": { "label": "雨停止", "description": "サーバーの雨を停止" },
@@ -113,30 +112,19 @@
     "additem": {
       "label": "アイテム付与",
       "description": "プレイヤーにアイテムを付与",
-      "inputs": {
-        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
-        "item": { "label": "アイテムID", "placeholder": "例: Base.Axe" },
-        "count": { "label": "個数" }
-      }
+      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "item": { "label": "アイテムID", "placeholder": "例: Base.Axe" }, "count": { "label": "個数" } }
     },
     "addxp": {
       "label": "経験値付与",
       "description": "プレイヤーに経験値を付与",
-      "inputs": {
-        "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" },
-        "perk": { "label": "パーク名", "placeholder": "例: Woodwork" },
-        "amount": { "label": "XP量" }
-      }
+      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "perk": { "label": "パーク名", "placeholder": "例: Woodwork" }, "amount": { "label": "XP量" } }
     },
     "showoptions": { "label": "サーバーオプション表示", "description": "現在のサーバー設定を表示" },
     "reloadoptions": { "label": "オプション再読み込み", "description": "INIからサーバーオプションを再読み込み" },
     "changeoption": {
       "label": "オプション変更",
       "description": "サーバーオプションをリアルタイムで変更",
-      "inputs": {
-        "option": { "label": "オプション名", "placeholder": "例: MaxPlayers" },
-        "value": { "label": "新しい値", "placeholder": "新しい値" }
-      }
+      "inputs": { "option": { "label": "オプション名", "placeholder": "例: MaxPlayers" }, "value": { "label": "新しい値", "placeholder": "新しい値" } }
     },
     "quit": { "label": "サーバーシャットダウン", "description": "保存して安全にシャットダウン" }
   },
@@ -193,7 +181,10 @@
     "no_mappable_settings": "サーバー設定キーにマッピングできる設定がありません",
     "install_complete": "Project Zomboidサーバーが正常にインストールされました",
     "server_reset_complete": "サーバーワールドデータがリセットされました",
-    "rcon_password_generated": "RCONパスワードが自動生成されました（パスワードが設定されていませんでした）"
+    "rcon_password_generated": "RCONパスワードが自動生成されました（パスワードが設定されていませんでした）",
+    "server_starting": "Server starting with PID {{pid}}",
+    "starting_server": "Starting server: {{command}}",
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
   },
   "rcon": {
     "connecting": "{{host}}:{{port}} に接続中...",

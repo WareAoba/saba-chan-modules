@@ -15,8 +15,9 @@
 
    2. validate()에 게임별 검증 추가 (Java 확인, 설정 파일 존재 등)
 
-   3. stop()에 graceful 종료 구현 (RCON/REST로 종료 명령 전송)
-      → 처음엔 force kill만으로도 동작합니다
+   3. stop()에 graceful 종료 구현 (콘솔 stdin으로 종료 명령 전송 → 대기 → 그래도 안 끝나면 강제 종료)
+      → module.toml [config] stop_command만 적어도 데몬이 stdin으로 보내 줍니다
+      → RCON은 saba-chan 보안 정책으로 쓰지 않습니다. 명령은 전부 데몬을 거쳐 stdin(또는 게임 REST API)으로
 
    4. configure()에 설정 파일 쓰기 로직 구현
       → _KEY_MAP에 saba-chan 키 → 게임 키 매핑 추가
@@ -40,7 +41,7 @@
   status(config)                 주기적 상태 조회
   configure(config)              시작 전 + 사용자가 설정 변경 시
   import_settings(config)        인스턴스 최초 등록 시 (기존 설정 가져오기)
-  command(config)                rcon_template 없는 커스텀 명령어 실행 시
+  command(config)                method="console" 템플릿으로 안 되는 커스텀 명령어 실행 시
 
   선택 (게임에 따라):
   ─────────────────
@@ -49,7 +50,7 @@
   diagnose_log(config)           로그 분석/에러 진단
   list_versions(config)          사용 가능한 버전 목록
   get_version_details(config)    버전 상세정보
-  get_credentials(config)        설정 파일에서 RCON/REST 자격증명 읽기
+  get_credentials(config)        설정 파일에서 REST 자격증명 읽기 (REST API를 쓰는 게임만)
   read_properties(config)        설정 파일 원본 읽기
   reset_properties(config)       설정 초기화
   reset_server(config)           서버 전체 리셋
@@ -61,13 +62,12 @@
     config["server_executable"] 실행 파일 경로
     config["working_dir"]       작업 디렉토리
     config["port"]              게임 포트
-    config["settings"]          { "server_name": "My Server", ... }
+    인스턴스 설정 값                각 설정 이름이 최상위 키로 (예: config["server_name"])
 
-  RCON 모듈:
-    config["rcon_port"]         RCON 포트
-    config["rcon_password"]     RCON 비밀번호 (자동 생성)
+  configure() 호출 시에만:
+    config["settings"]          바꿀 설정 { "server_name": "My Server", ... }
 
-  REST 모듈:
+  REST 모듈 (게임에 REST API가 있을 때만):
     config["rest_host/port/username/password"]
 
   stop() 호출 시:
@@ -89,16 +89,18 @@ from i18n import I18n
 # ─── Path setup ──────────────────────────────────────────────────
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# daemon_rcon.py, i18n.py는 saba-chan 본체(modules/)에 있습니다.
+# daemon_rcon.py(이름만 남은 데몬 연동 도우미), i18n.py는 saba-chan 본체(modules/)에 있습니다.
 # 데몬이 실행 시 PYTHONPATH로 해당 경로를 자동 주입하므로,
 # 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
-from daemon_rcon import rcon_command as _rcon_command_bridge
+#   daemon_stdin_command(instance_id, line): 데몬이 관리하는 서버 콘솔(stdin)에 한 줄 보내기
+#   is_process_alive / wait_for_exit / force_kill: OS별 프로세스 처리 (직접 만들지 마세요)
+from daemon_rcon import daemon_stdin_command, force_kill, is_process_alive, run_lifecycle, wait_for_exit
+
+# 일반 정지 후 프로세스가 끝나길 기다리는 시간 (초). 지나면 강제 종료
+STOP_TIMEOUT = 30
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
-
-# 데몬 API 엔드포인트 (환경 변수로 주입됨)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -197,8 +199,8 @@ def get_launch_command(config):
     working_dir = config.get("working_dir") or os.path.dirname(os.path.abspath(executable))
 
     # ── 실행 전 준비 작업 (게임별로 다름) ──
-    # 예: 설정 파일 동기화, RCON 정책 적용, EULA 확인 등
-    # _enforce_rcon_policy(working_dir, config)
+    # 예: 설정 파일 동기화, EULA 확인 등.
+    # 게임에 RCON 설정이 있으면 여기서 항상 끄세요 (보안 정책. 예: minecraft enable-rcon=false)
 
     args = [
         f"--port={port}",
@@ -214,9 +216,9 @@ def get_launch_command(config):
     }
 
     # ── credential_map 연동 ──
-    # module.toml에 [credential_map] rcon_password = "GameRconKey" 이면:
-    # result["GameRconKey"] = actual_rcon_password_value
-    # → 데몬이 instance.rcon_password에 자동 동기화
+    # module.toml에 [credential_map] rest_password = "AdminPassword" 이면:
+    # result["AdminPassword"] = actual_password_value
+    # → 데몬이 instance.rest_password에 자동 동기화
 
     return result
 
@@ -227,8 +229,9 @@ def get_launch_command(config):
 #  서버를 종료합니다.
 #
 #  ── 종료 전략 (우선순위) ──
-#   1. Graceful: RCON/stdin으로 "stop"/"quit" 전송 → 프로세스 종료 대기
-#   2. Force: 즉시 taskkill/kill (config["force"]=True이거나 graceful 실패 시)
+#   1. Graceful: 콘솔(stdin)로 "stop"/"quit" 전송 → STOP_TIMEOUT초 동안 종료 대기 (월드 저장)
+#   2. Force: config["force"]=True이거나 대기가 끝나도 살아 있을 때만 강제 종료
+#   graceful 단계 없이 바로 force_kill 하면 저장이 날아갑니다.
 #
 #  config["pid"]: 데몬이 알려주는 프로세스 PID (managed 모드)
 #  config["force"]: 강제 종료 플래그
@@ -236,29 +239,24 @@ def get_launch_command(config):
 def stop(config):
     pid = config.get("pid")
     force = config.get("force", False)
-    graceful = config.get("graceful_stop", True) and not force
+    instance_id = config.get("instance_id", "")
+    if not pid:
+        return {"success": False, "message": "No PID available to stop the server"}
 
-    if graceful and pid:
-        # 1) Graceful: RCON으로 종료 명령 전송
-        rcon_password = config.get("rcon_password", "")
-        rcon_port = config.get("rcon_port", 25575)
-        if rcon_password:
-            try:
-                _rcon_command_bridge("127.0.0.1", rcon_port, rcon_password, "stop")
-                # 프로세스 종료 대기 (최대 30초)
-                for _ in range(30):
-                    if not _is_process_running(pid):
-                        return {"success": True, "message": "Server stopped gracefully"}
-                    time.sleep(1)
-            except Exception as e:
-                print(f"[STOP] Graceful stop failed: {e}", file=sys.stderr)
+    if not force:
+        # 1) Graceful: 데몬을 거쳐 콘솔에 종료 명령 (게임의 실제 명령어로 바꾸세요)
+        try:
+            daemon_stdin_command(instance_id, "stop", timeout=5)
+        except Exception as e:
+            print(f"[STOP] Graceful stop command failed: {e}", file=sys.stderr)
+        if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+            return {"success": True, "message": "Server stopped gracefully"}
 
     # 2) Force kill
-    if pid:
-        _force_kill(pid)
+    ok, error = force_kill(pid)
+    if ok:
         return {"success": True, "message": "Server force-killed"}
-
-    return {"success": False, "message": "No PID available to stop the server"}
+    return {"success": False, "message": f"Force kill failed: {error}"}
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -273,14 +271,12 @@ def stop(config):
 def status(config):
     pid = config.get("pid")
 
-    if pid and _is_process_running(pid):
+    if pid and is_process_alive(pid):
         result = {
             "success": True,
             "status": "running",
         }
-        # 선택: RCON/Query로 접속자 수 등 상세 정보 조회
-        # rcon_password = config.get("rcon_password", "")
-        # if rcon_password:
+        # 선택: 게임 Query 포트나 로그로 접속자 수 등 상세 정보 조회
         #     result["players_online"] = ...
         #     result["players_max"] = ...
         return result
@@ -359,8 +355,8 @@ def import_settings(config):
 #  config["command"]: 명령어 이름 (module.toml [[commands.fields]]의 name)
 #  config["args"]: 명령어 인자 dict
 #
-#  module.toml에서 method="rcon" + rcon_template 을 정의한 명령어는
-#  데몬이 직접 RCON으로 전송하므로, lifecycle.py에 도달하지 않습니다.
+#  module.toml에서 method="console" + console_template 을 정의한 명령어는
+#  데몬이 직접 콘솔(stdin)로 보내므로, lifecycle.py에 도달하지 않습니다.
 #  여기에는 커스텀 로직이 필요한 명령어만 구현하면 됩니다.
 #
 def command(config):
@@ -372,17 +368,10 @@ def command(config):
     if cmd == "backup":
         return _do_backup(config)
 
-    # 기본: RCON으로 전달
-    rcon_password = config.get("rcon_password", "")
-    rcon_port = config.get("rcon_port", 25575)
-
-    if not rcon_password:
-        return {"success": False, "message": "RCON password not configured"}
-
+    # 기본: 데몬을 거쳐 콘솔(stdin)로 전달
+    line = " ".join([cmd] + [str(v) for v in args.values() if v not in (None, "")])
     try:
-        response = _rcon_command_bridge(
-            "127.0.0.1", rcon_port, rcon_password, cmd
-        )
+        response = daemon_stdin_command(instance_id, line, timeout=5)
         return {"success": True, "response": response}
     except Exception as e:
         return {"success": False, "message": str(e)}
@@ -405,8 +394,10 @@ def install_server(config):
 
     # SteamCMD 예시
     try:
-        from extensions.steamcmd import install_game
-        result = install_game(
+        from extensions.steamcmd import SteamCMD
+        steam = SteamCMD()
+        steam.ensure_available()
+        result = steam.install(
             app_id=123456,
             install_dir=install_dir,
             anonymous=True,
@@ -435,37 +426,6 @@ def diagnose_log(config):
 # ═══════════════════════════════════════════════════════════════════
 #  내부 헬퍼 함수들
 # ═══════════════════════════════════════════════════════════════════
-
-def _is_process_running(pid):
-    """PID가 실행 중인지 확인"""
-    try:
-        if os.name == 'nt':
-            result = subprocess.run(
-                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
-                capture_output=True, text=True, timeout=5
-            )
-            return str(pid) in result.stdout
-        else:
-            os.kill(pid, 0)
-            return True
-    except (ProcessLookupError, PermissionError):
-        return False
-    except Exception:
-        return False
-
-
-def _force_kill(pid):
-    """프로세스 강제 종료"""
-    try:
-        if os.name == 'nt':
-            subprocess.run(["taskkill", "/F", "/PID", str(pid)],
-                           capture_output=True, timeout=10)
-        else:
-            import signal
-            os.kill(pid, signal.SIGKILL)
-    except Exception as e:
-        print(f"[STOP] Force kill failed: {e}", file=sys.stderr)
-
 
 def _read_config_file(path):
     """게임 설정 파일 읽기 (게임별로 구현)"""
@@ -521,7 +481,6 @@ def _do_backup(config):
 FUNCTIONS = {
     "validate": validate,
     "get_launch_command": get_launch_command,
-    "start": get_launch_command,  # start → get_launch_command 위임
     "stop": stop,
     "status": status,
     "configure": configure,
@@ -532,24 +491,5 @@ FUNCTIONS = {
 }
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(json.dumps({"success": False, "message": "Usage: lifecycle.py <function>"}))
-        sys.exit(1)
-
-    function_name = sys.argv[1]
-
-    # config JSON을 stdin에서 읽기
-    try:
-        config_str = sys.stdin.read()
-        config = json.loads(config_str) if config_str.strip() else {}
-    except json.JSONDecodeError:
-        print(json.dumps({"success": False, "message": "Invalid JSON config on stdin"}))
-        sys.exit(1)
-
-    fn = FUNCTIONS.get(function_name)
-    if fn:
-        result = fn(config)
-    else:
-        result = {"success": False, "message": f"Unknown function: {function_name}"}
-
-    print(json.dumps(result, ensure_ascii=False))
+    # 알 수 없는 함수·잘못된 JSON·예외도 JSON으로 답하고 종료 코드 0을 지킨다
+    run_lifecycle(FUNCTIONS)

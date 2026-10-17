@@ -8,7 +8,7 @@ Provides complete server management:
   - server.properties read/write
   - Error detection and diagnosis with solutions
   - Server launch command generation (for Rust managed process)
-  - Graceful shutdown via RCON /stop
+  - Graceful shutdown (the daemon sends `stop` to the console; this module falls back to SIGTERM)
   - Server List Ping for rich status info
 
 Always outputs JSON to stdout, logs to stderr.
@@ -27,18 +27,12 @@ import zipfile
 from pathlib import Path
 from i18n import I18n
 
-# RCON communication delegates to the Rust daemon's HTTP API
-from daemon_rcon import rcon_command as _rcon_command_bridge
-
-def _rcon_command(host, port, password, command, timeout=5):
-    """RCON via daemon API if instance_id available, else direct fallback."""
-    return _rcon_command_bridge(host, port, password, command, timeout)
+from daemon_rcon import force_kill, is_process_alive, wait_for_exit
 
 # ─── Init ─────────────────────────────────────────────────────
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
 
 # ─── Friendly name → server.properties key mapping ───────────
 # Used by configure() and install_server() to translate settings.
@@ -47,14 +41,12 @@ _PROPERTY_KEY_MAP = {
     "allow_flight": "allow-flight",
     "allow_nether": "allow-nether",
     "broadcast_console_to_ops": "broadcast-console-to-ops",
-    "broadcast_rcon_to_ops": "broadcast-rcon-to-ops",
     "bug_report_link": "bug-report-link",
     "difficulty": "difficulty",
     "enable_command_block": "enable-command-block",
     "enable_code_of_conduct": "enable-code-of-conduct",
     "enable_jmx_monitoring": "enable-jmx-monitoring",
     "enable_query": "enable-query",
-    "enable_rcon": "enable-rcon",
     "enable_status": "enable-status",
     "enforce_secure_profile": "enforce-secure-profile",
     "enforce_whitelist": "enforce-whitelist",
@@ -87,8 +79,6 @@ _PROPERTY_KEY_MAP = {
     "pvp": "pvp",
     "query_port": "query.port",
     "rate_limit": "rate-limit",
-    "rcon_password": "rcon.password",
-    "rcon_port": "rcon.port",
     "region_file_compression": "region-file-compression",
     "require_resource_pack": "require-resource-pack",
     "resource_pack": "resource-pack",
@@ -114,6 +104,34 @@ _PROPERTY_KEY_MAP = {
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                    Java Detection                         ║
 # ╚═══════════════════════════════════════════════════════════╝
+
+def required_java(mc_version):
+    """Minecraft 버전에 필요한 최소 Java 주 버전 (서버 jar에 version.json이 없을 때의 폴백).
+      연도 기반(26.1 등), 26년 이후 스냅샷 → 25
+      1.20.5+ / 1.21+ / 그 전 스냅샷(24w14a 등) → 21
+      1.18 ~ 1.20.4 → 17, 1.17 → 16, 그 이전 → 8, 알 수 없음 → 17
+    """
+    if not mc_version:
+        return 17
+    text = str(mc_version).strip()
+    snapshot = re.match(r"^(\d{2})w\d{2}[a-z]$", text)
+    if snapshot:
+        return 25 if int(snapshot.group(1)) >= 26 else 21
+    numbers = [int(n) for n in re.findall(r"\d+", text.split("-")[0])]
+    if not numbers:
+        return 17
+    if numbers[0] != 1:
+        return 25  # 연도 기반 버전 (예: 26.1)
+    minor = numbers[1] if len(numbers) > 1 else 0
+    patch = numbers[2] if len(numbers) > 2 else 0
+    if minor >= 21 or (minor == 20 and patch >= 5):
+        return 21
+    if minor >= 18:
+        return 17
+    if minor == 17:
+        return 16
+    return 8
+
 
 class JavaDetector:
     """Detect and validate Java installations."""
@@ -211,16 +229,19 @@ class JavaDetector:
 
     @staticmethod
     def parse_major_version(version_str):
-        """Extract major version number. '17.0.2' → 17, '1.8.0_362' → 8"""
-        parts = version_str.split(".")
-        major = int(parts[0])
-        if major == 1 and len(parts) > 1:
-            major = int(parts[1])
+        """Extract major version number. '17.0.2' → 17, '1.8.0_362' → 8, '21-ea' → 21, 읽을 수 없으면 0"""
+        numbers = re.findall(r"\d+", str(version_str))
+        if not numbers:
+            return 0
+        major = int(numbers[0])
+        if major == 1 and len(numbers) > 1:
+            major = int(numbers[1])
         return major
 
     @staticmethod
-    def validate_for_minecraft(java_info, mc_version=None):
-        """Check if Java version meets Minecraft's minimum requirement."""
+    def validate_for_minecraft(java_info, mc_version=None, min_java=None):
+        """Check if Java version meets Minecraft's minimum requirement.
+        `min_java`(서버 jar의 version.json java_version)가 있으면 그 값을 쓴다."""
         issues = []
         if not java_info:
             issues.append({
@@ -232,23 +253,8 @@ class JavaDetector:
             return issues
 
         major = java_info.get("major_version", 0)
-        min_java = 17  # Safe default for modern MC
-
-        if mc_version:
-            try:
-                parts = mc_version.split(".")
-                mc_major = int(parts[1]) if len(parts) > 1 else 0
-                mc_minor = int(parts[2]) if len(parts) > 2 else 0
-                if mc_major >= 20 and mc_minor >= 5:
-                    min_java = 21
-                elif mc_major >= 18:
-                    min_java = 17
-                elif mc_major >= 17:
-                    min_java = 16
-                else:
-                    min_java = 8
-            except (ValueError, IndexError):
-                pass
+        if not isinstance(min_java, int) or min_java <= 0:
+            min_java = required_java(mc_version)
 
         if major < min_java:
             issues.append({
@@ -500,7 +506,7 @@ class EulaManager:
 
 def _load_default_properties():
     """Load vanilla defaults from server.properties reference file,
-    then apply saba-chan-specific overrides (e.g. enable RCON)."""
+    then apply saba-chan-specific overrides (RCON stays off: commands go through the console)."""
     defaults = {}
     ref_path = os.path.join(MODULE_DIR, "server.properties")
     if os.path.isfile(ref_path):
@@ -516,8 +522,8 @@ def _load_default_properties():
         except OSError:
             pass
 
-    # saba-chan overrides: enable RCON for managed server control
-    defaults["enable-rcon"] = "true"
+    # saba-chan overrides: RCON is blocked for security
+    defaults["enable-rcon"] = "false"
     defaults.setdefault("pause-when-empty-seconds", "60")
     return defaults
 
@@ -602,20 +608,6 @@ class ServerPropertiesManager:
 
     def get_defaults(self):
         return dict(DEFAULT_PROPERTIES)
-
-    def ensure_rcon(self, port=25575, password=""):
-        """Ensure RCON is enabled. Generates a password if none given."""
-        import secrets
-        import string
-        if not password:
-            alphabet = string.ascii_letters + string.digits
-            password = "".join(secrets.choice(alphabet) for _ in range(16))
-        self.update({
-            "enable-rcon": "true",
-            "rcon.port": str(port),
-            "rcon.password": password,
-        })
-        return password
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -778,45 +770,46 @@ class MinecraftPing:
     def ping(host="127.0.0.1", port=25565, timeout=3):
         """Ping a server and get status dict (players, version, motd) or None."""
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            sock.connect((host, port))
-
-            # Handshake
-            protocol_version = MinecraftPing._encode_varint(-1)
-            host_bytes = host.encode("utf-8")
-            host_len = MinecraftPing._encode_varint(len(host_bytes))
-            port_bytes = struct.pack(">H", port)
-            next_state = MinecraftPing._encode_varint(1)
-
-            handshake_data = (
-                MinecraftPing._encode_varint(0x00)
-                + protocol_version + host_len + host_bytes + port_bytes + next_state
-            )
-            sock.sendall(MinecraftPing._encode_varint(len(handshake_data)) + handshake_data)
-
-            # Status request
-            sock.sendall(MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
-
-            # Read response
-            data = b""
-            while True:
-                chunk = sock.recv(4096)
-                if not chunk:
-                    break
-                data += chunk
-                try:
-                    parsed = MinecraftPing._parse_response(data)
-                    if parsed is not None:
-                        sock.close()
-                        return parsed
-                except Exception:
-                    continue
-
-            sock.close()
-            return None
+            # with 블록이라 오류가 나도 소켓이 닫힌다
+            with socket.create_connection((host, port), timeout=timeout) as sock:
+                return MinecraftPing._exchange(sock, host, port)
         except (socket.timeout, socket.error, OSError):
             return None
+
+    @staticmethod
+    def _exchange(sock, host, port):
+        """핸드셰이크와 상태 요청을 보내고 응답을 읽는다."""
+        # Handshake
+        protocol_version = MinecraftPing._encode_varint(-1)
+        host_bytes = host.encode("utf-8")
+        host_len = MinecraftPing._encode_varint(len(host_bytes))
+        port_bytes = struct.pack(">H", port)
+        next_state = MinecraftPing._encode_varint(1)
+
+        handshake_data = (
+            MinecraftPing._encode_varint(0x00)
+            + protocol_version + host_len + host_bytes + port_bytes + next_state
+        )
+        sock.sendall(MinecraftPing._encode_varint(len(handshake_data)) + handshake_data)
+
+        # Status request
+        sock.sendall(MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
+
+        # Read response
+        data = b""
+        while True:
+            chunk = sock.recv(4096)
+            if not chunk:
+                break
+            data += chunk
+            try:
+                parsed = MinecraftPing._parse_response(data)
+                if parsed is not None:
+                    return parsed
+            except Exception:
+                continue
+
+        return None
 
     @staticmethod
     def _encode_varint(value):
@@ -894,19 +887,32 @@ def _resolve_server_jar(config):
     return os.path.abspath(jar)
 
 
+def _launch_java(config, server_jar):
+    """실제로 띄울 Java: <working_dir>/java/의 번들 Java가 시스템 Java보다 먼저다."""
+    java_path = config.get("java_path", "java")
+    wd = config.get("working_dir") or (os.path.dirname(os.path.abspath(server_jar)) if server_jar else "")
+    bundled = JavaDownloader._find_bundled_java(os.path.join(wd, "java")) if wd else None
+    if bundled:
+        return bundled
+    java_info = JavaDetector.find_java(java_path)
+    return java_info["path"] if java_info else java_path
+
+
 def validate(config):
     """
     Validate all prerequisites before starting.
     Checks: Java, server jar, EULA, working dir, port availability.
     """
     issues = []
-    java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
     working_dir = config.get("working_dir", "")
 
-    # Java
-    java_info = JavaDetector.find_java(java_path)
-    issues.extend(JavaDetector.validate_for_minecraft(java_info))
+    # Java: 띄울 Java로 검사한다. 필요한 버전은 서버 jar의 version.json(java_version, id)을 먼저 본다
+    java_info = JavaDetector.find_java(_launch_java(config, server_jar))
+    jar_info = _read_jar_version(*os.path.split(server_jar)) if server_jar else None
+    mc_version = config.get("server_version") or (jar_info or {}).get("version")
+    issues.extend(JavaDetector.validate_for_minecraft(
+        java_info, mc_version, min_java=(jar_info or {}).get("java_version")))
 
     # Server JAR
     if not server_jar:
@@ -945,9 +951,9 @@ def validate(config):
                 "solution": i18n.t("errors.solutions.eula_not_accepted"),
             })
 
-    # Port availability
+    # Port availability — 이 서버가 이미 켜져 있으면 그 포트는 자기 것이다
     port = config.get("port", 25565)
-    if port:
+    if port and not config.get("running"):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(1)
@@ -968,46 +974,25 @@ def validate(config):
     }
 
 
-def _enforce_rcon_policy(working_dir, config=None, managed=True):
+def _enforce_rcon_policy(working_dir, config=None):
     """
-    Enforce RCON policy in server.properties before server launch.
+    Keep RCON off before every launch, in every mode.
 
-    - Managed mode (stdin control):  RCON is a security risk → force disable
-    - Non-managed mode (RCON only):  RCON is the only control method → force enable + ensure password
+    saba-chan blocks RCON for security: commands reach the server through its console (stdin),
+    which saba-runner keeps open across daemon restarts. The daemon's RCON password/port are not synced.
 
-    Returns dict with details of what was changed, or None if no changes needed.
+    Returns dict with details of what was changed, or None if server.properties does not exist yet.
     """
     mgr = ServerPropertiesManager(working_dir)
     if not mgr.exists():
-        return None  # server.properties will be generated on first run
+        return None  # server.properties will be generated on first run (defaults keep RCON off)
 
     props = mgr.read()
-    changes = {}
-
-    if managed:
-        # Managed mode: RCON disabled (stdin is used for control)
-        if props.get("enable-rcon", "false").lower() == "true":
-            changes["enable-rcon"] = "false"
-            print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
-    else:
-        # Non-managed mode: RCON must be enabled
-        if props.get("enable-rcon", "false").lower() != "true":
-            changes["enable-rcon"] = "true"
-            print(i18n.t("messages.rcon_enabled_native"), file=sys.stderr)
-        # Ensure RCON password exists — daemon이 ensure_passwords()로 생성한 값 사용
-        current_pw = props.get("rcon.password", "")
-        if not current_pw:
-            daemon_pw = (config or {}).get("rcon_password", "")
-            if daemon_pw:
-                changes["rcon.password"] = daemon_pw
-                print(f"[Minecraft] Synced rcon.password from daemon config", file=sys.stderr)
-            else:
-                print(f"[Minecraft] WARNING: No RCON password from daemon or server.properties", file=sys.stderr)
-
-    if changes:
-        mgr.update(changes)
-        return {"changed": True, "changes": changes}
-    return {"changed": False}
+    if props.get("enable-rcon", "false").lower() == "false":
+        return {"changed": False}
+    mgr.update({"enable-rcon": "false"})
+    print("[Minecraft] RCON turned off (saba-chan sends commands through the console)", file=sys.stderr)
+    return {"changed": True, "changes": {"enable-rcon": "false"}}
 
 
 def get_launch_command(config):
@@ -1047,15 +1032,7 @@ def get_launch_command(config):
             "options": ["update_path", "install_new"],
         }
 
-    # Prefer bundled Java in <working_dir>/java/ over system Java
-    _wd = working_dir or os.path.dirname(os.path.abspath(server_jar))
-    bundled = JavaDownloader._find_bundled_java(os.path.join(_wd, "java"))
-    if bundled:
-        java_path = bundled
-    else:
-        java_info = JavaDetector.find_java(java_path)
-        if java_info:
-            java_path = java_info["path"]
+    java_path = _launch_java(config, server_jar)
 
     if not working_dir:
         working_dir = os.path.dirname(os.path.abspath(server_jar))
@@ -1087,9 +1064,7 @@ def get_launch_command(config):
 
     abs_working_dir = os.path.abspath(working_dir)
 
-    # Managed mode → RCON must be OFF (stdin is used for control)
-    is_managed = config.get("managed", True)  # get_launch_command default = managed
-    _enforce_rcon_policy(abs_working_dir, config=config, managed=is_managed)
+    _enforce_rcon_policy(abs_working_dir, config=config)
 
     return {
         "success": True,
@@ -1114,7 +1089,10 @@ def configure(config):
 
     props_changes = {}
     for key, value in settings.items():
-        prop_key = _PROPERTY_KEY_MAP.get(key, key)
+        # server.properties 키가 아닌 것(ram, java_path 같은 사바쨩 설정)은 쓰지 않는다
+        prop_key = _PROPERTY_KEY_MAP.get(key)
+        if prop_key is None:
+            continue
         if isinstance(value, bool):
             value = "true" if value else "false"
         props_changes[prop_key] = str(value)
@@ -1144,20 +1122,13 @@ def import_settings(config):
     # Build reverse map: server.properties key → saba-chan key
     reverse_map = {v: k for k, v in _PROPERTY_KEY_MAP.items()}
 
+    # 스키마 타입대로만 바꾼다: 숫자 같은 비밀번호("000123")나 이름은 문자열 그대로
+    from daemon_rcon import coerce_setting, load_setting_types
+    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
     settings = {}
     for prop_key, raw_value in raw_props.items():
         saba_key = reverse_map.get(prop_key, prop_key)
-        val = str(raw_value).strip()
-        if val.lower() == "true":
-            settings[saba_key] = True
-        elif val.lower() == "false":
-            settings[saba_key] = False
-        else:
-            try:
-                f = float(val)
-                settings[saba_key] = int(f) if f == int(f) else f
-            except (ValueError, OverflowError):
-                settings[saba_key] = val
+        settings[saba_key] = coerce_setting(raw_value, types.get(saba_key))
 
     return {"success": True, "settings": settings}
 
@@ -1195,7 +1166,7 @@ def reset_properties(config):
 
 
 def reset_server(config):
-    """Full server reset: delete everything except server.jar and eula.txt.
+    """Full server reset: delete everything except server.jar, eula.txt and the bundled java/.
 
     server.properties will be recreated from module defaults on next configure().
     """
@@ -1224,6 +1195,9 @@ def reset_server(config):
             continue
         # eula.txt 보존
         if item.is_file() and name_lower in KEEP_FILES:
+            continue
+        # 받아 둔 번들 Java 보존 (다시 받으려면 크다)
+        if item.is_dir() and name_lower == "java":
             continue
 
         try:
@@ -1289,136 +1263,59 @@ def diagnose_log(config):
     }
 
 
-def start(config):
-    """Start server in non-managed mode (RCON-only).
-    
-    managed_start가 비활성화된 경우 데몬이 이 함수를 호출합니다.
-    프로세스를 직접 spawn하고 PID만 반환합니다.
-    이후 제어는 RCON을 통해서만 가능합니다.
-    """
+STOP_TIMEOUT = 30
+
+
+def _send_console_stop(instance_id):
+    """데몬을 거쳐 서버 콘솔(stdin)에 `stop`을 보낸다. 콘솔이 없으면 False"""
+    if not instance_id:
+        return False
     try:
-        java_path = config.get("java_path", "java")
-        server_jar = _resolve_server_jar(config)
-
-        # Non-managed mode → RCON must be ON (only control method)
-        wd = config.get("working_dir")
-        if wd:
-            _enforce_rcon_policy(os.path.abspath(wd), config=config, managed=False)
-
-        if not server_jar:
-            return {
-                "success": False,
-                "action_required": "server_jar_not_found",
-                "message": i18n.t("errors.server_jar_not_specified"),
-                "options": ["update_path", "install_new"],
-            }
-        if not os.path.exists(server_jar):
-            return {
-                "success": False,
-                "action_required": "server_jar_not_found",
-                "message": i18n.t("errors.server_jar_not_found", path=server_jar),
-                "configured_path": server_jar,
-                "options": ["update_path", "install_new"],
-            }
-
-        java_info = JavaDetector.find_java(java_path)
-        if java_info:
-            java_path = java_info["path"]
-
-        ram_raw = config.get("ram", 2)
-        # Accept plain number (GB). Fractional → MB (e.g. 0.5 → 512M)
-        try:
-            ram_gb = float(str(ram_raw).rstrip("GgMm"))
-            if ram_gb == int(ram_gb):
-                ram = f"{int(ram_gb)}G"
-            else:
-                ram = f"{int(ram_gb * 1024)}M"
-        except (ValueError, TypeError):
-            ram = "2G"
-        working_dir = config.get("working_dir") or os.path.dirname(server_jar)
-
-        if config.get("auto_eula", False):
-            EulaManager.accept_eula(working_dir)
-
-        cmd = [java_path, f"-Xmx{ram}", f"-Xms{ram}", "-jar", server_jar, "nogui"]
-        print(i18n.t("messages.starting_server", command=" ".join(cmd)), file=sys.stderr)
-
-        if sys.platform == "win32":
-            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL, creationflags=flags)
-        else:
-            proc = subprocess.Popen(cmd, cwd=working_dir, stdout=subprocess.DEVNULL,
-                                    stderr=subprocess.DEVNULL, start_new_session=True)
-
-        return {"success": True, "pid": proc.pid,
-                "message": i18n.t("messages.server_starting", pid=proc.pid)}
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc(), file=sys.stderr)
-        return {"success": False, "message": i18n.t("errors.failed_to_start", error=str(e))}
+        from daemon_rcon import daemon_stdin_command
+        daemon_stdin_command(instance_id, "stop", timeout=5)
+        return True
+    except Exception as e:  # 콘솔 없음(409), 데몬 없음
+        print(f"[Minecraft] console stop unavailable: {e}", file=sys.stderr)
+        return False
 
 
-def get_credentials(config):
-    """게임 설정 파일(server.properties)에서 직접 credential을 읽어 반환합니다.
-    Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다."""
+def _request_terminate(pid):
+    """POSIX: SIGTERM (서버가 월드를 저장하고 끝난다). Windows 콘솔 앱에는 보낼 정상 종료 신호가 없어 False"""
+    if os.name == "nt":
+        return False
+    import signal
     try:
-        working_dir = config.get("working_dir", "")
-        if not working_dir:
-            return {"success": False, "message": "working_dir not specified"}
-        mgr = ServerPropertiesManager(working_dir)
-        if not mgr.exists():
-            return {"success": False, "message": "server.properties not found"}
-        props = mgr.read()
-        return {
-            "success": True,
-            "rcon_password": props.get("rcon.password", ""),
-            "rcon_port": int(props.get("rcon.port", "25575")),
-        }
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+        os.kill(int(pid), signal.SIGTERM)
+        return True
+    except (OSError, ValueError) as e:
+        print(f"[Minecraft] SIGTERM failed: {e}", file=sys.stderr)
+        return False
 
 
 def stop(config):
-    """Stop server — graceful RCON 'stop' before force kill."""
+    """서버 정지. 일반 정지는 콘솔 `stop` → SIGTERM 순서로 저장 후 종료를 기다리고,
+    force이거나 기다려도 안 끝날 때만 강제 종료한다 (RCON은 보안 정책으로 꺼져 있다).
+
+    데몬은 콘솔이 있는 managed 서버를 직접 멈추므로, 이 함수는 콘솔이 없을 때 주로 불린다.
+    """
     try:
         pid = config.get("pid")
         if not pid:
             return {"success": False, "message": i18n.t("errors.no_pid_provided")}
 
-        force = config.get("force", False)
+        if not config.get("force", False):
+            asked = _send_console_stop(config.get("instance_id")) or _request_terminate(pid)
+            if asked:
+                # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
+                if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+                    return {"success": True,
+                            "message": i18n.t("messages.graceful_stop", pid=pid)}
+                print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
 
-        if not force:
-            # 설정 파일에서 RCON 비밀번호 읽기
-            creds = get_credentials(config)
-            rcon_port = creds.get("rcon_port", config.get("rcon_port", 25575)) if creds.get("success") else config.get("rcon_port", 25575)
-            rcon_password = creds.get("rcon_password", "") if creds.get("success") else ""
-            if rcon_password:
-                try:
-                    _rcon_command("127.0.0.1", rcon_port, rcon_password, "stop")
-                    for _ in range(30):
-                        time.sleep(1)
-                        try:
-                            os.kill(pid, 0)
-                        except OSError:
-                            return {"success": True,
-                                    "message": i18n.t("messages.graceful_stop", pid=pid)}
-                    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-                except Exception as e:
-                    print(f"RCON stop failed, falling back: {e}", file=sys.stderr)
-
-        if sys.platform == "win32":
-            try:
-                subprocess.run(["taskkill", "/F", "/PID", str(pid)], check=True,
-                               creationflags=0x08000000)
-                return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-            except subprocess.CalledProcessError as e:
-                return {"success": False, "message": i18n.t("errors.failed_to_kill", error=str(e))}
-        else:
-            import signal as sig_mod
-            os.kill(pid, sig_mod.SIGKILL if force else sig_mod.SIGTERM)
-            return {"success": True, "message": i18n.t("messages.signal_sent",
-                                                        signal="KILL" if force else "TERM", pid=pid)}
+        ok, error = force_kill(pid)
+        if ok:
+            return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
+        return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
     except Exception as e:
         return {"success": False, "message": i18n.t("errors.failed_to_stop", error=str(e))}
 
@@ -1450,13 +1347,9 @@ def status(config):
                 "message": i18n.t("messages.server_online"),
             }
 
-        if pid:
-            try:
-                os.kill(pid, 0)
-                return {"success": True, "status": "starting", "pid": pid,
-                        "online": False, "message": i18n.t("messages.server_starting_no_response")}
-            except OSError:
-                pass
+        if pid and is_process_alive(pid):
+            return {"success": True, "status": "starting", "pid": pid,
+                    "online": False, "message": i18n.t("messages.server_starting_no_response")}
 
         result = {"success": True, "status": "stopped", "online": False,
                 "message": i18n.t("messages.no_process_running")}
@@ -1530,7 +1423,7 @@ def get_installed_version(config):
 
 
 def command(config):
-    """Execute command via daemon RCON API (legacy path)."""
+    """Send a named command to the server console through the daemon."""
     try:
         command_text = config.get("command")
         args = config.get("args", {})
@@ -1543,14 +1436,9 @@ def command(config):
 
         formatted = _format_command(command_text, args)
 
-        import urllib.request
-        api_url = f"{DAEMON_API_URL}/api/instance/{instance_id}/rcon"
-        payload = json.dumps({"command": formatted}).encode("utf-8")
-        req = urllib.request.Request(api_url, data=payload,
-                                     headers={"Content-Type": "application/json"}, method="POST")
-        with urllib.request.urlopen(req, timeout=5) as response:
-            result = json.loads(response.read().decode("utf-8"))
-            return {"success": result.get("success", True), "message": f"RCON: {formatted}"}
+        from daemon_rcon import daemon_stdin_command
+        result = daemon_stdin_command(instance_id, formatted, timeout=5)
+        return {"success": result.get("success", True), "message": formatted}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -1580,11 +1468,6 @@ def _format_command(cmd, args):
     }
     formatter = formatters.get(cmd)
     return formatter(args) if formatter else cmd
-
-
-def _send_rcon_command(host, port, password, command):
-    """Legacy wrapper — delegates to daemon RCON bridge."""
-    return _rcon_command(host, port, password, command)
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1734,7 +1617,6 @@ class ServerInstaller:
 
         download_url = details["download_url"]
         expected_sha1 = details.get("sha1")
-        expected_size = details.get("size")
 
         # Create install directory
         install_path = os.path.abspath(install_dir)
@@ -1826,9 +1708,8 @@ class ServerInstaller:
                     v = "true" if v else "false"
                 props[prop_key] = str(v)
 
-            # Enable RCON by default with random password
-            if "enable-rcon" not in props:
-                mgr.ensure_rcon()
+            # RCON is blocked for security (commands go through the console)
+            props["enable-rcon"] = "false"
 
             if props:
                 mgr.update(props)
@@ -1951,15 +1832,16 @@ def install_server(config):
 # ╚═══════════════════════════════════════════════════════════╝
 
 FUNCTIONS = {
-    "start": start,
     "stop": stop,
     "status": status,
     "command": command,
     "validate": validate,
     "get_launch_command": get_launch_command,
-    "get_credentials": get_credentials,
     "configure": configure,
     "read_properties": read_properties,
+    "import_settings": import_settings,
+    "reset_properties": reset_properties,
+    "reset_server": reset_server,
     "accept_eula": accept_eula,
     "diagnose_log": diagnose_log,
     "list_versions": list_versions,

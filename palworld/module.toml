@@ -1,4 +1,5 @@
-﻿[module]
+[module]
+schema_version = 1
 name = "palworld"
 version = "0.1.0"
 description = "Palworld server management module"
@@ -9,9 +10,14 @@ entry = "lifecycle.py"
 icon = "icon.png"
 log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
 
-# 모듈 업데이트 설정 — 모듈은 별도 GitHub 레포지토리에서 관리됩니다
-[update]
-github_repo = "saba-chan-modules"  # github_owner는 본체 설정에서 상속
+[module.dependencies]
+saba-core = ">=0.1.2"
+ext-steamcmd = ">=0.1.0"
+ext-ue4-ini = ">=0.1.0"
+
+[permissions]
+network = true          # 서버 파일 내려받기, 포트 확인
+spawn_process = true    # 서버 실행 파일 호출, PID로 종료
 
 [protocols]
 supported = ["rest"]
@@ -29,6 +35,16 @@ server_executable = "PalServer.exe"
 process_name = "PalServer-Win64-Shipping-Cmd"
 default_port = 8211
 stop_command = "Shutdown"  # stdin으로 전송하는 graceful 종료 명령어
+announce_command = "announce"
+
+[backup]
+paths = ["Pal/Saved/SaveGames", "Pal/Saved/Config"]
+save_command = "save"
+
+# Shipping-Cmd는 stdout이 파이프면 끝날 때까지 모아 둔다(2026-10-16 실측). 의사 콘솔로 띄워 줄마다 받는다.
+# Pal/Saved/Logs에는 .log가 생기지 않아 log_files는 쓰지 않는다.
+[launch]
+console = "pty"
 
 [install]
 method = "steamcmd"
@@ -38,41 +54,12 @@ install_subdir = "server"
 platform = "windows"
 requires_extensions = ["steamcmd", "ue4-ini"]
 
-[docker]
-image = "steamcmd/steamcmd:latest"
-working_dir = "/server"
-restart = "unless-stopped"
-entrypoint = "/bin/bash -c"
-command = "exec /server/PalServer.sh -port={port} -RESTAPIEnabled=True -RCONEnabled=False"
-user = "1000:1000"
-ports = ["{port}:{port}/udp", "{rest_port}:{rest_port}/tcp"]
-volumes = ["./server:/server"]
-
-[docker.environment]
-PORT = "{port}"
-REST_API_PORT = "{rest_port}"
-
 [detection]
 process_patterns = ["PalServer-Win64-Shipping-Cmd", "PalServer", "PalServer-Win64"]
-common_paths = [
-    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\PalServer",
-    "D:\\SteamLibrary\\steamapps\\common\\PalServer",
-    "C:\\Games\\Palworld\\server"
-]
 # dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴
 # 배열의 각 항목은 AND 조건 (모두 존재해야 매칭)
 dir_signatures = ["PalServer.exe"]
-
-[detection.linux]
-server_executable = "PalServer.sh"
-process_name = "PalServer-Linux-Shipping"
-process_patterns = ["PalServer-Linux-Shipping", "PalServer", "PalServer.sh"]
-common_paths = [
-    "/home/*/.steam/steam/steamapps/common/PalServer",
-    "/opt/palworld",
-    "/srv/palworld",
-]
-dir_signatures = ["PalServer.sh"]
+crash_artifacts = ["Pal/Saved/Crashes/*"]
 
 [settings]
 
@@ -89,6 +76,7 @@ group = "saba-chan"
 [[settings.fields]]
 name = "rest_port"
 type = "number"
+port = true
 label = "REST API Port"
 description = "REST API port (default 8212)"
 default = 8212
@@ -147,6 +135,7 @@ max = 32
 [[settings.fields]]
 name = "port"
 type = "number"
+port = true
 label = "Server Port"
 description = "Game server port"
 default = 8211
@@ -159,6 +148,113 @@ type = "text"
 label = "Public IP"
 description = "Public IP address (leave empty for auto)"
 default = ""
+
+[[settings.fields]]
+name = "region"
+type = "text"
+label = "Region"
+description = "Server region tag shown in the server browser"
+default = ""
+group = "communication"
+
+[[settings.fields]]
+name = "use_auth"
+type = "boolean"
+label = "Use Steam Auth"
+description = "Require Steam authentication to join the server"
+default = true
+group = "communication"
+
+[[settings.fields]]
+name = "allow_client_mod"
+type = "boolean"
+label = "Allow Client Mods"
+description = "Allow players to join with client-side mods enabled"
+default = true
+group = "communication"
+
+[[settings.fields]]
+name = "ban_list_url"
+type = "text"
+label = "Ban List URL"
+description = "URL of the shared ban list applied to this server"
+default = "https://b.palworldgame.com/api/banlist.txt"
+group = "communication"
+
+[[settings.fields]]
+name = "show_player_list"
+type = "boolean"
+label = "Show Player List"
+description = "Expose the connected player list via the REST API"
+default = false
+group = "communication"
+
+[[settings.fields]]
+name = "crossplay_platforms"
+type = "text"
+label = "Crossplay Platforms"
+description = "Allowed crossplay platforms, e.g. (Steam,Xbox,PS5,Mac)"
+default = "(Steam,Xbox,PS5,Mac)"
+group = "communication"
+
+[[settings.fields]]
+name = "chat_post_limit_per_minute"
+type = "number"
+label = "Chat Rate Limit"
+description = "Maximum chat messages a player can send per minute"
+default = 30
+min = 0
+max = 1000
+group = "communication"
+
+[[settings.fields]]
+name = "is_show_join_left_message"
+type = "boolean"
+label = "Show Join/Leave Messages"
+description = "Announce player join/leave events in chat"
+default = true
+group = "communication"
+
+[[settings.fields]]
+name = "enable_voice_chat"
+type = "boolean"
+label = "Voice Chat"
+description = "Enable in-game proximity voice chat"
+default = false
+group = "communication"
+
+[[settings.fields]]
+name = "voice_chat_max_volume_distance"
+type = "number"
+label = "Voice Chat Max Volume Distance"
+description = "Distance at which voice chat reaches full volume"
+default = 3000.0
+min = 0.0
+max = 20000.0
+step = 100.0
+group = "communication"
+
+[[settings.fields]]
+name = "voice_chat_zero_volume_distance"
+type = "number"
+label = "Voice Chat Cutoff Distance"
+description = "Distance beyond which voice chat is inaudible"
+default = 15000.0
+min = 0.0
+max = 50000.0
+step = 100.0
+group = "communication"
+
+[[settings.fields]]
+name = "build_object_hp_rate"
+type = "number"
+label = "Structure HP Rate"
+description = "Structure HP multiplier (0.1-5.0)"
+default = 1.0
+min = 0.1
+max = 5.0
+step = 0.1
+group = "advanced"
 
 [[settings.fields]]
 name = "difficulty"
@@ -392,6 +488,501 @@ step = 0.1
 group = "advanced"
 
 [[settings.fields]]
+name = "build_area_limit"
+type = "boolean"
+label = "Building Area Limit"
+description = "Restrict building to a limited area around base camps"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "max_building_limit_num"
+type = "number"
+label = "Max Building Count"
+description = "Maximum number of buildable objects per base (0 = unlimited)"
+default = 0
+min = 0
+max = 100000
+group = "advanced"
+
+[[settings.fields]]
+name = "base_camp_max_num_in_guild"
+type = "number"
+label = "Max Base Camps Per Guild"
+description = "Maximum number of base camps a single guild can own"
+default = 4
+min = 1
+max = 128
+group = "advanced"
+
+[[settings.fields]]
+name = "guild_rejoin_cooldown_minutes"
+type = "number"
+label = "Guild Rejoin Cooldown"
+description = "Cooldown (minutes) before a player can rejoin a guild after leaving"
+default = 0
+min = 0
+max = 10080
+group = "advanced"
+
+[[settings.fields]]
+name = "auto_reset_guild_no_online_players"
+type = "boolean"
+label = "Auto-Disband Inactive Guilds"
+description = "Automatically reset guilds with no online members for a long time"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "auto_reset_guild_time_no_online_players"
+type = "number"
+label = "Inactive Guild Reset Time"
+description = "Hours of guild inactivity before auto-reset triggers"
+default = 72.0
+min = 1.0
+max = 720.0
+step = 1.0
+group = "advanced"
+
+[[settings.fields]]
+name = "can_pickup_other_guild_death_penalty_drop"
+type = "boolean"
+label = "Loot Other Guilds' Death Drops"
+description = "Allow players to pick up death-penalty drops from other guilds"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_defense_other_guild_player"
+type = "boolean"
+label = "Defend Against Other Guilds"
+description = "Allow base defenses to target players from other guilds"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "invisible_other_guild_base_camp_area_fx"
+type = "boolean"
+label = "Hide Other Guilds' Base Camp FX"
+description = "Hide base camp area visual effects belonging to other guilds"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "drop_item_max_num_unko"
+type = "number"
+label = "UNKO Item Cap"
+description = "Maximum number of UNKO (poop) items in the world"
+default = 100
+min = 0
+max = 3000
+group = "advanced"
+
+[[settings.fields]]
+name = "drop_item_alive_max_hours"
+type = "number"
+label = "Dropped Item Lifetime"
+description = "Hours a dropped item stays in the world before disappearing"
+default = 1.0
+min = 0.0
+max = 168.0
+step = 1.0
+group = "advanced"
+
+[[settings.fields]]
+name = "active_unko"
+type = "boolean"
+label = "Active UNKO"
+description = "Enable the UNKO (poop) item drop mechanic"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "physics_active_drop_item_max_num"
+type = "number"
+label = "Physics-Active Drop Item Cap"
+description = "Maximum number of dropped items with active physics (-1 = unlimited)"
+default = -1
+min = -1
+max = 3000
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_fast_travel_only_base_camp"
+type = "boolean"
+label = "Fast Travel: Base Camps Only"
+description = "Restrict fast travel destinations to base camps only"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "is_start_location_select_by_map"
+type = "boolean"
+label = "Select Start Location On Map"
+description = "Let new players pick their starting location on the map"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "exist_player_after_logout"
+type = "boolean"
+label = "Keep Player Character After Logout"
+description = "Keep the player character present in the world after logging out"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_non_login_penalty"
+type = "boolean"
+label = "Offline Penalty"
+description = "Apply hunger/stamina penalties while a player is offline"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_aim_assist_pad"
+type = "boolean"
+label = "Aim Assist (Gamepad)"
+description = "Enable aim assist for gamepad players"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_aim_assist_keyboard"
+type = "boolean"
+label = "Aim Assist (Keyboard/Mouse)"
+description = "Enable aim assist for keyboard/mouse players"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "is_use_backup_save_data"
+type = "boolean"
+label = "Use Backup Save Data"
+description = "Keep rolling backups of world save data"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "log_format_type"
+type = "select"
+label = "Log Format"
+description = "Server log output format"
+options = ["Text", "Json"]
+default = "Text"
+group = "advanced"
+
+[[settings.fields]]
+name = "server_replicate_pawn_cull_distance"
+type = "number"
+label = "Pawn Replication Cull Distance"
+description = "Distance beyond which characters/Pals stop being network-replicated (performance tuning)"
+default = 15000.0
+min = 1000.0
+max = 100000.0
+step = 500.0
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_global_palbox_export"
+type = "boolean"
+label = "Allow Global Palbox Export"
+description = "Allow Pals to be exported from the global Palbox"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_global_palbox_import"
+type = "boolean"
+label = "Allow Global Palbox Import"
+description = "Allow Pals to be imported into the global Palbox"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "deny_technology_list"
+type = "text"
+label = "Denied Technology List"
+description = "Comma-separated technology IDs disabled on this server, e.g. PALBOX,RepairBench"
+default = ""
+group = "advanced"
+
+[[settings.fields]]
+name = "block_respawn_time"
+type = "number"
+label = "Respawn Block Time"
+description = "Seconds a player must wait before respawning"
+default = 5.0
+min = 0.0
+max = 300.0
+step = 1.0
+group = "advanced"
+
+[[settings.fields]]
+name = "respawn_penalty_duration_threshold"
+type = "number"
+label = "Respawn Penalty Threshold"
+description = "Time-of-death threshold (seconds) before respawn penalty scaling applies"
+default = 0.0
+min = 0.0
+max = 3600.0
+step = 1.0
+group = "advanced"
+
+[[settings.fields]]
+name = "respawn_penalty_time_scale"
+type = "number"
+label = "Respawn Penalty Time Scale"
+description = "Multiplier applied to respawn wait time as a penalty"
+default = 2.0
+min = 0.0
+max = 10.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "display_pvp_item_num_on_world_map_base_camp"
+type = "boolean"
+label = "Show PvP Item Count (Base Camps)"
+description = "Show item counts for base camps on the world map in PvP mode"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "display_pvp_item_num_on_world_map_player"
+type = "boolean"
+label = "Show PvP Item Count (Players)"
+description = "Show item counts for players on the world map in PvP mode"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "additional_drop_item_when_player_killing_in_pvp_mode_enabled"
+type = "boolean"
+label = "Extra PvP Kill Drop"
+description = "Drop an additional item when a player kills another player in PvP mode"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "additional_drop_item_when_player_killing_in_pvp_mode"
+type = "text"
+label = "Extra PvP Kill Drop Item"
+description = "Item ID dropped on a PvP kill (used when the toggle above is enabled)"
+default = "PlayerDropItem"
+group = "advanced"
+
+[[settings.fields]]
+name = "additional_drop_item_num_when_player_killing_in_pvp_mode"
+type = "number"
+label = "Extra PvP Kill Drop Count"
+description = "Number of the extra item dropped on a PvP kill"
+default = 1
+min = 0
+max = 100
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_enhance_stat_health"
+type = "boolean"
+label = "Allow Stat Enhance: Health"
+description = "Allow players to enhance the Health stat"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_enhance_stat_attack"
+type = "boolean"
+label = "Allow Stat Enhance: Attack"
+description = "Allow players to enhance the Attack stat"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_enhance_stat_stamina"
+type = "boolean"
+label = "Allow Stat Enhance: Stamina"
+description = "Allow players to enhance the Stamina stat"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_enhance_stat_weight"
+type = "boolean"
+label = "Allow Stat Enhance: Weight"
+description = "Allow players to enhance the Weight stat"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_enhance_stat_work_speed"
+type = "boolean"
+label = "Allow Stat Enhance: Work Speed"
+description = "Allow players to enhance the Work Speed stat"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "item_container_force_mark_dirty_interval"
+type = "number"
+label = "Item Container Sync Interval"
+description = "Interval (seconds) for forcing item container save-state sync"
+default = 1.0
+min = 0.1
+max = 60.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "item_corruption_multiplier"
+type = "number"
+label = "Item Corruption Multiplier"
+description = "Multiplier for item corruption chance"
+default = 1.0
+min = 0.0
+max = 10.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "equipment_durability_damage_rate"
+type = "number"
+label = "Equipment Durability Loss Rate"
+description = "Equipment durability damage multiplier (0.0-10.0)"
+default = 1.0
+min = 0.0
+max = 10.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "randomizer_type"
+type = "text"
+label = "Randomizer Type"
+description = "World randomizer mode (e.g. None, Region, Boss) — set before first world generation"
+default = "None"
+group = "advanced"
+
+[[settings.fields]]
+name = "randomizer_seed"
+type = "text"
+label = "Randomizer Seed"
+description = "Seed used by the world randomizer — set before first world generation"
+default = ""
+group = "advanced"
+
+[[settings.fields]]
+name = "randomizer_pal_level_random"
+type = "boolean"
+label = "Randomize Pal Levels"
+description = "Randomize Pal levels when the world randomizer is active"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "hardcore"
+type = "boolean"
+label = "Hardcore Mode"
+description = "Enable hardcore mode (harsher death consequences)"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "character_recreate_in_hardcore"
+type = "boolean"
+label = "Recreate Character In Hardcore"
+description = "Allow recreating a character after death in hardcore mode"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "is_multiplay"
+type = "boolean"
+label = "Multiplay Mode"
+description = "Enable the dedicated multiplay ruleset"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_predator_boss_pal"
+type = "boolean"
+label = "Predator Boss Pals"
+description = "Enable rare predator/boss Pal spawns"
+default = true
+group = "advanced"
+
+[[settings.fields]]
+name = "player_data_pal_storage_update_check_tick_interval"
+type = "number"
+label = "Pal Storage Sync Interval"
+description = "Tick interval (seconds) for checking Pal storage data updates"
+default = 1.0
+min = 0.1
+max = 60.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "monster_farm_action_speed_rate"
+type = "number"
+label = "Monster Farm Action Speed"
+description = "Action speed multiplier for Pals working at monster farms"
+default = 1.0
+min = 0.1
+max = 10.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "auto_transfer_master_check_interval_seconds"
+type = "number"
+label = "Auto-Transfer Ownership Check Interval"
+description = "Interval (seconds) for checking auto-transfer of guild master ownership"
+default = 3600.0
+min = 60.0
+max = 86400.0
+step = 60.0
+group = "advanced"
+
+[[settings.fields]]
+name = "auto_transfer_master_threshold_days"
+type = "number"
+label = "Auto-Transfer Ownership Threshold"
+description = "Days of guild master inactivity before ownership auto-transfers"
+default = 14
+min = 1
+max = 365
+group = "advanced"
+
+[[settings.fields]]
+name = "max_guilds_per_frame"
+type = "number"
+label = "Max Guild Updates Per Frame"
+description = "Performance tuning: max guilds processed per server tick"
+default = 10
+min = 1
+max = 1000
+group = "advanced"
+
+[[settings.fields]]
+name = "enable_building_player_uid_display"
+type = "boolean"
+label = "Show Builder Name On Buildings"
+description = "Display the owning player's name/UID on placed buildings"
+default = false
+group = "advanced"
+
+[[settings.fields]]
+name = "building_name_display_cache_ttl_seconds"
+type = "number"
+label = "Building Name Display Cache TTL"
+description = "Cache lifetime (seconds) for the building owner name display"
+default = 60
+min = 0
+max = 3600
+group = "advanced"
+
+[[settings.fields]]
 name = "drop_item_max_num"
 type = "number"
 label = "Drop Item Max"
@@ -521,10 +1112,54 @@ max = 5.0
 step = 0.1
 group = "advanced"
 
+[[settings.fields]]
+name = "pal_lost"
+type = "boolean"
+label = "Pal Lost"
+description = "Pals are permanently lost (removed from party) on death"
+default = false
+
+[[settings.fields]]
+name = "enable_fast_travel"
+type = "boolean"
+label = "Fast Travel"
+description = "Enable fast travel between discovered locations"
+default = true
+
+[[settings.fields]]
+name = "item_weight_rate"
+type = "number"
+label = "Item Weight Rate"
+description = "Item weight multiplier (affects inventory capacity, 0.1-10.0)"
+default = 1.0
+min = 0.1
+max = 10.0
+step = 0.1
+
+[[settings.fields]]
+name = "auto_save_span"
+type = "number"
+label = "Auto-Save Interval"
+description = "Interval between automatic world saves, in minutes"
+default = 30.0
+min = 1.0
+max = 240.0
+step = 1.0
+
+[[settings.fields]]
+name = "supply_drop_span"
+type = "number"
+label = "Supply Drop Interval"
+description = "Interval between supply drop events, in minutes"
+default = 180
+min = 0
+max = 1440
+
 [commands]
 
 [[commands.fields]]
 name = "announce"
+risk = "safe"
 label = "Send Announcement"
 description = "Broadcast a message to the server"
 method = "rest"
@@ -536,6 +1171,7 @@ inputs = [
 
 [[commands.fields]]
 name = "info"
+risk = "safe"
 label = "Server Info"
 description = "View server information"
 method = "rest"
@@ -545,6 +1181,7 @@ inputs = []
 
 [[commands.fields]]
 name = "players"
+risk = "safe"
 label = "Player List"
 description = "List currently connected players"
 method = "rest"
@@ -553,7 +1190,28 @@ endpoint_template = "/v1/api/players"
 inputs = []
 
 [[commands.fields]]
+name = "metrics"
+risk = "safe"
+label = "Server Metrics"
+description = "View server FPS, player count and uptime"
+method = "rest"
+http_method = "GET"
+endpoint_template = "/v1/api/metrics"
+inputs = []
+
+[[commands.fields]]
+name = "settings"
+risk = "safe"
+label = "View Settings"
+description = "View current server settings"
+method = "rest"
+http_method = "GET"
+endpoint_template = "/v1/api/settings"
+inputs = []
+
+[[commands.fields]]
 name = "save"
+risk = "safe"
 label = "Save World"
 description = "Save the game world"
 method = "rest"
@@ -563,6 +1221,7 @@ inputs = []
 
 [[commands.fields]]
 name = "shutdown"
+risk = "danger"
 label = "Shutdown Server"
 description = "Shutdown the server (with optional delay)"
 method = "rest"
@@ -575,6 +1234,7 @@ inputs = [
 
 [[commands.fields]]
 name = "kick"
+risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
 method = "rest"
@@ -587,6 +1247,7 @@ inputs = [
 
 [[commands.fields]]
 name = "ban"
+risk = "danger"
 label = "Ban Player"
 description = "Permanently ban a player"
 method = "rest"
@@ -599,6 +1260,7 @@ inputs = [
 
 [[commands.fields]]
 name = "unban"
+risk = "caution"
 label = "Unban Player"
 description = "Unban a banned player"
 method = "rest"

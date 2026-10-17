@@ -21,52 +21,23 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-# RCON communication delegates to the Rust daemon's HTTP API
-from daemon_rcon import DaemonRconClient as RconClient
-# UE4 INI parser (shared extension)
-from extensions.ue4_ini import parse_option_settings, write_option_settings
+# 명령은 데몬의 REST 경로로 보낸다 (RCON은 보안 정책으로 꺼 둔다)
+try:
+    from daemon_rcon import daemon_post
+except ImportError:
+    # 예전 코어의 daemon_rcon에는 daemon_post가 없다: 모듈은 불러지고, 그 경로를 쓰는 명령만 안내와 함께 실패한다
+    def daemon_post(path, payload, timeout=10):
+        raise ConnectionError("this saba-chan core is too old for this Palworld module; update saba-chan")
+# UE4 INI parser (ue4-ini extension). Without it the module still answers;
+# functions that touch PalWorldSettings.ini return extension_required.
+try:
+    from extensions.ue4_ini import parse_option_settings, write_option_settings
+except ImportError:
+    parse_option_settings = write_option_settings = None
 
 # Initialize i18n
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
-
-# Daemon API endpoint (localhost by default)
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
-
-class PalworldRconClient:
-    """Palworld RCON client — delegates to Rust daemon's RCON API."""
-    
-    def __init__(self, host='127.0.0.1', port=25575, password='', instance_id=None):
-        self._instance_id = instance_id
-        self._client = RconClient(instance_id or '', host, int(port), password)
-    
-    def connect(self):
-        """Connect to RCON server"""
-        print(f"[RCON] {i18n.t('rcon.connecting', host=self._client.host, port=self._client.port)}", file=sys.stderr)
-        result = self._client.connect()
-        if result:
-            print(f"[RCON] {i18n.t('rcon.authenticated')}", file=sys.stderr)
-        else:
-            print(f"[RCON] {i18n.t('rcon.connection_failed', error='see above')}", file=sys.stderr)
-        return result
-    
-    def disconnect(self):
-        """Disconnect from RCON server"""
-        self._client.disconnect()
-    
-    def send_command(self, command):
-        """Send a command to the server"""
-        try:
-            if not self._client.socket:
-                if not self.connect():
-                    return None
-            print(f"[RCON] {i18n.t('rcon.sending_command', command=command)}", file=sys.stderr)
-            response = self._client.command(command)
-            print(f"[RCON] {i18n.t('rcon.response_received', response=response[:100] if response else 'None')}", file=sys.stderr)
-            return response
-        except Exception as e:
-            print(f"[RCON] {i18n.t('rcon.command_failed', error=str(e))}", file=sys.stderr)
-            return None
 
 
 class PalworldRestClient:
@@ -226,78 +197,6 @@ def resolve_player_id(instance_id, player_input, config):
         return (False, f"Error resolving player: {str(e)}")
 
 
-def start(config):
-    """Start Palworld server"""
-    try:
-        executable = config.get("server_executable")
-        if not executable:
-            return {
-                "success": False,
-                "message": i18n.t("errors.no_executable")
-            }
-        
-        # Check if executable exists
-        if not os.path.exists(executable):
-            return {
-                "success": False,
-                "message": i18n.t("errors.executable_not_found", path=executable)
-            }
-        
-        port = config.get("port", 8211)
-        working_dir = config.get("working_dir")
-        
-        # Use working directory if specified, otherwise use executable's directory
-        if not working_dir:
-            working_dir = os.path.dirname(executable)
-        
-        # Construct command
-        cmd = [
-            executable,
-            f"--port={port}"
-        ]
-        
-        # Log for debugging (to stderr)
-        print(i18n.t('messages.starting_server', command=' '.join(cmd)), file=sys.stderr)
-        print(i18n.t('messages.working_directory', path=working_dir), file=sys.stderr)
-        
-        # Enforce REST-only policy before launch
-        _enforce_rest_policy(working_dir, config)
-        
-        # Start process (detached, cross-platform)
-        if sys.platform == 'win32':
-            creationflags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(
-                cmd,
-                cwd=working_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                creationflags=creationflags
-            )
-        else:
-            # Unix/Linux/macOS: Use start_new_session for detached process
-            proc = subprocess.Popen(
-                cmd,
-                cwd=working_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                start_new_session=True
-            )
-        
-        return {
-            "success": True,
-            "pid": proc.pid,
-            "message": i18n.t('messages.server_starting', pid=proc.pid)
-        }
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error details: {error_details}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t('errors.failed_to_start', error=str(e))
-        }
-
-
 def _read_admin_password_from_ini(config):
     """
     PalWorldSettings.ini에서 AdminPassword를 직접 읽어 반환합니다.
@@ -346,6 +245,12 @@ def _enforce_rest_policy(working_dir, config=None):
         props["RESTAPIEnabled"] = "True"
         changes["RESTAPIEnabled"] = "True"
         print(i18n.t("messages.rest_api_forced_on"), file=sys.stderr)
+
+    # 데몬이 접속할 REST 포트(인스턴스 rest_port, 자동 배정될 수 있다)를 INI에 맞춘다
+    rest_port = (config or {}).get("rest_port")
+    if rest_port and props.get("RESTAPIPort") != str(rest_port):
+        props["RESTAPIPort"] = str(rest_port)
+        changes["RESTAPIPort"] = str(rest_port)
 
     # Force RCON disabled
     if props.get("RCONEnabled", "False") != "False":
@@ -415,9 +320,19 @@ def get_launch_command(config):
 
     args = [f"--port={port}"]
 
+    # PalServer.exe는 실제 서버(Shipping-Cmd)를 띄우고 빠지는 런처다. 데몬(saba-runner)이
+    # 실제 서버의 PID·종료 코드를 쥐도록 런처가 하는 그대로 실제 서버를 직접 띄운다.
+    # 실제 서버 exe가 없으면(다른 배포 형태) 예전처럼 런처를 띄운다.
+    program = os.path.abspath(executable)
+    real_server = os.path.join(os.path.dirname(program), "Pal", "Binaries", "Win64",
+                               "PalServer-Win64-Shipping-Cmd.exe")
+    if os.path.exists(real_server):
+        program = real_server
+        args = ["Pal"] + args  # 런처가 붙이는 프로젝트 이름
+
     result = {
         "success": True,
-        "program": os.path.abspath(executable),
+        "program": program,
         "args": args,
         "working_dir": abs_working_dir,
         "env_vars": {},
@@ -432,81 +347,83 @@ def get_launch_command(config):
     return result
 
 
-def stop(config):
-    """Stop Palworld server"""
+def _pid_running(pid):
+    if sys.platform == 'win32':
+        out = subprocess.run(['tasklist', '/FI', f'PID eq {pid}', '/NH'],
+                             capture_output=True, text=True, check=False,
+                             creationflags=0x08000000).stdout
+        return str(pid) in out
     try:
-        executable = config.get("server_executable")
-        if not executable:
-            return {"success": False, "message": "server_executable not specified"}
-        
-        # Extract executable name from path (e.g., "D:\\path\\PalServer.exe" -> "PalServer.exe")
-        exe_name = os.path.basename(executable)
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def _rest_shutdown(config):
+    """REST로 저장 후 종료를 요청한다. 요청이 들어가면 True."""
+    password = _read_admin_password_from_ini(config)
+    if not password:
+        return False
+    port = config.get("rest_port")
+    if not port:
+        try:
+            port = int(_parse_option_settings(_get_settings_ini_path(config)).get("RESTAPIPort", 8212))
+        except Exception:
+            port = 8212
+    client = PalworldRestClient(port=port, username="admin", password=password, timeout=5)
+    try:
+        client._request("POST", "/save", {})
+    except RuntimeError as e:
+        print(f"[Palworld] REST save before shutdown failed: {e}", file=sys.stderr)
+    try:
+        client._request("POST", "/shutdown", {"waittime": 1, "message": "Server is shutting down"})
+        return True
+    except RuntimeError as e:
+        print(f"[Palworld] REST shutdown failed: {e}", file=sys.stderr)
+        return False
+
+
+def _kill(pid):
+    """그 PID(와 자식)만 강제 종료한다. 실행 파일 이름으로는 끝내지 않는다: 같은 게임의 다른 인스턴스까지 죽는다"""
+    if sys.platform == 'win32':
+        subprocess.run(['taskkill', '/F', '/T', '/PID', str(pid)], capture_output=True, text=True,
+                       check=False, creationflags=0x08000000)
+    else:
+        try:
+            os.kill(pid, 9)
+        except OSError:
+            pass
+
+
+def stop(config):
+    """Stop Palworld server.
+
+    Palworld는 콘솔(stdin) 명령을 받지 않으므로 REST로 저장·종료를 요청하고,
+    시간 안에 끝나지 않으면 강제 종료한다. 데몬이 PID를 주면(managed) 그 프로세스만 다룬다.
+    """
+    try:
+        pid = config.get("pid")
         force = config.get("force", False)
-        
-        if sys.platform == 'win32':
-            # Windows: Always use /F /T for forceful termination with tree kill
-            # /F = force kill, /T = terminate child processes
-            try:
-                result = subprocess.run(
-                    ['taskkill', '/F', '/T', '/IM', exe_name],
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                
-                # Log the output for debugging
-                if result.stdout:
-                    print(f"taskkill stdout: {result.stdout}", file=sys.stderr)
-                if result.stderr:
-                    print(f"taskkill stderr: {result.stderr}", file=sys.stderr)
-                print(f"taskkill return code: {result.returncode}", file=sys.stderr)
-                
-                # taskkill returns 0 on success, but can also return 128 if process not found
-                # Return success in either case since the goal is to stop the server
-                return {
-                    "success": True,
-                    "message": i18n.t("messages.terminated", name=exe_name)
-                }
-            except Exception as e:
-                error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
-                print(error_msg, file=sys.stderr)
-                return {
-                    "success": False,
-                    "message": error_msg
-                }
-        else:
-            # Unix-like: Use pkill with force
-            try:
-                # Use SIGKILL (9) for immediate termination
-                result = subprocess.run(
-                    ['pkill', '-9', os.path.splitext(exe_name)[0]],
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                
-                if result.stdout:
-                    print(f"pkill stdout: {result.stdout}", file=sys.stderr)
-                if result.stderr:
-                    print(f"pkill stderr: {result.stderr}", file=sys.stderr)
-                print(f"pkill return code: {result.returncode}", file=sys.stderr)
-                
-                return {
-                    "success": True,
-                    "message": i18n.t("messages.terminated", name=exe_name)
-                }
-            except Exception as e:
-                error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
-                print(error_msg, file=sys.stderr)
-                return {
-                    "success": False,
-                    "message": error_msg
-                }
+        exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
+        if not pid:
+            # 데몬이 PID를 모르면 이 인스턴스의 서버가 아니다(또는 안 돌고 있다)
+            return {"success": True, "message": i18n.t("messages.process_not_running", name=exe_name)}
+
+        if not force and _rest_shutdown(config):
+            for _ in range(60):
+                time.sleep(1)
+                if not _pid_running(pid):
+                    return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
+            print("[Palworld] Server did not exit after REST shutdown, force killing", file=sys.stderr)
+
+        _kill(pid)
+        return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
     except Exception as e:
-        return {
-            "success": False,
-            "message": i18n.t("errors.failed_to_stop", error=str(e))
-        }
+        error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
+        print(error_msg, file=sys.stderr)
+        return {"success": False, "message": error_msg}
+
 
 def get_credentials(config):
     """게임 설정 파일에서 직접 credential을 읽어 반환합니다.
@@ -514,93 +431,23 @@ def get_credentials(config):
     매번 파일에서 읽으므로 메모리 동기화 문제가 없습니다."""
     try:
         pw = _read_admin_password_from_ini(config)
-
-        # ── RCON 비밀번호 반환 (RCON 비활성화 상태에서도 필수) ──
-        # Palworld는 공식적으로 REST API를 권장하며 RCON은 지양됨.
-        # saba-chan 역시 이 정책을 따라 RCONEnabled=False를 강제하고,
-        # RCON 지원은 향후에도 추가하지 않을 예정이다.
-        # 그러나 데몬의 RCON 핸들러가 get_credentials에서 rcon_password 필드를
-        # 반드시 요구하기 때문에, 비어 있으면 명령어 실행 자체가 거부된다.
-        # 이 에러를 회피하기 위해 AdminPassword(= REST 인증 비밀번호)를
-        # rcon_password로도 반환한다. 값은 데몬이 ensure_passwords()로 생성한
-        # 랜덤 비밀번호가 _enforce_rest_policy()를 통해 INI에 동기화된 것이다.
-        # RCON 자체는 활성화하지 않으므로 실제 RCON 접속에는 사용되지 않는다.
         return {
             "success": True,
             "rest_password": pw or "",
             "rest_username": "admin",
-            "rcon_password": pw or "",   # RCON 비활성화지만 데몬 요구사항 충족용
         }
     except Exception as e:
         return {"success": False, "message": str(e)}
 
 
 def status(config):
-    """Get server status"""
+    """서버 상태. 데몬이 추적하는 PID로만 판단한다: 실행 파일 이름으로 찾으면 같은 게임의 다른 인스턴스와 섞인다"""
     try:
-        executable = config.get("server_executable")
-        if not executable:
-            return {"success": True, "status": "stopped", "message": i18n.t("errors.no_executable_specified")}
-        
-        # Extract executable name from path (e.g., "D:\\path\\PalServer.exe" -> "PalServer.exe")
-        exe_name = os.path.basename(executable)
-        
-        # Check if process is running by name
-        if sys.platform == 'win32':
-            try:
-                # Use tasklist to check if process is running
-                result = subprocess.run(
-                    ['tasklist', '/FI', f'IMAGENAME eq {exe_name}'],
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                if exe_name in result.stdout:
-                    return {
-                        "success": True,
-                        "status": "running",
-                        "message": i18n.t("messages.process_running", name=exe_name)
-                    }
-                else:
-                    return {
-                        "success": True,
-                        "status": "stopped",
-                        "message": i18n.t("messages.process_not_running", name=exe_name)
-                    }
-            except Exception as e:
-                return {
-                    "success": True,
-                    "status": "stopped",
-                    "message": i18n.t("errors.status_unknown", error=str(e))
-                }
-        else:
-            # Unix-like: Use pgrep
-            try:
-                result = subprocess.run(
-                    ['pgrep', '-f', os.path.splitext(exe_name)[0]],
-                    capture_output=True,
-                    check=False
-                )
-                if result.returncode == 0:
-                    pid = result.stdout.decode().strip().split('\n')[0]
-                    return {
-                        "success": True,
-                        "status": "running",
-                        "pid": int(pid) if pid else None,
-                        "message": i18n.t("messages.process_running", name=exe_name)
-                    }
-                else:
-                    return {
-                        "success": True,
-                        "status": "stopped",
-                        "message": i18n.t("messages.process_not_running", name=exe_name)
-                    }
-            except Exception as e:
-                return {
-                    "success": True,
-                    "status": "stopped",
-                    "message": i18n.t("errors.status_unknown", error=str(e))
-                }
+        exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
+        pid = config.get("pid")
+        running = bool(pid) and _pid_running(pid)
+        key = "messages.process_running" if running else "messages.process_not_running"
+        return {"success": True, "status": "running" if running else "stopped", "message": i18n.t(key, name=exe_name)}
     except Exception as e:
         return {
             "success": False,
@@ -721,6 +568,17 @@ DEFAULT_PALWORLD_SETTINGS = {
     "bAllowEnhanceStat_Stamina": "True",
     "bAllowEnhanceStat_Weight": "True",
     "bAllowEnhanceStat_WorkSpeed": "True",
+    "PhysicsActiveDropItemMaxNum": "-1",
+    "PlayerDataPalStorageUpdateCheckTickInterval": "1.000000",
+    "MonsterFarmActionSpeedRate": "1.000000",
+    "AutoTransferMasterCheckIntervalSeconds": "3600.000000",
+    "AutoTransferMasterThresholdDays": "14",
+    "MaxGuildsPerFrame": "10",
+    "bEnableVoiceChat": "False",
+    "VoiceChatMaxVolumeDistance": "3000.000000",
+    "VoiceChatZeroVolumeDistance": "15000.000000",
+    "bEnableBuildingPlayerUIdDisplay": "False",
+    "BuildingNameDisplayCacheTTLSeconds": "60",
 }
 
 # saba-chan key → PalWorldSettings.ini key (full mapping)
@@ -735,11 +593,9 @@ _PALWORLD_KEY_MAP = {
     "server_password": "ServerPassword",
     "admin_password": "AdminPassword",
     "region": "Region",
-    # Connectivity / Auth
-    "rcon_enabled": "RCONEnabled",
-    "rcon_port": "RCONPort",
+    # Connectivity / Auth (RCONEnabled는 보안 정책상 항상 False라 설정 키가 없다)
     "rest_api_enabled": "RESTAPIEnabled",
-    "rest_api_port": "RESTAPIPort",
+    "rest_port": "RESTAPIPort",
     "use_auth": "bUseAuth",
     "allow_client_mod": "bAllowClientMod",
     "ban_list_url": "BanListURL",
@@ -853,6 +709,18 @@ _PALWORLD_KEY_MAP = {
     "allow_enhance_stat_weight": "bAllowEnhanceStat_Weight",
     "allow_enhance_stat_work_speed": "bAllowEnhanceStat_WorkSpeed",
     "item_container_force_mark_dirty_interval": "ItemContainerForceMarkDirtyInterval",
+    # 2026-07 업데이트로 추가된 옵션
+    "physics_active_drop_item_max_num": "PhysicsActiveDropItemMaxNum",
+    "player_data_pal_storage_update_check_tick_interval": "PlayerDataPalStorageUpdateCheckTickInterval",
+    "monster_farm_action_speed_rate": "MonsterFarmActionSpeedRate",
+    "auto_transfer_master_check_interval_seconds": "AutoTransferMasterCheckIntervalSeconds",
+    "auto_transfer_master_threshold_days": "AutoTransferMasterThresholdDays",
+    "max_guilds_per_frame": "MaxGuildsPerFrame",
+    "enable_voice_chat": "bEnableVoiceChat",
+    "voice_chat_max_volume_distance": "VoiceChatMaxVolumeDistance",
+    "voice_chat_zero_volume_distance": "VoiceChatZeroVolumeDistance",
+    "enable_building_player_uid_display": "bEnableBuildingPlayerUIdDisplay",
+    "building_name_display_cache_ttl_seconds": "BuildingNameDisplayCacheTTLSeconds",
 }
 
 def _get_settings_ini_path(config):
@@ -865,23 +733,29 @@ def _get_settings_ini_path(config):
     if not working_dir:
         return None
 
-    # 컨테이너 모드: 서버가 Linux 컨테이너에서 실행되므로 항상 LinuxServer 경로 사용
-    ext_data = config.get("extension_data", {})
-    use_container = ext_data.get("docker_enabled", False) if isinstance(ext_data, dict) else config.get("use_docker", False)
-    if use_container:
-        platform_dir = "LinuxServer"
-    elif sys.platform == "win32":
-        platform_dir = "WindowsServer"
-    else:
-        platform_dir = "LinuxServer"
+    platform_dir = "WindowsServer" if sys.platform == "win32" else "LinuxServer"
 
     ini_path = os.path.join(working_dir, "Pal", "Saved", "Config", platform_dir, "PalWorldSettings.ini")
     return ini_path
 
 
 # UE4 INI parse/write delegated to extensions.ue4_ini
-_parse_option_settings = parse_option_settings
-_write_option_settings = write_option_settings
+class ExtensionMissing(Exception):
+    def __init__(self, extension):
+        super().__init__(extension)
+        self.extension = extension
+
+
+def _parse_option_settings(ini_path):
+    if parse_option_settings is None:
+        raise ExtensionMissing("ue4-ini")
+    return parse_option_settings(ini_path)
+
+
+def _write_option_settings(ini_path, props):
+    if write_option_settings is None:
+        raise ExtensionMissing("ue4-ini")
+    return write_option_settings(ini_path, props)
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -945,26 +819,23 @@ PALWORLD_ERROR_PATTERNS = [
 def validate(config):
     """Validate prerequisites before starting Palworld server."""
     issues = []
-    executable = config.get("server_executable")
-    ext_data = config.get("extension_data", {})
-    use_container = ext_data.get("docker_enabled", False) if isinstance(ext_data, dict) else config.get("use_docker", False)
+    executable = config.get("server_executable") or config.get("server_jar")
 
-    # 실행 파일 검사 (컨테이너 모드에서는 컨테이너 내부에서 실행하므로 검사 불필요)
-    if not use_container:
-        if not executable:
-            issues.append({
-                "code": "NO_EXECUTABLE",
-                "severity": "critical",
-                "message": i18n.t("validate.no_executable"),
-                "solution": i18n.t("validate.no_executable_hint"),
-            })
-        elif not os.path.isfile(executable):
-            issues.append({
-                "code": "EXECUTABLE_NOT_FOUND",
-                "severity": "critical",
-                "message": i18n.t("validate.executable_not_found", path=executable),
-                "solution": i18n.t("validate.executable_not_found_hint"),
-            })
+    # 실행 파일 검사
+    if not executable:
+        issues.append({
+            "code": "NO_EXECUTABLE",
+            "severity": "critical",
+            "message": i18n.t("validate.no_executable"),
+            "solution": i18n.t("validate.no_executable_hint"),
+        })
+    elif not os.path.isfile(executable):
+        issues.append({
+            "code": "EXECUTABLE_NOT_FOUND",
+            "severity": "critical",
+            "message": i18n.t("validate.executable_not_found", path=executable),
+            "solution": i18n.t("validate.executable_not_found_hint"),
+        })
 
     # Working directory
     working_dir = config.get("working_dir")
@@ -981,9 +852,9 @@ def validate(config):
                 "solution": i18n.t("validate.cannot_create_dir_hint"),
             })
 
-    # Port availability
+    # Port availability — 이 서버가 이미 켜져 있으면 그 포트는 자기 것이다
     port = config.get("port", 8211)
-    if port:
+    if port and not config.get("running"):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(1)
@@ -1008,6 +879,30 @@ def validate(config):
     }
 
 
+# 목록 값 INI 키 → 항목 따옴표. 화면에서는 쉼표로 적고("PALBOX,RepairBench"),
+# INI에는 괄호 목록으로 쓴다: DenyTechnologyList=("PALBOX","RepairBench"). 새 목록 키는 여기 한 줄만 추가
+_LIST_KEYS = {
+    "DenyTechnologyList": '"',
+}
+
+
+def _to_ini_list(value, quote):
+    """"a, b" → ("a","b"). 이미 괄호 목록이면 그대로, 빈 값은 빈 값"""
+    text = str(value).strip()
+    if not text or text.startswith("("):
+        return text
+    items = [item.strip().strip('"') for item in text.split(",")]
+    return "(" + ",".join(f"{quote}{item}{quote}" for item in items if item) + ")"
+
+
+def _from_ini_list(value):
+    """("a","b") → a,b"""
+    text = _unquote(value).strip()
+    if text.startswith("(") and text.endswith(")"):
+        text = text[1:-1]
+    return ",".join(item.strip().strip('"') for item in text.split(",") if item.strip().strip('"'))
+
+
 def configure(config):
     """Apply settings to PalWorldSettings.ini."""
     settings = config.get("settings", {})
@@ -1029,15 +924,27 @@ def configure(config):
             continue
         if isinstance(value, bool):
             value = "True" if value else "False"
+        elif ini_key in _LIST_KEYS:
+            value = _to_ini_list(value, _LIST_KEYS[ini_key])
         props[ini_key] = str(value)
         updated_keys.append(ini_key)
 
+    # RCON은 보안 정책으로 막는다: 손으로 켠 INI라도 저장할 때 끈다
+    props["RCONEnabled"] = "False"
     ok = _write_option_settings(ini_path, props)
     return {
         "success": ok,
         "message": i18n.t("messages.settings_updated") if ok else i18n.t("errors.settings_write_failed"),
         "updated_keys": updated_keys,
     }
+
+
+def _unquote(value):
+    """PalWorldSettings.ini는 문자열을 따옴표로 감싼다: 짝이 맞는 바깥 따옴표 한 쌍만 벗긴다"""
+    val = str(value)
+    if len(val) >= 2 and val[0] == val[-1] == '"':
+        return val[1:-1]
+    return val
 
 
 def import_settings(config):
@@ -1057,24 +964,18 @@ def import_settings(config):
     # Build reverse map: INI key → saba-chan key
     reverse_map = {v: k for k, v in _PALWORLD_KEY_MAP.items()}
 
+    from daemon_rcon import coerce_setting, load_setting_types
+    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
     settings = {}
     for ini_key, raw_value in ini_props.items():
         saba_key = reverse_map.get(ini_key)
         if saba_key is None:
             continue
 
-        # Type coercion: booleans, numbers, strings
-        val = str(raw_value).strip().strip('"')
-        if val.lower() == "true":
-            settings[saba_key] = True
-        elif val.lower() == "false":
-            settings[saba_key] = False
-        else:
-            try:
-                f = float(val)
-                settings[saba_key] = int(f) if f == int(f) else f
-            except (ValueError, OverflowError):
-                settings[saba_key] = val
+        if ini_key in _LIST_KEYS:
+            settings[saba_key] = _from_ini_list(raw_value)
+            continue
+        settings[saba_key] = coerce_setting(_unquote(raw_value), types.get(saba_key))
 
     return {"success": True, "settings": settings}
 
@@ -1321,7 +1222,7 @@ def install_server(config):
 
 
 def command(config):
-    """Execute server command via daemon REST/RCON API based on protocol_mode"""
+    """서버 명령을 데몬의 REST 경로로 실행한다"""
     try:
         # 디버그: 전달받은 config 출력
         print(f"[Palworld] Received config keys: {list(config.keys())}", file=sys.stderr)
@@ -1329,9 +1230,7 @@ def command(config):
         command_text = config.get("command")
         args = config.get("args", {})
         instance_id = config.get("instance_id")
-        protocol_mode = config.get("protocol_mode", "rest")  # "rest", "rcon", "auto"
-        
-        print(f"[Palworld] command={command_text}, instance_id={instance_id}, protocol_mode={protocol_mode}", file=sys.stderr)
+        print(f"[Palworld] command={command_text}, instance_id={instance_id}", file=sys.stderr)
         
         if not command_text:
             return {
@@ -1345,7 +1244,7 @@ def command(config):
                 "message": f"No instance_id specified. Config keys: {list(config.keys())}, config: {str(config)[:300]}"
             }
         
-        print(f"[Palworld] Executing command '{command_text}' via protocol_mode='{protocol_mode}' with args: {args}", file=sys.stderr)
+        print(f"[Palworld] Executing command '{command_text}' with args: {args}", file=sys.stderr)
         
         # Normalize command for branching
         command_lower = command_text.lower()
@@ -1364,11 +1263,6 @@ def command(config):
                 else:
                     print(f"[Palworld] Player lookup failed for unban, using original: {player_input}", file=sys.stderr)
         
-        # === RCON 모드 ===
-        if protocol_mode == "rcon":
-            return execute_command_via_rcon(instance_id, command_lower, args, config)
-        
-        # === REST 모드 (기본값) ===
         return execute_command_via_rest(instance_id, command_lower, args, config)
     
     except Exception as e:
@@ -1517,75 +1411,26 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
         }
 
 
-def execute_command_via_rcon(instance_id, command_lower, args, config):
-    """Execute command via RCON"""
-    
-    # RCON 명령어 템플릿 매핑
-    rcon_templates = {
-        "announce": "Broadcast {message}",
-        "info": "Info",
-        "players": "ShowPlayers",
-        "save": "Save",
-        "shutdown": "Shutdown {waittime} {message}",
-        "kick": "KickPlayer {userid}",
-        "ban": "BanPlayer {userid}",
-        "unban": "UnBanPlayer {userid}",
-    }
-    
-    if command_lower not in rcon_templates:
-        return {
-            "success": False,
-            "message": f"Command '{command_lower}' is not available via RCON. Try using REST mode."
-        }
-    
-    # 템플릿에서 RCON 명령어 생성
-    template = rcon_templates[command_lower]
-    
-    # 인자 치환
-    rcon_cmd = template
-    for key, value in args.items():
-        rcon_cmd = rcon_cmd.replace("{" + key + "}", str(value) if value else "")
-    
-    # 남은 플레이스홀더 제거 및 공백 정리
-    import re
-    rcon_cmd = re.sub(r'\{[^}]+\}', '', rcon_cmd)
-    rcon_cmd = ' '.join(rcon_cmd.split())  # 연속 공백 제거
-    
-    print(f"[Palworld] RCON command: {rcon_cmd}", file=sys.stderr)
-    
-    return execute_rcon_via_daemon(instance_id, rcon_cmd)
-
-
 def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
     """Execute REST API command via daemon"""
-    api_url = f"{DAEMON_API_URL}/api/instance/{instance_id}/rest"
-    
-    payload = json.dumps({
+    payload = {
         "endpoint": endpoint,
         "method": "POST" if body else "GET",
         "body": body
-    }).encode('utf-8')
+    }
     
     try:
-        req = urllib.request.Request(
-            api_url,
-            data=payload,
-            headers={'Content-Type': 'application/json'},
-            method='POST'
-        )
+        result = daemon_post(f"/api/instance/{instance_id}/rest", payload, timeout=5)
+        print(f"[Palworld] Daemon REST response: {result}", file=sys.stderr)
         
-        with urllib.request.urlopen(req, timeout=5) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            print(f"[Palworld] Daemon REST response: {result}", file=sys.stderr)
-            
-            return {
-                "success": result.get("success", True),
-                "message": f"REST API command executed: {command_text}",
-                "data": result.get("data"),
-                "protocol": "rest"
-            }
+        return {
+            "success": result.get("success", True),
+            "message": f"REST API command executed: {command_text}",
+            "data": result.get("data"),
+            "protocol": "rest"
+        }
     
-    except urllib.error.URLError as e:
+    except ConnectionError as e:
         print(f"[Palworld] Daemon connection error: {e}", file=sys.stderr)
         return {
             "success": False,
@@ -1602,53 +1447,6 @@ def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
         return {
             "success": False,
             "message": f"Failed to execute via daemon: {str(e)}"
-        }
-
-
-def execute_rcon_via_daemon(instance_id, rcon_cmd):
-    """Execute RCON command via daemon"""
-    api_url = f"{DAEMON_API_URL}/api/instance/{instance_id}/rcon"
-    
-    payload = json.dumps({
-        "command": rcon_cmd
-    }).encode('utf-8')
-    
-    try:
-        req = urllib.request.Request(
-            api_url,
-            data=payload,
-            headers={'Content-Type': 'application/json'},
-            method='POST'
-        )
-        
-        with urllib.request.urlopen(req, timeout=10) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            print(f"[Palworld] Daemon RCON response: {result}", file=sys.stderr)
-            
-            return {
-                "success": result.get("success", True),
-                "message": f"RCON command executed: {rcon_cmd}",
-                "data": result.get("data"),
-                "protocol": "rcon"
-            }
-    
-    except urllib.error.URLError as e:
-        print(f"[Palworld] Daemon RCON connection error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Failed to connect to daemon for RCON: {str(e)}"
-        }
-    except json.JSONDecodeError as e:
-        print(f"[Palworld] Invalid JSON response from daemon RCON: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Invalid daemon RCON response: {str(e)}"
-        }
-    except Exception as e:
-        print(f"[Palworld] Daemon RCON error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": f"Failed to execute RCON via daemon: {str(e)}"
         }
 
 
@@ -1673,7 +1471,6 @@ if __name__ == "__main__":
     
     # Function dispatch table (matches daemon's expected interface)
     FUNCTIONS = {
-        "start": start,
         "stop": stop,
         "status": status,
         "command": command,
@@ -1682,6 +1479,7 @@ if __name__ == "__main__":
         "validate": validate,
         "configure": configure,
         "read_properties": read_properties,
+        "import_settings": import_settings,
         "reset_properties": reset_properties,
         "reset_server": reset_server,
         "accept_eula": accept_eula,
@@ -1693,7 +1491,15 @@ if __name__ == "__main__":
     
     fn = FUNCTIONS.get(function_name)
     if fn:
-        result = fn(config)
+        try:
+            result = fn(config)
+        except ExtensionMissing as e:
+            result = {
+                "success": False,
+                "message": i18n.t("messages.extension_missing", extension=e.extension),
+                "error_code": "extension_required",
+                "missing_extensions": [e.extension],
+            }
     else:
         result = {"success": False, "message": f"Unknown function: {function_name}"}
     

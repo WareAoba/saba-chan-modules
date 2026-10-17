@@ -4,6 +4,7 @@
     "description": "Project Zomboid dedicated server management module with full lifecycle control"
   },
   "settings": {
+    "cache_dir": { "label": "Data Folder", "description": "Where this server keeps its settings, saves and logs (-cachedir). Empty uses ~/Zomboid" },
     "ram": { "label": "Memory (RAM)", "description": "Maximum memory allocation in GB" },
     "server_name": { "label": "Server Profile Name", "description": "Name of the server profile (determines INI file name)" },
     "rcon_port": { "label": "RCON Port", "description": "Port for RCON remote console" },

@@ -9,8 +9,7 @@ graceful shutdown, settings synchronization, and installation via SteamCMD.
 Project Zomboid is a Java-based game server (Steam App 380870) that:
   - Uses a bundled JRE (jre64/bin/java.exe) with custom classpath
   - Stores configs in ~/Zomboid/Server/{servername}.ini (separate from install dir)
-  - Supports RCON on port 27015 for remote administration
-  - Supports stdin console for direct command input
+  - Takes commands on its console (stdin); RCON stays off (saba-chan security policy)
 """
 
 import sys
@@ -34,17 +33,9 @@ if _root_dir not in sys.path:
 
 from i18n import I18n
 
-# RCON communication delegates to the Rust daemon's HTTP API
-try:
-    from daemon_rcon import rcon_command as _rcon_command_bridge
-    def _rcon_command(host, port, password, command, timeout=5):
-        return _rcon_command_bridge(host, port, password, command, timeout)
-except ImportError:
-    _rcon_command = None
+from daemon_rcon import daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
 
 i18n = I18n(MODULE_DIR)
-
-DAEMON_API_URL = os.environ.get('DAEMON_API_URL', 'http://127.0.0.1:57474')
 
 
 # ─── Constants ───────────────────────────────────────────
@@ -86,8 +77,6 @@ _INI_KEY_MAP = {
     "minutes_per_page":      "MinutesPerPage",
     "spawn_point":           "SpawnPoint",
     "max_accounts_per_user": "MaxAccountsPerUser",
-    "rcon_port":             "RCONPort",
-    "rcon_password":         "RCONPassword",
     "spawn_items":           "SpawnItems",
     # ── Player / Display ──
     "server_welcome_message":  "ServerWelcomeMessage",
@@ -326,6 +315,56 @@ DEFAULT_INI_PROPERTIES = {
 #                    INI File Manager
 # ═══════════════════════════════════════════════════════════
 
+def _cache_dir(config):
+    """인스턴스 데이터 폴더 설정 (자리표시자가 남아 있으면 없는 것으로 본다)"""
+    cache_dir = str(config.get("cache_dir") or "")
+    return cache_dir if cache_dir and "{" not in cache_dir else ""
+
+
+def _legacy_config_dir(config):
+    """예전 인스턴스의 config_dir. cache_dir이 있으면 쓰지 않는다. 끝의 구분자는 떼어 낸다"""
+    if _cache_dir(config):
+        return ""
+    raw = str(config.get("config_dir") or "")
+    return os.path.normpath(raw) if raw else ""
+
+
+def _legacy_layout(config):
+    """예전 config_dir을 (데이터 폴더, ini 폴더)로 푼다. 없으면 None.
+
+    config_dir은 ini가 있는 폴더(<데이터 폴더>/Server)이거나 데이터 폴더 자체(…/Zomboid,
+    ini는 그 아래 Server/)였다. 이름이 Server가 아니어도 아래에 Server/ 폴더가 있으면 데이터 폴더로 본다.
+    """
+    legacy = _legacy_config_dir(config)
+    if not legacy:
+        return None
+    if os.path.basename(legacy).lower() == "server":
+        return os.path.dirname(legacy), legacy
+    # 게임은 언제나 <데이터 폴더>/Server/ 를 읽는다: Server/ 폴더가 있으면 그쪽이 맞다
+    # (예전 버그로 데이터 폴더 바로 아래 남은 <이름>.ini는 게임이 읽지 않는 파일이다)
+    server_dir = os.path.join(legacy, "Server")
+    if os.path.isdir(server_dir):
+        return legacy, server_dir
+    return legacy, legacy
+
+
+def _zomboid_home(config):
+    """PZ 데이터 폴더 (-cachedir): ini, 세이브, 콘솔 로그가 여기 있다.
+
+    `cache_dir` 설정이 있으면 그 폴더(새 인스턴스는 인스턴스마다 따로 받는다),
+    없으면 PZ 기본값인 ~/Zomboid (이전에 만든 인스턴스와 가져온 서버).
+    """
+    cache_dir = _cache_dir(config)
+    if cache_dir:
+        return cache_dir
+    layout = _legacy_layout(config)
+    if layout:
+        return layout[0]
+    if sys.platform == "win32":
+        return os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid")
+    return os.path.join(os.path.expanduser("~"), "Zomboid")
+
+
 class IniManager:
     """Read/write Project Zomboid server INI files.
     
@@ -337,18 +376,11 @@ class IniManager:
     def get_ini_path(config):
         """Determine the path to {servername}.ini."""
         server_name = config.get("server_name", "servertest")
-        
-        # Try explicit config_dir first
-        config_dir = config.get("config_dir", "")
-        if config_dir and os.path.isdir(config_dir):
-            return os.path.join(config_dir, f"{server_name}.ini")
-        
-        # Default locations
-        if sys.platform == "win32":
-            zomboid_dir = os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid", "Server")
-        else:
-            zomboid_dir = os.path.join(os.path.expanduser("~"), "Zomboid", "Server")
-        
+        # 예전 인스턴스: config_dir 바로 아래에 ini가 있다 (cache_dir이 있으면 그쪽이 우선)
+        layout = _legacy_layout(config)
+        if layout:
+            return os.path.join(layout[1], f"{server_name}.ini")
+        zomboid_dir = os.path.join(_zomboid_home(config), "Server")
         return os.path.join(zomboid_dir, f"{server_name}.ini")
 
     @staticmethod
@@ -360,13 +392,14 @@ class IniManager:
         
         try:
             with open(ini_path, 'r', encoding='utf-8', errors='replace') as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith('#'):
+                for raw in f:
+                    # 값은 첫 "=" 뒤를 그대로 둔다 (비밀번호의 앞뒤 공백도 값이다). 줄바꿈만 뗀다
+                    line = raw.rstrip('\r\n')
+                    if not line.strip() or line.lstrip().startswith('#'):
                         continue
                     if '=' in line:
                         key, _, value = line.partition('=')
-                        props[key.strip()] = value.strip()
+                        props[key.strip()] = value
         except (IOError, OSError) as e:
             print(f"Warning: Could not read {ini_path}: {e}", file=sys.stderr)
         
@@ -781,69 +814,17 @@ def _get_native_libs(server_dir):
     return ";".join(paths) if sys.platform == "win32" else ":".join(paths)
 
 
-def _enforce_rcon_policy(config, ini_path, managed=True):
-    """Enforce RCON settings based on managed/non-managed mode.
-    
-    - Managed mode (stdin control):  RCON is optional; disable by default
-      to reduce attack surface.  stdin is used for all commands.
-    - Non-managed mode (RCON only):  RCON is the sole control method;
-      force enable + ensure password exists.
-    
-    Returns the RCON password (may be empty in managed mode).
+def _enforce_rcon_policy(ini_path):
+    """Keep RCON off in every mode (an empty RCONPassword disables it in Project Zomboid).
+
+    saba-chan blocks RCON for security: commands go through the server console (stdin).
+    Returns the RCON password, always "".
     """
     props = IniManager.read(ini_path) if os.path.exists(ini_path) else {}
-    updates = {}
-    
-    rcon_port = config.get("rcon_port", 27015)
-    updates["RCONPort"] = str(rcon_port)
-    
-    if managed:
-        # Managed mode: RCON not required (stdin is used for control)
-        # Respect existing INI password; otherwise use daemon's
-        rcon_password = props.get("RCONPassword", "")
-        if not rcon_password:
-            daemon_pw = config.get("rcon_password", "")
-            if daemon_pw:
-                rcon_password = daemon_pw
-            else:
-                updates["RCONPassword"] = ""
-                print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
-        if rcon_password:
-            updates["RCONPassword"] = rcon_password
-    else:
-        # Non-managed mode: RCON must be enabled (it's the only control method)
-        rcon_password = props.get("RCONPassword", "")
-        if not rcon_password:
-            # daemon이 ensure_passwords()로 생성한 값 사용
-            daemon_pw = config.get("rcon_password", "")
-            if daemon_pw:
-                rcon_password = daemon_pw
-                print(f"[Zomboid] Synced RCONPassword from daemon config", file=sys.stderr)
-            else:
-                print(f"[Zomboid] WARNING: No RCON password from daemon or INI", file=sys.stderr)
-        updates["RCONPassword"] = rcon_password
-    
-    if updates:
-        IniManager.update(ini_path, updates)
-    
-    return rcon_password
-
-
-def get_credentials(config):
-    """게임 설정 파일(INI)에서 직접 credential을 읽어 반환합니다.
-    Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다."""
-    try:
-        ini_path = IniManager.get_ini_path(config)
-        if not os.path.exists(ini_path):
-            return {"success": False, "message": f"INI not found: {ini_path}"}
-        props = IniManager.read(ini_path)
-        return {
-            "success": True,
-            "rcon_password": props.get("RCONPassword", ""),
-            "rcon_port": int(props.get("RCONPort", config.get("rcon_port", "27015"))),
-        }
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+    if props.get("RCONPassword", ""):
+        IniManager.update(ini_path, {"RCONPassword": ""})
+        print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
+    return ""
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -921,23 +902,6 @@ def validate(config):
     except Exception:
         pass  # UDP port check is unreliable; skip
     
-    # Check RCON port (TCP)
-    rcon_port = int(config.get("rcon_port", 27015))
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex(("127.0.0.1", rcon_port))
-        sock.close()
-        if result == 0:
-            issues.append({
-                "severity": "warning",
-                "code": "rcon_port_in_use",
-                "message": i18n.t("errors.detect.port_in_use", port=rcon_port),
-                "fix_hint": i18n.t("errors.solutions.port_in_use", port=rcon_port),
-            })
-    except Exception:
-        pass
-    
     has_errors = any(i["severity"] == "error" for i in issues)
     return {"success": not has_errors, "issues": issues}
 
@@ -960,9 +924,7 @@ def get_launch_command(config):
     except (ValueError, TypeError):
         ram_gb = 4
     server_name = config.get("server_name", "servertest")
-    is_managed = config.get("managed", True)
-    ini_path = IniManager.get_ini_path(config)
-    _enforce_rcon_policy(config, ini_path, managed=is_managed)
+    _enforce_rcon_policy(IniManager.get_ini_path(config))
 
     # ── 1차: 배치/쉘 스크립트 파싱 ──
     parsed = _parse_launch_info(config, server_dir)
@@ -1041,10 +1003,11 @@ def get_launch_command(config):
     if admin_password:
         args.extend(["-adminpassword", admin_password])
     
-    # Custom cache dir
-    config_dir = config.get("config_dir", "")
-    if config_dir:
-        args.append(f"-cachedir={config_dir}")
+    # 인스턴스마다 따로 둔 데이터 폴더 (없으면 PZ 기본 ~/Zomboid)
+    if _cache_dir(config) or _legacy_config_dir(config):
+        home = _zomboid_home(config)
+        os.makedirs(home, exist_ok=True)
+        args.append(f"-cachedir={home}")
     
     return {
         "success": True,
@@ -1055,255 +1018,78 @@ def get_launch_command(config):
 
 
 def status(config):
-    """Check the current server status.
-    
-    Uses the process PID if available, and optionally probes RCON.
-    """
+    """Check the current server status by the daemon-tracked PID."""
     pid = config.get("pid")
-    
-    if pid:
-        try:
-            if sys.platform == "win32":
-                result = subprocess.run(
-                    ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
-                    capture_output=True, text=True, timeout=5
-                )
-                is_running = str(pid) in result.stdout
-            else:
-                os.kill(pid, 0)
-                is_running = True
-        except (OSError, subprocess.SubprocessError):
-            is_running = False
-        
-        if is_running:
-            # Try RCON for detailed status
-            rcon_info = _try_rcon_status(config)
-            if rcon_info:
-                return {
-                    "success": True,
-                    "status": "running",
-                    **rcon_info,
-                }
-            return {
-                "success": True,
-                "status": "running",
-                "message": i18n.t("messages.server_starting_no_response"),
-            }
-    
-    return {"success": True, "status": "stopped"}
-
-
-def _try_rcon_status(config):
-    """Try to get server info via RCON 'players' command."""
-    if not _rcon_command:
-        return None
-    
-    try:
-        ini_path = IniManager.get_ini_path(config)
-        props = IniManager.read(ini_path)
-        rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", "")
-        
-        if not rcon_password:
-            return None
-        
-        result = _rcon_command("127.0.0.1", rcon_port, rcon_password, "players")
-        if result and result.get("success"):
-            response = result.get("response", "")
-            # Parse player list: "Players connected (X):\n-name\n-name"
-            match = re.search(r"Players connected \((\d+)\)", response)
-            player_count = int(match.group(1)) if match else 0
-            return {
-                "players_online": player_count,
-                "message": i18n.t("messages.server_online"),
-            }
-    except Exception as e:
-        print(f"RCON status check failed: {e}", file=sys.stderr)
-    
-    return None
-
-
-def start(config):
-    """Start server in non-managed mode (RCON-only).
-    
-    managed_start가 비활성화된 경우 데몬이 이 함수를 호출합니다.
-    프로세스를 직접 spawn하고 PID만 반환합니다.
-    이후 제어는 RCON을 통해서만 가능합니다.
-    배치/쉘 스크립트 파싱을 통해 JVM 설정을 자동 추출합니다.
-    """
-    try:
-        # get_launch_command로 통합 — 파싱 로직 재사용
-        launch = get_launch_command({**config, "managed": False})
-        if not launch.get("success"):
-            return launch
-        
-        java_path = launch["program"]
-        server_dir = launch["working_dir"]
-        cmd = [java_path] + launch["args"]
-        
-        print(i18n.t("messages.starting_server", command=" ".join(cmd)), file=sys.stderr)
-        
-        if sys.platform == "win32":
-            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-            proc = subprocess.Popen(
-                cmd, cwd=server_dir,
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                creationflags=flags,
-            )
-        else:
-            proc = subprocess.Popen(
-                cmd, cwd=server_dir,
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                start_new_session=True,
-            )
-        
+    if pid and is_process_alive(pid):
         return {
             "success": True,
-            "pid": proc.pid,
-            "message": i18n.t("messages.server_starting", pid=proc.pid),
+            "status": "running",
+            "message": i18n.t("messages.server_starting_no_response"),
         }
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc(), file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t("errors.failed_to_start", error=str(e)),
-        }
+    return {"success": True, "status": "stopped"}
 
 
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                  Optional Functions                       ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-def stop(config):
-    """Stop the server gracefully.
-    
-    In managed mode:
-      1. Send 'save' via daemon stdin IPC
-      2. Wait 5 seconds
-      3. Send 'quit' via daemon stdin IPC
-      4. Wait for process to exit (up to 30s)
-      5. Force kill if still running
-    
-    In non-managed mode:
-      Same sequence but via RCON protocol.
-    """
-    pid = config.get("pid")
-    force = config.get("force", False)
-    instance_id = config.get("instance_id", "")
-    is_managed = config.get("managed", True)
-    
-    if not pid:
-        return {"success": True, "message": i18n.t("messages.no_process_running")}
-    
-    if force:
-        return _force_kill(pid)
-    
-    # ── Managed mode: use daemon stdin IPC ────────────────────
-    if is_managed and instance_id:
-        try:
-            _send_stdin_command(instance_id, "save")
-            print(i18n.t("messages.save_before_quit"), file=sys.stderr)
-            time.sleep(5)
-            
-            _send_stdin_command(instance_id, "quit")
-            print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-            
-            for _ in range(30):
-                time.sleep(1)
-                if not _is_process_running(pid):
-                    return {
-                        "success": True,
-                        "message": i18n.t("messages.graceful_stop", pid=pid),
-                    }
-            
-            print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-            return _force_kill(pid)
-        except Exception as e:
-            print(f"Managed stdin stop failed: {e}", file=sys.stderr)
-    
-    # ── Non-managed / Fallback: use RCON ──────────────────────
+STOP_TIMEOUT = 30
+
+
+def _request_terminate(pid):
+    """POSIX: SIGTERM (서버가 저장하고 끝난다). Windows 콘솔 앱에는 보낼 정상 종료 신호가 없어 False"""
+    if os.name == "nt":
+        return False
+    import signal
     try:
-        ini_path = IniManager.get_ini_path(config)
-        props = IniManager.read(ini_path)
-        rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", "")
-        
-        if rcon_password and _rcon_command:
-            # Save first
-            _rcon_command("127.0.0.1", rcon_port, rcon_password, "save")
-            print(i18n.t("messages.save_before_quit"), file=sys.stderr)
-            time.sleep(5)
-            
-            # Then quit
-            _rcon_command("127.0.0.1", rcon_port, rcon_password, "quit")
-            print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-            
-            # Wait for process to exit
-            for _ in range(30):
-                time.sleep(1)
-                if not _is_process_running(pid):
-                    return {
-                        "success": True,
-                        "message": i18n.t("messages.graceful_stop", pid=pid),
-                    }
-            
-            # Process didn't exit, force kill
-            print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-            return _force_kill(pid)
-    except Exception as e:
-        print(f"Graceful stop failed: {e}", file=sys.stderr)
-    
-    # Fallback: force kill
-    return _force_kill(pid)
-
-
-def _send_stdin_command(instance_id, cmd_text):
-    """Send a command to the managed server's stdin via daemon API."""
-    import urllib.request
-    url = f"{DAEMON_API_URL}/api/instance/{instance_id}/stdin"
-    data = json.dumps({"input": cmd_text + "\n"}).encode('utf-8')
-    req = urllib.request.Request(url, data=data, method='POST',
-                                headers={'Content-Type': 'application/json'})
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        return json.loads(resp.read().decode('utf-8'))
-
-
-def _is_process_running(pid):
-    """Check if a process is still running."""
-    try:
-        if sys.platform == "win32":
-            result = subprocess.run(
-                ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
-                capture_output=True, text=True, timeout=5
-            )
-            return str(pid) in result.stdout
-        else:
-            os.kill(pid, 0)
-            return True
-    except (OSError, subprocess.SubprocessError):
+        os.kill(int(pid), signal.SIGTERM)
+        return True
+    except (OSError, ValueError) as e:
+        print(f"[Zomboid] SIGTERM failed: {e}", file=sys.stderr)
         return False
 
 
-def _force_kill(pid):
-    """Force kill a process."""
+def _console_quit(instance_id):
+    """콘솔(stdin)로 save 후 quit. 콘솔이 없으면(409, 데몬 없음) False"""
+    if not instance_id:
+        return False
     try:
-        if sys.platform == "win32":
-            subprocess.run(["taskkill", "/F", "/PID", str(pid)],
-                           capture_output=True, timeout=10)
-        else:
-            import signal
-            os.kill(pid, signal.SIGKILL)
-        
-        return {
-            "success": True,
-            "message": i18n.t("messages.force_killed", pid=pid),
-        }
+        daemon_stdin_command(instance_id, "save")
+        print(i18n.t("messages.save_before_quit"), file=sys.stderr)
+        time.sleep(5)
+        daemon_stdin_command(instance_id, "quit")
+        return True
     except Exception as e:
-        return {
-            "success": False,
-            "message": i18n.t("errors.failed_to_kill", error=str(e)),
-        }
+        print(f"[Zomboid] console stop unavailable: {e}", file=sys.stderr)
+        return False
+
+
+def _kill(pid):
+    ok, error = force_kill(pid)
+    if ok:
+        return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
+    return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
+
+
+def stop(config):
+    """Stop the server.
+
+    Normal stop: console `save` + `quit`, else SIGTERM, then wait for the exit.
+    Force kill only when force=true or the server did not exit in time (RCON is off by policy).
+    The daemon stops managed servers with a console itself, so this runs mostly without one.
+    """
+    pid = config.get("pid")
+    if not pid:
+        return {"success": True, "message": i18n.t("messages.no_process_running")}
+    if config.get("force", False):
+        return _kill(pid)
+
+    if _console_quit(config.get("instance_id", "")) or _request_terminate(pid):
+        print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
+        if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+            return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
+        print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
+    return _kill(pid)
 
 
 def configure(config):
@@ -1356,19 +1142,9 @@ def import_settings(config):
     if not raw_props:
         return {"success": True, "settings": {}, "message": "No properties found."}
 
-    settings = {}
-    for key, raw_value in raw_props.items():
-        val = str(raw_value).strip()
-        if val.lower() == "true":
-            settings[key] = True
-        elif val.lower() == "false":
-            settings[key] = False
-        else:
-            try:
-                f = float(val)
-                settings[key] = int(f) if f == int(f) else f
-            except (ValueError, OverflowError):
-                settings[key] = val
+    from daemon_rcon import coerce_setting, load_setting_types
+    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
+    settings = {key: coerce_setting(raw_value, types.get(key)) for key, raw_value in raw_props.items()}
 
     return {"success": True, "settings": settings}
 
@@ -1402,63 +1178,20 @@ def read_properties(config):
 
 
 def command(config):
-    """Execute a command via stdin (managed) or RCON (non-managed).
-    
-    In managed mode: forwards command to server's stdin via daemon API.
-    In non-managed mode: sends command via RCON protocol.
-    Falls back to the other method if primary fails.
-    """
+    """Send a command to the server console (stdin) through the daemon."""
     cmd_name = config.get("command_name", "")
     cmd_text = config.get("command_text", "")
-    cmd_args = config.get("args", {})
     instance_id = config.get("instance_id", "")
-    is_managed = config.get("managed", True)
-    
-    if not cmd_text and not cmd_name:
+    actual_cmd = cmd_text or cmd_name
+    if not actual_cmd:
         return {"success": False, "message": "No command specified"}
-    
-    # Determine the actual command text
-    actual_cmd = cmd_text if cmd_text else cmd_name
-    
-    # ── Managed mode: prefer stdin ──
-    if is_managed and instance_id:
-        try:
-            result = _send_stdin_command(instance_id, actual_cmd)
-            return {
-                "success": True,
-                "message": f"Command sent via stdin: {actual_cmd}",
-                "data": result,
-            }
-        except Exception as e:
-            print(f"Stdin command failed, trying RCON: {e}", file=sys.stderr)
-    
-    # ── Non-managed / Fallback: try RCON ──
+    if not instance_id:
+        return {"success": False, "message": i18n.t("errors.server_not_running")}
     try:
-        ini_path = IniManager.get_ini_path(config)
-        props = IniManager.read(ini_path)
-        rcon_port = int(props.get("RCONPort", config.get("rcon_port", 27015)))
-        rcon_password = props.get("RCONPassword", "")
-        
-        if rcon_password and _rcon_command:
-            result = _rcon_command("127.0.0.1", rcon_port, rcon_password, actual_cmd)
-            if result and result.get("success"):
-                return {
-                    "success": True,
-                    "message": result.get("response", "Command executed"),
-                    "data": result,
-                }
+        result = daemon_stdin_command(instance_id, actual_cmd)
     except Exception as e:
-        print(f"RCON command failed: {e}", file=sys.stderr)
-    
-    # ── Last resort: daemon stdin IPC (if not yet tried) ──
-    if not is_managed and instance_id:
-        try:
-            result = _send_stdin_command(instance_id, actual_cmd)
-            return {"success": True, "message": f"Command sent via stdin fallback: {actual_cmd}", "data": result}
-        except Exception as e:
-            return {"success": False, "message": f"Failed to send command: {e}"}
-    
-    return {"success": False, "message": i18n.t("errors.server_not_running")}
+        return {"success": False, "message": f"Failed to send command: {e}"}
+    return {"success": True, "message": f"Command sent via stdin: {actual_cmd}", "data": result}
 
 
 def diagnose_log(config):
@@ -1471,11 +1204,7 @@ def diagnose_log(config):
     if working_dir:
         log_paths.append(os.path.join(working_dir, "server-console.txt"))
     
-    if sys.platform == "win32":
-        zomboid_dir = os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid")
-    else:
-        zomboid_dir = os.path.join(os.path.expanduser("~"), "Zomboid")
-    
+    zomboid_dir = _zomboid_home(config)
     log_paths.append(os.path.join(zomboid_dir, "console.txt"))
     log_paths.append(os.path.join(zomboid_dir, "server-console.txt"))
     
@@ -1651,15 +1380,12 @@ def _find_steamcmd():
 def reset_server(config):
     """Reset the server world (delete save data, keep settings).
     
-    Deletes: ~/Zomboid/Saves/Multiplayer/{servername}/
-    Keeps: ~/Zomboid/Server/{servername}.ini and .lua files
+    Deletes: <data folder>/Saves/Multiplayer/{servername}/
+    Keeps: <data folder>/Server/{servername}.ini and .lua files
     """
     server_name = config.get("server_name", "servertest")
     
-    if sys.platform == "win32":
-        saves_dir = os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid", "Saves", "Multiplayer", server_name)
-    else:
-        saves_dir = os.path.join(os.path.expanduser("~"), "Zomboid", "Saves", "Multiplayer", server_name)
+    saves_dir = os.path.join(_zomboid_home(config), "Saves", "Multiplayer", server_name)
     
     deleted = []
     errors = []
@@ -1685,15 +1411,27 @@ def reset_server(config):
     }
 
 
+def backup_paths(config):
+    """백업할 세이브 위치 (데몬 `[backup] hook`): 이 서버 이름의 월드, 플레이어 DB, 서버 설정 폴더"""
+    server_name = config.get("server_name") or "servertest"
+    home = _zomboid_home(config)
+    layout = _legacy_layout(config)
+    server_dir = layout[1] if layout else os.path.join(home, "Server")
+    paths = [
+        os.path.join(home, "Saves", "Multiplayer", server_name),
+        os.path.join(home, "db", f"{server_name}.db"),
+        server_dir,
+    ]
+    return {"success": True, "paths": paths}
+
+
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                  Function Registry                        ║
 # ╚═══════════════════════════════════════════════════════════╝
 
 FUNCTIONS = {
-    "start":              start,
     "validate":           validate,
     "get_launch_command": get_launch_command,
-    "get_credentials":   get_credentials,
     "status":             status,
     "stop":               stop,
     "command":            command,
@@ -1703,6 +1441,7 @@ FUNCTIONS = {
     "diagnose_log":       diagnose_log,
     "install_server":     install_server,
     "reset_server":       reset_server,
+    "backup_paths":       backup_paths,
 }
 
 
@@ -1724,13 +1463,14 @@ def main():
     
     func_name = sys.argv[1]
     
+    # Answered errors exit 0: the daemon discards stdout when the exit code is not 0.
     if func_name not in FUNCTIONS:
         print(json.dumps({
             "success": False,
             "message": f"Unknown function: {func_name}",
             "available": list(FUNCTIONS.keys())
         }))
-        sys.exit(1)
+        return
     
     try:
         config_str = sys.stdin.read()
@@ -1746,7 +1486,6 @@ def main():
             "success": False,
             "message": f"Error in {func_name}: {str(e)}"
         }))
-        sys.exit(1)
 
 
 if __name__ == "__main__":

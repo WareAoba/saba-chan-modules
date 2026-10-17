@@ -1,0 +1,154 @@
+{
+  "name": "CoreProtect",
+  "match": [
+    "CoreProtect"
+  ],
+  "docs": [
+    "https://docs.coreprotect.net/commands/",
+    "https://github.com/PlayPro/CoreProtect/blob/master/docs/commands.md",
+    "https://github.com/PlayPro/CoreProtect/blob/master/src/main/resources/plugin.yml",
+    "https://github.com/PlayPro/CoreProtect/tree/master/src/main/java/net/coreprotect/command"
+  ],
+  "player_only": [
+    "co inspect",
+    "co near",
+    "co teleport",
+    "co apply",
+    "co cancel"
+  ],
+  "commands": [
+    {
+      "name": "co-help",
+      "label": "Help",
+      "description": "Displays a list of commands.",
+      "risk": "safe",
+      "console_template": "co help",
+      "inputs": []
+    },
+    {
+      "name": "co-lookup",
+      "label": "Lookup",
+      "description": "Performs a lookup of logged block and player data.",
+      "risk": "safe",
+      "console_template": "co lookup {params}",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "text",
+          "label": "Parameters",
+          "required": true,
+          "placeholder": "e.g. u:Notch t:1h r:#world_nether a:-block (u:<user> t:<time> r:<#world|#global> a:<action> i:<include> e:<exclude>)"
+        }
+      ]
+    },
+    {
+      "name": "co-rollback",
+      "label": "Rollback",
+      "description": "Performs a rollback to revert player actions.",
+      "risk": "danger",
+      "console_template": "co rollback {params}",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "text",
+          "label": "Parameters",
+          "required": true,
+          "placeholder": "e.g. u:Notch t:1h r:#world (u:<user> t:<time> r:<#world|#global> a:<action> i:<include> e:<exclude>; numeric radius needs a player)"
+        }
+      ]
+    },
+    {
+      "name": "co-restore",
+      "label": "Restore",
+      "description": "Performs a restore to undo rollbacks or restore player actions.",
+      "risk": "danger",
+      "console_template": "co restore {params}",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "text",
+          "label": "Parameters",
+          "required": true,
+          "placeholder": "e.g. u:Notch t:1h r:#world (u:<user> t:<time> r:<#world|#global> a:<action> i:<include> e:<exclude>; numeric radius needs a player)"
+        }
+      ]
+    },
+    {
+      "name": "co-undo",
+      "label": "Undo",
+      "description": "Reverts the last rollback or restore by running the opposite action.",
+      "risk": "danger",
+      "console_template": "co undo",
+      "inputs": []
+    },
+    {
+      "name": "co-purge",
+      "label": "Purge",
+      "description": "Deletes old block data; from the console only data older than 24 hours can be purged.",
+      "risk": "danger",
+      "console_template": "co purge {params}",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "text",
+          "label": "Parameters",
+          "required": true,
+          "placeholder": "e.g. t:30d r:#world_nether (t:<time> r:<#world> i:<include> e:<exclude> a:kill #optimize)"
+        }
+      ]
+    },
+    {
+      "name": "co-reload",
+      "label": "Reload",
+      "description": "Reloads the configuration file.",
+      "risk": "danger",
+      "console_template": "co reload",
+      "inputs": []
+    },
+    {
+      "name": "co-status",
+      "label": "Status",
+      "description": "Displays the plugin status and version information.",
+      "risk": "safe",
+      "console_template": "co status",
+      "inputs": []
+    },
+    {
+      "name": "co-consumer",
+      "label": "Toggle consumer",
+      "description": "Pauses or resumes consumer queue processing.",
+      "risk": "caution",
+      "console_template": "co consumer",
+      "inputs": []
+    },
+    {
+      "name": "co-migrate-db",
+      "label": "Migrate database",
+      "description": "Migrates data from the active database backend to a different backend.",
+      "risk": "danger",
+      "console_template": "co migrate-db {backend} {flags}",
+      "inputs": [
+        {
+          "name": "backend",
+          "type": "select",
+          "label": "Target backend",
+          "required": true,
+          "options": [
+            "sqlite",
+            "mysql",
+            "duckdb",
+            "clickhouse"
+          ],
+          "default": "sqlite"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--full-validation"
+        }
+      ]
+    }
+  ]
+}

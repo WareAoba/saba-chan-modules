@@ -1,0 +1,2088 @@
+{
+  "name": "WorldEdit",
+  "match": [
+    "WorldEdit",
+    "worldedit"
+  ],
+  "docs": [
+    "https://worldedit.enginehub.org/en/latest/commands/",
+    "https://github.com/EngineHub/WorldEditDocs/blob/master/source/commands.rst",
+    "https://github.com/EngineHub/WorldEdit/tree/master/worldedit-core/src/main/java/com/sk89q/worldedit/command",
+    "https://github.com/EngineHub/WorldEdit/blob/master/worldedit-core/src/main/java/com/sk89q/worldedit/extension/platform/PlatformCommandManager.java"
+  ],
+  "player_only": [
+    "/wand",
+    "toggleeditwand",
+    "/hpos1",
+    "/hpos2",
+    "/drawsel",
+    "worldedit cui",
+    "chunkinfo",
+    "unstuck",
+    "ascend",
+    "descend",
+    "ceil",
+    "thru",
+    "jumpto",
+    "up",
+    "tool (all subcommands)",
+    "none",
+    "selwand",
+    "navwand",
+    "info",
+    "tree",
+    "repl",
+    "cycler",
+    "floodfill",
+    "deltree",
+    "farwand",
+    "lrbuild",
+    "/ (superpickaxe toggle)",
+    "mask",
+    "material",
+    "range",
+    "size",
+    "tracemask",
+    "superpickaxe (all subcommands)",
+    "brush (all subcommands)",
+    "cs",
+    ".s"
+  ],
+  "commands": [
+    {
+      "name": "worldedit-help",
+      "label": "Help",
+      "description": "Displays help for WorldEdit commands.",
+      "risk": "safe",
+      "console_template": "worldedit help {command}",
+      "inputs": [
+        {
+          "name": "command",
+          "type": "text",
+          "label": "Command",
+          "required": false,
+          "placeholder": "Command name, e.g. /set"
+        }
+      ]
+    },
+    {
+      "name": "worldedit-version",
+      "label": "Version",
+      "description": "Get WorldEdit version.",
+      "risk": "safe",
+      "console_template": "worldedit version",
+      "inputs": []
+    },
+    {
+      "name": "worldedit-trace",
+      "label": "Trace hook",
+      "description": "Toggles trace hook.",
+      "risk": "caution",
+      "console_template": "worldedit trace {hookMode}",
+      "inputs": [
+        {
+          "name": "hookMode",
+          "type": "select",
+          "label": "Mode",
+          "required": false,
+          "options": [
+            "active",
+            "inactive"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "worldedit-reload",
+      "label": "Reload configuration",
+      "description": "Reload configuration.",
+      "risk": "danger",
+      "console_template": "worldedit reload",
+      "inputs": []
+    },
+    {
+      "name": "worldedit-tz",
+      "label": "Set timezone",
+      "description": "Set your timezone for snapshots.",
+      "risk": "caution",
+      "console_template": "worldedit tz {timezone}",
+      "inputs": [
+        {
+          "name": "timezone",
+          "type": "text",
+          "label": "Timezone",
+          "required": true,
+          "placeholder": "e.g. Asia/Seoul"
+        }
+      ]
+    },
+    {
+      "name": "worldedit-report",
+      "label": "Write report",
+      "description": "Writes a report on WorldEdit.",
+      "risk": "safe",
+      "console_template": "worldedit report {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Pastebin",
+          "required": false,
+          "options": [
+            "-p"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "undo",
+      "label": "Undo",
+      "description": "Undoes the last action (from history).",
+      "risk": "caution",
+      "console_template": "undo {times} {player}",
+      "inputs": [
+        {
+          "name": "times",
+          "type": "number",
+          "label": "Times",
+          "required": true,
+          "default": 1,
+          "min": 1
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": false,
+          "placeholder": "Undo this player's operations"
+        }
+      ]
+    },
+    {
+      "name": "redo",
+      "label": "Redo",
+      "description": "Redoes the last action (from history).",
+      "risk": "caution",
+      "console_template": "redo {times} {player}",
+      "inputs": [
+        {
+          "name": "times",
+          "type": "number",
+          "label": "Times",
+          "required": true,
+          "default": 1,
+          "min": 1
+        },
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": false,
+          "placeholder": "Redo this player's operations"
+        }
+      ]
+    },
+    {
+      "name": "clearhistory",
+      "label": "Clear history",
+      "description": "Clear your history.",
+      "risk": "caution",
+      "console_template": "clearhistory",
+      "inputs": []
+    },
+    {
+      "name": "we-limit",
+      "label": "Block change limit",
+      "description": "Modify block change limit.",
+      "risk": "caution",
+      "console_template": "/limit {limit}",
+      "inputs": [
+        {
+          "name": "limit",
+          "type": "number",
+          "label": "Limit",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "we-timeout",
+      "label": "Evaluation timeout",
+      "description": "Modify evaluation timeout time.",
+      "risk": "caution",
+      "console_template": "/timeout {limit}",
+      "inputs": [
+        {
+          "name": "limit",
+          "type": "number",
+          "label": "Timeout (ms)",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "we-fast",
+      "label": "Fast mode",
+      "description": "Toggle fast mode.",
+      "risk": "caution",
+      "console_template": "/fast {fastMode}",
+      "inputs": [
+        {
+          "name": "fastMode",
+          "type": "select",
+          "label": "Fast mode",
+          "required": false,
+          "options": [
+            "true",
+            "false"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "we-perf",
+      "label": "Side effects",
+      "description": "Toggle side effects for performance.",
+      "risk": "caution",
+      "console_template": "/perf {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[sideEffect] [on|off] [-h]"
+        }
+      ]
+    },
+    {
+      "name": "we-reorder",
+      "label": "Reorder mode",
+      "description": "Sets the reorder mode of WorldEdit.",
+      "risk": "caution",
+      "console_template": "/reorder {reorderMode}",
+      "inputs": [
+        {
+          "name": "reorderMode",
+          "type": "select",
+          "label": "Reorder mode",
+          "required": false,
+          "options": [
+            "multi",
+            "fast",
+            "none"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "we-world",
+      "label": "World override",
+      "description": "Sets the world override.",
+      "risk": "caution",
+      "console_template": "/world {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "e.g. world (empty to clear)"
+        }
+      ]
+    },
+    {
+      "name": "we-watchdog",
+      "label": "Watchdog hook",
+      "description": "Changes watchdog hook state.",
+      "risk": "caution",
+      "console_template": "/watchdog {hookMode}",
+      "inputs": [
+        {
+          "name": "hookMode",
+          "type": "select",
+          "label": "Mode",
+          "required": false,
+          "options": [
+            "active",
+            "inactive"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "gmask",
+      "label": "Global mask",
+      "description": "Set the global mask.",
+      "risk": "caution",
+      "console_template": "gmask {mask}",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "text",
+          "label": "Mask",
+          "required": false,
+          "placeholder": "e.g. stone,dirt"
+        }
+      ]
+    },
+    {
+      "name": "toggleplace",
+      "label": "Toggle placement",
+      "description": "Switch between your position and pos1 for placement.",
+      "risk": "caution",
+      "console_template": "toggleplace",
+      "inputs": []
+    },
+    {
+      "name": "placement",
+      "label": "Placement",
+      "description": "Select which placement to use.",
+      "risk": "caution",
+      "console_template": "placement {placementType} {args}",
+      "inputs": [
+        {
+          "name": "placementType",
+          "type": "select",
+          "label": "Placement type",
+          "required": true,
+          "options": [
+            "world",
+            "pos1",
+            "min",
+            "max"
+          ],
+          "default": "pos1"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[multiplier] [offset x,y,z]"
+        }
+      ]
+    },
+    {
+      "name": "searchitem",
+      "label": "Search item",
+      "description": "Search for an item.",
+      "risk": "safe",
+      "console_template": "searchitem {query}",
+      "inputs": [
+        {
+          "name": "query",
+          "type": "text",
+          "label": "Query",
+          "required": true,
+          "placeholder": "e.g. diamond (flags: -b blocks, -i items, -p <page>)"
+        }
+      ]
+    },
+    {
+      "name": "we-registry",
+      "label": "Search registry",
+      "description": "Search through the given registry.",
+      "risk": "safe",
+      "console_template": "/registry {registry} {query}",
+      "inputs": [
+        {
+          "name": "registry",
+          "type": "text",
+          "label": "Registry",
+          "required": true,
+          "placeholder": "e.g. block"
+        },
+        {
+          "name": "query",
+          "type": "text",
+          "label": "Query",
+          "required": false,
+          "placeholder": "Search query, -p <page>"
+        }
+      ]
+    },
+    {
+      "name": "we-pos",
+      "label": "Set positions",
+      "description": "Set positions.",
+      "risk": "caution",
+      "console_template": "/pos {pos1} {args}",
+      "inputs": [
+        {
+          "name": "pos1",
+          "type": "text",
+          "label": "Position 1",
+          "required": true,
+          "placeholder": "x,y,z"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[pos2 x,y,z ...] [-s <selector>]"
+        }
+      ]
+    },
+    {
+      "name": "we-pos1",
+      "label": "Set position 1",
+      "description": "Set position 1.",
+      "risk": "caution",
+      "console_template": "/pos1 {coordinates}",
+      "inputs": [
+        {
+          "name": "coordinates",
+          "type": "text",
+          "label": "Coordinates",
+          "required": true,
+          "placeholder": "x,y,z"
+        }
+      ]
+    },
+    {
+      "name": "we-pos2",
+      "label": "Set position 2",
+      "description": "Set position 2.",
+      "risk": "caution",
+      "console_template": "/pos2 {coordinates}",
+      "inputs": [
+        {
+          "name": "coordinates",
+          "type": "text",
+          "label": "Coordinates",
+          "required": true,
+          "placeholder": "x,y,z"
+        }
+      ]
+    },
+    {
+      "name": "we-chunk",
+      "label": "Select chunk",
+      "description": "Set the selection to the chunk at the given coordinates.",
+      "risk": "caution",
+      "console_template": "/chunk {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Chunk",
+          "required": true,
+          "placeholder": "x,y,z (-c for chunk coordinates) or -s"
+        }
+      ]
+    },
+    {
+      "name": "we-contract",
+      "label": "Contract selection",
+      "description": "Contract the selection area.",
+      "risk": "caution",
+      "console_template": "/contract {amount} {args}",
+      "inputs": [
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[reverseAmount] <direction>"
+        }
+      ]
+    },
+    {
+      "name": "we-shift",
+      "label": "Shift selection",
+      "description": "Shift the selection area.",
+      "risk": "caution",
+      "console_template": "/shift {amount} {direction}",
+      "inputs": [
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true
+        },
+        {
+          "name": "direction",
+          "type": "text",
+          "label": "Direction",
+          "required": true,
+          "placeholder": "north, south, east, west, up or down"
+        }
+      ]
+    },
+    {
+      "name": "we-outset",
+      "label": "Outset selection",
+      "description": "Outset the selection area.",
+      "risk": "caution",
+      "console_template": "/outset {amount} {flags}",
+      "inputs": [
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true
+        },
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Axis",
+          "required": false,
+          "options": [
+            "-h",
+            "-v"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "we-inset",
+      "label": "Inset selection",
+      "description": "Inset the selection area.",
+      "risk": "caution",
+      "console_template": "/inset {amount} {flags}",
+      "inputs": [
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true
+        },
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Axis",
+          "required": false,
+          "options": [
+            "-h",
+            "-v"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "we-trim",
+      "label": "Trim selection",
+      "description": "Minimize the selection to encompass matching blocks.",
+      "risk": "caution",
+      "console_template": "/trim {mask}",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "text",
+          "label": "Mask",
+          "required": false,
+          "placeholder": "e.g. stone,dirt"
+        }
+      ]
+    },
+    {
+      "name": "we-size",
+      "label": "Selection size",
+      "description": "Get information about the selection.",
+      "risk": "safe",
+      "console_template": "/size {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Clipboard",
+          "required": false,
+          "options": [
+            "-c"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "we-count",
+      "label": "Count blocks",
+      "description": "Counts the number of blocks matching a mask.",
+      "risk": "safe",
+      "console_template": "/count {mask}",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "text",
+          "label": "Mask",
+          "required": true,
+          "placeholder": "e.g. stone,dirt"
+        }
+      ]
+    },
+    {
+      "name": "we-distr",
+      "label": "Block distribution",
+      "description": "Get the distribution of blocks in the selection.",
+      "risk": "safe",
+      "console_template": "/distr {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "[-c] [-d] [-p <page>] [-m <mask>]"
+        }
+      ]
+    },
+    {
+      "name": "we-sel",
+      "label": "Choose selector",
+      "description": "Choose a region selector.",
+      "risk": "caution",
+      "console_template": "/sel {selector}",
+      "inputs": [
+        {
+          "name": "selector",
+          "type": "text",
+          "label": "Selector",
+          "required": false,
+          "placeholder": "cuboid, extend, poly, polyextend, ellipsoid, sphere, cyl, convex (empty to clear)"
+        }
+      ]
+    },
+    {
+      "name": "we-expand",
+      "label": "Expand selection",
+      "description": "Expand the selection area.",
+      "risk": "caution",
+      "console_template": "/expand {amount} {args}",
+      "inputs": [
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[reverseAmount] <direction>"
+        }
+      ]
+    },
+    {
+      "name": "we-expand-vert",
+      "label": "Expand vertically",
+      "description": "Vertically expand the selection to world limits.",
+      "risk": "caution",
+      "console_template": "/expand vert",
+      "inputs": []
+    },
+    {
+      "name": "we-set",
+      "label": "Set blocks",
+      "description": "Sets all the blocks in the region.",
+      "risk": "caution",
+      "console_template": "/set {pattern}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        }
+      ]
+    },
+    {
+      "name": "we-line",
+      "label": "Draw lines",
+      "description": "Draws line segments between cuboid selection corners or convex polyhedral selection vertices.",
+      "risk": "caution",
+      "console_template": "/line {pattern} {args}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[thickness] [-h]"
+        }
+      ]
+    },
+    {
+      "name": "we-curve",
+      "label": "Draw curve",
+      "description": "Draws a spline through selected points.",
+      "risk": "caution",
+      "console_template": "/curve {pattern} {args}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[thickness] [-h]"
+        }
+      ]
+    },
+    {
+      "name": "we-replace",
+      "label": "Replace blocks",
+      "description": "Replace all blocks in the selection with another.",
+      "risk": "caution",
+      "console_template": "/replace {from} {to}",
+      "inputs": [
+        {
+          "name": "from",
+          "type": "text",
+          "label": "From (mask)",
+          "required": true,
+          "placeholder": "e.g. stone"
+        },
+        {
+          "name": "to",
+          "type": "text",
+          "label": "To (pattern)",
+          "required": true,
+          "placeholder": "e.g. dirt"
+        }
+      ]
+    },
+    {
+      "name": "we-overlay",
+      "label": "Overlay",
+      "description": "Set a block on top of blocks in the region.",
+      "risk": "caution",
+      "console_template": "/overlay {pattern}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        }
+      ]
+    },
+    {
+      "name": "we-center",
+      "label": "Set center",
+      "description": "Set the center block(s).",
+      "risk": "caution",
+      "console_template": "/center {pattern}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        }
+      ]
+    },
+    {
+      "name": "we-naturalize",
+      "label": "Naturalize",
+      "description": "3 layers of dirt on top then rock below.",
+      "risk": "caution",
+      "console_template": "/naturalize",
+      "inputs": []
+    },
+    {
+      "name": "we-walls",
+      "label": "Build walls",
+      "description": "Build the four sides of the selection.",
+      "risk": "caution",
+      "console_template": "/walls {pattern}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        }
+      ]
+    },
+    {
+      "name": "we-faces",
+      "label": "Build faces",
+      "description": "Build the walls, ceiling, and floor of a selection.",
+      "risk": "caution",
+      "console_template": "/faces {pattern}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        }
+      ]
+    },
+    {
+      "name": "we-smooth",
+      "label": "Smooth",
+      "description": "Smooth the elevation in the selection.",
+      "risk": "caution",
+      "console_template": "/smooth {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[iterations] [mask]"
+        }
+      ]
+    },
+    {
+      "name": "we-snowsmooth",
+      "label": "Snow smooth",
+      "description": "Smooth the elevation in the selection with snow layers.",
+      "risk": "caution",
+      "console_template": "/snowsmooth {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[iterations] [-l <snowBlockCount>] [-m <mask>]"
+        }
+      ]
+    },
+    {
+      "name": "we-move",
+      "label": "Move",
+      "description": "Move the contents of the selection.",
+      "risk": "caution",
+      "console_template": "/move {multiplier} {offset} {args}",
+      "inputs": [
+        {
+          "name": "multiplier",
+          "type": "number",
+          "label": "Multiplier",
+          "required": true,
+          "default": 1
+        },
+        {
+          "name": "offset",
+          "type": "text",
+          "label": "Offset",
+          "required": true,
+          "placeholder": "Direction (north, up, ...) or x,y,z"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[replace pattern] [-a] [-b] [-e] [-s] [-m <mask>]"
+        }
+      ]
+    },
+    {
+      "name": "we-stack",
+      "label": "Stack",
+      "description": "Repeat the contents of the selection.",
+      "risk": "caution",
+      "console_template": "/stack {count} {offset} {flags}",
+      "inputs": [
+        {
+          "name": "count",
+          "type": "number",
+          "label": "Count",
+          "required": true,
+          "default": 1,
+          "min": 1
+        },
+        {
+          "name": "offset",
+          "type": "text",
+          "label": "Offset",
+          "required": true,
+          "placeholder": "Direction (north, up, ...) or x,y,z"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "[-a] [-b] [-e] [-r] [-s] [-m <mask>]"
+        }
+      ]
+    },
+    {
+      "name": "we-regen",
+      "label": "Regenerate",
+      "description": "Regenerates the contents of the selection.",
+      "risk": "danger",
+      "console_template": "/regen {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[seed] [-b] [-c]"
+        }
+      ]
+    },
+    {
+      "name": "we-deform",
+      "label": "Deform",
+      "description": "Deforms a selected region with an expression.",
+      "risk": "caution",
+      "console_template": "/deform {expression}",
+      "inputs": [
+        {
+          "name": "expression",
+          "type": "text",
+          "label": "Expression",
+          "required": true,
+          "placeholder": "e.g. y-=0.2*sin(x*5) (flags: -r -o -c -l)"
+        }
+      ]
+    },
+    {
+      "name": "we-hollow",
+      "label": "Hollow",
+      "description": "Hollows out the object contained in this selection.",
+      "risk": "caution",
+      "console_template": "/hollow {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[thickness] [pattern]"
+        }
+      ]
+    },
+    {
+      "name": "we-forest",
+      "label": "Forest",
+      "description": "Make a forest within the region.",
+      "risk": "caution",
+      "console_template": "/forest {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[type] [density]"
+        }
+      ]
+    },
+    {
+      "name": "we-flora",
+      "label": "Flora",
+      "description": "Make flora within the region.",
+      "risk": "caution",
+      "console_template": "/flora {density}",
+      "inputs": [
+        {
+          "name": "density",
+          "type": "number",
+          "label": "Density",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "we-update",
+      "label": "Apply side effects",
+      "description": "Apply side effects to your selection.",
+      "risk": "caution",
+      "console_template": "/update {sideEffectSet}",
+      "inputs": [
+        {
+          "name": "sideEffectSet",
+          "type": "text",
+          "label": "Side effects",
+          "required": false,
+          "placeholder": "Side effects"
+        }
+      ]
+    },
+    {
+      "name": "we-hcyl",
+      "label": "Hollow cylinder",
+      "description": "Generates a hollow cylinder.",
+      "risk": "caution",
+      "console_template": "/hcyl {pattern} {radii} {height}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "radii",
+          "type": "text",
+          "label": "Radii",
+          "required": true,
+          "placeholder": "e.g. 5 or 5,8"
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "label": "Height",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "we-cyl",
+      "label": "Cylinder",
+      "description": "Generates a cylinder.",
+      "risk": "caution",
+      "console_template": "/cyl {pattern} {radii} {args}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "radii",
+          "type": "text",
+          "label": "Radii",
+          "required": true,
+          "placeholder": "e.g. 5 or 5,8"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[height] [-h]"
+        }
+      ]
+    },
+    {
+      "name": "we-cone",
+      "label": "Cone",
+      "description": "Generates a cone.",
+      "risk": "caution",
+      "console_template": "/cone {pattern} {radii} {args}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "radii",
+          "type": "text",
+          "label": "Radii",
+          "required": true,
+          "placeholder": "e.g. 5 or 5,8"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[height] [thickness] [-h]"
+        }
+      ]
+    },
+    {
+      "name": "we-hsphere",
+      "label": "Hollow sphere",
+      "description": "Generates a hollow sphere.",
+      "risk": "caution",
+      "console_template": "/hsphere {pattern} {radii} {flags}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "radii",
+          "type": "text",
+          "label": "Radii",
+          "required": true,
+          "placeholder": "e.g. 5 or 5,3,5"
+        },
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Raised",
+          "required": false,
+          "options": [
+            "-r"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "we-sphere",
+      "label": "Sphere",
+      "description": "Generates a filled sphere.",
+      "risk": "caution",
+      "console_template": "/sphere {pattern} {radii} {flags}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "radii",
+          "type": "text",
+          "label": "Radii",
+          "required": true,
+          "placeholder": "e.g. 5 or 5,3,5"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "[-h] [-r]"
+        }
+      ]
+    },
+    {
+      "name": "forestgen",
+      "label": "Generate forest",
+      "description": "Generate a forest.",
+      "risk": "caution",
+      "console_template": "forestgen {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[size] [type] [density]"
+        }
+      ]
+    },
+    {
+      "name": "pumpkins",
+      "label": "Pumpkin patches",
+      "description": "Generate pumpkin patches.",
+      "risk": "caution",
+      "console_template": "pumpkins {size}",
+      "inputs": [
+        {
+          "name": "size",
+          "type": "number",
+          "label": "Size",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "we-feature",
+      "label": "Generate feature",
+      "description": "Generate Minecraft features.",
+      "risk": "caution",
+      "console_template": "/feature {feature}",
+      "inputs": [
+        {
+          "name": "feature",
+          "type": "text",
+          "label": "Feature",
+          "required": true,
+          "placeholder": "e.g. minecraft:oak"
+        }
+      ]
+    },
+    {
+      "name": "we-structure",
+      "label": "Generate structure",
+      "description": "Generate Minecraft structures.",
+      "risk": "caution",
+      "console_template": "/structure {feature}",
+      "inputs": [
+        {
+          "name": "feature",
+          "type": "text",
+          "label": "Structure",
+          "required": true,
+          "placeholder": "e.g. minecraft:village_plains"
+        }
+      ]
+    },
+    {
+      "name": "we-hpyramid",
+      "label": "Hollow pyramid",
+      "description": "Generate a hollow pyramid.",
+      "risk": "caution",
+      "console_template": "/hpyramid {pattern} {size}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "label": "Size",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "we-pyramid",
+      "label": "Pyramid",
+      "description": "Generate a filled pyramid.",
+      "risk": "caution",
+      "console_template": "/pyramid {pattern} {size} {flags}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "label": "Size",
+          "required": true
+        },
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Hollow",
+          "required": false,
+          "options": [
+            "-h"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "we-generate",
+      "label": "Generate shape",
+      "description": "Generates a shape according to a formula.",
+      "risk": "caution",
+      "console_template": "/generate {pattern} {expression}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "expression",
+          "type": "text",
+          "label": "Expression",
+          "required": true,
+          "placeholder": "e.g. (x*x+y*y+z*z)<0.5 (flags: -h -r -o -c)"
+        }
+      ]
+    },
+    {
+      "name": "we-generatebiome",
+      "label": "Generate biome",
+      "description": "Sets biome according to a formula.",
+      "risk": "caution",
+      "console_template": "/generatebiome {target} {expression}",
+      "inputs": [
+        {
+          "name": "target",
+          "type": "text",
+          "label": "Biome",
+          "required": true,
+          "placeholder": "e.g. minecraft:desert"
+        },
+        {
+          "name": "expression",
+          "type": "text",
+          "label": "Expression",
+          "required": true,
+          "placeholder": "Expression (flags: -h -r -o -c)"
+        }
+      ]
+    },
+    {
+      "name": "schematic-list",
+      "label": "List schematics",
+      "description": "List saved schematics.",
+      "risk": "safe",
+      "console_template": "schematic list -p {page} {sort}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": true,
+          "default": 1,
+          "min": 1
+        },
+        {
+          "name": "sort",
+          "type": "select",
+          "label": "Sort",
+          "required": false,
+          "options": [
+            "-d",
+            "-n"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "schematic-formats",
+      "label": "List formats",
+      "description": "List available formats.",
+      "risk": "safe",
+      "console_template": "schematic formats",
+      "inputs": []
+    },
+    {
+      "name": "schematic-load",
+      "label": "Load schematic",
+      "description": "Load a schematic into your clipboard.",
+      "risk": "caution",
+      "console_template": "schematic load {schematic} {format}",
+      "inputs": [
+        {
+          "name": "schematic",
+          "type": "text",
+          "label": "File name",
+          "required": true,
+          "placeholder": "e.g. house"
+        },
+        {
+          "name": "format",
+          "type": "text",
+          "label": "Format",
+          "required": false,
+          "placeholder": "e.g. sponge"
+        }
+      ]
+    },
+    {
+      "name": "schematic-delete",
+      "label": "Delete schematic",
+      "description": "Delete a saved schematic.",
+      "risk": "danger",
+      "console_template": "schematic delete {schematic}",
+      "inputs": [
+        {
+          "name": "schematic",
+          "type": "text",
+          "label": "File name",
+          "required": true,
+          "placeholder": "e.g. house"
+        }
+      ]
+    },
+    {
+      "name": "schematic-save",
+      "label": "Save schematic",
+      "description": "Save your clipboard into a schematic file.",
+      "risk": "caution",
+      "console_template": "schematic save {filename} {args}",
+      "inputs": [
+        {
+          "name": "filename",
+          "type": "text",
+          "label": "File name",
+          "required": true,
+          "placeholder": "e.g. house"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[format] [-f to overwrite]"
+        }
+      ]
+    },
+    {
+      "name": "schematic-share",
+      "label": "Share schematic",
+      "description": "Share your clipboard as a schematic online.",
+      "risk": "caution",
+      "console_template": "schematic share {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[schematicName] [destination] [format]"
+        }
+      ]
+    },
+    {
+      "name": "we-copy",
+      "label": "Copy",
+      "description": "Copy the selection to the clipboard.",
+      "risk": "caution",
+      "console_template": "/copy {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "[-b] [-e] [-m <mask>]"
+        }
+      ]
+    },
+    {
+      "name": "we-cut",
+      "label": "Cut",
+      "description": "Cut the selection to the clipboard.",
+      "risk": "caution",
+      "console_template": "/cut {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[leavePattern] [-b] [-e] [-m <mask>]"
+        }
+      ]
+    },
+    {
+      "name": "we-paste",
+      "label": "Paste",
+      "description": "Paste the clipboard's contents.",
+      "risk": "caution",
+      "console_template": "/paste {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "[-a] [-b] [-e] [-n] [-o] [-s] [-v] [-m <mask>]"
+        }
+      ]
+    },
+    {
+      "name": "we-rotate",
+      "label": "Rotate clipboard",
+      "description": "Rotate the contents of the clipboard.",
+      "risk": "caution",
+      "console_template": "/rotate {rotateY} {args}",
+      "inputs": [
+        {
+          "name": "rotateY",
+          "type": "number",
+          "label": "Y rotation",
+          "required": true,
+          "placeholder": "e.g. 90"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[rotateX] [rotateZ]"
+        }
+      ]
+    },
+    {
+      "name": "we-flip",
+      "label": "Flip clipboard",
+      "description": "Flip the contents of the clipboard across the origin.",
+      "risk": "caution",
+      "console_template": "/flip {direction}",
+      "inputs": [
+        {
+          "name": "direction",
+          "type": "text",
+          "label": "Direction",
+          "required": true,
+          "placeholder": "north, south, east, west, up or down"
+        }
+      ]
+    },
+    {
+      "name": "clearclipboard",
+      "label": "Clear clipboard",
+      "description": "Clear your clipboard.",
+      "risk": "caution",
+      "console_template": "clearclipboard",
+      "inputs": []
+    },
+    {
+      "name": "we-revolve",
+      "label": "Revolve",
+      "description": "Revolve the selection around a vertical axis.",
+      "risk": "caution",
+      "console_template": "/revolve {pasteCount} {flags}",
+      "inputs": [
+        {
+          "name": "pasteCount",
+          "type": "number",
+          "label": "Paste count",
+          "required": true,
+          "min": 1
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "[-b] [-e] [-r] [-m <mask>]"
+        }
+      ]
+    },
+    {
+      "name": "biomelist",
+      "label": "List biomes",
+      "description": "Gets all biomes available.",
+      "risk": "safe",
+      "console_template": "biomelist -p {page}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": true,
+          "default": 1,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "biomeinfo",
+      "label": "Biome info",
+      "description": "Get the biomes in your selection.",
+      "risk": "safe",
+      "console_template": "biomeinfo",
+      "inputs": []
+    },
+    {
+      "name": "we-setbiome",
+      "label": "Set biome",
+      "description": "Sets the biome of your region.",
+      "risk": "caution",
+      "console_template": "/setbiome {target}",
+      "inputs": [
+        {
+          "name": "target",
+          "type": "text",
+          "label": "Biome",
+          "required": true,
+          "placeholder": "e.g. minecraft:plains"
+        }
+      ]
+    },
+    {
+      "name": "we-replacebiome",
+      "label": "Replace biome",
+      "description": "Replaces the biome of your region.",
+      "risk": "caution",
+      "console_template": "/replacebiome {from} {target}",
+      "inputs": [
+        {
+          "name": "from",
+          "type": "text",
+          "label": "From (mask)",
+          "required": true,
+          "placeholder": "e.g. $minecraft:desert"
+        },
+        {
+          "name": "target",
+          "type": "text",
+          "label": "Biome",
+          "required": true,
+          "placeholder": "e.g. minecraft:plains"
+        }
+      ]
+    },
+    {
+      "name": "listchunks",
+      "label": "List chunks",
+      "description": "List chunks that your selection includes.",
+      "risk": "safe",
+      "console_template": "listchunks -p {page}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": true,
+          "default": 1,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "delchunks",
+      "label": "Delete chunks",
+      "description": "Delete chunks that your selection includes.",
+      "risk": "danger",
+      "console_template": "delchunks {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-o <beforeTime>"
+        }
+      ]
+    },
+    {
+      "name": "restore",
+      "label": "Restore from snapshot",
+      "description": "Restore the selection from a snapshot.",
+      "risk": "danger",
+      "console_template": "restore {snapshot}",
+      "inputs": [
+        {
+          "name": "snapshot",
+          "type": "text",
+          "label": "Snapshot",
+          "required": false,
+          "placeholder": "Snapshot name"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-before",
+      "label": "Snapshot before date",
+      "description": "Choose the nearest snapshot before a date.",
+      "risk": "caution",
+      "console_template": "snapshot before {date}",
+      "inputs": [
+        {
+          "name": "date",
+          "type": "text",
+          "label": "Date",
+          "required": true,
+          "placeholder": "e.g. 2024-01-31"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-use",
+      "label": "Use snapshot",
+      "description": "Choose a snapshot to use.",
+      "risk": "caution",
+      "console_template": "snapshot use {name}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Snapshot",
+          "required": true,
+          "placeholder": "Snapshot name or latest"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-sel",
+      "label": "Select snapshot",
+      "description": "Choose the snapshot based on the list id.",
+      "risk": "caution",
+      "console_template": "snapshot sel {index}",
+      "inputs": [
+        {
+          "name": "index",
+          "type": "number",
+          "label": "List ID",
+          "required": true,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "snapshot-after",
+      "label": "Snapshot after date",
+      "description": "Choose the nearest snapshot after a date.",
+      "risk": "caution",
+      "console_template": "snapshot after {date}",
+      "inputs": [
+        {
+          "name": "date",
+          "type": "text",
+          "label": "Date",
+          "required": true,
+          "placeholder": "e.g. 2024-01-31"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-list",
+      "label": "List snapshots",
+      "description": "List snapshots.",
+      "risk": "safe",
+      "console_template": "snapshot list -p {page}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": true,
+          "default": 1,
+          "min": 1
+        }
+      ]
+    },
+    {
+      "name": "we-fill",
+      "label": "Fill hole",
+      "description": "Fill a hole.",
+      "risk": "caution",
+      "console_template": "/fill {pattern} {radius} {depth}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": true
+        },
+        {
+          "name": "depth",
+          "type": "number",
+          "label": "Depth",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "we-fillr",
+      "label": "Fill hole recursively",
+      "description": "Fill a hole recursively.",
+      "risk": "caution",
+      "console_template": "/fillr {pattern} {radius} {depth}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "text",
+          "label": "Pattern",
+          "required": true,
+          "placeholder": "e.g. stone or 50%stone,50%dirt"
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": true
+        },
+        {
+          "name": "depth",
+          "type": "number",
+          "label": "Depth",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "we-drain",
+      "label": "Drain pool",
+      "description": "Drain a pool.",
+      "risk": "caution",
+      "console_template": "/drain {radius} {flags}",
+      "inputs": [
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": true
+        },
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Un-waterlog",
+          "required": false,
+          "options": [
+            "-w"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "fixlava",
+      "label": "Fix lava",
+      "description": "Fix lava to be stationary.",
+      "risk": "caution",
+      "console_template": "fixlava {radius}",
+      "inputs": [
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "fixwater",
+      "label": "Fix water",
+      "description": "Fix water to be stationary.",
+      "risk": "caution",
+      "console_template": "fixwater {radius}",
+      "inputs": [
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "removeabove",
+      "label": "Remove above",
+      "description": "Remove blocks above the placement position.",
+      "risk": "caution",
+      "console_template": "removeabove {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[size] [height]"
+        }
+      ]
+    },
+    {
+      "name": "removebelow",
+      "label": "Remove below",
+      "description": "Remove blocks below the placement position.",
+      "risk": "caution",
+      "console_template": "removebelow {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[size] [height]"
+        }
+      ]
+    },
+    {
+      "name": "removenear",
+      "label": "Remove near",
+      "description": "Remove blocks near the placement position.",
+      "risk": "caution",
+      "console_template": "removenear {mask} {radius}",
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "text",
+          "label": "Mask",
+          "required": true,
+          "placeholder": "e.g. stone,dirt"
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "replacenear",
+      "label": "Replace near",
+      "description": "Replace nearby blocks.",
+      "risk": "caution",
+      "console_template": "replacenear {radius} {from} {to}",
+      "inputs": [
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": true
+        },
+        {
+          "name": "from",
+          "type": "text",
+          "label": "From (mask)",
+          "required": true,
+          "placeholder": "e.g. stone"
+        },
+        {
+          "name": "to",
+          "type": "text",
+          "label": "To (pattern)",
+          "required": true,
+          "placeholder": "e.g. dirt"
+        }
+      ]
+    },
+    {
+      "name": "snow",
+      "label": "Simulate snow",
+      "description": "Simulates snow.",
+      "risk": "caution",
+      "console_template": "snow {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[size] [height] [-s]"
+        }
+      ]
+    },
+    {
+      "name": "thaw",
+      "label": "Thaw",
+      "description": "Thaws the area.",
+      "risk": "caution",
+      "console_template": "thaw {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[size] [height]"
+        }
+      ]
+    },
+    {
+      "name": "green",
+      "label": "Green",
+      "description": "Converts dirt to grass blocks in the area.",
+      "risk": "caution",
+      "console_template": "green {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[size] [height] [-f]"
+        }
+      ]
+    },
+    {
+      "name": "extinguish",
+      "label": "Extinguish",
+      "description": "Extinguish nearby fire.",
+      "risk": "caution",
+      "console_template": "extinguish {radius}",
+      "inputs": [
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "butcher",
+      "label": "Butcher mobs",
+      "description": "Kill all or nearby mobs.",
+      "risk": "danger",
+      "console_template": "butcher {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[radius, -1 for all] [-a] [-b] [-f] [-g] [-n] [-p] [-r] [-t] [-w]"
+        }
+      ]
+    },
+    {
+      "name": "we-remove",
+      "label": "Remove entities",
+      "description": "Remove all entities of a type.",
+      "risk": "danger",
+      "console_template": "worldedit:remove {remover} {radius}",
+      "inputs": [
+        {
+          "name": "remover",
+          "type": "select",
+          "label": "Entity type",
+          "required": true,
+          "options": [
+            "all",
+            "projectiles",
+            "items",
+            "fallingblocks",
+            "paintings",
+            "itemframes",
+            "boats",
+            "minecarts",
+            "tnt",
+            "xp"
+          ]
+        },
+        {
+          "name": "radius",
+          "type": "number",
+          "label": "Radius",
+          "required": true,
+          "placeholder": "-1 for all"
+        }
+      ]
+    },
+    {
+      "name": "we-calculate",
+      "label": "Calculate",
+      "description": "Evaluate a mathematical expression.",
+      "risk": "safe",
+      "console_template": "/calculate {input}",
+      "inputs": [
+        {
+          "name": "input",
+          "type": "text",
+          "label": "Expression",
+          "required": true,
+          "placeholder": "e.g. 2^8+1"
+        }
+      ]
+    }
+  ]
+}

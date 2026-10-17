@@ -6,6 +6,8 @@
 """
 import os
 
+import pytest
+
 try:
     import tomllib
 except ImportError:  # pragma: no cover
@@ -271,3 +273,63 @@ def test_commands_go_to_the_console():
         result = lifecycle.command({"command_text": "players", "instance_id": "z"})
     assert result["success"] is True
     stdin.assert_called_once_with("z", "players")
+
+
+# ─── 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식) ───
+
+def _highlighted(line, rules):
+    """priority 큰 규칙부터, 이미 칠한 칸은 덮지 않는다. [(조각, color)]"""
+    import re
+    styles = [None] * len(line)
+    for rule in sorted(rules, key=lambda r: -r.get("priority", 0)):
+        for m in re.finditer(rule["pattern"], line):
+            s, e = m.span("hl") if "hl" in m.re.groupindex and m.group("hl") is not None else m.span()
+            for i in range(s, e):
+                if styles[i] is None:
+                    styles[i] = rule["color"]
+    out, start = [], 0
+    for i in range(1, len(line) + 1):
+        if i == len(line) or styles[i] != styles[start]:
+            if styles[start] is not None:
+                out.append((line[start:i], styles[start]))
+            start = i
+    return out
+
+
+B41_LINE = "LOG  : General     , 1703936123456> SERVER STARTED"
+B42_LINE = "LOG  : Network      f:0, t:1765669004670, st:214 957 503> Server exited"
+
+
+@pytest.mark.parametrize("line", [B41_LINE, B42_LINE])
+def test_highlight_marks_category_and_header_for_b41_and_b42(line):
+    parts = _highlighted(line, _load_module_toml()["syntax_highlight"]["rules"])
+    assert ("LOG", "info") in parts
+    assert any(c == "keyword" and t in ("General", "Network") for t, c in parts)
+    assert any(c == "dim" and ("1703936123456" in t or "t:1765669004670" in t) for t, c in parts)
+
+
+def test_highlight_marks_server_exited_as_shutdown():
+    parts = _highlighted(B42_LINE, _load_module_toml()["syntax_highlight"]["rules"])
+    assert ("Server exited", "warn") in parts
+
+
+@pytest.mark.parametrize("line, level", [
+    (B41_LINE, "LOG"),
+    ("ERROR: General      f:0, t:1765669004675, st:1> boom", "ERROR"),
+    ("LOG  : General      f:0, t:1765669004675, st:1> mod says ERROR: nope", "LOG"),
+])
+def test_log_pattern_reads_level_prefix_only(line, level):
+    import re
+    m = re.search(_load_module_toml()["module"]["log_pattern"], line)
+    assert m and m.group("level") == level
+
+
+def test_log_pattern_skips_unprefixed_stack_lines():
+    import re
+    assert re.search(_load_module_toml()["module"]["log_pattern"], "\tat zombie.network.ServerMap.SaveAll(ServerMap.java:75)") is None
+
+
+def test_highlight_marks_unix_path_after_space_only():
+    rules = _load_module_toml()["syntax_highlight"]["rules"]
+    assert ("/home/pz/Zomboid/Server", "path") in _highlighted("LOG  : General      f:0, t:1765669004675, st:1> loading /home/pz/Zomboid/Server", rules)
+    assert not any(c == "path" for _, c in _highlighted("LOG  : General      f:0, t:1765669004675, st:1> see a.b/c/d", rules))

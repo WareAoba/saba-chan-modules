@@ -1,0 +1,26 @@
+{
+  "name": "Vault",
+  "match": ["Vault"],
+  "docs": ["https://github.com/MilkBowl/Vault/blob/master/src/plugin.yml", "https://github.com/MilkBowl/Vault/blob/master/src/net/milkbowl/vault/Vault.java"],
+  "commands": [
+    {
+      "name": "vault-info",
+      "label": "Vault info",
+      "description": "Displays information about Vault and the hooked economy, permission and chat providers.",
+      "risk": "safe",
+      "console_template": "vault-info",
+      "inputs": []
+    },
+    {
+      "name": "vault-convert",
+      "label": "Convert economy",
+      "description": "Converts all data in economy1 and dumps it into economy2.",
+      "risk": "danger",
+      "console_template": "vault-convert {from} {to}",
+      "inputs": [
+        {"name": "from", "type": "text", "label": "Source economy", "required": true, "placeholder": "Economy name to convert from"},
+        {"name": "to", "type": "text", "label": "Target economy", "required": true, "placeholder": "Economy name to convert to"}
+      ]
+    }
+  ]
+}

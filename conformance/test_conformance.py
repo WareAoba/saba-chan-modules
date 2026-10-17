@@ -135,6 +135,25 @@ def test_entry_file_exists(module):
     assert module.entry.is_file(), f"[module] entry 파일이 없다: {module.entry}"
 
 
+# 데몬이 콘솔 줄을 토큰으로 나눌 때 받는 이름 (saba-chan src/supervisor/highlight.rs TOKENS + 별칭)
+HIGHLIGHT_TOKENS = {
+    "error", "warn", "info", "debug", "success", "string", "number", "keyword",
+    "timestamp", "player", "command", "selector", "ip", "uuid", "path", "dim",
+    "warning", "trace", "comment",
+}
+
+
+def test_highlight_rules_fit_the_daemon(module):
+    """하이라이팅 규칙은 데몬(Rust regex)이 돌린다: 색 대신 토큰, lookaround 없음."""
+    problems = []
+    for rule in (module.manifest.get("syntax_highlight") or {}).get("rules", []):
+        if rule["color"].lower() not in HIGHLIGHT_TOKENS:
+            problems.append(f"{rule['name']}: color '{rule['color']}'는 토큰이 아니다")
+        if any(t in rule["pattern"] for t in ("(?=", "(?!", "(?<=", "(?<!")):
+            problems.append(f"{rule['name']}: lookaround는 데몬 정규식이 지원하지 않는다")
+    assert not problems, "\n".join(problems)
+
+
 # ── 2. FUNCTIONS 표 ─────────────────────────────────────
 
 def test_functions_table(module):

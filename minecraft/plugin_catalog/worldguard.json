@@ -1,0 +1,859 @@
+{
+  "name": "WorldGuard",
+  "match": [
+    "WorldGuard"
+  ],
+  "docs": [
+    "https://worldguard.enginehub.org/en/latest/commands/",
+    "https://worldguard.enginehub.org/en/latest/regions/commands/",
+    "https://github.com/EngineHub/WorldGuardDocs/blob/master/source/commands.rst",
+    "https://github.com/EngineHub/WorldGuardDocs/blob/master/source/regions/commands.rst",
+    "https://github.com/EngineHub/WorldGuard/tree/master/worldguard-core/src/main/java/com/sk89q/worldguard/commands"
+  ],
+  "commands": [
+    {
+      "name": "wg-god",
+      "label": "Enable god mode",
+      "description": "Give another player invincibility.",
+      "risk": "caution",
+      "console_template": "worldguard:god {player} {flags}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-s to suppress messages"
+        }
+      ]
+    },
+    {
+      "name": "ungod",
+      "label": "Disable god mode",
+      "description": "Remove invincibility from another player.",
+      "risk": "caution",
+      "console_template": "ungod {player} {flags}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-s to suppress messages"
+        }
+      ]
+    },
+    {
+      "name": "wg-heal",
+      "label": "Heal player",
+      "description": "Heal another player.",
+      "risk": "caution",
+      "console_template": "worldguard:heal {player} {flags}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-s to suppress messages"
+        }
+      ]
+    },
+    {
+      "name": "slay",
+      "label": "Slay player",
+      "description": "Slay another player.",
+      "risk": "danger",
+      "console_template": "slay {player} {flags}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-s to suppress messages"
+        }
+      ]
+    },
+    {
+      "name": "worldguard-flushstates",
+      "label": "Flush region states",
+      "description": "Clears information about players that is stored for applying region flags; resets all players if none is given.",
+      "risk": "caution",
+      "console_template": "worldguard flushstates {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": false,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "stopfire",
+      "label": "Stop fire spread",
+      "description": "Immediately stop all fire spread on the given world.",
+      "risk": "caution",
+      "console_template": "stopfire {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "allowfire",
+      "label": "Allow fire spread",
+      "description": "Lift the fire spread suspension on the given world.",
+      "risk": "caution",
+      "console_template": "allowfire {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "stoplag",
+      "label": "Halt activity",
+      "description": "Remove all entities in all worlds and stop physics and liquid flow events (stop lag mode).",
+      "risk": "danger",
+      "console_template": "stoplag confirm {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-s to skip the chat announcement"
+        }
+      ]
+    },
+    {
+      "name": "stoplag-off",
+      "label": "Disable halt activity",
+      "description": "Disable the stop lag mode.",
+      "risk": "caution",
+      "console_template": "stoplag -c {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-s to skip the chat announcement"
+        }
+      ]
+    },
+    {
+      "name": "stoplag-info",
+      "label": "Halt activity status",
+      "description": "Display the status of the stop lag mode.",
+      "risk": "safe",
+      "console_template": "stoplag -i",
+      "inputs": []
+    },
+    {
+      "name": "worldguard-report",
+      "label": "Write report",
+      "description": "Writes a report file detailing the server setup and WorldGuard's configuration; -p also submits it to a pastebin.",
+      "risk": "safe",
+      "console_template": "worldguard report {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Pastebin",
+          "required": false,
+          "options": [
+            "-p"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "worldguard-profile",
+      "label": "Start profiler",
+      "description": "Starts profiling CPU usage of the server for the given duration (default 5 minutes).",
+      "risk": "caution",
+      "console_template": "worldguard profile {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Options",
+          "required": false,
+          "placeholder": "[-p] [-i <ms>] [-t <thread>] [minutes]"
+        }
+      ]
+    },
+    {
+      "name": "worldguard-stopprofile",
+      "label": "Stop profiler",
+      "description": "Stops a currently running profiler.",
+      "risk": "safe",
+      "console_template": "worldguard stopprofile",
+      "inputs": []
+    },
+    {
+      "name": "worldguard-debug-testbreak",
+      "label": "Test block break",
+      "description": "Simulates a block break event from the given player's viewpoint.",
+      "risk": "caution",
+      "console_template": "worldguard debug testbreak -t {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "worldguard-debug-testplace",
+      "label": "Test block place",
+      "description": "Simulates a block place event from the given player's viewpoint.",
+      "risk": "caution",
+      "console_template": "worldguard debug testplace -t {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "worldguard-debug-testinteract",
+      "label": "Test block interact",
+      "description": "Simulates a block interact event from the given player's viewpoint.",
+      "risk": "caution",
+      "console_template": "worldguard debug testinteract -t {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "worldguard-debug-testdamage",
+      "label": "Test entity damage",
+      "description": "Simulates an entity damage event from the given player's viewpoint (use to test PvP and PvE).",
+      "risk": "caution",
+      "console_template": "worldguard debug testdamage -t {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "worldguard-version",
+      "label": "Version",
+      "description": "Show WorldGuard's version.",
+      "risk": "safe",
+      "console_template": "worldguard version",
+      "inputs": []
+    },
+    {
+      "name": "worldguard-reload",
+      "label": "Reload",
+      "description": "Reload WorldGuard's configuration, blacklist, and region data.",
+      "risk": "danger",
+      "console_template": "worldguard reload",
+      "inputs": []
+    },
+    {
+      "name": "worldguard-running",
+      "label": "Running tasks",
+      "description": "Show WorldGuard's running tasks.",
+      "risk": "safe",
+      "console_template": "worldguard running",
+      "inputs": []
+    },
+    {
+      "name": "region-define",
+      "label": "Define region",
+      "description": "Creates a new region with a given ID and optional owners from the current WorldEdit selection.",
+      "risk": "caution",
+      "console_template": "region define -w {world} {id} {args}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Owners / flags",
+          "required": false,
+          "placeholder": "Owners (g:<group> for groups); -g for a global region"
+        }
+      ]
+    },
+    {
+      "name": "region-redefine",
+      "label": "Redefine region",
+      "description": "Replaces the area of an existing region with the current WorldEdit selection.",
+      "risk": "caution",
+      "console_template": "region redefine -w {world} {id} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Global",
+          "required": false,
+          "options": [
+            "-g"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "region-remove",
+      "label": "Remove region",
+      "description": "Removes a region; -u unparents child regions, -f removes them.",
+      "risk": "danger",
+      "console_template": "region remove -w {world} {id} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "flags",
+          "type": "select",
+          "label": "Child regions",
+          "required": false,
+          "options": [
+            "-u",
+            "-f"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "region-addmember",
+      "label": "Add members",
+      "description": "Adds any number of members to a region.",
+      "risk": "caution",
+      "console_template": "region addmember -w {world} {id} {members}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "members",
+          "type": "text",
+          "label": "Members",
+          "required": true,
+          "placeholder": "Players or g:<group>, space-separated"
+        }
+      ]
+    },
+    {
+      "name": "region-addowner",
+      "label": "Add owners",
+      "description": "Adds any number of owners to a region.",
+      "risk": "caution",
+      "console_template": "region addowner -w {world} {id} {owners}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "owners",
+          "type": "text",
+          "label": "Owners",
+          "required": true,
+          "placeholder": "Players or g:<group>, space-separated"
+        }
+      ]
+    },
+    {
+      "name": "region-removemember",
+      "label": "Remove members",
+      "description": "Removes any number of members from a region; -a removes all members.",
+      "risk": "caution",
+      "console_template": "region removemember -w {world} {id} {members}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "members",
+          "type": "text",
+          "label": "Members",
+          "required": true,
+          "placeholder": "Players or g:<group>, or -a for all"
+        }
+      ]
+    },
+    {
+      "name": "region-removeowner",
+      "label": "Remove owners",
+      "description": "Removes any number of owners from a region; -a removes all owners.",
+      "risk": "caution",
+      "console_template": "region removeowner -w {world} {id} {owners}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "owners",
+          "type": "text",
+          "label": "Owners",
+          "required": true,
+          "placeholder": "Players or g:<group>, or -a for all"
+        }
+      ]
+    },
+    {
+      "name": "region-select",
+      "label": "Select region",
+      "description": "Replaces your WorldEdit selection with the area of an existing region.",
+      "risk": "safe",
+      "console_template": "region select -w {world} {id}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        }
+      ]
+    },
+    {
+      "name": "region-info",
+      "label": "Region info",
+      "description": "Displays information about a specified region.",
+      "risk": "safe",
+      "console_template": "region info -w {world} {id} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "-u to show UUIDs, -s to select"
+        }
+      ]
+    },
+    {
+      "name": "region-flags",
+      "label": "Region flags",
+      "description": "Displays a paginated list of flags for the given region.",
+      "risk": "safe",
+      "console_template": "region flags -w {world} {id} {page}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "page",
+          "type": "text",
+          "label": "Page",
+          "required": false,
+          "placeholder": "-p <page>"
+        }
+      ]
+    },
+    {
+      "name": "region-list",
+      "label": "List regions",
+      "description": "Lists the regions that have been created.",
+      "risk": "safe",
+      "console_template": "region list -w {world} {args}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Filters / page",
+          "required": false,
+          "placeholder": "[-p <player>] [-i <id search>] [page]"
+        }
+      ]
+    },
+    {
+      "name": "region-flag",
+      "label": "Set flag",
+      "description": "Sets a flag on a region; leave the value empty to unset it.",
+      "risk": "caution",
+      "console_template": "region flag -w {world} {id} {flag} {value}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "flag",
+          "type": "text",
+          "label": "Flag",
+          "required": true,
+          "placeholder": "e.g. pvp"
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": false,
+          "placeholder": "e.g. deny, or -g nonmembers deny, or -e"
+        }
+      ]
+    },
+    {
+      "name": "region-setpriority",
+      "label": "Set priority",
+      "description": "Sets the priority of a region.",
+      "risk": "caution",
+      "console_template": "region setpriority -w {world} {id} {priority}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "priority",
+          "type": "number",
+          "label": "Priority",
+          "required": true,
+          "default": 0
+        }
+      ]
+    },
+    {
+      "name": "region-setparent",
+      "label": "Set parent",
+      "description": "Sets the parent of a region; specify no parent to unset it.",
+      "risk": "caution",
+      "console_template": "region setparent -w {world} {id} {parent}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        },
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Region ID",
+          "required": true,
+          "placeholder": "e.g. spawn"
+        },
+        {
+          "name": "parent",
+          "type": "text",
+          "label": "Parent region",
+          "required": false,
+          "placeholder": "Empty to unset"
+        }
+      ]
+    },
+    {
+      "name": "region-load",
+      "label": "Load regions (world)",
+      "description": "Reloads the region data of a world from file or database.",
+      "risk": "danger",
+      "console_template": "region load -w {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "region-load-all",
+      "label": "Load regions (all worlds)",
+      "description": "Reloads the region data of all worlds from file or database.",
+      "risk": "danger",
+      "console_template": "region load",
+      "inputs": []
+    },
+    {
+      "name": "region-save",
+      "label": "Save regions (world)",
+      "description": "Saves the region data of a world to disk.",
+      "risk": "caution",
+      "console_template": "region save -w {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "region-save-all",
+      "label": "Save regions (all worlds)",
+      "description": "Saves the region data of all worlds to disk.",
+      "risk": "caution",
+      "console_template": "region save",
+      "inputs": []
+    },
+    {
+      "name": "region-migratedb",
+      "label": "Migrate database",
+      "description": "Migrates from one type of storage driver to another.",
+      "risk": "danger",
+      "console_template": "region migratedb -y {from} {to}",
+      "inputs": [
+        {
+          "name": "from",
+          "type": "select",
+          "label": "From",
+          "required": true,
+          "options": [
+            "yaml",
+            "mysql"
+          ]
+        },
+        {
+          "name": "to",
+          "type": "select",
+          "label": "To",
+          "required": true,
+          "options": [
+            "yaml",
+            "mysql"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "region-migrateuuid",
+      "label": "Migrate to UUIDs",
+      "description": "Converts player names in the region data to Mojang UUIDs.",
+      "risk": "danger",
+      "console_template": "region migrateuuid",
+      "inputs": []
+    },
+    {
+      "name": "region-migrateheights",
+      "label": "Migrate heights (world)",
+      "description": "Extends regions of the given world that were defined at the pre-1.18 world limits to the new height limits.",
+      "risk": "danger",
+      "console_template": "region migrateheights -y -w {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "region-migrateheights-all",
+      "label": "Migrate heights (all worlds)",
+      "description": "Extends regions of all worlds that were defined at the pre-1.18 world limits to the new height limits.",
+      "risk": "danger",
+      "console_template": "region migrateheights -y",
+      "inputs": []
+    }
+  ],
+  "player_only": [
+    "locate",
+    "stack",
+    "region claim",
+    "region teleport",
+    "region bypass"
+  ]
+}

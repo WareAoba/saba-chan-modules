@@ -1,0 +1,221 @@
+{
+  "name": "spark",
+  "match": [
+    "spark"
+  ],
+  "docs": [
+    "https://spark.lucko.me/docs/Command-Usage",
+    "https://github.com/lucko/spark-docs/blob/master/docs/commands.mdx",
+    "https://github.com/lucko/spark"
+  ],
+  "commands": [
+    {
+      "name": "spark-profiler-start",
+      "label": "Start profiler",
+      "description": "Starts the profiler in the default operation mode, optionally customised with flags such as --timeout, --thread, --alloc or --interval.",
+      "risk": "caution",
+      "console_template": "spark profiler start {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "e.g. --timeout 60 --thread *"
+        }
+      ]
+    },
+    {
+      "name": "spark-profiler-stop",
+      "label": "Stop profiler",
+      "description": "Stops the profiler and uploads the results to the viewer (use --comment <comment> or --save-to-file).",
+      "risk": "caution",
+      "console_template": "spark profiler stop {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "e.g. --comment lag spike or --save-to-file"
+        }
+      ]
+    },
+    {
+      "name": "spark-profiler-cancel",
+      "label": "Cancel profiler",
+      "description": "Cancels the running profiler without uploading the results.",
+      "risk": "caution",
+      "console_template": "spark profiler cancel",
+      "inputs": []
+    },
+    {
+      "name": "spark-profiler-open",
+      "label": "Open profiler viewer",
+      "description": "Opens the profiler viewer page without stopping the profiler.",
+      "risk": "safe",
+      "console_template": "spark profiler open",
+      "inputs": []
+    },
+    {
+      "name": "spark-profiler-info",
+      "label": "Profiler status",
+      "description": "Checks the current status of the profiler.",
+      "risk": "safe",
+      "console_template": "spark profiler info",
+      "inputs": []
+    },
+    {
+      "name": "spark-health",
+      "label": "Health report (live)",
+      "description": "Generates a health report and opens it in live dashboard mode, updating every 10 seconds.",
+      "risk": "safe",
+      "console_template": "spark health",
+      "inputs": []
+    },
+    {
+      "name": "spark-health-upload",
+      "label": "Upload health report",
+      "description": "Uploads a static health report which does not automatically update.",
+      "risk": "safe",
+      "console_template": "spark health upload",
+      "inputs": []
+    },
+    {
+      "name": "spark-health-show",
+      "label": "Show health report",
+      "description": "Prints a health report to the console, optionally including --memory and --network details.",
+      "risk": "safe",
+      "console_template": "spark health show {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "e.g. --memory --network"
+        }
+      ]
+    },
+    {
+      "name": "spark-ping",
+      "label": "Average ping",
+      "description": "Prints information about average ping round trip times across all players.",
+      "risk": "safe",
+      "console_template": "spark ping",
+      "inputs": []
+    },
+    {
+      "name": "spark-ping-player",
+      "label": "Player ping",
+      "description": "Prints a specific player's current ping round trip time.",
+      "risk": "safe",
+      "console_template": "spark ping --player {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "spark-tps",
+      "label": "TPS and CPU",
+      "description": "Prints information about the server's TPS (ticks per second) rate and CPU usage.",
+      "risk": "safe",
+      "console_template": "spark tps",
+      "inputs": []
+    },
+    {
+      "name": "spark-tickmonitor",
+      "label": "Toggle tick monitor",
+      "description": "Toggles the tick monitoring system, optionally with --threshold, --threshold-tick or --without-gc.",
+      "risk": "caution",
+      "console_template": "spark tickmonitor {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "e.g. --threshold-tick 60"
+        }
+      ]
+    },
+    {
+      "name": "spark-gc",
+      "label": "GC history",
+      "description": "Prints information about the server's garbage collection history.",
+      "risk": "safe",
+      "console_template": "spark gc",
+      "inputs": []
+    },
+    {
+      "name": "spark-gcmonitor",
+      "label": "Toggle GC monitor",
+      "description": "Toggles the garbage collection monitoring system on and off.",
+      "risk": "caution",
+      "console_template": "spark gcmonitor",
+      "inputs": []
+    },
+    {
+      "name": "spark-heapsummary",
+      "label": "Heap summary",
+      "description": "Generates a new memory (heap) dump summary and uploads it to the viewer.",
+      "risk": "caution",
+      "console_template": "spark heapsummary {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "e.g. --run-gc-before"
+        }
+      ]
+    },
+    {
+      "name": "spark-heapdump",
+      "label": "Heap dump",
+      "description": "Generates a new heapdump (.hprof snapshot) file and saves it to the disk.",
+      "risk": "caution",
+      "console_template": "spark heapdump {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "e.g. --compress gzip"
+        }
+      ]
+    },
+    {
+      "name": "spark-activity",
+      "label": "Recent activity",
+      "description": "Prints information about recent activity performed by spark.",
+      "risk": "safe",
+      "console_template": "spark activity",
+      "inputs": []
+    },
+    {
+      "name": "spark-activity-page",
+      "label": "Recent activity page",
+      "description": "Views a specific page of spark's recent activity log.",
+      "risk": "safe",
+      "console_template": "spark activity --page {page}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": true,
+          "min": 1
+        }
+      ]
+    }
+  ]
+}

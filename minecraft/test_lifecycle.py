@@ -14,7 +14,7 @@ DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "validate", "configure",
     "read_properties", "reset_properties", "reset_server", "import_settings",
     "accept_eula", "diagnose_log", "list_versions",
-    "get_version_details", "install_server", "get_installed_version",
+    "get_version_details", "install_server", "get_installed_version", "instance_commands",
 }
 
 
@@ -472,3 +472,81 @@ def test_ping_closes_socket_on_error():
     with mock.patch.object(lifecycle.socket, "create_connection", return_value=conn):
         assert lifecycle.MinecraftPing.ping("127.0.0.1", 25565) is None
     conn.__exit__.assert_called_once()
+
+
+# ─── 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식) ───
+
+def _module_toml():
+    import tomllib
+    with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
+        return tomllib.load(f)
+
+
+def _highlighted(line, rules):
+    """priority 큰 규칙부터, 이미 칠한 칸은 덮지 않는다. [(조각, color)]"""
+    import re
+    styles = [None] * len(line)
+    for rule in sorted(rules, key=lambda r: -r.get("priority", 0)):
+        for m in re.finditer(rule["pattern"], line):
+            s, e = m.span("hl") if "hl" in m.re.groupindex and m.group("hl") is not None else m.span()
+            for i in range(s, e):
+                if styles[i] is None:
+                    styles[i] = rule["color"]
+    out, start = [], 0
+    for i in range(1, len(line) + 1):
+        if i == len(line) or styles[i] != styles[start]:
+            if styles[start] is not None:
+                out.append((line[start:i], styles[start]))
+            start = i
+    return out
+
+
+@pytest.mark.parametrize("line, level", [
+    ("[17:35:00] [Server thread/WARN]: Can't keep up!", "WARN"),          # Vanilla
+    ("[17:35:00 WARN]: Can't keep up!", "WARN"),                          # Paper 콘솔
+    ("[17:35:00 ERROR]: [LuckPerms] Failed to load", "ERROR"),           # Paper 플러그인 로거
+    ("[17:35:00] [Server thread/ERROR] [minecraft/DedicatedServer]: x", "ERROR"),  # Forge
+])
+def test_log_pattern_parses_level_for_vanilla_paper_forge(line, level):
+    import re
+    m = re.search(_module_toml()["module"]["log_pattern"], line)
+    assert m and m.group("level") == level
+
+
+def test_log_pattern_ignores_level_word_in_chat():
+    import re
+    pattern = _module_toml()["module"]["log_pattern"]
+    m = re.search(pattern, "[17:25:00 INFO]: <Steve> ERROR] lol")
+    assert m.group("level") == "INFO"
+
+
+def test_highlight_paper_console_line_marks_timestamp_and_level():
+    rules = _module_toml()["syntax_highlight"]["rules"]
+    parts = _highlighted("[17:35:00 WARN]: Can't keep up! Running 5023ms behind", rules)
+    assert ("[17:35:00", "timestamp") in parts
+    assert ("WARN", "warn") in parts
+
+
+def test_highlight_vanilla_console_line_unchanged():
+    rules = _module_toml()["syntax_highlight"]["rules"]
+    parts = _highlighted("[17:24:15] [Server thread/INFO]: Steve joined the game", rules)
+    assert ("[17:24:15]", "timestamp") in parts
+    assert ("Server thread/INFO", "dim") in parts
+
+
+def test_highlight_rules_stay_fast_on_long_tokens():
+    """긴 단어(base64 덤프 등) 한 줄에서 규칙이 줄 길이의 제곱으로 느려지지 않는다."""
+    import re
+    import time
+    line = "x" * 5000
+    for rule in _module_toml()["syntax_highlight"]["rules"]:
+        started = time.perf_counter()
+        list(re.finditer(rule["pattern"], line))
+        assert time.perf_counter() - started < 0.02, rule["name"]
+
+
+def test_highlight_marks_adjacent_uuids():
+    rules = _module_toml()["syntax_highlight"]["rules"]
+    a, b = "069a79f4-44e9-4726-a5be-fca90e38aaf5", "853c80ef-3c37-49fd-aa49-938b674adae6"
+    parts = _highlighted(f"[17:24:15 INFO]: {a} {b}", rules)
+    assert (a, "uuid") in parts and (b, "uuid") in parts

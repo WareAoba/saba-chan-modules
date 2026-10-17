@@ -1,0 +1,360 @@
+{
+  "name": "Chunky",
+  "match": [
+    "Chunky",
+    "chunky"
+  ],
+  "docs": [
+    "https://github.com/pop4959/Chunky/wiki/Commands",
+    "https://github.com/pop4959/Chunky/wiki/Shapes",
+    "https://github.com/pop4959/Chunky/wiki/Patterns",
+    "https://github.com/pop4959/Chunky"
+  ],
+  "commands": [
+    {
+      "name": "chunky-start",
+      "label": "Start generation",
+      "description": "Starts a new chunk generation task, using the existing selection or one defined in the command itself.",
+      "risk": "caution",
+      "console_template": "chunky start {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Selection",
+          "required": false,
+          "placeholder": "[world] [shape] [centerX centerZ] [radius] [radius]"
+        }
+      ]
+    },
+    {
+      "name": "chunky-pause",
+      "label": "Pause generation",
+      "description": "Pauses current tasks and saves progress so they can be resumed with continue.",
+      "risk": "caution",
+      "console_template": "chunky pause {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "chunky-continue",
+      "label": "Continue generation",
+      "description": "Continues current or saved tasks.",
+      "risk": "caution",
+      "console_template": "chunky continue {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "chunky-cancel",
+      "label": "Cancel generation",
+      "description": "Stops and deletes current or saved tasks, which cannot be resumed afterwards.",
+      "risk": "danger",
+      "console_template": "chunky cancel {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "chunky-world",
+      "label": "Select world",
+      "description": "Sets the target world.",
+      "risk": "caution",
+      "console_template": "chunky world {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "chunky-shape",
+      "label": "Select shape",
+      "description": "Sets the shape to generate.",
+      "risk": "caution",
+      "console_template": "chunky shape {shape}",
+      "inputs": [
+        {
+          "name": "shape",
+          "type": "select",
+          "label": "Shape",
+          "required": true,
+          "options": [
+            "square",
+            "circle",
+            "triangle",
+            "diamond",
+            "pentagon",
+            "hexagon",
+            "star",
+            "rectangle",
+            "ellipse"
+          ],
+          "default": "square"
+        }
+      ]
+    },
+    {
+      "name": "chunky-center",
+      "label": "Set center",
+      "description": "Sets the center block location.",
+      "risk": "caution",
+      "console_template": "chunky center {x} {z}",
+      "inputs": [
+        {
+          "name": "x",
+          "type": "text",
+          "label": "Center X",
+          "required": true,
+          "placeholder": "e.g. 0"
+        },
+        {
+          "name": "z",
+          "type": "text",
+          "label": "Center Z",
+          "required": true,
+          "placeholder": "e.g. 0"
+        }
+      ]
+    },
+    {
+      "name": "chunky-radius",
+      "label": "Set radius",
+      "description": "Sets the radius (or radii) in blocks; the second radius is only used for rectangle or ellipse shapes.",
+      "risk": "caution",
+      "console_template": "chunky radius {radius} {radius_z}",
+      "inputs": [
+        {
+          "name": "radius",
+          "type": "text",
+          "label": "Radius",
+          "required": true,
+          "placeholder": "e.g. 500, 10k, 625c, +1k"
+        },
+        {
+          "name": "radius_z",
+          "type": "text",
+          "label": "Second radius (Z)",
+          "required": false,
+          "placeholder": "e.g. 1000"
+        }
+      ]
+    },
+    {
+      "name": "chunky-worldborder",
+      "label": "Use world border",
+      "description": "Sets the center and radius to match the world border of the selected or given world.",
+      "risk": "caution",
+      "console_template": "chunky worldborder {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": false,
+          "placeholder": "e.g. world"
+        }
+      ]
+    },
+    {
+      "name": "chunky-spawn",
+      "label": "Center on spawn",
+      "description": "Sets the center to the default vanilla spawn point in the currently selected world.",
+      "risk": "caution",
+      "console_template": "chunky spawn",
+      "inputs": []
+    },
+    {
+      "name": "chunky-corners",
+      "label": "Select by corners",
+      "description": "Sets the center and radius automatically based on the two XZ corner coordinates provided.",
+      "risk": "caution",
+      "console_template": "chunky corners {x1} {z1} {x2} {z2}",
+      "inputs": [
+        {
+          "name": "x1",
+          "type": "text",
+          "label": "X1",
+          "required": true,
+          "placeholder": "e.g. -500"
+        },
+        {
+          "name": "z1",
+          "type": "text",
+          "label": "Z1",
+          "required": true,
+          "placeholder": "e.g. -500"
+        },
+        {
+          "name": "x2",
+          "type": "text",
+          "label": "X2",
+          "required": true,
+          "placeholder": "e.g. 500"
+        },
+        {
+          "name": "z2",
+          "type": "text",
+          "label": "Z2",
+          "required": true,
+          "placeholder": "e.g. 500"
+        }
+      ]
+    },
+    {
+      "name": "chunky-pattern",
+      "label": "Set pattern",
+      "description": "Sets the generation pattern, which determines the order that chunks are generated.",
+      "risk": "caution",
+      "console_template": "chunky pattern {pattern} {value}",
+      "inputs": [
+        {
+          "name": "pattern",
+          "type": "select",
+          "label": "Pattern",
+          "required": true,
+          "options": [
+            "concentric",
+            "loop",
+            "spiral",
+            "region",
+            "world",
+            "csv"
+          ],
+          "default": "concentric"
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "CSV file name",
+          "required": false,
+          "placeholder": "Only for the csv pattern"
+        }
+      ]
+    },
+    {
+      "name": "chunky-selection",
+      "label": "Show selection",
+      "description": "Displays the current selection.",
+      "risk": "safe",
+      "console_template": "chunky selection",
+      "inputs": []
+    },
+    {
+      "name": "chunky-silent",
+      "label": "Toggle silent",
+      "description": "Toggles displaying update messages from pre-generation tasks.",
+      "risk": "caution",
+      "console_template": "chunky silent",
+      "inputs": []
+    },
+    {
+      "name": "chunky-quiet",
+      "label": "Set quiet interval",
+      "description": "Sets the quiet interval in seconds for update messages from pre-generation tasks.",
+      "risk": "caution",
+      "console_template": "chunky quiet {interval}",
+      "inputs": [
+        {
+          "name": "interval",
+          "type": "number",
+          "label": "Interval (seconds)",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "chunky-progress",
+      "label": "Show progress",
+      "description": "Displays pre-generation progress for all tasks.",
+      "risk": "safe",
+      "console_template": "chunky progress",
+      "inputs": []
+    },
+    {
+      "name": "chunky-reload",
+      "label": "Reload",
+      "description": "Reloads the configuration or tasks.",
+      "risk": "danger",
+      "console_template": "chunky reload {type}",
+      "inputs": [
+        {
+          "name": "type",
+          "type": "select",
+          "label": "Target",
+          "required": false,
+          "options": [
+            "config",
+            "tasks"
+          ],
+          "default": "config"
+        }
+      ]
+    },
+    {
+      "name": "chunky-trim",
+      "label": "Trim chunks",
+      "description": "Deletes chunks outside (or inside) the selection; deleted chunks cannot be restored without a backup.",
+      "risk": "danger",
+      "console_template": "chunky trim {args}",
+      "inputs": [
+        {
+          "name": "args",
+          "type": "text",
+          "label": "Selection",
+          "required": false,
+          "placeholder": "[world] [shape] [centerX centerZ] [radius] [radius] [outside|inside] [inhabited]"
+        }
+      ]
+    },
+    {
+      "name": "chunky-confirm",
+      "label": "Confirm action",
+      "description": "Confirms the pending action, such as a trim or cancel, that is waiting for confirmation.",
+      "risk": "danger",
+      "console_template": "chunky confirm",
+      "inputs": []
+    },
+    {
+      "name": "chunky-help",
+      "label": "Help",
+      "description": "Shows the Chunky command help.",
+      "risk": "safe",
+      "console_template": "chunky help {page}",
+      "inputs": [
+        {
+          "name": "page",
+          "type": "number",
+          "label": "Page",
+          "required": false,
+          "min": 1
+        }
+      ]
+    }
+  ]
+}

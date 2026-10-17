@@ -191,6 +191,11 @@
             "$ref": "#/definitions/CommandFieldToml"
           },
           "type": "array"
+        },
+        "hook": {
+          "default": false,
+          "description": "lifecycle `instance_commands()`로 인스턴스별 명령을 더 받는다",
+          "type": "boolean"
         }
       },
       "type": "object"
@@ -680,6 +685,11 @@
             "string",
             "null"
           ]
+        },
+        "install": {
+          "default": false,
+          "description": "서버를 만들 때 고르는 설정이면 true (설치할 파일이 달라지는 값)",
+          "type": "boolean"
         },
         "label": {
           "default": null,

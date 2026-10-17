@@ -1,0 +1,267 @@
+{
+  "name": "GriefPrevention",
+  "match": [
+    "GriefPrevention"
+  ],
+  "docs": [
+    "https://github.com/GriefPrevention/GriefPrevention/blob/master/src/main/resources/plugin.yml",
+    "https://github.com/GriefPrevention/GriefPrevention/blob/master/src/main/java/me/ryanhamshire/GriefPrevention/GriefPrevention.java",
+    "https://docs.griefprevention.com/commands/"
+  ],
+  "player_only": [
+    "claim",
+    "abandonclaim",
+    "abandontoplevelclaim",
+    "abandonallclaims",
+    "trust",
+    "untrust",
+    "containertrust",
+    "accesstrust",
+    "managetrust",
+    "trustlist",
+    "transferclaim",
+    "deleteclaim",
+    "extendclaim",
+    "subdivideclaims",
+    "restrictsubclaim",
+    "adminclaims",
+    "basicclaims",
+    "ignoreclaims",
+    "claimexplosions",
+    "trapped",
+    "unlockdrops",
+    "ignoreplayer",
+    "unignoreplayer",
+    "ignoredplayerlist"
+  ],
+  "commands": [
+    {
+      "name": "adjustbonusclaimblocks",
+      "label": "Adjust bonus claim blocks",
+      "description": "Adds or subtracts bonus claim blocks for a player.",
+      "risk": "caution",
+      "console_template": "adjustbonusclaimblocks {player} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true,
+          "placeholder": "Positive or negative number"
+        }
+      ]
+    },
+    {
+      "name": "adjustbonusclaimblocksall",
+      "label": "Adjust bonus claim blocks (all)",
+      "description": "Adds or subtracts bonus claim blocks for all online players.",
+      "risk": "caution",
+      "console_template": "adjustbonusclaimblocksall {amount}",
+      "inputs": [
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true,
+          "placeholder": "Positive or negative number"
+        }
+      ]
+    },
+    {
+      "name": "setaccruedclaimblocks",
+      "label": "Set accrued claim blocks",
+      "description": "Updates a player's accrued claim block total.",
+      "risk": "caution",
+      "console_template": "setaccruedclaimblocks {player} {amount}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "label": "Amount",
+          "required": true,
+          "min": 0
+        }
+      ]
+    },
+    {
+      "name": "claimslist",
+      "label": "List player claims",
+      "description": "Lists information about a player's claim blocks and claims.",
+      "risk": "safe",
+      "console_template": "claimslist {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "adminclaimslist",
+      "label": "List admin claims",
+      "description": "Lists all administrative claims.",
+      "risk": "safe",
+      "console_template": "adminclaimslist",
+      "inputs": []
+    },
+    {
+      "name": "deleteallclaims",
+      "label": "Delete all player claims",
+      "description": "Deletes all of another player's claims.",
+      "risk": "danger",
+      "console_template": "deleteallclaims {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "deleteclaimsinworld",
+      "label": "Delete claims in world",
+      "description": "Deletes all the claims in a world.",
+      "risk": "danger",
+      "console_template": "deleteclaimsinworld {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "deleteuserclaimsinworld",
+      "label": "Delete user claims in world",
+      "description": "Deletes all the non-admin claims in a world.",
+      "risk": "danger",
+      "console_template": "deleteuserclaimsinworld {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "deletealladminclaims",
+      "label": "Delete all admin claims",
+      "description": "Deletes all administrative claims.",
+      "risk": "danger",
+      "console_template": "deletealladminclaims",
+      "inputs": []
+    },
+    {
+      "name": "claimbook",
+      "label": "Give claim book",
+      "description": "Gives a player a manual about claiming land.",
+      "risk": "caution",
+      "console_template": "claimbook {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "softmute",
+      "label": "Soft mute",
+      "description": "Toggles whether a player's messages will only reach other soft-muted players.",
+      "risk": "caution",
+      "console_template": "softmute {player}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "separate",
+      "label": "Separate players",
+      "description": "Forces two players to ignore each other in chat.",
+      "risk": "caution",
+      "console_template": "separate {player1} {player2}",
+      "inputs": [
+        {
+          "name": "player1",
+          "type": "text",
+          "label": "Player 1",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "player2",
+          "type": "text",
+          "label": "Player 2",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "unseparate",
+      "label": "Unseparate players",
+      "description": "Reverses separate for two players.",
+      "risk": "caution",
+      "console_template": "unseparate {player1} {player2}",
+      "inputs": [
+        {
+          "name": "player1",
+          "type": "text",
+          "label": "Player 1",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "player2",
+          "type": "text",
+          "label": "Player 2",
+          "required": true,
+          "placeholder": "Player name"
+        }
+      ]
+    },
+    {
+      "name": "gpreload",
+      "label": "Reload",
+      "description": "Reloads GriefPrevention's configuration settings.",
+      "risk": "danger",
+      "console_template": "gpreload",
+      "inputs": []
+    }
+  ]
+}

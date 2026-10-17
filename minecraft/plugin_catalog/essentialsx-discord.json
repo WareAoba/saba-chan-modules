@@ -1,0 +1,43 @@
+{
+  "name": "EssentialsX Discord",
+  "match": [
+    "EssentialsDiscord"
+  ],
+  "docs": [
+    "https://github.com/EssentialsX/Essentials/blob/2.x/EssentialsDiscord/src/main/resources/plugin.yml",
+    "https://github.com/EssentialsX/Essentials/tree/2.x/EssentialsDiscord/src/main/java/net/essentialsx/discord/commands",
+    "https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/main/resources/messages.properties"
+  ],
+  "commands": [
+    {
+      "name": "discordbroadcast",
+      "label": "Broadcast to Discord",
+      "description": "Sends the given message to the specified Discord channel.",
+      "risk": "caution",
+      "console_template": "discordbroadcast {channel} {message}",
+      "inputs": [
+        {
+          "name": "channel",
+          "type": "text",
+          "label": "Channel",
+          "required": true,
+          "placeholder": "Channel name from config or ID"
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "label": "Message",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "discord",
+      "label": "Discord invite",
+      "description": "Shows the Discord invite link.",
+      "risk": "safe",
+      "console_template": "discord",
+      "inputs": []
+    }
+  ]
+}

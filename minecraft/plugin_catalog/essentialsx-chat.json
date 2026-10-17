@@ -1,0 +1,39 @@
+{
+  "name": "EssentialsX Chat",
+  "match": [
+    "EssentialsChat"
+  ],
+  "docs": [
+    "https://github.com/EssentialsX/Essentials/blob/2.x/EssentialsChat/src/main/resources/plugin.yml",
+    "https://github.com/EssentialsX/Essentials/blob/2.x/EssentialsChat/src/main/java/com/earth2me/essentials/chat/Commandtoggleshout.java",
+    "https://github.com/EssentialsX/Essentials/blob/2.x/Essentials/src/main/resources/messages.properties"
+  ],
+  "commands": [
+    {
+      "name": "toggleshout",
+      "label": "Toggle shout mode",
+      "description": "Toggles shout mode for the specified player.",
+      "risk": "caution",
+      "console_template": "toggleshout {player} {state}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "state",
+          "type": "select",
+          "label": "State",
+          "required": false,
+          "options": [
+            "on",
+            "off"
+          ]
+        }
+      ]
+    }
+  ]
+}

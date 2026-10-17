@@ -1,0 +1,1028 @@
+{
+  "name": "Multiverse-Core",
+  "match": [
+    "Multiverse-Core"
+  ],
+  "docs": [
+    "https://mvplugins.org/core/fundamentals/commands-usage/",
+    "https://github.com/Multiverse/Multiverse-Core/tree/main/src/main/java/org/mvplugins/multiverse/core/commands",
+    "https://github.com/Multiverse/Multiverse-Core/blob/main/src/main/resources/multiverse-core_en.properties"
+  ],
+  "player_only": [
+    "mv coordinates"
+  ],
+  "commands": [
+    {
+      "name": "mv-version",
+      "label": "Version",
+      "description": "Displays version and authors.",
+      "risk": "safe",
+      "console_template": "mv version",
+      "inputs": []
+    },
+    {
+      "name": "mv-help",
+      "label": "Help",
+      "description": "Shows Multiverse-Core command usage.",
+      "risk": "safe",
+      "console_template": "mv help {query}",
+      "inputs": [
+        {
+          "name": "query",
+          "type": "text",
+          "label": "Filter / page",
+          "required": false,
+          "placeholder": "e.g. create or 2"
+        }
+      ]
+    },
+    {
+      "name": "mv-reload",
+      "label": "Reload",
+      "description": "Reloads config files for all Multiverse modules.",
+      "risk": "danger",
+      "console_template": "mv reload",
+      "inputs": []
+    },
+    {
+      "name": "mv-list",
+      "label": "List worlds",
+      "description": "Displays a listing of all worlds that you can enter.",
+      "risk": "safe",
+      "console_template": "mv list {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--filter <regex> --raw"
+        }
+      ]
+    },
+    {
+      "name": "mv-info",
+      "label": "World info",
+      "description": "Displays all properties configured for a world.",
+      "risk": "safe",
+      "console_template": "mv info {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-who",
+      "label": "Players in world",
+      "description": "Lists the players in the world specified.",
+      "risk": "safe",
+      "console_template": "mv who {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-whoall",
+      "label": "Players in all worlds",
+      "description": "Lists the players in all worlds.",
+      "risk": "safe",
+      "console_template": "mv whoall",
+      "inputs": []
+    },
+    {
+      "name": "mv-create",
+      "label": "Create world",
+      "description": "Creates a new world and loads it.",
+      "risk": "caution",
+      "console_template": "mv create {name} {environment} {flags}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "World name",
+          "required": true,
+          "placeholder": "New world name"
+        },
+        {
+          "name": "environment",
+          "type": "select",
+          "label": "Environment",
+          "required": true,
+          "options": [
+            "normal",
+            "nether",
+            "the_end"
+          ],
+          "default": "normal"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--seed <seed> --world-type <type> --generator <plugin[:id]> --no-structures ..."
+        }
+      ]
+    },
+    {
+      "name": "mv-import",
+      "label": "Import world",
+      "description": "Imports an existing world folder.",
+      "risk": "caution",
+      "console_template": "mv import {name} {environment} {flags}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "World folder",
+          "required": true,
+          "placeholder": "Name of the world folder"
+        },
+        {
+          "name": "environment",
+          "type": "select",
+          "label": "Environment",
+          "required": true,
+          "options": [
+            "normal",
+            "nether",
+            "the_end"
+          ],
+          "default": "normal"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--generator <plugin[:id]> --no-adjust-spawn --biome <biome> --skip-folder-check"
+        }
+      ]
+    },
+    {
+      "name": "mv-load",
+      "label": "Load world",
+      "description": "Loads a world that is already in worlds.yml.",
+      "risk": "caution",
+      "console_template": "mv load {world} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--skip-folder-check"
+        }
+      ]
+    },
+    {
+      "name": "mv-unload",
+      "label": "Unload world",
+      "description": "Unloads a world from Multiverse without removing the world folder or its config entry.",
+      "risk": "caution",
+      "console_template": "mv unload {world} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--remove-players [destination] --no-unload-bukkit-world --no-save"
+        }
+      ]
+    },
+    {
+      "name": "mv-remove",
+      "label": "Remove world",
+      "description": "Unloads a world from Multiverse and removes it from worlds.yml without deleting the world folder.",
+      "risk": "caution",
+      "console_template": "mv remove {world} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--remove-players [destination] --no-unload-bukkit-world --no-save"
+        }
+      ]
+    },
+    {
+      "name": "mv-delete",
+      "label": "Delete world",
+      "description": "Deletes a world on your server permanently.",
+      "risk": "danger",
+      "console_template": "mv delete {world} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--remove-players [destination]"
+        }
+      ]
+    },
+    {
+      "name": "mv-clone",
+      "label": "Clone world",
+      "description": "Clones a world.",
+      "risk": "caution",
+      "console_template": "mv clone {world} {new_name} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "Source world",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "new_name",
+          "type": "text",
+          "label": "New world name",
+          "required": true,
+          "placeholder": "Name of the cloned world"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--reset-world-config --reset-gamerules --reset-world-border --no-save"
+        }
+      ]
+    },
+    {
+      "name": "mv-regen",
+      "label": "Regenerate world",
+      "description": "Regenerates a world on your server; the previous state is lost permanently.",
+      "risk": "danger",
+      "console_template": "mv regen {world} {flags}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--seed [seed] --reset-world-config --reset-gamerules --reset-world-border --keep-files <files>"
+        }
+      ]
+    },
+    {
+      "name": "mv-modify",
+      "label": "Modify world",
+      "description": "Modifies a world property of a given world.",
+      "risk": "caution",
+      "console_template": "mv modify {world} {action} {property} {value}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "action",
+          "type": "select",
+          "label": "Action",
+          "required": true,
+          "options": [
+            "set",
+            "add",
+            "remove",
+            "reset"
+          ],
+          "default": "set"
+        },
+        {
+          "name": "property",
+          "type": "text",
+          "label": "Property",
+          "required": true,
+          "placeholder": "e.g. difficulty"
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": false,
+          "placeholder": "Value (not needed for reset)"
+        }
+      ]
+    },
+    {
+      "name": "mv-config",
+      "label": "Config",
+      "description": "Shows or sets a config value.",
+      "risk": "caution",
+      "console_template": "mv config {name} {value}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Config name",
+          "required": true,
+          "placeholder": "Config option name"
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": false,
+          "placeholder": "Leave empty to show the current value"
+        }
+      ]
+    },
+    {
+      "name": "mv-confirm",
+      "label": "Confirm",
+      "description": "Confirms dangerous commands before executing them.",
+      "risk": "danger",
+      "console_template": "mv confirm {otp}",
+      "inputs": [
+        {
+          "name": "otp",
+          "type": "text",
+          "label": "OTP",
+          "required": false,
+          "placeholder": "One-time code, if confirm-mode requires it"
+        }
+      ]
+    },
+    {
+      "name": "mv-debug",
+      "label": "Debug level",
+      "description": "Shows the current debug level, or changes it when a level is given.",
+      "risk": "caution",
+      "console_template": "mv debug {level}",
+      "inputs": [
+        {
+          "name": "level",
+          "type": "number",
+          "label": "Level",
+          "required": false,
+          "min": 0,
+          "max": 3
+        }
+      ]
+    },
+    {
+      "name": "mv-dumps",
+      "label": "Dumps",
+      "description": "Dumps version info to the console or paste services.",
+      "risk": "safe",
+      "console_template": "mv dumps {flags}",
+      "inputs": [
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--upload <pastesdev|mclogs>"
+        }
+      ]
+    },
+    {
+      "name": "mv-gamerule-set",
+      "label": "Set gamerule",
+      "description": "Changes a gamerule in one or more worlds.",
+      "risk": "caution",
+      "console_template": "mv gamerule set {gamerule} {value} {worlds}",
+      "inputs": [
+        {
+          "name": "gamerule",
+          "type": "text",
+          "label": "Gamerule",
+          "required": true,
+          "placeholder": "e.g. keepInventory"
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": true,
+          "placeholder": "e.g. true"
+        },
+        {
+          "name": "worlds",
+          "type": "text",
+          "label": "Worlds",
+          "required": true,
+          "placeholder": "world1,world2 or *"
+        }
+      ]
+    },
+    {
+      "name": "mv-gamerule-reset",
+      "label": "Reset gamerule",
+      "description": "Resets a gamerule in one or more worlds to its default value.",
+      "risk": "caution",
+      "console_template": "mv gamerule reset {gamerule} {worlds}",
+      "inputs": [
+        {
+          "name": "gamerule",
+          "type": "text",
+          "label": "Gamerule",
+          "required": true,
+          "placeholder": "e.g. keepInventory"
+        },
+        {
+          "name": "worlds",
+          "type": "text",
+          "label": "Worlds",
+          "required": true,
+          "placeholder": "world1,world2 or *"
+        }
+      ]
+    },
+    {
+      "name": "mv-gamerule-list",
+      "label": "List gamerules",
+      "description": "Lists gamerules for the specified world.",
+      "risk": "safe",
+      "console_template": "mv gamerule list {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-generators-list",
+      "label": "List generators",
+      "description": "Lists generators known to Multiverse.",
+      "risk": "safe",
+      "console_template": "mv generators list",
+      "inputs": []
+    },
+    {
+      "name": "mv-generators-info",
+      "label": "Generator info",
+      "description": "Shows information about a generator plugin.",
+      "risk": "safe",
+      "console_template": "mv generators info {generator}",
+      "inputs": [
+        {
+          "name": "generator",
+          "type": "text",
+          "label": "Generator",
+          "required": true,
+          "placeholder": "Generator plugin name"
+        }
+      ]
+    },
+    {
+      "name": "mv-check",
+      "label": "Check destination",
+      "description": "Checks if a player can teleport themselves to a destination.",
+      "risk": "safe",
+      "console_template": "mv check {player} {destination}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "destination",
+          "type": "text",
+          "label": "Destination",
+          "required": true,
+          "placeholder": "e.g. a world name"
+        }
+      ]
+    },
+    {
+      "name": "mv-teleport",
+      "label": "Teleport",
+      "description": "Teleports a player to a destination.",
+      "risk": "caution",
+      "console_template": "mv teleport {player} {destination} {flags}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "destination",
+          "type": "text",
+          "label": "Destination",
+          "required": true,
+          "placeholder": "e.g. a world name or e:world:x,y,z"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--unsafe --silent"
+        }
+      ]
+    },
+    {
+      "name": "mv-spawn",
+      "label": "Teleport to spawn",
+      "description": "Teleports the specified player to the spawn of the world they are in.",
+      "risk": "caution",
+      "console_template": "mv spawn {player} {flags}",
+      "inputs": [
+        {
+          "name": "player",
+          "type": "text",
+          "label": "Player",
+          "required": true,
+          "placeholder": "Player name"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--unsafe"
+        }
+      ]
+    },
+    {
+      "name": "mv-setspawn",
+      "label": "Set spawn",
+      "description": "Sets the spawn location of the specified world.",
+      "risk": "caution",
+      "console_template": "mv setspawn {location} {flags}",
+      "inputs": [
+        {
+          "name": "location",
+          "type": "text",
+          "label": "Location",
+          "required": true,
+          "placeholder": "worldname:x,y,z[,pitch,yaw]"
+        },
+        {
+          "name": "flags",
+          "type": "text",
+          "label": "Flags",
+          "required": false,
+          "placeholder": "--unsafe"
+        }
+      ]
+    },
+    {
+      "name": "mv-anchor-set",
+      "label": "Set anchor",
+      "description": "Creates or overwrites an anchor at a given location.",
+      "risk": "caution",
+      "console_template": "mv anchor set {name} {location}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Anchor name",
+          "required": true
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "label": "Location",
+          "required": true,
+          "placeholder": "world:x,y,z:yaw:pitch"
+        }
+      ]
+    },
+    {
+      "name": "mv-anchor-list",
+      "label": "List anchors",
+      "description": "Lists anchors and their locations.",
+      "risk": "safe",
+      "console_template": "mv anchor list",
+      "inputs": []
+    },
+    {
+      "name": "mv-anchor-delete",
+      "label": "Delete anchor",
+      "description": "Deletes an anchor.",
+      "risk": "caution",
+      "console_template": "mv anchor delete {name}",
+      "inputs": [
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Anchor name",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "mv-meta-info",
+      "label": "World metadata",
+      "description": "Shows all metadata for a world.",
+      "risk": "safe",
+      "console_template": "mv meta info {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-meta-modify",
+      "label": "Modify metadata",
+      "description": "Modifies a metadata of a given world.",
+      "risk": "caution",
+      "console_template": "mv meta modify {world} {action} {key} {value}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "action",
+          "type": "select",
+          "label": "Action",
+          "required": true,
+          "options": [
+            "set",
+            "remove"
+          ],
+          "default": "set"
+        },
+        {
+          "name": "key",
+          "type": "text",
+          "label": "Key",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": false,
+          "placeholder": "Required for set"
+        }
+      ]
+    },
+    {
+      "name": "mv-entity-spawn-config-info",
+      "label": "Entity spawn config",
+      "description": "Lists the entity spawn config of a world by spawn category.",
+      "risk": "safe",
+      "console_template": "mv entity-spawn-config info {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-entity-spawn-config-modify",
+      "label": "Modify entity spawn config",
+      "description": "Changes the spawn settings of a spawn category in a world.",
+      "risk": "caution",
+      "console_template": "mv entity-spawn-config modify {world} {category} {action} {property} {value}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "label": "Spawn category",
+          "required": true,
+          "placeholder": "e.g. monster"
+        },
+        {
+          "name": "action",
+          "type": "select",
+          "label": "Action",
+          "required": true,
+          "options": [
+            "set",
+            "add",
+            "reset",
+            "remove"
+          ],
+          "default": "set"
+        },
+        {
+          "name": "property",
+          "type": "text",
+          "label": "Property",
+          "required": true,
+          "placeholder": "spawn, tick-rate, spawn-limit or exceptions"
+        },
+        {
+          "name": "value",
+          "type": "text",
+          "label": "Value",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "mv-purge-entities",
+      "label": "Purge entities",
+      "description": "Removes entities that are disallowed by the entity-spawn-config settings.",
+      "risk": "danger",
+      "console_template": "mv purge-entities {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-purge-all-entities",
+      "label": "Purge all entities",
+      "description": "Removes all entities in a world, or only those in the given spawn categories.",
+      "risk": "danger",
+      "console_template": "mv purge-all-entities {world} {categories}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        },
+        {
+          "name": "categories",
+          "type": "text",
+          "label": "Spawn categories",
+          "required": false,
+          "placeholder": "Comma-separated, e.g. monster,animal"
+        }
+      ]
+    },
+    {
+      "name": "mv-worldborder-add",
+      "label": "Grow world border",
+      "description": "Grows or shrinks the world border diameter by the given size.",
+      "risk": "caution",
+      "console_template": "mv worldborder add {size} {time} {world}",
+      "inputs": [
+        {
+          "name": "size",
+          "type": "number",
+          "label": "Size",
+          "required": true
+        },
+        {
+          "name": "time",
+          "type": "text",
+          "label": "Transition time",
+          "required": true,
+          "placeholder": "Ticks, <n>s or <n>d (0 = instant)",
+          "default": "0"
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-worldborder-center",
+      "label": "World border center",
+      "description": "Sets the world border center.",
+      "risk": "caution",
+      "console_template": "mv worldborder center {x} {z} {world}",
+      "inputs": [
+        {
+          "name": "x",
+          "type": "number",
+          "label": "X",
+          "required": true
+        },
+        {
+          "name": "z",
+          "type": "number",
+          "label": "Z",
+          "required": true
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-worldborder-damage-amount",
+      "label": "Border damage amount",
+      "description": "Sets the damage per second per block outside the world border.",
+      "risk": "caution",
+      "console_template": "mv worldborder damage amount {damage} {world}",
+      "inputs": [
+        {
+          "name": "damage",
+          "type": "number",
+          "label": "Damage",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-worldborder-damage-buffer",
+      "label": "Border damage buffer",
+      "description": "Sets how far outside the world border a player can be before taking damage.",
+      "risk": "caution",
+      "console_template": "mv worldborder damage buffer {distance} {world}",
+      "inputs": [
+        {
+          "name": "distance",
+          "type": "number",
+          "label": "Distance",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-worldborder-get",
+      "label": "Get world border",
+      "description": "Shows the current world border size.",
+      "risk": "safe",
+      "console_template": "mv worldborder get {world}",
+      "inputs": [
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-worldborder-set",
+      "label": "Set world border",
+      "description": "Sets the world border diameter.",
+      "risk": "caution",
+      "console_template": "mv worldborder set {size} {time} {world}",
+      "inputs": [
+        {
+          "name": "size",
+          "type": "number",
+          "label": "Size",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "time",
+          "type": "text",
+          "label": "Transition time",
+          "required": true,
+          "placeholder": "Ticks, <n>s or <n>d (0 = instant)",
+          "default": "0"
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-worldborder-warning-distance",
+      "label": "Border warning distance",
+      "description": "Sets how close to the world border the warning appears.",
+      "risk": "caution",
+      "console_template": "mv worldborder warning distance {distance} {world}",
+      "inputs": [
+        {
+          "name": "distance",
+          "type": "number",
+          "label": "Distance",
+          "required": true,
+          "min": 0
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    },
+    {
+      "name": "mv-worldborder-warning-time",
+      "label": "Border warning time",
+      "description": "Sets how far in advance the world border warning appears.",
+      "risk": "caution",
+      "console_template": "mv worldborder warning time {time} {world}",
+      "inputs": [
+        {
+          "name": "time",
+          "type": "text",
+          "label": "Time",
+          "required": true,
+          "placeholder": "Ticks, <n>s or <n>d"
+        },
+        {
+          "name": "world",
+          "type": "text",
+          "label": "World",
+          "required": true,
+          "placeholder": "World name"
+        }
+      ]
+    }
+  ]
+}

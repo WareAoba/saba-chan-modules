@@ -11,9 +11,9 @@
 #
 #    1단계: [module]의 name, display_name을 내 게임에 맞게 바꾸기
 #    2단계: [protocols]에서 게임이 지원하는 프로토콜 선택하기
-#           - RCON 지원 → supported = ["rcon", "stdin"]
+#           - 콘솔 명령을 받는 서버(대부분) → supported = ["stdin"]
 #           - REST API만 → supported = ["rest"]
-#           - 아무것도 없으면 → supported = ["stdin"]
+#           - RCON은 쓰지 않습니다 (saba-chan 보안 정책). 게임에 RCON 설정이 있으면 lifecycle.py에서 끄세요
 #    3단계: [config]에서 실행 파일명, 프로세스명, 포트 채우기
 #           (작업관리자에서 서버 프로세스 이름을 확인하세요)
 #    4단계: [settings]에 GUI에서 조절할 항목 추가하기
@@ -44,9 +44,9 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 # ── [protocols] 통신 프로토콜 ────────────────────────────────────
 #
 #  supported: 이 모듈이 지원하는 프로토콜 목록
-#    - "rcon"  : RCON 프로토콜 (Valve Source RCON)
-#    - "rest"  : HTTP REST API
-#    - "stdin" : 표준 입력 (managed process의 stdin으로 명령 전송)
+#    - "stdin" : 표준 입력 (데몬이 managed process의 콘솔 stdin으로 명령 전송)
+#    - "rest"  : HTTP REST API (게임이 제공할 때)
+#    RCON은 보안 정책으로 막혀 있어 선언하지 않습니다.
 #
 #  default: 기본 사용 프로토콜 (supported 중 하나)
 #
@@ -55,8 +55,8 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 #    - "commands" : 정해진 명령어 버튼만 표시 (Palworld)
 #
 [protocols]
-supported = ["rcon", "stdin"]           # ← 게임에 맞게 선택
-default = "rcon"
+supported = ["stdin"]                   # ← 게임에 맞게 선택 ("stdin" | "rest")
+default = "stdin"
 interaction_mode = "console"            # "console" 또는 "commands"
 
 # ── [credential_map] 자격증명 자동 동기화 ────────────────────────
@@ -68,21 +68,16 @@ interaction_mode = "console"            # "console" 또는 "commands"
 #  사용 가능한 데몬 키:
 #    - rest_password  : REST API 비밀번호
 #    - rest_username  : REST API 사용자명
-#    - rcon_password  : RCON 비밀번호
 #
 #  예시: Palworld는 REST API 비밀번호가 INI의 AdminPassword와 같음
 #    [credential_map]
 #    rest_password = "AdminPassword"
 #
-#  예시: 게임이 RCON 비밀번호를 자체 설정 파일에서 관리하는 경우
-#    [credential_map]
-#    rcon_password = "ServerRconPassword"
-#
 #  매핑을 선언하면 lifecycle.py에서 rest_credentials를 직접 반환할
 #  필요 없이, 게임 키 값만 launch_result 최상위에 포함하면 됩니다.
 #
 # [credential_map]
-# rcon_password = "GameSpecificRconKey"
+# rest_password = "GameSpecificAdminPassword"
 
 # ── [config] 기본 실행 설정 ──────────────────────────────────────
 [config]
@@ -90,7 +85,6 @@ executable_path = ""                    # 기본 실행 파일 전체 경로 (�
 server_executable = "MyGameServer.exe"  # 실행 파일명 (프로세스 탐지용)
 process_name = "MyGameServer"           # 프로세스 이름 (tasklist/pgrep 탐지용)
 default_port = 7777                     # 기본 게임 포트
-# rcon_port = 25575                     # RCON 포트 (RCON 지원 시)
 stop_command = "quit"                   # stdin으로 전송하는 graceful 종료 명령어
 
 # ── [install] 서버 설치 방법 ─────────────────────────────────────
@@ -148,25 +142,7 @@ dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해�
 # ── saba-chan 전용 설정 ──
 
 [[settings.fields]]
-name = "rcon_port"                      # 내부 키 이름 (config에서 참조)
-type = "number"
-label = "RCON Port"
-description = "RCON remote console port"
-default = 25575
-min = 1
-max = 65535
-group = "saba-chan"
-
-[[settings.fields]]
-name = "rcon_password"
-type = "password"
-label = "RCON Password"
-description = "RCON authentication password (auto-managed)"
-required = false
-group = "saba-chan"
-
-[[settings.fields]]
-name = "managed_start"
+name = "managed_start"                  # 내부 키 이름 (config에서 참조)
 type = "boolean"
 label = "Managed Start (Console)"
 description = "Start in managed mode with stdin/stdout console"
@@ -254,8 +230,9 @@ group = "advanced"
 #        "danger"(서버 종료, 추방·차단, 권한 변경). AI가 추론한 명령을 실행하기 전에
 #        확인을 받을지 정할 때 씁니다.
 #
-#  ── RCON 명령어 (method = "rcon") ──
-#  rcon_template: RCON으로 전송할 명령어 템플릿
+#  ── 콘솔 명령어 (method = "rcon", 키 이름은 예전 그대로) ──
+#  rcon_template: 콘솔에 보낼 명령어 템플릿. 데몬은 RCON에 접속하지 않고
+#  managed 서버의 stdin으로 한 줄을 보낸 뒤 콘솔 출력을 잠깐 모아 응답으로 돌려줍니다.
 #  {변수명}은 inputs에 정의된 값으로 치환됩니다.
 #
 #  ── REST 명령어 (method = "rest") ──
@@ -265,14 +242,14 @@ group = "advanced"
 #
 [commands]
 
-# RCON 명령어 예시
+# 콘솔 명령어 예시
 [[commands.fields]]
 name = "say"
 risk = "safe"
 label = "Send Message"
 description = "Broadcast a message to all players"
-method = "rcon"                         # "rcon" 또는 "rest"
-rcon_template = "say {message}"         # {변수}는 inputs에서 치환
+method = "rcon"                         # 콘솔(stdin) 명령. REST면 "rest"
+rcon_template = "say {message}"         # stdin으로 보낼 줄. {변수}는 inputs에서 치환
 inputs = [
     { name = "message", type = "text", label = "Message", required = true, placeholder = "Enter message" }
 ]

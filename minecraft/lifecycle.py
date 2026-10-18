@@ -905,8 +905,9 @@ def _resolve_server_jar(config):
             jar = os.path.join(working_dir, jar)
 
     jar = os.path.abspath(jar)
-    if not os.path.isfile(jar):
-        # 데몬은 기본 이름(server.jar)을 넘긴다 — 페이퍼·퍼퍼·패브릭 등은 흔한 이름으로 폴더에서 찾는다
+    if not os.path.isfile(jar) and os.path.basename(jar).lower() == "server.jar":
+        # 데몬은 기본 이름(server.jar)을 넘긴다 — 페이퍼·퍼퍼·패브릭 등은 흔한 이름으로 폴더에서 찾는다.
+        # 사용자가 직접 적은 다른 이름은 없으면 없는 대로 둔다(다른 jar로 바꿔 띄우지 않는다)
         jar = server_types.find_server_jar(os.path.dirname(jar)) or jar
     return jar
 

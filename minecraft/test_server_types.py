@@ -120,6 +120,17 @@ def test_server_jar_keeps_priority_and_missing_jar_stays_missing(tmp_path):
     assert lifecycle._resolve_server_jar(config) == str(empty / "server.jar")
 
 
+
+def test_server_jar_picks_the_newest_build_and_keeps_an_explicit_name(tmp_path):
+    for name in ["paper-1.21.4-99.jar", "paper-1.21.4-130.jar", "paper-1.9.4-200.jar"]:
+        (tmp_path / name).write_bytes(b"")
+    config = {"working_dir": str(tmp_path), "server_executable": "server.jar"}
+    assert lifecycle._resolve_server_jar(config) == str(tmp_path / "paper-1.21.4-130.jar")
+
+    # 사용자가 직접 적은 이름이 없으면 다른 jar로 바꾸지 않는다
+    config = {"working_dir": str(tmp_path), "server_executable": "my-server.jar"}
+    assert lifecycle._resolve_server_jar(config) == str(tmp_path / "my-server.jar")
+
 # ─── 설치 소스 ──────────────────────────────────────────────────
 
 def test_paper_downloads_the_newest_stable_build():

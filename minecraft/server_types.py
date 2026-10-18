@@ -163,14 +163,19 @@ def inspect_jar(path):
     return None
 
 
+def _version_key(path):
+    """이름 속 숫자를 수로 비교한다: paper-1.21.4-130.jar가 -99.jar보다, 1.21이 1.9보다 뒤다"""
+    return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", os.path.basename(path).lower())]
+
+
 def find_server_jar(working_dir):
-    """서버 폴더에서 `_JAR_NAMES` 순서로 서버 jar를 찾는다. 같은 무늬가 여럿이면 이름이 가장 뒤인 것 (없으면 None)"""
+    """서버 폴더에서 `_JAR_NAMES` 순서로 서버 jar를 찾는다. 같은 무늬가 여럿이면 버전이 가장 높은 것 (없으면 None)"""
     if not working_dir or not os.path.isdir(working_dir):
         return None
     for pattern in _JAR_NAMES:
-        found = sorted(p for p in glob.glob(os.path.join(working_dir, pattern)) if os.path.isfile(p))
+        found = [p for p in glob.glob(os.path.join(working_dir, pattern)) if os.path.isfile(p)]
         if found:
-            return found[-1]
+            return max(found, key=_version_key)
     return None
 
 

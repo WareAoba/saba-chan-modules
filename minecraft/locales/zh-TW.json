@@ -220,5 +220,9 @@
     "sending_command": "傳送命令：{{command}}",
     "response_received": "收到回應：{{response}}",
     "command_failed": "命令失敗：{{error}}"
+  },
+  "reset": {
+    "label": "重設伺服器",
+    "description": "刪除世界、設定和外掛，只保留伺服器 JAR 和 eula.txt。"
   }
 }

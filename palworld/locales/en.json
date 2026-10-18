@@ -208,7 +208,9 @@
     "no_path": "Cannot determine server directory. Set working_dir or server_executable.",
     "not_found": "Settings file not found. Start the server once to generate it.",
     "settings_success": "All server settings have been reset to factory defaults. World data has been preserved.",
-    "settings_failed": "Failed to write default settings to the configuration file."
+    "settings_failed": "Failed to write default settings to the configuration file.",
+    "label": "Reset settings",
+    "description": "Restores the server settings to their defaults. The world and saves are kept."
   },
   "validate": {
     "no_executable": "Server executable path not specified.",

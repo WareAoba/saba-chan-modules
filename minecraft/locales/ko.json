@@ -241,5 +241,9 @@
     "sending_command": "명령 전송 중: {{command}}",
     "response_received": "응답 수신: {{response}}",
     "command_failed": "명령 실패: {{error}}"
+  },
+  "reset": {
+    "label": "서버 초기화",
+    "description": "서버 JAR과 eula.txt만 남기고 월드, 설정, 플러그인을 모두 지웁니다."
   }
 }

@@ -139,7 +139,9 @@
     "no_path": "Impossible de déterminer le répertoire du serveur. Définissez working_dir ou server_executable.",
     "not_found": "Fichier de paramètres introuvable. Démarrez le serveur une fois pour le générer.",
     "settings_success": "Tous les paramètres du serveur ont été réinitialisés aux valeurs d'usine. Les données du monde ont été préservées.",
-    "settings_failed": "Échec de l'écriture des paramètres par défaut dans le fichier de configuration."
+    "settings_failed": "Échec de l'écriture des paramètres par défaut dans le fichier de configuration.",
+    "label": "Réinitialiser les paramètres",
+    "description": "Rétablit les paramètres par défaut du serveur. Le monde et les sauvegardes sont conservés."
   },
   "validate": {
     "no_executable": "Server executable path not specified.",

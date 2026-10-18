@@ -135,7 +135,9 @@
     "no_path": "無法確定伺服器目錄。請設定 working_dir 或 server_executable。",
     "not_found": "找不到設定檔。請先啟動伺服器以產生設定檔。",
     "settings_success": "所有伺服器設定已重置為出廠預設值。世界資料已保留。",
-    "settings_failed": "無法將預設設定寫入設定檔。"
+    "settings_failed": "無法將預設設定寫入設定檔。",
+    "label": "重設設定",
+    "description": "將伺服器設定恢復為預設值，世界和存檔會保留。"
   },
   "validate": {
     "no_executable": "未指定伺服器執行檔路徑。",

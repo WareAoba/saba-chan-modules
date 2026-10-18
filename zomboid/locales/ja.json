@@ -129,6 +129,7 @@
     "quit": { "label": "サーバーシャットダウン", "description": "保存して安全にシャットダウン" }
   },
   "errors": {
+    "admin_password_required": "初回起動には管理者パスワードが必要です。空のままだとサーバーはコンソールでパスワード入力を待って止まります。",
     "no_server_dir": "サーバーインストールディレクトリが見つかりません。サーバー実行ファイルのパスを設定してください。",
     "executable_not_found": "サーバー実行ファイル（StartServer64.batまたはstart-server.sh）がサーバーディレクトリに見つかりません。",
     "java_not_found": "バンドルJava（jre64/bin/java）が見つかりません。サーバーのインストールが不完全な可能性があります。",
@@ -153,6 +154,7 @@
       "save_status": "セーブ操作のステータスが検出されました"
     },
     "solutions": {
+      "admin_password_required": "サーバー設定で管理者パスワードを入力してから、もう一度起動してください。",
       "no_server_dir": "インスタンス設定でサーバー実行ファイル（StartServer64.bat）のパスを設定するか、SteamCMDでサーバーをインストールしてください。",
       "executable_not_found": "SteamCMD（App ID 380870）またはSteamでサーバーをダウンロードしてください。インストールディレクトリでStartServer64.batが存在することを確認してください。",
       "java_not_found": "サーバーにはバンドルJREが含まれているはずです。SteamCMDでサーバーを再インストールするか、ファイルの整合性を確認してください。",
@@ -195,5 +197,9 @@
     "sending_command": "コマンドを送信しています: {{command}}",
     "response_received": "レスポンスを受信しました: {{response}}",
     "command_failed": "コマンド失敗: {{error}}"
+  },
+  "reset": {
+    "label": "ワールド初期化",
+    "description": "ワールドのセーブだけを削除し、サーバー設定は残します。"
   }
 }

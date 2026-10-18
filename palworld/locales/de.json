@@ -133,7 +133,9 @@
     "no_path": "Server-Verzeichnis kann nicht ermittelt werden. Setzen Sie working_dir oder server_executable.",
     "not_found": "Einstellungsdatei nicht gefunden. Starten Sie den Server einmal, um sie zu generieren.",
     "settings_success": "Alle Servereinstellungen wurden auf die Werkseinstellungen zurückgesetzt. Weltdaten bleiben erhalten.",
-    "settings_failed": "Schreiben der Standardeinstellungen in die Konfigurationsdatei fehlgeschlagen."
+    "settings_failed": "Schreiben der Standardeinstellungen in die Konfigurationsdatei fehlgeschlagen.",
+    "label": "Einstellungen zurücksetzen",
+    "description": "Setzt die Servereinstellungen auf die Standardwerte zurück. Welt und Spielstände bleiben erhalten."
   },
   "validate": {
     "no_executable": "Server executable path not specified.",

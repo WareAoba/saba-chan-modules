@@ -129,6 +129,7 @@
     }
   },
   "errors": {
+    "admin_password_required": "El primer arranque necesita una contraseña de administrador. Sin ella, el servidor se detiene esperándola en la consola.",
     "no_server_dir": "Directorio de instalación no encontrado.",
     "executable_not_found": "Ejecutable del servidor no encontrado.",
     "java_not_found": "Java incluido no encontrado.",
@@ -153,6 +154,7 @@
       "save_status": "Save operation status detected"
     },
     "solutions": {
+      "admin_password_required": "Escribe una contraseña de administrador en los ajustes del servidor y vuelve a iniciarlo.",
       "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
       "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
       "java_not_found": "The server should include a bundled JRE. Try reinstalling the server or verifying file integrity via SteamCMD.",
@@ -195,5 +197,9 @@
     "sending_command": "Sending command: {{command}}",
     "response_received": "Response received: {{response}}",
     "command_failed": "Command failed: {{error}}"
+  },
+  "reset": {
+    "label": "Restablecer mundo",
+    "description": "Borra solo la partida del mundo y conserva los ajustes del servidor."
   }
 }

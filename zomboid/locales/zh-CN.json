@@ -129,6 +129,7 @@
     "quit": { "label": "关闭服务器", "description": "保存并安全关闭" }
   },
   "errors": {
+    "admin_password_required": "首次启动需要管理员密码。留空时服务器会停在控制台等待输入密码。",
     "no_server_dir": "找不到服务器安装目录。请设置服务器可执行文件路径。",
     "executable_not_found": "服务器目录中找不到服务器可执行文件（StartServer64.bat 或 start-server.sh）。",
     "java_not_found": "找不到内置 Java 运行时（jre64/bin/java）。服务器安装可能不完整。",
@@ -153,6 +154,7 @@
       "save_status": "检测到存档操作状态"
     },
     "solutions": {
+      "admin_password_required": "请在服务器设置中填写管理员密码，然后重新启动。",
       "no_server_dir": "在实例设置中设置服务器可执行文件（StartServer64.bat）的路径，或通过 SteamCMD 安装服务器。",
       "executable_not_found": "通过 SteamCMD（App ID 380870）或 Steam 下载服务器。进入安装目录确认 StartServer64.bat 存在。",
       "java_not_found": "服务器应包含内置 JRE。请尝试通过 SteamCMD 重新安装服务器或验证文件完整性。",
@@ -195,5 +197,9 @@
     "sending_command": "正在发送命令：{{command}}",
     "response_received": "收到响应：{{response}}",
     "command_failed": "命令失败：{{error}}"
+  },
+  "reset": {
+    "label": "重置世界",
+    "description": "只删除世界存档，保留服务器设置。"
   }
 }

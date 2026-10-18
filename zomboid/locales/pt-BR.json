@@ -129,6 +129,7 @@
     }
   },
   "errors": {
+    "admin_password_required": "A primeira inicialização precisa de uma senha de administrador. Sem ela, o servidor para esperando a senha no console.",
     "no_server_dir": "Diretório de instalação do servidor não encontrado.",
     "executable_not_found": "Executável do servidor não encontrado.",
     "java_not_found": "Java incluído não encontrado.",
@@ -153,6 +154,7 @@
       "save_status": "Save operation status detected"
     },
     "solutions": {
+      "admin_password_required": "Informe uma senha de administrador nas configurações do servidor e inicie de novo.",
       "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
       "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
       "java_not_found": "The server should include a bundled JRE. Try reinstalling the server or verifying file integrity via SteamCMD.",
@@ -195,5 +197,9 @@
     "sending_command": "Sending command: {{command}}",
     "response_received": "Response received: {{response}}",
     "command_failed": "Command failed: {{error}}"
+  },
+  "reset": {
+    "label": "Redefinir mundo",
+    "description": "Apaga só o save do mundo e mantém as configurações do servidor."
   }
 }

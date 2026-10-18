@@ -129,6 +129,7 @@
     }
   },
   "errors": {
+    "admin_password_required": "Der erste Start braucht ein Admin-Passwort. Ohne es hält der Server an und wartet in der Konsole darauf.",
     "no_server_dir": "Server-Installationsverzeichnis nicht gefunden.",
     "executable_not_found": "Server-Ausführungsdatei nicht gefunden.",
     "java_not_found": "Gebündeltes Java nicht gefunden.",
@@ -153,6 +154,7 @@
       "save_status": "Save operation status detected"
     },
     "solutions": {
+      "admin_password_required": "Gib in den Servereinstellungen ein Admin-Passwort ein und starte erneut.",
       "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
       "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
       "java_not_found": "The server should include a bundled JRE. Try reinstalling the server or verifying file integrity via SteamCMD.",
@@ -195,5 +197,9 @@
     "sending_command": "Sending command: {{command}}",
     "response_received": "Response received: {{response}}",
     "command_failed": "Command failed: {{error}}"
+  },
+  "reset": {
+    "label": "Welt zurücksetzen",
+    "description": "Löscht nur den Weltspielstand und behält die Servereinstellungen."
   }
 }

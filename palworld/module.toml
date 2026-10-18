@@ -54,6 +54,10 @@ install_subdir = "server"
 platform = "windows"
 requires_extensions = ["steamcmd", "ue4-ini"]
 
+[status]
+# 켜진 서버의 접속자 수 (데몬이 1분마다 부른다)
+players = "player_count"
+
 [detection]
 process_patterns = ["PalServer-Win64-Shipping-Cmd", "PalServer", "PalServer-Win64"]
 # dir_signatures: 디렉토리 내 파일 존재 여부로 게임 서버를 식별하는 패턴

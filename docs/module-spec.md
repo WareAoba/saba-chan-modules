@@ -94,6 +94,9 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 ### `[[agreements]]` ○
 서버를 켜기 전에 사용자가 동의해야 하는 약관(예: 게임 EULA). `id`(소문자·숫자·`-`·`_`, 모듈 안에서 겹치지 않음), `url`(원문, https). 표시 이름은 모듈 locales의 `agreements.<id>`. 데몬이 동의를 받아 기록하고(이 PC에서만, 디스코드·챗봇에서는 받지 않는다), 동의하지 않은 약관이 있으면 시작을 막는다. 동의한 약관 id는 config `accepted_agreements`로 `install_server`·`accept_agreements`에 온다. 모듈이 직접 동의를 가정하면 안 된다.
 
+### `[status]` ○
+`players`: 접속자 수를 돌려주는 진입 파일 함수 이름(Python 식별자, 상태를 바꾸는 함수는 안 된다). 데몬이 켜진 서버마다 1분에 한 번, 10초 안에 부른다. 그 값은 서버 목록과 디스코드 `/사바쨩 상태`에 접속자 수로 나온다. 함수 계약은 §3 표.
+
 ### 그 밖
 - `[aliases]`: `module_aliases`(모듈 별명), `[aliases.commands.<명령>]` `aliases`·`description`.
 - `[errors]`: 오류 코드 → 사용자 문구 (채팅 응답용).
@@ -121,6 +124,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `diagnose_log` | 로그 진단 | `success` |
 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록 / `executable_path`, `install_path` / `version` |
 | `import_settings` | 기존 서버 가져오기 | `settings{}` |
+| `[status] players`가 가리키는 함수 | 켜진 서버마다 1분에 한 번 | `online`(0 이상 정수), `max`(정수, 모르면 빼거나 0). 서버에 닿지 않으면 `success: false`. 읽기만 한다 |
 
 ✔ 표시가 없는 함수는 기능을 지원할 때만 만든다. 만들었다면 반드시 `FUNCTIONS` 표에 넣는다.
 

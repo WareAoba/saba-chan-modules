@@ -373,3 +373,16 @@ def test_rcon_stays_off_and_has_no_command_path(tmp_path):
         lifecycle.command({"command": "info", "instance_id": "i1", "protocol_mode": "rcon"})
     rest.assert_called_once()
     assert "rcon_password" not in lifecycle.get_credentials({"working_dir": str(tmp_path)})
+
+
+def test_player_count_reads_rest_metrics():
+    from palworld import lifecycle
+    client = mock.Mock()
+    client.metrics.return_value = {"currentplayernum": 2, "maxplayernum": 32, "serverfps": 60}
+    with mock.patch.object(lifecycle, "_rest_client", return_value=client):
+        assert lifecycle.player_count({}) == {"success": True, "online": 2, "max": 32}
+    client.metrics.side_effect = RuntimeError("HTTP 401")
+    with mock.patch.object(lifecycle, "_rest_client", return_value=client):
+        assert lifecycle.player_count({})["success"] is False
+    with mock.patch.object(lifecycle, "_rest_client", return_value=None):
+        assert lifecycle.player_count({})["success"] is False

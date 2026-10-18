@@ -572,3 +572,13 @@ def test_highlight_marks_adjacent_uuids():
     a, b = "069a79f4-44e9-4726-a5be-fca90e38aaf5", "853c80ef-3c37-49fd-aa49-938b674adae6"
     parts = _highlighted(f"[17:24:15 INFO]: {a} {b}", rules)
     assert (a, "uuid") in parts and (b, "uuid") in parts
+
+
+def test_player_count_reads_server_list_ping():
+    from minecraft import lifecycle
+    ping = {"players": {"online": 3, "max": 20, "sample": []}, "version": {"name": "1.21"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping) as p:
+        assert lifecycle.player_count({"port": 25570}) == {"success": True, "online": 3, "max": 20}
+    p.assert_called_once_with("127.0.0.1", 25570, timeout=3)
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=None):
+        assert lifecycle.player_count({"port": 25570})["success"] is False

@@ -70,6 +70,10 @@
     "text_filtering_version": { "label": "Text Filtering Version", "description": "Text filtering version" },
     "use_native_transport": { "label": "Use Native Transport", "description": "Use Linux optimized network transport" }
   },
+  "presets": {
+    "friends": { "label": "Amigos (pequeño)", "description": "Hasta 10 jugadores, lista blanca activada, dificultad normal" },
+    "hardcore": { "label": "Extremo", "description": "Una sola vida, dificultad difícil" }
+  },
   "commands": {
     "say": {
       "label": "Enviar mensaje de chat",

@@ -70,6 +70,10 @@
     "text_filtering_version": { "label": "Text Filtering Version", "description": "Text filtering version" },
     "use_native_transport": { "label": "Use Native Transport", "description": "Use Linux optimized network transport" }
   },
+  "presets": {
+    "friends": { "label": "好友小服", "description": "最多 10 人，开启白名单，普通难度" },
+    "hardcore": { "label": "极限模式", "description": "只有一条命，困难难度" }
+  },
   "commands": {
     "say": {
       "label": "发送聊天消息",

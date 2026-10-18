@@ -1249,3 +1249,21 @@ name = "string_literal"
 pattern = '(?P<hl>"[^"]*")'
 color = "string"
 priority = 10
+
+# ── 추천 설정 묶음 (서버를 만들 때 고른다. 문구는 locales의 presets) ──
+[[presets]]
+id = "friends"
+label = "Friends (small)"
+description = "Up to 10 players, whitelist on, normal difficulty"
+[presets.settings]
+max_players = 10
+white_list = true
+difficulty = "normal"
+
+[[presets]]
+id = "hardcore"
+label = "Hardcore"
+description = "One life on hard difficulty"
+[presets.settings]
+hardcore = true
+difficulty = "hard"

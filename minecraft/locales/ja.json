@@ -70,6 +70,10 @@
     "text_filtering_version": { "label": "Text Filtering Version", "description": "Text filtering version" },
     "use_native_transport": { "label": "Use Native Transport", "description": "Use Linux optimized network transport" }
   },
+  "presets": {
+    "friends": { "label": "友達向け(小規模)", "description": "最大10人、ホワイトリスト有効、ノーマル難易度" },
+    "hardcore": { "label": "ハードコア", "description": "命はひとつ、ハード難易度" }
+  },
   "commands": {
     "say": {
       "label": "チャットメッセージ送信",

@@ -208,7 +208,9 @@
     "no_path": "Cannot determine server directory. Set working_dir or server_executable.",
     "not_found": "Settings file not found. Start the server once to generate it.",
     "settings_success": "All server settings have been reset to factory defaults. World data has been preserved.",
-    "settings_failed": "Failed to write default settings to the configuration file."
+    "settings_failed": "Failed to write default settings to the configuration file.",
+    "label": "Reset settings",
+    "description": "Restores the server settings to their defaults. The world and saves are kept."
   },
   "validate": {
     "no_executable": "Server executable path not specified.",
@@ -219,9 +221,5 @@
     "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
     "port_in_use": "Port {{port}} is already in use.",
     "port_in_use_hint": "Stop the other process using port {{port}} or change the port."
-  },
-  "reset": {
-    "label": "Reset settings",
-    "description": "Restores the server settings to their defaults. The world and saves are kept."
   }
 }

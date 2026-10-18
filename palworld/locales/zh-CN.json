@@ -135,7 +135,9 @@
     "no_path": "无法确定服务器目录。请设置 working_dir 或 server_executable。",
     "not_found": "未找到设置文件。请先启动一次服务器以生成文件。",
     "settings_success": "所有服务器设置已重置为出厂默认值。世界数据已保留。",
-    "settings_failed": "将默认设置写入配置文件失败。"
+    "settings_failed": "将默认设置写入配置文件失败。",
+    "label": "重置设置",
+    "description": "将服务器设置恢复为默认值，世界和存档会保留。"
   },
   "validate": {
     "no_executable": "未指定服务器可执行文件路径。",
@@ -146,9 +148,5 @@
     "cannot_create_dir_hint": "请检查文件夹权限或选择其他路径。",
     "port_in_use": "端口 {{port}} 已被占用。",
     "port_in_use_hint": "请停止占用端口 {{port}} 的其他进程或更改端口。"
-  },
-  "reset": {
-    "label": "重置设置",
-    "description": "将服务器设置恢复为默认值，世界和存档会保留。"
   }
 }

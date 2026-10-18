@@ -18,6 +18,7 @@ import subprocess
 import os
 import re
 import socket
+import sqlite3
 import hashlib
 import time
 from pathlib import Path
@@ -916,9 +917,20 @@ def validate(config):
 
 
 def _has_server_db(config):
-    """이 서버 이름의 계정 DB(<데이터 폴더>/db/<이름>.db)가 있는가. 있으면 관리자 계정이 이미 만들어졌다"""
+    """이 서버 이름의 계정 DB(<데이터 폴더>/db/<이름>.db)에 계정이 있는가. 있으면 관리자 계정이 이미 만들어졌다.
+    빈 파일·깨진 파일·계정 없는 DB(첫 실행이 비밀번호 전에 멈춘 경우)는 없는 것으로 본다"""
     server_name = config.get("server_name", "servertest")
-    return os.path.isfile(os.path.join(_zomboid_home(config), "db", f"{server_name}.db"))
+    path = os.path.join(_zomboid_home(config), "db", f"{server_name}.db")
+    if not os.path.isfile(path) or os.path.getsize(path) == 0:
+        return False
+    try:
+        conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        try:
+            return conn.execute("SELECT 1 FROM whitelist LIMIT 1").fetchone() is not None
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return False
 
 
 def get_launch_command(config):

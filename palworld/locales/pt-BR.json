@@ -139,7 +139,9 @@
     "no_path": "Não foi possível determinar o diretório do servidor. Defina working_dir ou server_executable.",
     "not_found": "Arquivo de configuração não encontrado. Inicie o servidor uma vez para gerá-lo.",
     "settings_success": "Todas as configurações do servidor foram redefinidas para os padrões de fábrica. Os dados do mundo foram preservados.",
-    "settings_failed": "Falha ao gravar as configurações padrão no arquivo de configuração."
+    "settings_failed": "Falha ao gravar as configurações padrão no arquivo de configuração.",
+    "label": "Redefinir configurações",
+    "description": "Volta as configurações do servidor ao padrão. O mundo e os saves são mantidos."
   },
   "validate": {
     "no_executable": "Server executable path not specified.",
@@ -150,9 +152,5 @@
     "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
     "port_in_use": "Port {{port}} is already in use.",
     "port_in_use_hint": "Stop the other process using port {{port}} or change the port."
-  },
-  "reset": {
-    "label": "Redefinir configurações",
-    "description": "Volta as configurações do servidor ao padrão. O mundo e os saves são mantidos."
   }
 }

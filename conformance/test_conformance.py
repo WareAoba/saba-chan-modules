@@ -165,7 +165,12 @@ def test_functions_table(module):
     assert not forgotten, f"만들어 놓고 FUNCTIONS에 안 넣은 함수: {forgotten}"
     dangling = sorted(k for k, v in table.items() if v is not None and v not in defined and k in DAEMON_FUNCTIONS)
     assert not dangling, f"FUNCTIONS가 가리키는 최상위 함수가 없다: {dangling}"
-    unknown = sorted(table.keys() - DAEMON_FUNCTIONS)
+    # module.toml이 이름으로 선언한 함수 ([[queries]]·[status] players)도 표에 있어야 데몬이 부를 수 있다
+    named = {q.get("function") for q in module.manifest.get("queries", [])}
+    named.add((module.manifest.get("status") or {}).get("players"))
+    undeclared = sorted(f for f in named if f and f not in table)
+    assert not undeclared, f"module.toml이 부르는 함수가 FUNCTIONS에 없다: {undeclared}"
+    unknown = sorted(table.keys() - DAEMON_FUNCTIONS - named)
     if unknown:
         warnings.warn(f"{module.name}: 데몬이 부르지 않는 이름이 FUNCTIONS에 있다: {unknown}")
 

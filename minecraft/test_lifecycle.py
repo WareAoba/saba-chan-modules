@@ -613,3 +613,14 @@ def test_java_download_failure_is_reported_in_the_user_language(tmp_path, monkey
     with mock.patch("urllib.request.urlopen", side_effect=OSError("boom")):
         result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
     assert result == {"success": False, "message": "Java 다운로드 실패: boom"}
+
+
+def test_player_count_reads_server_list_ping():
+    from minecraft import lifecycle
+    ping = {"players": {"online": 3, "max": 20, "sample": []}, "version": {"name": "1.21"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping) as p:
+        assert lifecycle.player_count({"port": 25570}) == {"success": True, "online": 3, "max": 20}
+    p.assert_called_once_with("127.0.0.1", 25570, timeout=3)
+    for reply in [None, {"version": {"name": "1.21"}}, {"players": {"online": "many"}}]:
+        with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=reply):
+            assert lifecycle.player_count({"port": 25570})["success"] is False, reply

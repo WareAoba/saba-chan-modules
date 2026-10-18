@@ -867,6 +867,20 @@
       },
       "type": "object"
     },
+    "StatusSection": {
+      "additionalProperties": false,
+      "properties": {
+        "players": {
+          "default": null,
+          "description": "접속자 수를 돌려주는 lifecycle.py 함수 이름. 데몬이 켜진 서버마다 1분에 한 번 부른다. `validate`와 같은 config를 받고 `{\"success\": true, \"online\": <정수>, \"max\": <정수>?}`를 돌려준다",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "SyntaxHighlightSection": {
       "additionalProperties": false,
       "properties": {
@@ -1045,6 +1059,17 @@
           "type": "null"
         }
       ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/StatusSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "[status] 켜진 서버의 상태를 더 알려 주는 함수"
     },
     "syntax_highlight": {
       "anyOf": [

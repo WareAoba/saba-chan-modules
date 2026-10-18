@@ -41,6 +41,10 @@ method = "download"
 download_url = "https://piston-data.mojang.com/v1/objects/{version_hash}/server.jar"
 install_subdir = "server"
 
+[status]
+# 켜진 서버의 접속자 수 (데몬이 1분마다 부른다)
+players = "player_count"
+
 [detection]
 process_patterns = ["java.exe", "java", "minecraft_server", "server.jar"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Minecraft 서버를 식별하는 패턴

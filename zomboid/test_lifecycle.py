@@ -166,6 +166,13 @@ def test_validate_empty_config_fails():
     assert result.get("success") in (False, None) or "message" in result
 
 
+def test_missing_server_folder_blocks_the_start(tmp_path):
+    from zomboid.lifecycle import validate
+    issues = validate({"working_dir": str(tmp_path / "nowhere")})["issues"]
+    assert [i["code"] for i in issues if i["severity"] == "critical"] == ["no_server_dir"]
+    assert all(i.get("solution") for i in issues)
+
+
 def test_first_launch_without_admin_password_is_blocked(tmp_path):
     from zomboid.lifecycle import validate
     server = tmp_path / "server"

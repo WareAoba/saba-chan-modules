@@ -884,10 +884,7 @@ inputs = []
 
 [errors]
 server_not_running = "Server is not running. Please start the server first"
-auth_failed = "RCON authentication failed: please check the password"
-connection_refused = "Cannot connect to server. Please check RCON port and settings"
 timeout = "Server response timeout. Please check server status"
-rcon_disabled = "RCON is disabled. Set enable-rcon=true in server.properties"
 internal_server_error = "Internal server error occurred"
 
 # ─── Aliases ──────────────────────────────────────────────────

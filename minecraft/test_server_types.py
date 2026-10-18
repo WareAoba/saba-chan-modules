@@ -80,6 +80,26 @@ def test_modern_forge_runs_from_its_args_file_without_a_jar(tmp_path):
     assert cmd["success"] and "-jar" not in cmd["args"]
 
 
+@pytest.mark.parametrize("server_type,loader,mc,java", [
+    ("forge", "1.20.6-50.1.0", "1.20.6", 21),
+    ("forge", "1.18.2-40.2.0", "1.18.2", 17),
+    ("neoforge", "21.1.77", "1.21.1", 21),
+    ("neoforge", "20.4.237", "1.20.4", 17),
+    ("neoforge", "21.0.167", "1.21", 21),
+    ("neoforge", "26.1.0.5-beta", "26.1", 25),
+])
+def test_args_file_install_without_version_needs_the_java_of_its_minecraft(tmp_path, server_type, loader, mc, java):
+    """가져온 1.17+ Forge/NeoForge 서버(실행 jar·server_version 없음)는 로더 버전에서 Minecraft 버전을 읽는다"""
+    root = {"forge": ("net", "minecraftforge", "forge"), "neoforge": ("net", "neoforged", "neoforge")}[server_type]
+    args = tmp_path.joinpath("libraries", *root, loader)
+    args.mkdir(parents=True)
+    (args / "unix_args.txt").write_text("-cp x\n")
+    found = server_types.detect(str(tmp_path))
+    assert found["version"] == mc
+    config = {"server_type": server_type, "working_dir": str(tmp_path)}
+    assert lifecycle._required_java_for(config, lifecycle._resolve_server_jar(config)) == java
+
+
 def test_folder_markers_alone_are_enough(tmp_path):
     (tmp_path / "spigot.yml").write_text("a: 1\n")
     (tmp_path / "bukkit.yml").write_text("a: 1\n")

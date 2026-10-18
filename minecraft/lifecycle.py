@@ -1002,7 +1002,15 @@ def _required_java_for(config, server_jar, jar_info=None):
     min_java = (jar_info or {}).get("java_version")
     if isinstance(min_java, int) and min_java > 0:
         return min_java
-    return required_java(config.get("server_version") or (jar_info or {}).get("version"))
+    return required_java(_minecraft_version(config, server_jar, jar_info))
+
+
+def _minecraft_version(config, server_jar, jar_info=None):
+    """설정의 server_version, 없으면 서버 jar, 그것도 없으면 서버 폴더(인자 파일로 뜨는 Forge/NeoForge의 로더 버전)"""
+    version = config.get("server_version") or (jar_info or {}).get("version")
+    if version or not config.get("working_dir"):
+        return version
+    return server_types.detect(config["working_dir"], server_jar).get("version")
 
 
 def _launch_java(config, server_jar, jar_info=None):
@@ -1030,7 +1038,7 @@ def validate(config):
     jar_info = _read_jar_version(*os.path.split(server_jar)) if server_jar else None
     launch_java = _launch_java(config, server_jar, jar_info)
     java_info = JavaDetector.get_java_info(launch_java) if launch_java != "java" else None
-    mc_version = config.get("server_version") or (jar_info or {}).get("version")
+    mc_version = _minecraft_version(config, server_jar, jar_info)
     issues.extend(JavaDetector.validate_for_minecraft(
         java_info, mc_version, min_java=(jar_info or {}).get("java_version")))
 

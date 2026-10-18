@@ -245,8 +245,26 @@ def detect(working_dir, server_jar=None):
         args_version = _modern_forge_version(working_dir, result["type"])
         if args_version:
             result["loader_version"] = args_version
+            result["version"] = result["version"] or minecraft_version_of(result["type"], args_version)
             result["evidence"].append(f"libraries/…/{args_version}/unix_args.txt")
     return result
+
+
+def minecraft_version_of(server_type, loader_version):
+    """로더 버전에 담긴 Minecraft 버전. Forge는 `1.20.1-47.3.0`, NeoForge는 `21.1.77`(→1.21.1)·`26.1.0.5`(→26.1)"""
+    text = str(loader_version or "")
+    if server_type == "forge":
+        mc = text.split("-")[0]
+        return mc if re.fullmatch(r"1\.\d+(\.\d+)?", mc) else None
+    if server_type == "neoforge":
+        numbers = re.match(r"(\d+)\.(\d+)", text)
+        if not numbers:
+            return None
+        major, minor = int(numbers.group(1)), int(numbers.group(2))
+        if major >= 26:  # 연도 기반 Minecraft 버전
+            return f"{major}.{minor}"
+        return f"1.{major}" if minor == 0 else f"1.{major}.{minor}"
+    return None
 
 
 def family(server_type):

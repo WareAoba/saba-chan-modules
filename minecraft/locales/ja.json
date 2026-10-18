@@ -188,6 +188,8 @@
     }
   },
   "messages": {
+    "downloading_server": "Minecraft サーバー {{version}} をダウンロード中",
+    "downloading_java": "Java {{version}} をダウンロード中",
     "starting_server": "サーバーを起動しています: {{command}}",
     "working_directory": "作業ディレクトリ: {{path}}",
     "server_starting": "Minecraft サーバーが PID {{pid}} で起動しています",

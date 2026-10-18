@@ -188,6 +188,8 @@
     }
   },
   "messages": {
+    "downloading_server": "Téléchargement du serveur Minecraft {{version}}",
+    "downloading_java": "Téléchargement de Java {{version}}",
     "starting_server": "Démarrage du serveur: {{command}}",
     "working_directory": "Répertoire de travail: {{path}}",
     "server_starting": "Serveur Minecraft démarrant avec PID {{pid}}",

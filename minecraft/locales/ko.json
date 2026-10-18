@@ -206,6 +206,8 @@
     }
   },
   "messages": {
+    "downloading_server": "마인크래프트 서버 {{version}} 받는 중",
+    "downloading_java": "Java {{version}} 받는 중",
     "starting_server": "서버 시작 중: {{command}}",
     "working_directory": "작업 디렉토리: {{path}}",
     "server_starting": "마인크래프트 서버가 PID {{pid}}로 시작 중입니다",

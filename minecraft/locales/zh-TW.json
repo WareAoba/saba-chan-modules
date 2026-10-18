@@ -188,6 +188,8 @@
     }
   },
   "messages": {
+    "downloading_server": "正在下載 Minecraft 伺服器 {{version}}",
+    "downloading_java": "正在下載 Java {{version}}",
     "starting_server": "啟動伺服器：{{command}}",
     "working_directory": "工作目錄：{{path}}",
     "server_starting": "Minecraft伺服器啟動，PID為{{pid}}",

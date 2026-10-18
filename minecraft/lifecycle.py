@@ -38,6 +38,11 @@ from daemon_rcon import force_kill, is_process_alive, wait_for_exit
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
 
+
+def _progress(percent, message):
+    """데몬이 읽는 진행률 줄 (stderr `PROGRESS:{json}`, GUI 설치 진행률)"""
+    print("PROGRESS:" + json.dumps({"percent": percent, "message": message}, ensure_ascii=True), file=sys.stderr, flush=True)
+
 # ─── Friendly name → server.properties key mapping ───────────
 # Used by configure() and install_server() to translate settings.
 _PROPERTY_KEY_MAP = {
@@ -373,6 +378,8 @@ class JavaDownloader:
                 total = int(resp.headers.get("Content-Length", 0))
                 downloaded = 0
                 chunk_size = 256 * 1024
+                last_pct = -1
+                message = i18n.t("messages.downloading_java", version=str(major_version))
 
                 with open(tmp_file, "wb") as f:
                     while True:
@@ -383,9 +390,9 @@ class JavaDownloader:
                         downloaded += len(chunk)
                         if total > 0:
                             pct = downloaded * 100 // total
-                            print(f"\r  Java download: {pct}% ({downloaded // 1024 // 1024}MB)", end="", file=sys.stderr)
-
-                print("", file=sys.stderr)
+                            if pct != last_pct:
+                                last_pct = pct
+                                _progress(pct, message)
 
         except Exception as e:
             if os.path.exists(tmp_file):
@@ -1741,6 +1748,8 @@ class ServerInstaller:
                 md5 = hashlib.md5()
                 downloaded = 0
                 chunk_size = 65536
+                last_pct = -1
+                message = i18n.t("messages.downloading_server", version=version_id)
 
                 with open(jar_path, "wb") as f:
                     while True:
@@ -1754,9 +1763,9 @@ class ServerInstaller:
                         downloaded += len(chunk)
                         if total > 0:
                             pct = downloaded * 100 // total
-                            print(f"\r  Progress: {pct}% ({downloaded}/{total} bytes)", end="", file=sys.stderr)
-
-                print("", file=sys.stderr)  # newline after progress
+                            if pct != last_pct:
+                                last_pct = pct
+                                _progress(pct, message)
 
         except Exception as e:
             # Clean up partial download

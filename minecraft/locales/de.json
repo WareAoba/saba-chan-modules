@@ -146,6 +146,9 @@
     "stop": { "label": "Server stoppen", "description": "Server ordnungsgemäß stoppen" }
   },
   "errors": {
+    "server_not_running": "Der Server läuft nicht. Bitte starte zuerst den Server.",
+    "timeout": "Zeitüberschreitung bei der Serverantwort. Bitte prüfe den Serverstatus.",
+    "internal_server_error": "Ein interner Serverfehler ist aufgetreten.",
     "server_jar_not_specified": "server_jar in der Instanzkonfiguration nicht angegeben. Bitte fügen Sie den Pfad zu server.jar hinzu",
     "server_jar_not_found": "Server-Jar nicht gefunden: {{path}}. Bitte überprüfen Sie den Pfad in den Instanzeinstellungen.",
     "failed_to_start": "Start fehlgeschlagen: {{error}}",
@@ -188,6 +191,8 @@
     }
   },
   "messages": {
+    "downloading_server": "Minecraft-Server {{version}} wird heruntergeladen",
+    "downloading_java": "Java {{version}} wird heruntergeladen",
     "starting_server": "Server wird gestartet: {{command}}",
     "working_directory": "Arbeitsverzeichnis: {{path}}",
     "server_starting": "Minecraft-Server startet mit PID {{pid}}",

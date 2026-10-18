@@ -164,6 +164,9 @@
     "quit": { "label": "Shutdown Server", "description": "Save and gracefully shut down" }
   },
   "errors": {
+    "player_not_found": "Player not found. Please check the username.",
+    "connection_refused": "Cannot connect to the server. Please check that the server is running and the port is correct.",
+    "timeout": "Server response timed out. Please check the server status.",
     "admin_password_required": "The first launch needs an admin password. Without one the server stops and waits for it in the console.",
     "no_server_dir": "Server installation directory not found. Please set the server executable path.",
     "executable_not_found": "Server executable (StartServer64.bat or start-server.sh) not found in the server directory.",

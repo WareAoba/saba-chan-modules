@@ -146,6 +146,9 @@
     "stop": { "label": "Остановить сервер", "description": "Корректно остановить сервер" }
   },
   "errors": {
+    "server_not_running": "Сервер не запущен. Сначала запустите сервер.",
+    "timeout": "Сервер не ответил вовремя. Проверьте состояние сервера.",
+    "internal_server_error": "Произошла внутренняя ошибка сервера.",
     "server_jar_not_specified": "server_jar не указан в конфигурации экземпляра. Пожалуйста добавьте путь к server.jar",
     "server_jar_not_found": "Файл jar сервера не найден: {{path}}. Пожалуйста проверьте путь в настройках экземпляра.",
     "failed_to_start": "Ошибка запуска: {{error}}",
@@ -188,6 +191,8 @@
     }
   },
   "messages": {
+    "downloading_server": "Загрузка сервера Minecraft {{version}}",
+    "downloading_java": "Загрузка Java {{version}}",
     "starting_server": "Запуск сервера: {{command}}",
     "working_directory": "Рабочий каталог: {{path}}",
     "server_starting": "Сервер Minecraft запускается с PID {{pid}}",

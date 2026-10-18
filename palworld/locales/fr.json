@@ -90,6 +90,13 @@
     "settings": { "label": "Voir les paramètres", "description": "Voir les paramètres actuels du serveur" }
   },
   "errors": {
+    "server_not_running": "Le serveur n'est pas démarré. Démarrez d'abord le serveur.",
+    "auth_failed": "Échec de l'authentification. Vérifiez le nom d'utilisateur et le mot de passe de l'API REST.",
+    "player_not_found": "Joueur introuvable. Vérifiez le pseudo ou le SteamID.",
+    "connection_refused": "Impossible de se connecter au serveur. Vérifiez le port du serveur et les réglages de l'API REST.",
+    "timeout": "Le serveur n'a pas répondu à temps. Vérifiez l'état du serveur.",
+    "rest_api_disabled": "L'API REST est désactivée. Elle sera activée automatiquement au prochain démarrage du serveur.",
+    "internal_server_error": "Une erreur interne du serveur s'est produite.",
     "failed_to_start": "Échec du démarrage: {{error}}",
     "no_pid_provided": "Aucun PID fourni",
     "failed_to_kill": "Échec de la terminaison du processus: {{error}}",

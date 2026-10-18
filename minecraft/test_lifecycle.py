@@ -574,6 +574,36 @@ def test_highlight_marks_adjacent_uuids():
     assert (a, "uuid") in parts and (b, "uuid") in parts
 
 
+def test_install_reports_download_progress_to_the_daemon(tmp_path, capsys):
+    """서버 jar를 받는 동안 데몬이 읽는 `PROGRESS:{json}` 줄을 낸다 (GUI 진행률이 0%에 머물지 않게)."""
+    import hashlib
+    import io
+    from minecraft.lifecycle import ServerInstaller
+
+    body = b"x" * 300_000
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": hashlib.sha1(body).hexdigest()}
+    with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch("urllib.request.urlopen", return_value=Resp(body)):
+        result = ServerInstaller.install_server("1.21.1", str(tmp_path))
+    assert result["success"], result
+
+    lines = [json.loads(l[len("PROGRESS:"):]) for l in capsys.readouterr().err.splitlines() if l.startswith("PROGRESS:")]
+    percents = [p["percent"] for p in lines]
+    assert percents and percents[-1] == 100 and percents == sorted(percents), percents
+    assert len(set(percents)) == len(percents), "같은 퍼센트를 거듭 내지 않는다"
+    assert all(p["message"] for p in lines)
+
+
 def test_player_count_reads_server_list_ping():
     from minecraft import lifecycle
     ping = {"players": {"online": 3, "max": 20, "sample": []}, "version": {"name": "1.21"}}

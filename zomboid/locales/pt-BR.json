@@ -129,6 +129,9 @@
     }
   },
   "errors": {
+    "player_not_found": "Jogador não encontrado. Verifique o nome de usuário.",
+    "connection_refused": "Não foi possível conectar ao servidor. Verifique se o servidor está em execução e se a porta está correta.",
+    "timeout": "O servidor demorou demais para responder. Verifique o status do servidor.",
     "admin_password_required": "A primeira inicialização precisa de uma senha de administrador. Sem ela, o servidor para esperando a senha no console.",
     "no_server_dir": "Diretório de instalação do servidor não encontrado.",
     "executable_not_found": "Executável do servidor não encontrado.",

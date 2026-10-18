@@ -146,6 +146,9 @@
     "stop": { "label": "停止服务器", "description": "正常停止服务器" }
   },
   "errors": {
+    "server_not_running": "服务器未运行。请先启动服务器。",
+    "timeout": "服务器响应超时。请检查服务器状态。",
+    "internal_server_error": "发生服务器内部错误。",
     "server_jar_not_specified": "实例配置中未指定server_jar。请添加server.jar的路径",
     "server_jar_not_found": "找不到服务器jar：{{path}}。请检查实例设置中的路径。",
     "failed_to_start": "启动失败：{{error}}",
@@ -188,6 +191,8 @@
     }
   },
   "messages": {
+    "downloading_server": "正在下载 Minecraft 服务器 {{version}}",
+    "downloading_java": "正在下载 Java {{version}}",
     "starting_server": "启动服务器：{{command}}",
     "working_directory": "工作目录：{{path}}",
     "server_starting": "Minecraft服务器启动，PID为{{pid}}",

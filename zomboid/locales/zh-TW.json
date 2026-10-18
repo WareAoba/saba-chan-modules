@@ -129,6 +129,9 @@
     "quit": { "label": "關閉伺服器", "description": "儲存並安全關閉" }
   },
   "errors": {
+    "player_not_found": "找不到玩家。請檢查使用者名稱。",
+    "connection_refused": "無法連線到伺服器。請確認伺服器正在執行且連接埠正確。",
+    "timeout": "伺服器回應逾時。請檢查伺服器狀態。",
     "admin_password_required": "首次啟動需要管理員密碼。留空時伺服器會停在主控台等待輸入密碼。",
     "no_server_dir": "找不到伺服器安裝目錄。請設定伺服器可執行檔路徑。",
     "executable_not_found": "伺服器目錄中找不到伺服器可執行檔（StartServer64.bat 或 start-server.sh）。",

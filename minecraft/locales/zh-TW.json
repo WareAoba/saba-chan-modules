@@ -146,6 +146,9 @@
     "stop": { "label": "停止伺服器", "description": "正常停止伺服器" }
   },
   "errors": {
+    "server_not_running": "伺服器未執行。請先啟動伺服器。",
+    "timeout": "伺服器回應逾時。請檢查伺服器狀態。",
+    "internal_server_error": "發生伺服器內部錯誤。",
     "server_jar_not_specified": "實例設定中未指定server_jar。請新增server.jar的路徑",
     "server_jar_not_found": "找不到伺服器jar：{{path}}。請檢查實例設定中的路徑。",
     "failed_to_start": "啟動失敗：{{error}}",
@@ -188,6 +191,8 @@
     }
   },
   "messages": {
+    "downloading_server": "正在下載 Minecraft 伺服器 {{version}}",
+    "downloading_java": "正在下載 Java {{version}}",
     "starting_server": "啟動伺服器：{{command}}",
     "working_directory": "工作目錄：{{path}}",
     "server_starting": "Minecraft伺服器啟動，PID為{{pid}}",

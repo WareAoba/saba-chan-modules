@@ -1041,13 +1041,6 @@ def reset_server(config):
     return reset_properties(config)
 
 
-def accept_eula(config):
-    """Palworld does not require EULA acceptance."""
-    return {
-        "success": True,
-        "message": i18n.t("messages.no_eula_needed"),
-    }
-
 
 def diagnose_log(config):
     """Diagnose errors from provided log lines or server log files."""
@@ -1482,7 +1475,6 @@ if __name__ == "__main__":
         "import_settings": import_settings,
         "reset_properties": reset_properties,
         "reset_server": reset_server,
-        "accept_eula": accept_eula,
         "diagnose_log": diagnose_log,
         "list_versions": list_versions,
         "get_version_details": get_version_details,

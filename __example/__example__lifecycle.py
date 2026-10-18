@@ -46,7 +46,7 @@
   선택 (게임에 따라):
   ─────────────────
   install_server(config)         서버 설치/업데이트
-  accept_eula(config)            EULA 동의 (Minecraft 등)
+  accept_agreements(config)      약관 동의를 파일에 쓰기 (module.toml [[agreements]], 예: EULA)
   diagnose_log(config)           로그 분석/에러 진단
   list_versions(config)          사용 가능한 버전 목록
   get_version_details(config)    버전 상세정보

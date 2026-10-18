@@ -224,5 +224,8 @@
   "reset": {
     "label": "重設伺服器",
     "description": "刪除世界、設定和外掛，只保留伺服器 JAR 和 eula.txt。"
+  },
+  "agreements": {
+    "eula": "Minecraft 終端使用者授權合約 (EULA)"
   }
 }

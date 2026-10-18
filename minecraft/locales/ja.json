@@ -224,5 +224,8 @@
   "reset": {
     "label": "サーバー初期化",
     "description": "サーバー JAR と eula.txt だけを残し、ワールド・設定・プラグインをすべて削除します。"
+  },
+  "agreements": {
+    "eula": "Minecraft エンドユーザー使用許諾契約 (EULA)"
   }
 }

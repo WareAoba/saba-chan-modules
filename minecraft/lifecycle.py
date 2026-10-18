@@ -1295,8 +1295,10 @@ def reset_server(config):
     }
 
 
-def accept_eula(config):
-    """Accept the Minecraft EULA."""
+def accept_agreements(config):
+    """사용자가 동의한 약관(module.toml `[[agreements]]`)을 파일에 쓴다. eula가 있으면 eula.txt에 true"""
+    if "eula" not in (config.get("accepted_agreements") or []):
+        return {"success": True}
     working_dir = config.get("working_dir")
     if not working_dir:
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
@@ -1905,7 +1907,7 @@ def install_server(config):
         version (str): Minecraft version (e.g., "1.21.11")
         install_dir (str): Directory to install into
         jar_name (str): Name for server jar (default: "server.jar")
-        accept_eula (bool): Auto-accept EULA (default: false)
+        accepted_agreements (list): 사용자가 동의한 약관 id. "eula"가 있으면 eula.txt에 동의를 쓴다
         initial_settings (dict): Optional initial server.properties values
     """
     try:
@@ -1918,7 +1920,7 @@ def install_server(config):
             return {"success": False, "message": "No install_dir specified"}
 
         jar_name = config.get("jar_name", "server.jar")
-        do_eula = config.get("accept_eula", False)
+        do_eula = "eula" in (config.get("accepted_agreements") or [])
         initial_settings = config.get("initial_settings")
         # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다
         server_type = (config.get("settings") or {}).get("server_type") or config.get("server_type") or "vanilla"
@@ -1952,7 +1954,7 @@ FUNCTIONS = {
     "import_settings": import_settings,
     "reset_properties": reset_properties,
     "reset_server": reset_server,
-    "accept_eula": accept_eula,
+    "accept_agreements": accept_agreements,
     "diagnose_log": diagnose_log,
     "list_versions": list_versions,
     "get_version_details": get_version_details,

@@ -51,7 +51,7 @@
 | 설정 화면 저장 / 읽기 / 초기화 | `configure` / `read_properties`, `import_settings` / `reset_properties`, `reset_server` |
 | 기존 서버 가져오기 | `import_settings` |
 | 설치·업데이트 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` |
-| 기타 | `accept_eula`, `diagnose_log`, `backup_paths`(`[backup] hook = true`일 때) |
+| 기타 | `accept_agreements`(`[[agreements]]`를 선언했을 때), `diagnose_log`, `backup_paths`(`[backup] hook = true`일 때) |
 
 필수는 `get_launch_command` 하나다. 나머지는 지원할 기능만 만들고, 만들었으면 `FUNCTIONS` 표에 꼭 넣는다(적합성 키트가 검사한다).
 

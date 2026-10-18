@@ -521,6 +521,38 @@
       },
       "type": "object"
     },
+    "ModulePreset": {
+      "additionalProperties": false,
+      "description": "`[[presets]]` — 서버를 만들 때 고르는 추천 설정 묶음 (예: \"친구용 소규모\", \"하드코어\"). 표시 문구는 모듈 locales의 `presets.<id>.label`·`description`이 덮는다",
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "소문자·숫자·`-`·`_` (예: \"friends\")",
+          "type": "string"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "settings": {
+          "additionalProperties": true,
+          "default": {},
+          "description": "`[[settings.fields]]` 이름 → 값. 비밀번호·파일·경로 설정은 넣지 못한다",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "type": "object"
+    },
     "ModuleSection": {
       "additionalProperties": false,
       "properties": {
@@ -912,6 +944,14 @@
         "spawn_process": false
       },
       "description": "[permissions] 모듈 코드가 쓰는 능력 (M12)"
+    },
+    "presets": {
+      "default": [],
+      "description": "[[presets]] 추천 설정 묶음 (I1-b)",
+      "items": {
+        "$ref": "#/definitions/ModulePreset"
+      },
+      "type": "array"
     },
     "protocols": {
       "anyOf": [

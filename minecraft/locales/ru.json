@@ -70,6 +70,10 @@
     "text_filtering_version": { "label": "Text Filtering Version", "description": "Text filtering version" },
     "use_native_transport": { "label": "Use Native Transport", "description": "Use Linux optimized network transport" }
   },
+  "presets": {
+    "friends": { "label": "Для друзей (малый)", "description": "До 10 игроков, обычная сложность" },
+    "hardcore": { "label": "Хардкор", "description": "Одна жизнь, высокая сложность" }
+  },
   "commands": {
     "say": {
       "label": "Отправить сообщение в чат",

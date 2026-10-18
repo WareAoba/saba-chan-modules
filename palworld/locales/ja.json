@@ -84,6 +84,13 @@
     "settings": { "label": "設定を表示", "description": "現在のサーバー設定を表示" }
   },
   "errors": {
+    "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
+    "auth_failed": "認証に失敗しました。REST API のユーザー名とパスワードを確認してください。",
+    "player_not_found": "プレイヤーが見つかりません。ニックネームまたは SteamID を確認してください。",
+    "connection_refused": "サーバーに接続できません。サーバーのポートと REST API の設定を確認してください。",
+    "timeout": "サーバーの応答がタイムアウトしました。サーバーの状態を確認してください。",
+    "rest_api_disabled": "REST API が無効になっています。次回サーバー起動時に自動で有効になります。",
+    "internal_server_error": "サーバー内部エラーが発生しました。",
     "failed_to_start": "起動に失敗しました: {{error}}",
     "no_pid_provided": "PID が指定されていません",
     "failed_to_kill": "プロセスの終了に失敗しました: {{error}}",

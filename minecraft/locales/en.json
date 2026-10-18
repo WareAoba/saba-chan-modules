@@ -160,6 +160,9 @@
     "stop": { "label": "Stop Server", "description": "Gracefully stop the server" }
   },
   "errors": {
+    "server_not_running": "Server is not running. Please start the server first.",
+    "timeout": "Server response timed out. Please check the server status.",
+    "internal_server_error": "An internal server error occurred.",
     "server_type_mismatch": "Server type is set to '{{chosen}}' but the server files are '{{detected}}'.",
     "server_type_install_unsupported": "saba-chan cannot install '{{type}}' servers. Install it yourself and add it with 'Import existing server'.",
     "server_type_version_unavailable": "'{{type}}' has no stable build for Minecraft {{version}} yet.",

@@ -146,6 +146,9 @@
     "stop": { "label": "Detener servidor", "description": "Detener el servidor correctamente" }
   },
   "errors": {
+    "server_not_running": "El servidor no está en ejecución. Inicia primero el servidor.",
+    "timeout": "Se agotó el tiempo de respuesta del servidor. Comprueba el estado del servidor.",
+    "internal_server_error": "Se produjo un error interno del servidor.",
     "server_jar_not_specified": "server_jar no especificado en la configuración de la instancia. Por favor agregue la ruta a server.jar",
     "server_jar_not_found": "Archivo jar del servidor no encontrado: {{path}}. Por favor verifique la ruta en la configuración de instancia.",
     "failed_to_start": "Falló al iniciar: {{error}}",

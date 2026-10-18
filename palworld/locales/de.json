@@ -84,6 +84,13 @@
     "settings": { "label": "Einstellungen anzeigen", "description": "Aktuelle Servereinstellungen anzeigen" }
   },
   "errors": {
+    "server_not_running": "Der Server läuft nicht. Bitte starte zuerst den Server.",
+    "auth_failed": "Authentifizierung fehlgeschlagen. Bitte prüfe Benutzername und Passwort der REST-API.",
+    "player_not_found": "Spieler nicht gefunden. Bitte prüfe den Namen oder die SteamID.",
+    "connection_refused": "Keine Verbindung zum Server. Bitte prüfe den Serverport und die REST-API-Einstellungen.",
+    "timeout": "Zeitüberschreitung bei der Serverantwort. Bitte prüfe den Serverstatus.",
+    "rest_api_disabled": "Die REST-API ist deaktiviert. Sie wird beim nächsten Serverstart automatisch aktiviert.",
+    "internal_server_error": "Ein interner Serverfehler ist aufgetreten.",
     "failed_to_start": "Start fehlgeschlagen: {{error}}",
     "no_pid_provided": "Keine PID angegeben",
     "failed_to_kill": "Prozess beendigung fehlgeschlagen: {{error}}",

@@ -129,6 +129,9 @@
     "quit": { "label": "关闭服务器", "description": "保存并安全关闭" }
   },
   "errors": {
+    "player_not_found": "找不到玩家。请检查用户名。",
+    "connection_refused": "无法连接到服务器。请确认服务器正在运行且端口正确。",
+    "timeout": "服务器响应超时。请检查服务器状态。",
     "admin_password_required": "首次启动需要管理员密码。留空时服务器会停在控制台等待输入密码。",
     "no_server_dir": "找不到服务器安装目录。请设置服务器可执行文件路径。",
     "executable_not_found": "服务器目录中找不到服务器可执行文件（StartServer64.bat 或 start-server.sh）。",

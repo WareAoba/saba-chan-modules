@@ -129,6 +129,9 @@
     }
   },
   "errors": {
+    "player_not_found": "Spieler nicht gefunden. Bitte prüfe den Benutzernamen.",
+    "connection_refused": "Keine Verbindung zum Server. Bitte prüfe, ob der Server läuft und der Port stimmt.",
+    "timeout": "Zeitüberschreitung bei der Serverantwort. Bitte prüfe den Serverstatus.",
     "admin_password_required": "Der erste Start braucht ein Admin-Passwort. Ohne es hält der Server an und wartet in der Konsole darauf.",
     "no_server_dir": "Server-Installationsverzeichnis nicht gefunden.",
     "executable_not_found": "Server-Ausführungsdatei nicht gefunden.",

@@ -160,6 +160,9 @@
     "stop": { "label": "서버 중지", "description": "서버를 안전하게 종료합니다" }
   },
   "errors": {
+    "server_not_running": "서버가 실행 중이 아닙니다. 먼저 서버를 시작해주세요.",
+    "timeout": "서버 응답 시간이 초과되었습니다. 서버 상태를 확인해주세요.",
+    "internal_server_error": "서버 내부 오류가 발생했습니다.",
     "server_type_mismatch": "서버 종류가 '{{chosen}}'(으)로 설정되어 있지만 서버 파일은 '{{detected}}'입니다.",
     "server_type_install_unsupported": "'{{type}}' 서버는 사바쨩이 설치할 수 없습니다. 직접 설치한 서버를 '기존 서버 가져오기'로 추가해 주세요.",
     "server_type_version_unavailable": "'{{type}}' 서버에는 마인크래프트 {{version}}용 안정 빌드가 아직 없습니다.",

@@ -87,6 +87,13 @@
     "settings": { "label": "Ver configuración", "description": "Ver la configuración actual del servidor" }
   },
   "errors": {
+    "server_not_running": "El servidor no está en ejecución. Inicia primero el servidor.",
+    "auth_failed": "Error de autenticación. Comprueba el usuario y la contraseña de la API REST.",
+    "player_not_found": "Jugador no encontrado. Comprueba el apodo o el SteamID.",
+    "connection_refused": "No se puede conectar con el servidor. Comprueba el puerto del servidor y la configuración de la API REST.",
+    "timeout": "Se agotó el tiempo de respuesta del servidor. Comprueba el estado del servidor.",
+    "rest_api_disabled": "La API REST está desactivada. Se activará automáticamente la próxima vez que inicies el servidor.",
+    "internal_server_error": "Se produjo un error interno del servidor.",
     "failed_to_start": "Falló al iniciar: {{error}}",
     "no_pid_provided": "No se proporcionó PID",
     "failed_to_kill": "Falló al terminar el proceso: {{error}}",

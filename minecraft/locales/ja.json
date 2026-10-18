@@ -146,6 +146,9 @@
     "stop": { "label": "サーバー停止", "description": "サーバーを正常に停止します" }
   },
   "errors": {
+    "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
+    "timeout": "サーバーの応答がタイムアウトしました。サーバーの状態を確認してください。",
+    "internal_server_error": "サーバー内部エラーが発生しました。",
     "server_jar_not_specified": "インスタンス設定で server_jar が指定されていません。server.jar のパスを追加してください",
     "server_jar_not_found": "サーバー jar が見つかりません: {{path}}。インスタンス設定でパスを確認してください。",
     "failed_to_start": "起動に失敗しました: {{error}}",

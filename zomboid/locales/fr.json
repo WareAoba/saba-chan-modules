@@ -129,6 +129,9 @@
     }
   },
   "errors": {
+    "player_not_found": "Joueur introuvable. Vérifiez le nom d'utilisateur.",
+    "connection_refused": "Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et que le port est correct.",
+    "timeout": "Le serveur n'a pas répondu à temps. Vérifiez l'état du serveur.",
     "admin_password_required": "Le premier démarrage demande un mot de passe administrateur. Sans lui, le serveur s'arrête et l'attend dans la console.",
     "no_server_dir": "Répertoire d'installation du serveur introuvable.",
     "executable_not_found": "Exécutable du serveur introuvable.",

@@ -146,6 +146,9 @@
     "stop": { "label": "停止伺服器", "description": "正常停止伺服器" }
   },
   "errors": {
+    "server_not_running": "伺服器未執行。請先啟動伺服器。",
+    "timeout": "伺服器回應逾時。請檢查伺服器狀態。",
+    "internal_server_error": "發生伺服器內部錯誤。",
     "server_jar_not_specified": "實例設定中未指定server_jar。請新增server.jar的路徑",
     "server_jar_not_found": "找不到伺服器jar：{{path}}。請檢查實例設定中的路徑。",
     "failed_to_start": "啟動失敗：{{error}}",

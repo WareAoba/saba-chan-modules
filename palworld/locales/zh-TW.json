@@ -84,6 +84,13 @@
     "settings": { "label": "檢視設定", "description": "檢視目前的伺服器設定" }
   },
   "errors": {
+    "server_not_running": "伺服器未執行。請先啟動伺服器。",
+    "auth_failed": "驗證失敗。請檢查 REST API 使用者名稱與密碼。",
+    "player_not_found": "找不到玩家。請檢查暱稱或 SteamID。",
+    "connection_refused": "無法連線到伺服器。請檢查伺服器連接埠與 REST API 設定。",
+    "timeout": "伺服器回應逾時。請檢查伺服器狀態。",
+    "rest_api_disabled": "REST API 已停用。下次啟動伺服器時會自動啟用。",
+    "internal_server_error": "發生伺服器內部錯誤。",
     "failed_to_start": "啟動失敗：{{error}}",
     "no_pid_provided": "未提供 PID",
     "failed_to_kill": "終止程序失敗：{{error}}",

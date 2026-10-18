@@ -156,6 +156,13 @@
     "settings": { "label": "View Settings", "description": "View current server settings" }
   },
   "errors": {
+    "server_not_running": "Server is not running. Please start the server first.",
+    "auth_failed": "Authentication failed. Please check the REST API username and password.",
+    "player_not_found": "Player not found. Please check the nickname or SteamID.",
+    "connection_refused": "Cannot connect to the server. Please check the server port and REST API settings.",
+    "timeout": "Server response timed out. Please check the server status.",
+    "rest_api_disabled": "The REST API is disabled. It will be turned on automatically the next time the server starts.",
+    "internal_server_error": "An internal server error occurred.",
     "failed_to_start": "Failed to start: {{error}}",
     "no_pid_provided": "No PID provided",
     "failed_to_kill": "Failed to kill process: {{error}}",

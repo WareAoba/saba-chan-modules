@@ -156,6 +156,13 @@
     "settings": { "label": "설정 보기", "description": "현재 서버 설정 조회" }
   },
   "errors": {
+    "server_not_running": "서버가 실행 중이 아닙니다. 먼저 서버를 시작해주세요.",
+    "auth_failed": "인증에 실패했습니다. REST API 사용자 이름과 비밀번호를 확인해주세요.",
+    "player_not_found": "플레이어를 찾을 수 없습니다. 닉네임이나 SteamID를 확인해주세요.",
+    "connection_refused": "서버에 연결할 수 없습니다. 서버 포트와 REST API 설정을 확인해주세요.",
+    "timeout": "서버 응답 시간이 초과되었습니다. 서버 상태를 확인해주세요.",
+    "rest_api_disabled": "REST API가 꺼져 있습니다. 다음에 서버를 시작할 때 자동으로 켜집니다.",
+    "internal_server_error": "서버 내부 오류가 발생했습니다.",
     "failed_to_start": "시작 실패: {{error}}",
     "no_pid_provided": "PID가 제공되지 않았습니다",
     "failed_to_kill": "프로세스 종료 실패: {{error}}",

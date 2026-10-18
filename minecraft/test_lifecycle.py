@@ -604,6 +604,36 @@ def test_install_reports_download_progress_to_the_daemon(tmp_path, capsys):
     assert all(p["message"] for p in lines)
 
 
+def test_new_install_writes_the_instance_settings_to_server_properties(tmp_path):
+    """새 설치는 인스턴스 설정(프리셋·옮긴 포트)을 server.properties에 쓰고, 사바쨩 설정은 쓰지 않는다."""
+    import hashlib
+    import io
+    from minecraft import lifecycle
+
+    body = b"x" * 1000
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": hashlib.sha1(body).hexdigest()}
+    with mock.patch.object(lifecycle.ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch("urllib.request.urlopen", return_value=Resp(body)):
+        result = lifecycle.install_server({"version": "1.21.1", "install_dir": str(tmp_path),
+                                           "settings": {"port": 25570, "difficulty": "hard", "pvp": False,
+                                                        "ram": "4G", "server_type": "vanilla"}})
+    assert result["success"], result
+
+    props = (tmp_path / "server.properties").read_text(encoding="utf-8")
+    assert "server-port=25570" in props and "difficulty=hard" in props and "pvp=false" in props
+    assert "ram" not in props and "server_type" not in props
+
+
 def test_java_download_failure_is_reported_in_the_user_language(tmp_path, monkeypatch):
     """설치 중 Java 받기가 실패하면 영어 고정 문구가 아니라 데몬 언어(ko)로 알린다."""
     from i18n import I18n

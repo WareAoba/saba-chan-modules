@@ -1445,8 +1445,12 @@ def player_count(config):
     ping_result = MinecraftPing.ping(config.get("host", "127.0.0.1"), int(config.get("port", 25565)), timeout=3)
     if not ping_result:
         return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
-    players = ping_result.get("players") or {}
-    return {"success": True, "online": int(players.get("online", 0)), "max": int(players.get("max", 0))}
+    players = ping_result.get("players")
+    try:
+        return {"success": True, "online": int(players["online"]), "max": int(players.get("max", 0))}
+    except (TypeError, KeyError, ValueError):
+        # 모르는 값을 0명으로 보이지 않는다
+        return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
 
 
 # ─── JAR version parsing ──────────────────────────────────

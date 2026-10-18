@@ -580,5 +580,6 @@ def test_player_count_reads_server_list_ping():
     with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping) as p:
         assert lifecycle.player_count({"port": 25570}) == {"success": True, "online": 3, "max": 20}
     p.assert_called_once_with("127.0.0.1", 25570, timeout=3)
-    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=None):
-        assert lifecycle.player_count({"port": 25570})["success"] is False
+    for reply in [None, {"version": {"name": "1.21"}}, {"players": {"online": "many"}}]:
+        with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=reply):
+            assert lifecycle.player_count({"port": 25570})["success"] is False, reply

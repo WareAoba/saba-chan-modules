@@ -360,18 +360,37 @@ def _pid_running(pid):
         return False
 
 
-def _rest_shutdown(config):
-    """REST로 저장 후 종료를 요청한다. 요청이 들어가면 True."""
+def _rest_client(config):
+    """설정의 rest_host와 INI의 AdminPassword·RESTAPIPort로 이 서버의 REST 클라이언트를 만든다. 비밀번호가 없으면 None"""
     password = _read_admin_password_from_ini(config)
     if not password:
-        return False
+        return None
     port = config.get("rest_port")
     if not port:
         try:
             port = int(_parse_option_settings(_get_settings_ini_path(config)).get("RESTAPIPort", 8212))
         except Exception:
             port = 8212
-    client = PalworldRestClient(port=port, username="admin", password=password, timeout=5)
+    return PalworldRestClient(host=config.get("rest_host") or "127.0.0.1", port=port, username="admin", password=password, timeout=5)
+
+
+def player_count(config):
+    """접속자 수 (module.toml [status] players). 데몬이 켜진 서버에 1분마다 부른다"""
+    client = _rest_client(config)
+    if client is None:
+        return {"success": False, "message": i18n.t("errors.player_list_failed", error="AdminPassword")}
+    try:
+        metrics = client.metrics()
+        return {"success": True, "online": int(metrics["currentplayernum"]), "max": int(metrics.get("maxplayernum") or 0)}
+    except (RuntimeError, KeyError, TypeError, ValueError) as e:
+        return {"success": False, "message": i18n.t("errors.player_list_failed", error=str(e))}
+
+
+def _rest_shutdown(config):
+    """REST로 저장 후 종료를 요청한다. 요청이 들어가면 True."""
+    client = _rest_client(config)
+    if client is None:
+        return False
     try:
         client._request("POST", "/save", {})
     except RuntimeError as e:
@@ -1479,6 +1498,7 @@ if __name__ == "__main__":
         "list_versions": list_versions,
         "get_version_details": get_version_details,
         "install_server": install_server,
+        "player_count": player_count,
     }
     
     fn = FUNCTIONS.get(function_name)

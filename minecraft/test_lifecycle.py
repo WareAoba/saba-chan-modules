@@ -602,3 +602,14 @@ def test_install_reports_download_progress_to_the_daemon(tmp_path, capsys):
     assert percents and percents[-1] == 100 and percents == sorted(percents), percents
     assert len(set(percents)) == len(percents), "같은 퍼센트를 거듭 내지 않는다"
     assert all(p["message"] for p in lines)
+
+
+def test_player_count_reads_server_list_ping():
+    from minecraft import lifecycle
+    ping = {"players": {"online": 3, "max": 20, "sample": []}, "version": {"name": "1.21"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping) as p:
+        assert lifecycle.player_count({"port": 25570}) == {"success": True, "online": 3, "max": 20}
+    p.assert_called_once_with("127.0.0.1", 25570, timeout=3)
+    for reply in [None, {"version": {"name": "1.21"}}, {"players": {"online": "many"}}]:
+        with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=reply):
+            assert lifecycle.player_count({"port": 25570})["success"] is False, reply

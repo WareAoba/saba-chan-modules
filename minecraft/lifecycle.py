@@ -1447,6 +1447,19 @@ def status(config):
         return {"success": False, "message": f"Status check failed: {e}"}
 
 
+def player_count(config):
+    """접속자 수 (module.toml [status] players). 데몬이 켜진 서버에 1분마다 부른다 (Server List Ping)"""
+    ping_result = MinecraftPing.ping(config.get("host", "127.0.0.1"), int(config.get("port", 25565)), timeout=3)
+    if not ping_result:
+        return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
+    players = ping_result.get("players")
+    try:
+        return {"success": True, "online": int(players["online"]), "max": int(players.get("max", 0))}
+    except (TypeError, KeyError, ValueError):
+        # 모르는 값을 0명으로 보이지 않는다
+        return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
+
+
 # ─── JAR version parsing ──────────────────────────────────
 
 def _read_jar_version(install_dir, jar_name="server.jar"):
@@ -1970,6 +1983,7 @@ FUNCTIONS = {
     "install_server": install_server,
     "get_installed_version": get_installed_version,
     "instance_commands": instance_commands,
+    "player_count": player_count,
 }
 
 if __name__ == "__main__":

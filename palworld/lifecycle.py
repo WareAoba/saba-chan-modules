@@ -361,7 +361,7 @@ def _pid_running(pid):
 
 
 def _rest_client(config):
-    """INI의 AdminPassword·RESTAPIPort로 이 서버의 REST 클라이언트를 만든다. 비밀번호가 없으면 None"""
+    """설정의 rest_host와 INI의 AdminPassword·RESTAPIPort로 이 서버의 REST 클라이언트를 만든다. 비밀번호가 없으면 None"""
     password = _read_admin_password_from_ini(config)
     if not password:
         return None
@@ -371,7 +371,7 @@ def _rest_client(config):
             port = int(_parse_option_settings(_get_settings_ini_path(config)).get("RESTAPIPort", 8212))
         except Exception:
             port = 8212
-    return PalworldRestClient(port=port, username="admin", password=password, timeout=5)
+    return PalworldRestClient(host=config.get("rest_host") or "127.0.0.1", port=port, username="admin", password=password, timeout=5)
 
 
 def player_count(config):

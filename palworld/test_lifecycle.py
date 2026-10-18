@@ -386,3 +386,10 @@ def test_player_count_reads_rest_metrics():
         assert lifecycle.player_count({})["success"] is False
     with mock.patch.object(lifecycle, "_rest_client", return_value=None):
         assert lifecycle.player_count({})["success"] is False
+
+
+def test_rest_client_uses_the_configured_host():
+    from palworld import lifecycle
+    with mock.patch.object(lifecycle, "_read_admin_password_from_ini", return_value="pw"):
+        client = lifecycle._rest_client({"rest_host": "10.0.0.5", "rest_port": 8300})
+    assert client.base_url == "http://10.0.0.5:8300/v1/api"

@@ -166,6 +166,23 @@ def test_validate_empty_config_fails():
     assert result.get("success") in (False, None) or "message" in result
 
 
+def test_first_launch_without_admin_password_is_blocked(tmp_path):
+    from zomboid.lifecycle import validate
+    server = tmp_path / "server"
+    server.mkdir()
+    (server / "StartServer64.bat").write_text("")
+    (server / "start-server.sh").write_text("")
+    home = tmp_path / "home"
+    config = {"working_dir": str(server), "cache_dir": str(home), "server_name": "s1"}
+    codes = [i["code"] for i in validate(config)["issues"] if i["severity"] == "critical"]
+    assert codes == ["admin_password_required"]
+    assert not any(i["severity"] == "critical" for i in validate({**config, "admin_password": "pw12"})["issues"])
+    # 계정 DB가 있으면(이미 한 번 켠 서버) 비밀번호 없이도 된다
+    (home / "db").mkdir(parents=True)
+    (home / "db" / "s1.db").write_text("")
+    assert not any(i["severity"] == "critical" for i in validate(config)["issues"])
+
+
 def test_get_launch_command_missing_executable():
     from zomboid.lifecycle import get_launch_command
     result = get_launch_command({"port": 16261})

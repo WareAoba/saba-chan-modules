@@ -129,6 +129,7 @@
     }
   },
   "errors": {
+    "admin_password_required": "Le premier démarrage demande un mot de passe administrateur. Sans lui, le serveur s'arrête et l'attend dans la console.",
     "no_server_dir": "Répertoire d'installation du serveur introuvable.",
     "executable_not_found": "Exécutable du serveur introuvable.",
     "java_not_found": "Java intégré introuvable.",
@@ -153,6 +154,7 @@
       "save_status": "Save operation status detected"
     },
     "solutions": {
+      "admin_password_required": "Saisissez un mot de passe administrateur dans les paramètres du serveur, puis redémarrez.",
       "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
       "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
       "java_not_found": "The server should include a bundled JRE. Try reinstalling the server or verifying file integrity via SteamCMD.",
@@ -195,5 +197,9 @@
     "sending_command": "Sending command: {{command}}",
     "response_received": "Response received: {{response}}",
     "command_failed": "Command failed: {{error}}"
+  },
+  "reset": {
+    "label": "Réinitialiser le monde",
+    "description": "Supprime seulement la sauvegarde du monde et conserve les paramètres du serveur."
   }
 }

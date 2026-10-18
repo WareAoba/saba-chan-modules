@@ -146,5 +146,9 @@
     "cannot_create_dir_hint": "请检查文件夹权限或选择其他路径。",
     "port_in_use": "端口 {{port}} 已被占用。",
     "port_in_use_hint": "请停止占用端口 {{port}} 的其他进程或更改端口。"
+  },
+  "reset": {
+    "label": "重置设置",
+    "description": "将服务器设置恢复为默认值，世界和存档会保留。"
   }
 }

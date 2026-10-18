@@ -146,5 +146,9 @@
     "cannot_create_dir_hint": "請檢查資料夾權限或選擇其他路徑。",
     "port_in_use": "連接埠 {{port}} 已被使用。",
     "port_in_use_hint": "請停止佔用連接埠 {{port}} 的程式，或更改連接埠。"
+  },
+  "reset": {
+    "label": "重設設定",
+    "description": "將伺服器設定恢復為預設值，世界和存檔會保留。"
   }
 }

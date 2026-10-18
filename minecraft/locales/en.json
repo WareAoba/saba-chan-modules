@@ -241,5 +241,9 @@
     "sending_command": "Sending command: {{command}}",
     "response_received": "Response received: {{response}}",
     "command_failed": "Command failed: {{error}}"
+  },
+  "reset": {
+    "label": "Reset server",
+    "description": "Deletes the world, settings and plugins, keeping only the server JAR and eula.txt."
   }
 }

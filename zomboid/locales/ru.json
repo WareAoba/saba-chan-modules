@@ -129,6 +129,7 @@
     }
   },
   "errors": {
+    "admin_password_required": "Для первого запуска нужен пароль администратора. Без него сервер останавливается и ждёт ввода в консоли.",
     "no_server_dir": "Каталог установки сервера не найден.",
     "executable_not_found": "Исполняемый файл сервера не найден.",
     "java_not_found": "Встроенная Java не найдена.",
@@ -153,6 +154,7 @@
       "save_status": "Save operation status detected"
     },
     "solutions": {
+      "admin_password_required": "Укажите пароль администратора в настройках сервера и запустите снова.",
       "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
       "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
       "java_not_found": "The server should include a bundled JRE. Try reinstalling the server or verifying file integrity via SteamCMD.",
@@ -195,5 +197,9 @@
     "sending_command": "Sending command: {{command}}",
     "response_received": "Response received: {{response}}",
     "command_failed": "Command failed: {{error}}"
+  },
+  "reset": {
+    "label": "Сброс мира",
+    "description": "Удаляет только сохранение мира, настройки сервера остаются."
   }
 }

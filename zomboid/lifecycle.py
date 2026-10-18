@@ -850,7 +850,7 @@ def validate(config):
             "severity": "error",
             "code": "no_server_dir",
             "message": i18n.t("errors.no_server_dir"),
-            "fix_hint": i18n.t("errors.solutions.no_server_dir"),
+            "solution": i18n.t("errors.solutions.no_server_dir"),
         })
         return {"success": False, "issues": issues}
     
@@ -879,7 +879,7 @@ def validate(config):
                 "severity": "error",
                 "code": "executable_not_found",
                 "message": i18n.t("errors.executable_not_found"),
-                "fix_hint": i18n.t("errors.solutions.executable_not_found"),
+                "solution": i18n.t("errors.solutions.executable_not_found"),
             })
     
     # Check bundled Java
@@ -889,7 +889,7 @@ def validate(config):
             "severity": "warning",
             "code": "java_not_found",
             "message": i18n.t("errors.java_not_found"),
-            "fix_hint": i18n.t("errors.solutions.java_not_found"),
+            "solution": i18n.t("errors.solutions.java_not_found"),
         })
     
     # Check port availability
@@ -902,8 +902,23 @@ def validate(config):
     except Exception:
         pass  # UDP port check is unreliable; skip
     
-    has_errors = any(i["severity"] == "error" for i in issues)
+    # 첫 실행에 관리자 비밀번호가 없으면 PZ가 콘솔에서 비밀번호를 기다리며 멈춘다: 켜기 전에 막는다
+    if not config.get("admin_password") and not _has_server_db(config):
+        issues.append({
+            "severity": "critical",
+            "code": "admin_password_required",
+            "message": i18n.t("errors.admin_password_required"),
+            "solution": i18n.t("errors.solutions.admin_password_required"),
+        })
+
+    has_errors = any(i["severity"] in ("error", "critical") for i in issues)
     return {"success": not has_errors, "issues": issues}
+
+
+def _has_server_db(config):
+    """이 서버 이름의 계정 DB(<데이터 폴더>/db/<이름>.db)가 있는가. 있으면 관리자 계정이 이미 만들어졌다"""
+    server_name = config.get("server_name", "servertest")
+    return os.path.isfile(os.path.join(_zomboid_home(config), "db", f"{server_name}.db"))
 
 
 def get_launch_command(config):

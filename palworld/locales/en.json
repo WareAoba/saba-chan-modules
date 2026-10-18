@@ -219,5 +219,9 @@
     "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
     "port_in_use": "Port {{port}} is already in use.",
     "port_in_use_hint": "Stop the other process using port {{port}} or change the port."
+  },
+  "reset": {
+    "label": "Reset settings",
+    "description": "Restores the server settings to their defaults. The world and saves are kept."
   }
 }

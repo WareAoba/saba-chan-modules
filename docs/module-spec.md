@@ -91,6 +91,9 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 ### `[backup]` ○
 백업(수동·예약·업데이트 전·복원 전)에 묶을 것. `paths`(작업 폴더 기준 폴더·파일, `{설정 이름}`은 인스턴스 설정 값으로 바뀐다), `save_command`(묶기 전에 실행할 `[[commands.fields]]` 이름, 예: `save-all`), `hook`(true면 진입 파일 `backup_paths(config)`가 `{"success": true, "paths": [...]}`로 경로를 더 준다. 실패하면 백업과 그 뒤 작업이 멈춘다). 없으면 수동 백업은 `backup_unsupported`, 업데이트 전·예약 백업은 건너뛴다.
 
+### `[[agreements]]` ○
+서버를 켜기 전에 사용자가 동의해야 하는 약관(예: 게임 EULA). `id`(소문자·숫자·`-`·`_`, 모듈 안에서 겹치지 않음), `url`(원문, https). 표시 이름은 모듈 locales의 `agreements.<id>`. 데몬이 동의를 받아 기록하고(이 PC에서만, 디스코드·챗봇에서는 받지 않는다), 동의하지 않은 약관이 있으면 시작을 막는다. 동의한 약관 id는 config `accepted_agreements`로 `install_server`·`accept_agreements`에 온다. 모듈이 직접 동의를 가정하면 안 된다.
+
 ### 그 밖
 - `[aliases]`: `module_aliases`(모듈 별명), `[aliases.commands.<명령>]` `aliases`·`description`.
 - `[errors]`: 오류 코드 → 사용자 문구 (채팅 응답용).
@@ -114,7 +117,8 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `command` | `method = "module"` 명령 | `success`, `message` |
 | `get_credentials` | REST 접속 정보가 필요할 때 | `rest_username`, `rest_password` |
 | `validate`, `configure`, `read_properties`, `reset_properties`, `reset_server` | 설정 화면 | `success` (+ 읽은 값) |
-| `accept_eula`, `diagnose_log` | EULA 동의, 로그 진단 | `success` |
+| `accept_agreements` | 사용자가 `[[agreements]]`에 동의한 뒤. config `accepted_agreements[]`에 있는 약관만 반영한다(예: eula.txt) | `success` |
+| `diagnose_log` | 로그 진단 | `success` |
 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록 / `executable_path`, `install_path` / `version` |
 | `import_settings` | 기존 서버 가져오기 | `settings{}` |
 

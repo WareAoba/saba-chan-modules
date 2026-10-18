@@ -13,7 +13,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "validate", "configure",
     "read_properties", "reset_properties", "reset_server", "import_settings",
-    "accept_eula", "diagnose_log", "list_versions",
+    "accept_agreements", "diagnose_log", "list_versions",
     "get_version_details", "install_server", "get_installed_version", "instance_commands",
 }
 
@@ -267,6 +267,14 @@ def test_build_launch_info_eula_not_accepted_by_default():
         assert result["success"] is True
         accepted, _ = EulaManager.check_eula(tmpdir)
         assert not accepted, "EULA should not be auto-accepted without auto_eula=True"
+
+
+def test_eula_is_written_only_when_the_user_accepted_it(tmp_path):
+    from minecraft.lifecycle import accept_agreements, EulaManager
+    assert accept_agreements({"working_dir": str(tmp_path), "accepted_agreements": []})["success"] is True
+    assert not EulaManager.check_eula(str(tmp_path))[0]
+    assert accept_agreements({"working_dir": str(tmp_path), "accepted_agreements": ["eula"]})["success"] is True
+    assert EulaManager.check_eula(str(tmp_path))[0]
 
 
 @pytest.mark.parametrize("managed", [True, False])

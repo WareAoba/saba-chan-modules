@@ -26,7 +26,7 @@ SCHEMA = json.loads((REPO / "schema" / "module.schema.json").read_text(encoding=
 DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "get_credentials",
     "validate", "configure", "read_properties", "reset_properties", "reset_server",
-    "accept_eula", "diagnose_log",
+    "accept_agreements", "diagnose_log",
     "list_versions", "get_version_details", "install_server", "get_installed_version",
     "import_settings", "backup_paths",
 }

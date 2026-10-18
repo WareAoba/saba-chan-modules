@@ -224,5 +224,8 @@
   "reset": {
     "label": "Server zurücksetzen",
     "description": "Löscht Welt, Einstellungen und Plugins; nur die Server-JAR und eula.txt bleiben."
+  },
+  "agreements": {
+    "eula": "Minecraft-Endbenutzer-Lizenzvertrag (EULA)"
   }
 }

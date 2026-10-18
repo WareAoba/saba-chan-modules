@@ -224,5 +224,8 @@
   "reset": {
     "label": "Restablecer servidor",
     "description": "Borra el mundo, los ajustes y los plugins; solo conserva el JAR del servidor y eula.txt."
+  },
+  "agreements": {
+    "eula": "Contrato de licencia de usuario final de Minecraft (EULA)"
   }
 }

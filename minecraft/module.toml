@@ -1266,3 +1266,8 @@ description = "One life on hard difficulty"
 [presets.settings]
 hardcore = true
 difficulty = "hard"
+
+# 켜기 전에 사용자가 원문을 읽고 동의해야 하는 약관 (이름은 locales `agreements.eula`)
+[[agreements]]
+id = "eula"
+url = "https://aka.ms/MinecraftEULA"

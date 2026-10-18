@@ -4,6 +4,7 @@
     "description": "Módulo de gestión de servidor Minecraft con control completo del ciclo de vida"
   },
   "settings": {
+    "server_type": { "label": "Tipo de servidor", "description": "Qué software de servidor ejecuta este mundo. saba-chan puede instalar Vanilla, Paper, Folia, Purpur y Fabric; los demás se detectan al importar un servidor existente." },
     "java_path": { "label": "Ruta de Java", "description": "Ruta al ejecutable de Java (detección automática si está vacío)" },
     "ram": { "label": "Memoria (RAM)", "description": "Asignación máxima de memoria (ej. 2G, 4G)" },
     "port": { "label": "Puerto del servidor", "description": "Puerto del servidor de juego" },
@@ -50,6 +51,15 @@
     "player_idle_timeout": { "label": "Player Idle Timeout", "description": "Minutes before idle players are kicked (0 to disable)" },
     "pause_when_empty_seconds": { "label": "Pause When Empty", "description": "Pause server ticking after no players for this many seconds (0 to disable)" },
     "prevent_proxy_connections": { "label": "Prevent Proxy Connections", "description": "Block connections using VPN/proxy" },
+    "debug": { "label": "Depuración", "description": "Registro de depuración adicional del servidor" },
+    "management_server_enabled": { "label": "Servidor de administración", "description": "Activar el protocolo de administración del servidor (JSON-RPC sobre WebSocket)" },
+    "management_server_host": { "label": "Host del servidor de administración", "description": "Dirección en la que escucha el servidor de administración" },
+    "management_server_port": { "label": "Puerto del servidor de administración", "description": "Con 0 se elige uno automáticamente" },
+    "management_server_secret": { "label": "Secreto del servidor de administración", "description": "Secreto usado para conectarse al servidor de administración" },
+    "management_server_allowed_origins": { "label": "Orígenes permitidos del servidor de administración", "description": "Orígenes que pueden conectarse (separados por comas)" },
+    "management_server_tls_enabled": { "label": "TLS del servidor de administración", "description": "Cifrar las conexiones de administración con TLS" },
+    "management_server_tls_keystore": { "label": "Keystore TLS del servidor de administración", "description": "Ruta del archivo keystore" },
+    "management_server_tls_keystore_password": { "label": "Contraseña del keystore TLS del servidor de administración", "description": "Contraseña del keystore" },
     "query_port": { "label": "Query Port", "description": "Port for GameSpy4 query protocol" },
     "rate_limit": { "label": "Rate Limit", "description": "Max packets per second before disconnect (0 to disable)" },
     "rcon_password": { "label": "RCON Password", "description": "RCON access password" },
@@ -149,6 +159,9 @@
     "server_not_running": "El servidor no está en ejecución. Inicia primero el servidor.",
     "timeout": "Se agotó el tiempo de respuesta del servidor. Comprueba el estado del servidor.",
     "internal_server_error": "Se produjo un error interno del servidor.",
+    "server_type_mismatch": "El tipo de servidor está configurado como '{{chosen}}', pero los archivos del servidor son '{{detected}}'.",
+    "server_type_install_unsupported": "saba-chan no puede instalar servidores '{{type}}'. Instálelo usted mismo y agréguelo con 'Migración de servidor existente'.",
+    "server_type_version_unavailable": "'{{type}}' aún no tiene una compilación estable para Minecraft {{version}}.",
     "server_jar_not_specified": "server_jar no especificado en la configuración de la instancia. Por favor agregue la ruta a server.jar",
     "server_jar_not_found": "Archivo jar del servidor no encontrado: {{path}}. Por favor verifique la ruta en la configuración de instancia.",
     "failed_to_start": "Falló al iniciar: {{error}}",
@@ -176,6 +189,7 @@
       "server_overloaded": "El servidor está sobrecargado y no puede mantener la tasa de ticks"
     },
     "solutions": {
+      "server_type_mismatch": "Actualice (reinstale) el servidor o configure el tipo de servidor según el servidor real.",
       "java_not_found": "Instale Java 17+ (recomendado: Adoptium Temurin) desde https://adoptium.net/ y asegúrese de que esté en su PATH, o establezca la ruta de Java en la configuración de instancia.",
       "java_version_too_old": "Instale Java {{required}}+ desde https://adoptium.net/ — las versiones actuales de Minecraft requieren Java moderno.",
       "server_jar_not_specified": "Establezca la ruta a su server.jar en la configuración de instancia.",
@@ -233,6 +247,9 @@
     "rcon_password_generated": "Contraseña RCON generada automáticamente (no se había establecido contraseña)",
     "no_properties_found": "No se encontraron ajustes del servidor.",
     "server_installed": "Servidor de Minecraft {{version}} instalado en {{path}}"
+  },
+  "plugins": {
+    "args_label": "Argumentos"
   },
   "rcon": {
     "connecting": "Conectando a {{host}}:{{port}}...",

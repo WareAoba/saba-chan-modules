@@ -4,6 +4,7 @@
     "description": "完全なライフサイクル制御を備えたマインクラフトサーバー管理モジュール"
   },
   "settings": {
+    "server_type": { "label": "サーバーの種類", "description": "このワールドを動かすサーバーソフトウェアです。Vanilla・Paper・Folia・Purpur・Fabricはsaba-chanがインストールでき、その他は既存サーバーの取り込み時に判定します。" },
     "java_path": { "label": "Javaパス", "description": "Java実行ファイルのパス（空白の場合は自動検出）" },
     "ram": { "label": "メモリ（RAM）", "description": "最大メモリ割り当て（例: 2G, 4G）" },
     "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },
@@ -50,6 +51,15 @@
     "player_idle_timeout": { "label": "Player Idle Timeout", "description": "Minutes before idle players are kicked (0 to disable)" },
     "pause_when_empty_seconds": { "label": "Pause When Empty", "description": "Pause server ticking after no players for this many seconds (0 to disable)" },
     "prevent_proxy_connections": { "label": "Prevent Proxy Connections", "description": "Block connections using VPN/proxy" },
+    "debug": { "label": "デバッグ", "description": "サーバーのデバッグログを追加で出力" },
+    "management_server_enabled": { "label": "管理サーバー", "description": "サーバー管理プロトコル（WebSocket経由のJSON-RPC）を有効にする" },
+    "management_server_host": { "label": "管理サーバーホスト", "description": "管理サーバーが待ち受けるアドレス" },
+    "management_server_port": { "label": "管理サーバーポート", "description": "0の場合は自動で選択" },
+    "management_server_secret": { "label": "管理サーバーシークレット", "description": "管理サーバーへの接続に使うシークレット" },
+    "management_server_allowed_origins": { "label": "管理サーバー許可オリジン", "description": "接続を許可するOrigin（カンマ区切り）" },
+    "management_server_tls_enabled": { "label": "管理サーバーTLS", "description": "管理接続をTLSで暗号化" },
+    "management_server_tls_keystore": { "label": "管理サーバーTLSキーストア", "description": "キーストアファイルのパス" },
+    "management_server_tls_keystore_password": { "label": "管理サーバーTLSキーストアパスワード", "description": "キーストアのパスワード" },
     "query_port": { "label": "Query Port", "description": "Port for GameSpy4 query protocol" },
     "rate_limit": { "label": "Rate Limit", "description": "Max packets per second before disconnect (0 to disable)" },
     "rcon_password": { "label": "RCON Password", "description": "RCON access password" },
@@ -149,6 +159,9 @@
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
     "timeout": "サーバーの応答がタイムアウトしました。サーバーの状態を確認してください。",
     "internal_server_error": "サーバー内部エラーが発生しました。",
+    "server_type_mismatch": "サーバーの種類は '{{chosen}}' に設定されていますが、サーバーファイルは '{{detected}}' です。",
+    "server_type_install_unsupported": "saba-chanは '{{type}}' サーバーをインストールできません。ご自身でインストールし、「既存サーバーの移行」で追加してください。",
+    "server_type_version_unavailable": "'{{type}}' にはMinecraft {{version}} 用の安定ビルドがまだありません。",
     "server_jar_not_specified": "インスタンス設定で server_jar が指定されていません。server.jar のパスを追加してください",
     "server_jar_not_found": "サーバー jar が見つかりません: {{path}}。インスタンス設定でパスを確認してください。",
     "failed_to_start": "起動に失敗しました: {{error}}",
@@ -176,6 +189,7 @@
       "server_overloaded": "サーバーが過負荷状態でティックレートを維持できません"
     },
     "solutions": {
+      "server_type_mismatch": "サーバーを更新（再インストール）するか、サーバーの種類を実際のサーバーに合わせて設定してください。",
       "java_not_found": "Java 17+（推奨: Adoptium Temurin）を https://adoptium.net/ からインストールし、PATHに追加してください。またはインスタンス設定でJavaのパスを設定してください。",
       "java_version_too_old": "https://adoptium.net/ から Java {{required}}+ をインストールしてください — 現在のMinecraftバージョンにはモダンなJavaが必要です。",
       "server_jar_not_specified": "インスタンス設定で server.jar のパスを設定してください。",
@@ -233,6 +247,9 @@
     "rcon_password_generated": "RCONパスワードを自動生成しました（パスワードが設定されていませんでした）",
     "no_properties_found": "読み込めるサーバー設定がありません。",
     "server_installed": "マインクラフトサーバー {{version}} を {{path}} にインストールしました"
+  },
+  "plugins": {
+    "args_label": "引数"
   },
   "rcon": {
     "connecting": "{{host}}:{{port}} に接続中...",

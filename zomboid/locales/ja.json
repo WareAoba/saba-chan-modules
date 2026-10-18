@@ -140,6 +140,7 @@
     "no_install_dir": "インストールディレクトリが指定されていません。作業ディレクトリを設定してください。",
     "steamcmd_not_found": "SteamCMDが見つかりません。サーバーをダウンロードするにはSteamCMDをインストールしてください。",
     "install_failed": "サーバーのインストールに失敗しました: {{error}}",
+    "failed_to_start": "サーバーの起動に失敗しました: {{error}}",
     "install_timeout": "サーバーのインストールが10分後にタイムアウトしました。",
     "no_settings": "設定が提供されていません",
     "properties_write_failed": "設定ファイルの書き込みに失敗しました: {{error}}",

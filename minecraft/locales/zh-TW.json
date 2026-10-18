@@ -4,6 +4,7 @@
     "description": "具有完整生命週期控制的Minecraft伺服器管理模組"
   },
   "settings": {
+    "server_type": { "label": "伺服器類型", "description": "執行此世界的伺服器軟體。Vanilla、Paper、Folia、Purpur 和 Fabric 可由 saba-chan 安裝；其他類型會在匯入現有伺服器時判定。" },
     "java_path": { "label": "Java路徑", "description": "Java執行檔路徑（留空則自動偵測）" },
     "ram": { "label": "記憶體（RAM）", "description": "最大記憶體分配（如 2G、4G）" },
     "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },
@@ -50,6 +51,15 @@
     "player_idle_timeout": { "label": "Player Idle Timeout", "description": "Minutes before idle players are kicked (0 to disable)" },
     "pause_when_empty_seconds": { "label": "Pause When Empty", "description": "Pause server ticking after no players for this many seconds (0 to disable)" },
     "prevent_proxy_connections": { "label": "Prevent Proxy Connections", "description": "Block connections using VPN/proxy" },
+    "debug": { "label": "偵錯", "description": "輸出額外的伺服器偵錯記錄" },
+    "management_server_enabled": { "label": "管理伺服器", "description": "啟用伺服器管理協定（透過 WebSocket 的 JSON-RPC）" },
+    "management_server_host": { "label": "管理伺服器主機", "description": "管理伺服器監聽的位址" },
+    "management_server_port": { "label": "管理伺服器連接埠", "description": "0 表示自動選擇" },
+    "management_server_secret": { "label": "管理伺服器密鑰", "description": "連線至管理伺服器所用的密鑰" },
+    "management_server_allowed_origins": { "label": "管理伺服器允許的來源", "description": "允許連線的 Origin（以逗號分隔）" },
+    "management_server_tls_enabled": { "label": "管理伺服器 TLS", "description": "使用 TLS 加密管理連線" },
+    "management_server_tls_keystore": { "label": "管理伺服器 TLS 金鑰庫", "description": "金鑰庫檔案路徑" },
+    "management_server_tls_keystore_password": { "label": "管理伺服器 TLS 金鑰庫密碼", "description": "金鑰庫密碼" },
     "query_port": { "label": "Query Port", "description": "Port for GameSpy4 query protocol" },
     "rate_limit": { "label": "Rate Limit", "description": "Max packets per second before disconnect (0 to disable)" },
     "rcon_password": { "label": "RCON Password", "description": "RCON access password" },
@@ -149,6 +159,9 @@
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
     "timeout": "伺服器回應逾時。請檢查伺服器狀態。",
     "internal_server_error": "發生伺服器內部錯誤。",
+    "server_type_mismatch": "伺服器類型設定為 '{{chosen}}'，但伺服器檔案是 '{{detected}}'。",
+    "server_type_install_unsupported": "saba-chan 無法安裝 '{{type}}' 伺服器。請自行安裝後，透過「遷移現有伺服器」新增。",
+    "server_type_version_unavailable": "'{{type}}' 尚無適用於 Minecraft {{version}} 的穩定版本。",
     "server_jar_not_specified": "實例設定中未指定server_jar。請新增server.jar的路徑",
     "server_jar_not_found": "找不到伺服器jar：{{path}}。請檢查實例設定中的路徑。",
     "failed_to_start": "啟動失敗：{{error}}",
@@ -176,6 +189,7 @@
       "server_overloaded": "伺服器過載，無法維持正常刻速率"
     },
     "solutions": {
+      "server_type_mismatch": "請更新（重新安裝）伺服器，或將伺服器類型設定為與實際伺服器相符。",
       "java_not_found": "從 https://adoptium.net/ 安裝Java 17+（推薦：Adoptium Temurin），確保已新增至PATH，或在實例設定中設定Java路徑。",
       "java_version_too_old": "從 https://adoptium.net/ 安裝Java {{required}}+ ─ 目前的Minecraft版本需要較新的Java。",
       "server_jar_not_specified": "在實例設定中設定server.jar的路徑。",
@@ -233,6 +247,9 @@
     "rcon_password_generated": "RCON 密碼已自動產生（未設定密碼）",
     "no_properties_found": "找不到伺服器設定。",
     "server_installed": "已將 Minecraft 伺服器 {{version}} 安裝到 {{path}}"
+  },
+  "plugins": {
+    "args_label": "參數"
   },
   "rcon": {
     "connecting": "正在連線 {{host}}:{{port}}...",

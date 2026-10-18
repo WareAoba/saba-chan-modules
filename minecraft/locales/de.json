@@ -4,6 +4,7 @@
     "description": "Minecraft-Server-Verwaltungsmodul mit vollständiger Lebenszyklus-Steuerung"
   },
   "settings": {
+    "server_type": { "label": "Servertyp", "description": "Welche Serversoftware diese Welt betreibt. Vanilla, Paper, Folia, Purpur und Fabric kann saba-chan installieren; die anderen werden beim Import eines vorhandenen Servers erkannt." },
     "java_path": { "label": "Java-Pfad", "description": "Pfad zur Java-Programmdatei (automatisch erkannt, wenn leer)" },
     "ram": { "label": "Arbeitsspeicher (RAM)", "description": "Maximale Speicherzuweisung (z.B. 2G, 4G)" },
     "port": { "label": "Server-Port", "description": "Spielserver-Port" },
@@ -50,6 +51,15 @@
     "player_idle_timeout": { "label": "Player Idle Timeout", "description": "Minutes before idle players are kicked (0 to disable)" },
     "pause_when_empty_seconds": { "label": "Pause When Empty", "description": "Pause server ticking after no players for this many seconds (0 to disable)" },
     "prevent_proxy_connections": { "label": "Prevent Proxy Connections", "description": "Block connections using VPN/proxy" },
+    "debug": { "label": "Debug", "description": "Zusätzliche Debug-Protokollierung des Servers" },
+    "management_server_enabled": { "label": "Verwaltungsserver", "description": "Server-Verwaltungsprotokoll aktivieren (JSON-RPC über WebSocket)" },
+    "management_server_host": { "label": "Verwaltungsserver-Host", "description": "Adresse, auf der der Verwaltungsserver lauscht" },
+    "management_server_port": { "label": "Verwaltungsserver-Port", "description": "Bei 0 wird automatisch einer gewählt" },
+    "management_server_secret": { "label": "Verwaltungsserver-Geheimnis", "description": "Geheimnis für die Verbindung zum Verwaltungsserver" },
+    "management_server_allowed_origins": { "label": "Erlaubte Origins des Verwaltungsservers", "description": "Origins, die sich verbinden dürfen (durch Kommas getrennt)" },
+    "management_server_tls_enabled": { "label": "Verwaltungsserver-TLS", "description": "Verwaltungsverbindungen mit TLS verschlüsseln" },
+    "management_server_tls_keystore": { "label": "Verwaltungsserver-TLS-Keystore", "description": "Pfad zur Keystore-Datei" },
+    "management_server_tls_keystore_password": { "label": "Verwaltungsserver-TLS-Keystore-Passwort", "description": "Keystore-Passwort" },
     "query_port": { "label": "Query Port", "description": "Port for GameSpy4 query protocol" },
     "rate_limit": { "label": "Rate Limit", "description": "Max packets per second before disconnect (0 to disable)" },
     "rcon_password": { "label": "RCON Password", "description": "RCON access password" },
@@ -149,6 +159,9 @@
     "server_not_running": "Der Server läuft nicht. Bitte starte zuerst den Server.",
     "timeout": "Zeitüberschreitung bei der Serverantwort. Bitte prüfe den Serverstatus.",
     "internal_server_error": "Ein interner Serverfehler ist aufgetreten.",
+    "server_type_mismatch": "Der Servertyp ist auf '{{chosen}}' eingestellt, aber die Serverdateien sind '{{detected}}'.",
+    "server_type_install_unsupported": "saba-chan kann keine '{{type}}'-Server installieren. Installieren Sie ihn selbst und fügen Sie ihn über 'Vorhandenen Server migrieren' hinzu.",
+    "server_type_version_unavailable": "Für '{{type}}' gibt es noch keinen stabilen Build für Minecraft {{version}}.",
     "server_jar_not_specified": "server_jar in der Instanzkonfiguration nicht angegeben. Bitte fügen Sie den Pfad zu server.jar hinzu",
     "server_jar_not_found": "Server-Jar nicht gefunden: {{path}}. Bitte überprüfen Sie den Pfad in den Instanzeinstellungen.",
     "failed_to_start": "Start fehlgeschlagen: {{error}}",
@@ -176,6 +189,7 @@
       "server_overloaded": "Server ist überlastet und kann die Tick-Rate nicht einhalten"
     },
     "solutions": {
+      "server_type_mismatch": "Aktualisieren (neu installieren) Sie den Server oder stellen Sie den Servertyp passend zum tatsächlichen Server ein.",
       "java_not_found": "Installieren Sie Java 17+ (empfohlen: Adoptium Temurin) von https://adoptium.net/ und stellen Sie sicher, dass es im PATH ist, oder setzen Sie den Java-Pfad in den Instanzeinstellungen.",
       "java_version_too_old": "Installieren Sie Java {{required}}+ von https://adoptium.net/ — aktuelle Minecraft-Versionen erfordern modernes Java.",
       "server_jar_not_specified": "Setzen Sie den Pfad zu Ihrer server.jar in den Instanzeinstellungen.",
@@ -233,6 +247,9 @@
     "rcon_password_generated": "RCON-Passwort automatisch generiert (kein Passwort war gesetzt)",
     "no_properties_found": "Keine Servereinstellungen gefunden.",
     "server_installed": "Minecraft-Server {{version}} wurde in {{path}} installiert"
+  },
+  "plugins": {
+    "args_label": "Argumente"
   },
   "rcon": {
     "connecting": "Verbindung zu {{host}}:{{port}}...",

@@ -140,6 +140,7 @@
     "no_install_dir": "未指定安装目录。请设置工作目录。",
     "steamcmd_not_found": "找不到 SteamCMD。请安装 SteamCMD 以下载服务器。",
     "install_failed": "服务器安装失败：{{error}}",
+    "failed_to_start": "服务器启动失败：{{error}}",
     "install_timeout": "服务器安装在 10 分钟后超时。",
     "no_settings": "未提供设置",
     "properties_write_failed": "写入配置文件失败：{{error}}",

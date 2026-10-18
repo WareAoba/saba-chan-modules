@@ -1367,7 +1367,6 @@ inputs = []
 
 [errors]
 server_not_running = "Server is not running. Please start the server first"
-rcon_auth_failed = "RCON authentication failed: please check the RCON password"
 player_not_found = "Player not found. Please check the username"
 connection_refused = "Cannot connect to server. Please check that the server is running and the port is correct"
 timeout = "Server response timeout. Please check server status"

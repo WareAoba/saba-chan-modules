@@ -848,7 +848,7 @@ def validate(config):
     # Check server directory
     if not server_dir or not os.path.isdir(server_dir):
         issues.append({
-            "severity": "error",
+            "severity": "critical",
             "code": "no_server_dir",
             "message": i18n.t("errors.no_server_dir"),
             "solution": i18n.t("errors.solutions.no_server_dir"),

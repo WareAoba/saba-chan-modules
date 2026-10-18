@@ -4,6 +4,7 @@
     "description": "Модуль управления сервером Minecraft с полным контролем жизненного цикла"
   },
   "settings": {
+    "server_type": { "label": "Тип сервера", "description": "Какое серверное ПО запускает этот мир. Vanilla, Paper, Folia, Purpur и Fabric saba-chan может установить сам; остальные определяются при импорте существующего сервера." },
     "java_path": { "label": "Путь к Java", "description": "Путь к исполняемому файлу Java (автоопределение, если пусто)" },
     "ram": { "label": "Память (RAM)", "description": "Максимальный объем выделяемой памяти (напр. 2G, 4G)" },
     "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },
@@ -50,6 +51,15 @@
     "player_idle_timeout": { "label": "Player Idle Timeout", "description": "Minutes before idle players are kicked (0 to disable)" },
     "pause_when_empty_seconds": { "label": "Pause When Empty", "description": "Pause server ticking after no players for this many seconds (0 to disable)" },
     "prevent_proxy_connections": { "label": "Prevent Proxy Connections", "description": "Block connections using VPN/proxy" },
+    "debug": { "label": "Отладка", "description": "Дополнительный отладочный лог сервера" },
+    "management_server_enabled": { "label": "Сервер управления", "description": "Включить протокол управления сервером (JSON-RPC через WebSocket)" },
+    "management_server_host": { "label": "Хост сервера управления", "description": "Адрес, который слушает сервер управления" },
+    "management_server_port": { "label": "Порт сервера управления", "description": "0 — выбрать автоматически" },
+    "management_server_secret": { "label": "Секрет сервера управления", "description": "Секрет для подключения к серверу управления" },
+    "management_server_allowed_origins": { "label": "Разрешённые источники сервера управления", "description": "Origin, которым разрешено подключаться (через запятую)" },
+    "management_server_tls_enabled": { "label": "TLS сервера управления", "description": "Шифровать подключения управления с помощью TLS" },
+    "management_server_tls_keystore": { "label": "Хранилище ключей TLS сервера управления", "description": "Путь к файлу хранилища ключей" },
+    "management_server_tls_keystore_password": { "label": "Пароль хранилища ключей TLS сервера управления", "description": "Пароль хранилища ключей" },
     "query_port": { "label": "Query Port", "description": "Port for GameSpy4 query protocol" },
     "rate_limit": { "label": "Rate Limit", "description": "Max packets per second before disconnect (0 to disable)" },
     "rcon_password": { "label": "RCON Password", "description": "RCON access password" },
@@ -149,6 +159,9 @@
     "server_not_running": "Сервер не запущен. Сначала запустите сервер.",
     "timeout": "Сервер не ответил вовремя. Проверьте состояние сервера.",
     "internal_server_error": "Произошла внутренняя ошибка сервера.",
+    "server_type_mismatch": "Тип сервера установлен как '{{chosen}}', но файлы сервера — '{{detected}}'.",
+    "server_type_install_unsupported": "saba-chan не может установить серверы '{{type}}'. Установите его самостоятельно и добавьте через «Миграция сервера».",
+    "server_type_version_unavailable": "Для '{{type}}' пока нет стабильной сборки под Minecraft {{version}}.",
     "server_jar_not_specified": "server_jar не указан в конфигурации экземпляра. Пожалуйста добавьте путь к server.jar",
     "server_jar_not_found": "Файл jar сервера не найден: {{path}}. Пожалуйста проверьте путь в настройках экземпляра.",
     "failed_to_start": "Ошибка запуска: {{error}}",
@@ -176,6 +189,7 @@
       "server_overloaded": "Сервер перегружен и не может поддерживать нормальную частоту тиков"
     },
     "solutions": {
+      "server_type_mismatch": "Обновите (переустановите) сервер или укажите тип сервера, соответствующий фактическому серверу.",
       "java_not_found": "Установите Java 17+ (рекомендуется: Adoptium Temurin) с https://adoptium.net/ и убедитесь, что она в PATH, или укажите путь к Java в настройках экземпляра.",
       "java_version_too_old": "Установите Java {{required}}+ с https://adoptium.net/ — текущие версии Minecraft требуют современную Java.",
       "server_jar_not_specified": "Укажите путь к вашему server.jar в настройках экземпляра.",
@@ -233,6 +247,9 @@
     "rcon_password_generated": "Пароль RCON сгенерирован автоматически (пароль не был задан)",
     "no_properties_found": "Настройки сервера не найдены.",
     "server_installed": "Сервер Майнкрафт {{version}} установлен в {{path}}"
+  },
+  "plugins": {
+    "args_label": "Аргументы"
   },
   "rcon": {
     "connecting": "Подключение к {{host}}:{{port}}...",

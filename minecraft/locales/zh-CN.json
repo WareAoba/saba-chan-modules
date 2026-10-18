@@ -4,6 +4,7 @@
     "description": "具有完整生命周期控制的我的世界服务器管理模块"
   },
   "settings": {
+    "server_type": { "label": "服务器类型", "description": "运行此世界的服务器软件。Vanilla、Paper、Folia、Purpur 和 Fabric 可由 saba-chan 安装；其他类型会在导入现有服务器时识别。" },
     "java_path": { "label": "Java路径", "description": "Java可执行文件路径（留空则自动检测）" },
     "ram": { "label": "内存（RAM）", "description": "最大内存分配（如 2G、4G）" },
     "port": { "label": "服务器端口", "description": "游戏服务器端口" },
@@ -50,6 +51,15 @@
     "player_idle_timeout": { "label": "Player Idle Timeout", "description": "Minutes before idle players are kicked (0 to disable)" },
     "pause_when_empty_seconds": { "label": "Pause When Empty", "description": "Pause server ticking after no players for this many seconds (0 to disable)" },
     "prevent_proxy_connections": { "label": "Prevent Proxy Connections", "description": "Block connections using VPN/proxy" },
+    "debug": { "label": "调试", "description": "输出额外的服务器调试日志" },
+    "management_server_enabled": { "label": "管理服务器", "description": "启用服务器管理协议（基于 WebSocket 的 JSON-RPC）" },
+    "management_server_host": { "label": "管理服务器主机", "description": "管理服务器监听的地址" },
+    "management_server_port": { "label": "管理服务器端口", "description": "0 表示自动选择" },
+    "management_server_secret": { "label": "管理服务器密钥", "description": "连接管理服务器所用的密钥" },
+    "management_server_allowed_origins": { "label": "管理服务器允许的来源", "description": "允许连接的 Origin（以逗号分隔）" },
+    "management_server_tls_enabled": { "label": "管理服务器 TLS", "description": "使用 TLS 加密管理连接" },
+    "management_server_tls_keystore": { "label": "管理服务器 TLS 密钥库", "description": "密钥库文件路径" },
+    "management_server_tls_keystore_password": { "label": "管理服务器 TLS 密钥库密码", "description": "密钥库密码" },
     "query_port": { "label": "Query Port", "description": "Port for GameSpy4 query protocol" },
     "rate_limit": { "label": "Rate Limit", "description": "Max packets per second before disconnect (0 to disable)" },
     "rcon_password": { "label": "RCON Password", "description": "RCON access password" },
@@ -149,6 +159,9 @@
     "server_not_running": "服务器未运行。请先启动服务器。",
     "timeout": "服务器响应超时。请检查服务器状态。",
     "internal_server_error": "发生服务器内部错误。",
+    "server_type_mismatch": "服务器类型设置为 '{{chosen}}'，但服务器文件是 '{{detected}}'。",
+    "server_type_install_unsupported": "saba-chan 无法安装 '{{type}}' 服务器。请自行安装，然后通过“迁移现有服务器”添加。",
+    "server_type_version_unavailable": "'{{type}}' 尚无适用于 Minecraft {{version}} 的稳定版本。",
     "server_jar_not_specified": "实例配置中未指定server_jar。请添加server.jar的路径",
     "server_jar_not_found": "找不到服务器jar：{{path}}。请检查实例设置中的路径。",
     "failed_to_start": "启动失败：{{error}}",
@@ -176,6 +189,7 @@
       "server_overloaded": "服务器过载，无法维持正常刻速率"
     },
     "solutions": {
+      "server_type_mismatch": "请更新（重新安装）服务器，或将服务器类型设置为与实际服务器一致。",
       "java_not_found": "从 https://adoptium.net/ 安装Java 17+（推荐：Adoptium Temurin），确保已添加到PATH，或在实例设置中设置Java路径。",
       "java_version_too_old": "从 https://adoptium.net/ 安装Java {{required}}+ ─ 当前Minecraft版本需要较新的Java。",
       "server_jar_not_specified": "在实例设置中设置server.jar的路径。",
@@ -233,6 +247,9 @@
     "rcon_password_generated": "RCON 密码已自动生成（未设置密码）",
     "no_properties_found": "未找到服务器设置。",
     "server_installed": "已将我的世界服务器 {{version}} 安装到 {{path}}"
+  },
+  "plugins": {
+    "args_label": "参数"
   },
   "rcon": {
     "connecting": "正在连接 {{host}}:{{port}}...",

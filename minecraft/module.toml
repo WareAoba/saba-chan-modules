@@ -1254,10 +1254,9 @@ priority = 10
 [[presets]]
 id = "friends"
 label = "Friends (small)"
-description = "Up to 10 players, whitelist on, normal difficulty"
+description = "Up to 10 players on normal difficulty"
 [presets.settings]
 max_players = 10
-white_list = true
 difficulty = "normal"
 
 [[presets]]

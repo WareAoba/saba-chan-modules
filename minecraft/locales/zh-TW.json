@@ -71,7 +71,7 @@
     "use_native_transport": { "label": "Use Native Transport", "description": "Use Linux optimized network transport" }
   },
   "presets": {
-    "friends": { "label": "好友小服", "description": "最多 10 人，開啟白名單，普通難度" },
+    "friends": { "label": "好友小服", "description": "最多 10 人，普通難度" },
     "hardcore": { "label": "極限模式", "description": "只有一條命，困難難度" }
   },
   "commands": {

@@ -81,7 +81,7 @@
     "use_native_transport": { "label": "네이티브 전송 사용", "description": "Linux 최적화 네트워크 전송 사용" }
   },
   "presets": {
-    "friends": { "label": "친구용 소규모", "description": "최대 10명, 화이트리스트 켜짐, 보통 난이도" },
+    "friends": { "label": "친구용 소규모", "description": "최대 10명, 보통 난이도" },
     "hardcore": { "label": "하드코어", "description": "목숨 하나, 어려움 난이도" }
   },
   "commands": {

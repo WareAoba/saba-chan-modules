@@ -71,7 +71,7 @@
     "use_native_transport": { "label": "Use Native Transport", "description": "Use Linux optimized network transport" }
   },
   "presets": {
-    "friends": { "label": "Amigos (pequeño)", "description": "Hasta 10 jugadores, lista blanca activada, dificultad normal" },
+    "friends": { "label": "Amigos (pequeño)", "description": "Hasta 10 jugadores, dificultad normal" },
     "hardcore": { "label": "Extremo", "description": "Una sola vida, dificultad difícil" }
   },
   "commands": {

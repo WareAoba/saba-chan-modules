@@ -858,22 +858,8 @@ def validate(config):
     # Check for server executable
     executable = config.get("executable_path", "")
     if not executable or not os.path.exists(executable):
-        # Try to find it automatically
-        if sys.platform == "win32":
-            auto_paths = [
-                os.path.join(server_dir, "StartServer64.bat"),
-                os.path.join(server_dir, "StartServer64_nosteam.bat"),
-            ]
-        else:
-            auto_paths = [
-                os.path.join(server_dir, "start-server.sh"),
-            ]
-        
-        found = False
-        for p in auto_paths:
-            if os.path.exists(p):
-                found = True
-                break
+        # 실행 경로(get_launch_command)와 같은 기준: 공식 스크립트, 없으면 동봉 JRE + java/*.jar
+        found = bool(_find_launch_script(server_dir) or (_find_java(server_dir) and _resolve_classpath(server_dir)))
         
         if not found:
             issues.append({

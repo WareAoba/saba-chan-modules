@@ -5,6 +5,7 @@
 "필드 이름 한 글자라도 drift하면 즉시 실패"하도록 강제한다.
 """
 import os
+import sys
 
 import pytest
 
@@ -181,6 +182,17 @@ def test_missing_start_script_blocks_the_start(tmp_path):
     config = {"working_dir": str(server), "cache_dir": str(tmp_path / "home"), "server_name": "s1", "admin_password": "pw12"}
     critical = [i for i in validate(config)["issues"] if i["severity"] == "critical"]
     assert [i["code"] for i in critical] == ["executable_not_found"] and critical[0]["solution"]
+    # 실행 경로가 받아 주는 다른 스크립트 이름이나, 스크립트 없이 JRE와 jar만 있어도 막지 않는다
+    other = server / ("StartServer.bat" if sys.platform == "win32" else "StartServer.sh")
+    other.write_text("")
+    assert not any(i["severity"] == "critical" for i in validate(config)["issues"])
+    other.unlink()
+    java = server / "jre64" / "bin" / ("java.exe" if sys.platform == "win32" else "java")
+    java.parent.mkdir(parents=True)
+    java.write_text("")
+    (server / "java").mkdir()
+    (server / "java" / "projectzomboid.jar").write_text("")
+    assert not any(i["severity"] == "critical" for i in validate(config)["issues"])
 
 
 def test_first_launch_without_admin_password_is_blocked(tmp_path):

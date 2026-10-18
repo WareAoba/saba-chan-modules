@@ -170,7 +170,10 @@
       "mod_error": "A mod is causing errors. Try disabling recently added mods or check the Workshop page for compatibility updates.",
       "save_status": "This is informational. If saves are failing, check disk space and file permissions.",
       "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
-    }
+    },
+    "no_command": "Kein Befehl angegeben",
+    "command_send_failed": "Befehl konnte nicht gesendet werden: {{error}}",
+    "unknown_error": "Unbekannter Fehler"
   },
   "messages": {
     "server_online": "Server ist online und antwortet",
@@ -189,7 +192,10 @@
     "properties_using_defaults": "Configuration file does not exist — showing defaults",
     "no_mappable_settings": "No settings could be mapped to server configuration keys",
     "rcon_password_generated": "Auto-generated RCON password (none was set)",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "no_properties_found": "Keine Servereinstellungen gefunden.",
+    "command_sent": "Befehl an die Konsole gesendet: {{command}}",
+    "no_log_files": "Keine Protokolldateien gefunden"
   },
   "rcon": {
     "connecting": "Connecting to {{host}}:{{port}}...",

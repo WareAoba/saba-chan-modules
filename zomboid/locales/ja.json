@@ -170,7 +170,10 @@
       "mod_error": "Modがエラーを引き起こしています。最近追加したModを無効化するか、ワークショップページで互換性の更新を確認してください。",
       "save_status": "情報メッセージです。セーブが失敗する場合は、ディスク容量とファイル権限を確認してください。",
       "steamcmd_not_found": "https://developer.valvesoftware.com/wiki/SteamCMD からSteamCMDをインストールし、PATHに追加してください。"
-    }
+    },
+    "no_command": "コマンドが指定されていません",
+    "command_send_failed": "コマンドの送信に失敗しました: {{error}}",
+    "unknown_error": "不明なエラー"
   },
   "messages": {
     "server_online": "サーバーはオンラインで応答しています",
@@ -189,7 +192,10 @@
     "rcon_password_generated": "RCONパスワードが自動生成されました（パスワードが設定されていませんでした）",
     "server_starting": "Server starting with PID {{pid}}",
     "starting_server": "Starting server: {{command}}",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "no_properties_found": "読み込めるサーバー設定がありません。",
+    "command_sent": "コンソールにコマンドを送信しました: {{command}}",
+    "no_log_files": "ログファイルが見つかりません"
   },
   "rcon": {
     "connecting": "{{host}}:{{port}} に接続中...",

@@ -206,7 +206,23 @@
       "permission_denied": "사바쨩을 관리자 권한으로 실행하거나, 파일 권한을 읽기/쓰기 가능하도록 변경해주세요.",
       "working_dir_error": "디렉토리를 수동으로 생성하거나 쓰기 권한이 있는 다른 위치를 선택해주세요.",
       "server_overloaded": "view-distance와 simulation-distance를 줄이고, max-players를 낮추거나, RAM을 더 할당해주세요."
-    }
+    },
+    "java_download_failed": "Java 다운로드 실패: {{error}}",
+    "java_extract_failed": "Java 압축 해제 실패: {{error}}",
+    "java_executable_missing": "Java 압축은 풀었지만 java 실행 파일을 찾을 수 없습니다",
+    "java_run_failed": "Java 압축은 풀었지만 실행되지 않습니다",
+    "java_download_warning": "Java {{version}} 다운로드 실패: {{error}}. Java {{version}} 이상을 직접 설치해 주세요.",
+    "status_check_failed": "상태 확인 실패: {{error}}",
+    "no_install_dir": "설치 폴더가 지정되지 않았습니다",
+    "no_version": "버전이 지정되지 않았습니다",
+    "no_command": "명령이 지정되지 않았습니다",
+    "no_instance_id": "인스턴스 ID가 지정되지 않았습니다",
+    "version_info_unreadable": "서버 jar에서 버전 정보를 읽을 수 없습니다",
+    "version_not_found": "'{{version}}' 버전을 찾을 수 없습니다",
+    "version_no_server": "{{version}} 버전에는 전용 서버 다운로드가 없습니다",
+    "download_lookup_failed": "다운로드 정보 조회 실패: {{error}}",
+    "download_failed": "다운로드 실패: {{error}}",
+    "checksum_mismatch": "{{algorithm}} 검증 실패: 예상 {{expected}}, 실제 {{actual}}"
   },
   "messages": {
     "downloading_server": "마인크래프트 서버 {{version}} 받는 중",
@@ -232,7 +248,9 @@
     "eula_accepted": "마인크래프트 EULA에 성공적으로 동의했습니다",
     "server_reset_complete": "서버 초기화 완료",
     "server_reset_deleted": "{{count}}개 항목 삭제됨",
-    "rcon_password_generated": "RCON 비밀번호가 자동 생성되었습니다 (비밀번호가 설정되지 않았습니다)"
+    "rcon_password_generated": "RCON 비밀번호가 자동 생성되었습니다 (비밀번호가 설정되지 않았습니다)",
+    "no_properties_found": "가져올 서버 설정이 없습니다.",
+    "server_installed": "마인크래프트 서버 {{version}}을(를) {{path}}에 설치했습니다"
   },
   "plugins": {
     "args_label": "인자"

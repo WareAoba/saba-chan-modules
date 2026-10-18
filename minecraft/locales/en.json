@@ -206,7 +206,23 @@
       "permission_denied": "Run saba-chan as administrator, or change file permissions to allow read/write access.",
       "working_dir_error": "Create the directory manually or choose a different location with write permissions.",
       "server_overloaded": "Reduce view-distance and simulation-distance, decrease max-players, or allocate more RAM."
-    }
+    },
+    "java_download_failed": "Java download failed: {{error}}",
+    "java_extract_failed": "Java extraction failed: {{error}}",
+    "java_executable_missing": "Java was extracted but the java executable was not found",
+    "java_run_failed": "Java was extracted but failed to run",
+    "java_download_warning": "Failed to download Java {{version}}: {{error}}. Please install Java {{version}} or later manually.",
+    "status_check_failed": "Status check failed: {{error}}",
+    "no_install_dir": "No install directory specified",
+    "no_version": "No version specified",
+    "no_command": "No command specified",
+    "no_instance_id": "No instance ID specified",
+    "version_info_unreadable": "Could not read version info from the server jar",
+    "version_not_found": "Version '{{version}}' not found",
+    "version_no_server": "Version {{version}} has no dedicated server download",
+    "download_lookup_failed": "Download lookup failed: {{error}}",
+    "download_failed": "Download failed: {{error}}",
+    "checksum_mismatch": "{{algorithm}} mismatch: expected {{expected}}, got {{actual}}"
   },
   "messages": {
     "downloading_server": "Downloading Minecraft server {{version}}",
@@ -232,7 +248,9 @@
     "eula_accepted": "Minecraft EULA accepted successfully",
     "server_reset_complete": "Server reset complete",
     "server_reset_deleted": "{{count}} items deleted",
-    "rcon_password_generated": "Auto-generated RCON password (no password was set)"
+    "rcon_password_generated": "Auto-generated RCON password (no password was set)",
+    "no_properties_found": "No properties found.",
+    "server_installed": "Minecraft server {{version}} installed to {{path}}"
   },
   "plugins": {
     "args_label": "Arguments"

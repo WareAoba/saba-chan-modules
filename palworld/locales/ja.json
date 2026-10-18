@@ -109,7 +109,18 @@
     "no_settings": "設定が指定されていません。",
     "no_server_dir": "サーバーディレクトリを特定できません。working_dir または server_executable を設定してください。",
     "settings_write_failed": "設定ファイルの書き込みに失敗しました。",
-    "settings_not_found": "設定ファイルが見つかりません。一度サーバーを起動して生成してください。"
+    "settings_not_found": "設定ファイルが見つかりません。一度サーバーを起動して生成してください。",
+    "no_install_dir": "インストール先フォルダーが指定されていません",
+    "install_failed": "サーバーのインストールに失敗しました: {{error}}",
+    "no_command": "コマンドが指定されていません",
+    "no_instance_id": "インスタンス ID が指定されていません",
+    "command_failed": "コマンドの実行に失敗しました: {{error}}",
+    "message_required": "メッセージを入力してください",
+    "userid_required": "プレイヤー ID (userid) が必要です",
+    "unknown_command": "不明なコマンドです: {{command}}",
+    "http_error": "サーバーが HTTP エラー {{code}} を返しました: {{body}}",
+    "connection_failed": "パルワールドサーバーに接続できませんでした: {{error}}",
+    "player_ambiguous": "'{{player}}' に一致するプレイヤーが複数います: {{names}}。より正確に入力してください。"
   },
   "messages": {
     "starting_server": "サーバーを起動しています: {{command}}",
@@ -136,7 +147,12 @@
     "install_via_steamcmd": "Palworld 専用サーバーは SteamCMD でインストールする必要があります。",
     "versions_via_steam": "Palworld サーバーは Steam/SteamCMD（App ID 2394010）で配布されています。SteamCMD を使用してインストールまたは更新してください。",
     "versions_managed_via_steam": "Palworld サーバーのバージョンは Steam で管理されています。app_update 2394010 で SteamCMD を使用して更新してください。",
-    "extension_not_enabled": "SteamCMD 拡張機能が有効になっていません。設定 → 拡張機能 で先に有効にしてください。"
+    "extension_not_enabled": "SteamCMD 拡張機能が有効になっていません。設定 → 拡張機能 で先に有効にしてください。",
+    "no_properties_found": "読み込めるサーバー設定がありません。",
+    "command_executed": "コマンド '{{command}}' を実行しました",
+    "install_step_download": "1. https://developer.valvesoftware.com/wiki/SteamCMD から SteamCMD をダウンロードします。",
+    "install_step_run": "2. 次のコマンドを実行します: {{command}}",
+    "install_step_set_path": "3. saba-chan で、インストールしたフォルダーの PalServer.exe を実行ファイルのパスに設定します。"
   },
   "reset": {
     "no_path": "サーバーディレクトリを特定できません。working_dirまたはserver_executableを設定してください。",
@@ -154,6 +170,16 @@
     "cannot_create_dir": "作業ディレクトリを作成できません: {{path}}",
     "cannot_create_dir_hint": "フォルダの権限を確認するか、別のパスを選択してください。",
     "port_in_use": "ポート {{port}} は既に使用中です。",
-    "port_in_use_hint": "ポート {{port}} を使用している他のプロセスを停止するか、ポートを変更してください。"
+    "port_in_use_hint": "ポート {{port}} を使用している他のプロセスを停止するか、ポートを変更してください。",
+    "log_port_in_use": "ポートはすでに使用中です",
+    "log_port_in_use_hint": "そのポートを使っている他のプロセスを停止するか、サーバーのポートを変更してください。",
+    "log_out_of_memory": "メモリが不足しています",
+    "log_out_of_memory_hint": "システムのメモリを増やすか、サーバー設定（最大人数、ワールドの広さ）を下げてください。",
+    "log_executable_crash": "サーバーの実行ファイルがクラッシュしました",
+    "log_executable_crash_hint": "Steam でゲームファイルを検証し、MOD の競合を確認するか、サーバーを更新してください。",
+    "log_save_corrupt": "セーブデータが破損しています",
+    "log_save_corrupt_hint": "バックアップからセーブを復元してください。バックアップは Pal/Saved/SaveGames/ にあります。",
+    "log_steam_auth_failed": "Steam 認証に失敗しました",
+    "log_steam_auth_failed_hint": "Steam が起動していて、steamclient ライブラリにアクセスできることを確認してください。"
   }
 }

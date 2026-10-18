@@ -109,7 +109,18 @@
     "no_settings": "未提供設定。",
     "no_server_dir": "無法確定伺服器目錄。請設定 working_dir 或 server_executable。",
     "settings_write_failed": "寫入設定檔失敗。",
-    "settings_not_found": "找不到設定檔。請先啟動伺服器以產生設定檔。"
+    "settings_not_found": "找不到設定檔。請先啟動伺服器以產生設定檔。",
+    "no_install_dir": "未指定安裝目錄",
+    "install_failed": "伺服器安裝失敗：{{error}}",
+    "no_command": "未指定指令",
+    "no_instance_id": "未指定執行個體 ID",
+    "command_failed": "執行指令失敗：{{error}}",
+    "message_required": "需要填寫訊息",
+    "userid_required": "需要玩家 ID（userid）",
+    "unknown_command": "未知指令：{{command}}",
+    "http_error": "伺服器傳回 HTTP 錯誤 {{code}}：{{body}}",
+    "connection_failed": "無法連線到帕魯世界伺服器：{{error}}",
+    "player_ambiguous": "有多名玩家符合 '{{player}}'：{{names}}。請輸入更精確的名稱。"
   },
   "messages": {
     "starting_server": "正在啟動伺服器：{{command}}",
@@ -136,7 +147,12 @@
     "install_via_steamcmd": "帕魯世界專用伺服器必須透過 SteamCMD 安裝。",
     "versions_via_steam": "帕魯世界伺服器透過 Steam/SteamCMD（App ID 2394010）發佈。請使用 SteamCMD 安裝或更新。",
     "versions_managed_via_steam": "帕魯世界伺服器版本透過 Steam 管理。請使用 SteamCMD 的 app_update 2394010 來更新。",
-    "extension_not_enabled": "SteamCMD 擴充功能未啟用。請先在設定 → 擴充功能中啟用。"
+    "extension_not_enabled": "SteamCMD 擴充功能未啟用。請先在設定 → 擴充功能中啟用。",
+    "no_properties_found": "找不到伺服器設定。",
+    "command_executed": "已執行指令 '{{command}}'",
+    "install_step_download": "1. 從 https://developer.valvesoftware.com/wiki/SteamCMD 下載 SteamCMD。",
+    "install_step_run": "2. 執行：{{command}}",
+    "install_step_set_path": "3. 在 saba-chan 中將執行檔路徑設為安裝目錄中的 PalServer.exe。"
   },
   "reset": {
     "no_path": "無法確定伺服器目錄。請設定 working_dir 或 server_executable。",
@@ -154,6 +170,16 @@
     "cannot_create_dir": "無法建立工作目錄：{{path}}",
     "cannot_create_dir_hint": "請檢查資料夾權限或選擇其他路徑。",
     "port_in_use": "連接埠 {{port}} 已被使用。",
-    "port_in_use_hint": "請停止佔用連接埠 {{port}} 的程式，或更改連接埠。"
+    "port_in_use_hint": "請停止佔用連接埠 {{port}} 的程式，或更改連接埠。",
+    "log_port_in_use": "連接埠已被佔用",
+    "log_port_in_use_hint": "請停止佔用該連接埠的其他程序，或變更伺服器連接埠。",
+    "log_out_of_memory": "記憶體不足",
+    "log_out_of_memory_hint": "請增加系統記憶體，或降低伺服器設定（最大玩家數、世界大小）。",
+    "log_executable_crash": "伺服器程式當機",
+    "log_executable_crash_hint": "請透過 Steam 驗證遊戲檔案、檢查模組衝突，或更新伺服器。",
+    "log_save_corrupt": "存檔資料已損毀",
+    "log_save_corrupt_hint": "請從備份存檔還原。備份位於 Pal/Saved/SaveGames/。",
+    "log_steam_auth_failed": "Steam 驗證失敗",
+    "log_steam_auth_failed_hint": "請確認 Steam 正在執行，且 steamclient 程式庫可以存取。"
   }
 }

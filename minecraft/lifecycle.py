@@ -397,7 +397,7 @@ class JavaDownloader:
         except Exception as e:
             if os.path.exists(tmp_file):
                 os.remove(tmp_file)
-            return {"success": False, "message": f"Java download failed: {e}"}
+            return {"success": False, "message": i18n.t("errors.java_download_failed", error=str(e))}
 
         # Extract
         print(f"  Extracting to {java_dir}...", file=sys.stderr)
@@ -434,7 +434,7 @@ class JavaDownloader:
                             if member.name:
                                 tf.extract(member, java_dir)
         except Exception as e:
-            return {"success": False, "message": f"Java extraction failed: {e}"}
+            return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
         finally:
             if os.path.exists(tmp_file):
                 os.remove(tmp_file)
@@ -447,12 +447,12 @@ class JavaDownloader:
             os.chmod(java_exe, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
         if not java_exe:
-            return {"success": False, "message": "Java extracted but java executable not found"}
+            return {"success": False, "message": i18n.t("errors.java_executable_missing")}
 
         # Verify it works
         info = JavaDetector.get_java_info(java_exe)
         if not info:
-            return {"success": False, "message": "Java extracted but failed to run"}
+            return {"success": False, "message": i18n.t("errors.java_run_failed")}
 
         print(f"  Java {info['version']} ready at {java_exe}", file=sys.stderr)
 
@@ -904,7 +904,11 @@ def _resolve_server_jar(config):
         if working_dir:
             jar = os.path.join(working_dir, jar)
 
-    return os.path.abspath(jar)
+    jar = os.path.abspath(jar)
+    if not os.path.isfile(jar):
+        # 데몬은 기본 이름(server.jar)을 넘긴다 — 페이퍼·퍼퍼·패브릭 등은 흔한 이름으로 폴더에서 찾는다
+        jar = server_types.find_server_jar(os.path.dirname(jar)) or jar
+    return jar
 
 
 def _java_memory(value):
@@ -1182,7 +1186,7 @@ def import_settings(config):
 
     raw_props = result.get("properties", {})
     if not raw_props:
-        return {"success": True, "settings": found, "message": "No properties found.", **extra}
+        return {"success": True, "settings": found, "message": i18n.t("messages.no_properties_found"), **extra}
 
     # Build reverse map: server.properties key → saba-chan key
     reverse_map = {v: k for k, v in _PROPERTY_KEY_MAP.items()}
@@ -1444,7 +1448,7 @@ def status(config):
 
         return result
     except Exception as e:
-        return {"success": False, "message": f"Status check failed: {e}"}
+        return {"success": False, "message": i18n.t("errors.status_check_failed", error=str(e))}
 
 
 # ─── JAR version parsing ──────────────────────────────────
@@ -1489,11 +1493,14 @@ def get_installed_version(config):
     jar_name = config.get("jar_name", "server.jar")
 
     if not install_dir:
-        return {"success": False, "message": "No install_dir specified"}
+        return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     jar_path = os.path.join(install_dir, jar_name)
     if not os.path.isfile(jar_path):
-        return {"success": False, "message": f"Server jar not found: {jar_path}"}
+        found = server_types.find_server_jar(install_dir)
+        if not found:
+            return {"success": False, "message": i18n.t("errors.server_jar_not_found", path=jar_path)}
+        jar_path, jar_name = found, os.path.basename(found)
 
     info = _read_jar_version(install_dir, jar_name)
     if info:
@@ -1502,7 +1509,7 @@ def get_installed_version(config):
     forked = server_types.inspect_jar(jar_path)
     if forked and forked.get("version"):
         return {"success": True, "version": forked["version"], "server_type": forked["type"]}
-    return {"success": False, "message": "Could not read version info from server jar"}
+    return {"success": False, "message": i18n.t("errors.version_info_unreadable")}
 
 
 def command(config):
@@ -1513,9 +1520,9 @@ def command(config):
         instance_id = config.get("instance_id")
 
         if not command_text:
-            return {"success": False, "message": "No command specified"}
+            return {"success": False, "message": i18n.t("errors.no_command")}
         if not instance_id:
-            return {"success": False, "message": "No instance_id specified"}
+            return {"success": False, "message": i18n.t("errors.no_instance_id")}
 
         formatted = _format_command(command_text, args)
 
@@ -1653,7 +1660,7 @@ class ServerInstaller:
                 "id": version_id,
                 "type": version_entry.get("type"),
                 "has_server": False,
-                "message": f"Version {version_id} does not have a dedicated server download",
+                "message": i18n.t("errors.version_no_server", version=version_id),
             }
 
         java_version = meta.get("javaVersion", {})
@@ -1689,13 +1696,13 @@ class ServerInstaller:
         if not details:
             return {
                 "success": False,
-                "message": f"Version '{version_id}' not found in Mojang manifest",
+                "message": i18n.t("errors.version_not_found", version=version_id),
             }
 
         if not details.get("has_server"):
             return {
                 "success": False,
-                "message": details.get("message", f"No server download for {version_id}"),
+                "message": details.get("message") or i18n.t("errors.version_no_server", version=version_id),
             }
 
         download_url = details["download_url"]
@@ -1711,7 +1718,7 @@ class ServerInstaller:
                 return {"success": False,
                         "message": i18n.t(f"errors.server_type_{key}", type=server_type, version=version_id)}
             except Exception as e:
-                return {"success": False, "message": f"Download lookup failed: {e}"}
+                return {"success": False, "message": i18n.t("errors.download_lookup_failed", error=str(e))}
             download_url = source["url"]
             expected_sha1 = None
             expected_sha256 = source.get("sha256")
@@ -1776,7 +1783,7 @@ class ServerInstaller:
                     pass
             return {
                 "success": False,
-                "message": f"Download failed: {e}",
+                "message": i18n.t("errors.download_failed", error=str(e)),
             }
 
         # Verify SHA1
@@ -1785,14 +1792,16 @@ class ServerInstaller:
             os.remove(jar_path)
             return {
                 "success": False,
-                "message": f"SHA1 mismatch: expected {expected_sha1}, got {actual_sha1}",
+                "message": i18n.t("errors.checksum_mismatch", algorithm="SHA1",
+                                  expected=expected_sha1, actual=actual_sha1),
             }
 
         for name, expected, digest in (("SHA256", expected_sha256, sha256), ("MD5", expected_md5, md5)):
             if expected and digest.hexdigest() != expected.lower():
                 os.remove(jar_path)
                 return {"success": False,
-                        "message": f"{name} mismatch: expected {expected}, got {digest.hexdigest()}"}
+                        "message": i18n.t("errors.checksum_mismatch", algorithm=name,
+                                          expected=expected, actual=digest.hexdigest())}
 
         print(f"  Checksum verified: {actual_sha1}", file=sys.stderr)
 
@@ -1857,12 +1866,10 @@ class ServerInstaller:
                     result["java_version"] = jre_result.get("version", "")
                     result["java_bundled"] = True
                 else:
-                    result["java_warning"] = (
-                        f"Failed to download Java {java_req}: {jre_result.get('message')}. "
-                        f"Please install Java {java_req}+ manually."
-                    )
+                    result["java_warning"] = i18n.t("errors.java_download_warning", version=str(java_req),
+                                                    error=jre_result.get("message", ""))
 
-        result["message"] = f"Minecraft server {version_id} installed to {install_path}"
+        result["message"] = i18n.t("messages.server_installed", version=version_id, path=install_path)
         return result
 
 
@@ -1898,11 +1905,11 @@ def get_version_details(config):
     try:
         version_id = config.get("version")
         if not version_id:
-            return {"success": False, "message": "No version specified"}
+            return {"success": False, "message": i18n.t("errors.no_version")}
 
         details = ServerInstaller.get_version_details(version_id)
         if not details:
-            return {"success": False, "message": f"Version '{version_id}' not found"}
+            return {"success": False, "message": i18n.t("errors.version_not_found", version=version_id)}
 
         return {"success": True, **details}
     except Exception as e:
@@ -1924,9 +1931,9 @@ def install_server(config):
         install_dir = config.get("install_dir")
 
         if not version_id:
-            return {"success": False, "message": "No version specified"}
+            return {"success": False, "message": i18n.t("errors.no_version")}
         if not install_dir:
-            return {"success": False, "message": "No install_dir specified"}
+            return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
         jar_name = config.get("jar_name", "server.jar")
         do_eula = "eula" in (config.get("accepted_agreements") or [])

@@ -170,7 +170,10 @@
       "mod_error": "某个模组导致了错误。尝试禁用最近添加的模组，或在创意工坊页面检查兼容性更新。",
       "save_status": "这是信息性消息。如果存档失败，请检查磁盘空间和文件权限。",
       "steamcmd_not_found": "从 https://developer.valvesoftware.com/wiki/SteamCMD 安装 SteamCMD 并确保其在 PATH 中。"
-    }
+    },
+    "no_command": "未指定命令",
+    "command_send_failed": "发送命令失败：{{error}}",
+    "unknown_error": "未知错误"
   },
   "messages": {
     "server_online": "服务器在线并正在响应",
@@ -189,7 +192,10 @@
     "rcon_password_generated": "已自动生成 RCON 密码（之前未设置密码）",
     "server_starting": "Server starting with PID {{pid}}",
     "starting_server": "Starting server: {{command}}",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "no_properties_found": "未找到服务器设置。",
+    "command_sent": "已向控制台发送命令：{{command}}",
+    "no_log_files": "未找到日志文件"
   },
   "rcon": {
     "connecting": "正在连接到 {{host}}:{{port}}...",

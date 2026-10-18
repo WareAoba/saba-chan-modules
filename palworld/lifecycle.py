@@ -185,16 +185,16 @@ def resolve_player_id(instance_id, player_input, config):
                 return (True, userid)
             elif len(partial_matches) > 1:
                 names = [m[0] for m in partial_matches]
-                return (False, f"Multiple players match '{player_input}': {', '.join(names)}. Please be more specific.")
+                return (False, i18n.t("errors.player_ambiguous", player=player_input, names=", ".join(names)))
             
-            return (False, f"Player '{player_input}' not found online. Please check the name or use SteamID directly.")
+            return (False, i18n.t("errors.player_not_found"))
     
     except urllib.error.URLError as e:
         print(f"[Palworld] Failed to fetch player list: {e}", file=sys.stderr)
-        return (False, f"Failed to connect to server: {str(e)}")
+        return (False, i18n.t("errors.connection_failed", error=str(e)))
     except Exception as e:
         print(f"[Palworld] Error resolving player: {e}", file=sys.stderr)
-        return (False, f"Error resolving player: {str(e)}")
+        return (False, i18n.t("errors.player_list_failed", error=str(e)))
 
 
 def _read_admin_password_from_ini(config):
@@ -959,7 +959,7 @@ def import_settings(config):
 
     ini_props = result.get("properties", {})
     if not ini_props:
-        return {"success": True, "settings": {}, "message": "No properties found."}
+        return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
 
     # Build reverse map: INI key → saba-chan key
     reverse_map = {v: k for k, v in _PALWORLD_KEY_MAP.items()}
@@ -1072,19 +1072,12 @@ def diagnose_log(config):
                 if _re.search(regex, line, _re.IGNORECASE):
                     code = pdef["code"]
                     seen_codes.add(code)
-                    solutions = {
-                        "PORT_IN_USE": "Stop any other process using the port or change the server port.",
-                        "OUT_OF_MEMORY": "Increase system RAM or reduce server settings (max players, world size).",
-                        "EXECUTABLE_CRASH": "Verify game files via Steam, check for mod conflicts, or update the server.",
-                        "SAVE_CORRUPT": "Restore from a backup save. Check Pal/Saved/SaveGames/ for backups.",
-                        "STEAM_AUTH_FAILED": "Ensure Steam is running and steamclient libraries are accessible.",
-                    }
                     issues.append({
                         "code": code,
                         "severity": pdef["severity"],
                         "matched_line": line.strip()[:200],
-                        "message": f"Detected issue: {code.replace('_', ' ').title()}",
-                        "solution": solutions.get(code, "Check server logs for details."),
+                        "message": i18n.t(f"validate.log_{code.lower()}"),
+                        "solution": i18n.t(f"validate.log_{code.lower()}_hint"),
                     })
                     break
 
@@ -1129,7 +1122,7 @@ def install_server(config):
         if working_dir:
             install_dir = os.path.join(working_dir, "server")
         else:
-            return {"success": False, "message": "No install_dir specified"}
+            return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     os.makedirs(install_dir, exist_ok=True)
 
@@ -1196,7 +1189,7 @@ def install_server(config):
         print("[Palworld] SteamCMD extension not available, returning instructions", file=sys.stderr)
     except Exception as e:
         print(f"[Palworld] SteamCMD install failed: {e}", file=sys.stderr)
-        return {"success": False, "message": f"SteamCMD install failed: {e}"}
+        return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
 
     # ── Fallback: 수동 설치 안내 ──
     return {
@@ -1205,11 +1198,11 @@ def install_server(config):
         "install_method": "steamcmd",
         "steam_app_id": "2394010",
         "instructions": [
-            "1. Download SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD",
-            "2. Run: steamcmd +force_install_dir \"{}\" +login anonymous +app_update 2394010 validate +quit".format(
-                install_dir or "<install_directory>"
-            ),
-            "3. Set the executable path in saba-chan to PalServer.exe in the installed directory.",
+            i18n.t("messages.install_step_download"),
+            i18n.t("messages.install_step_run",
+                   command='steamcmd +force_install_dir "{}" +login anonymous +app_update 2394010 validate +quit'.format(
+                       install_dir or "<install_directory>")),
+            i18n.t("messages.install_step_set_path"),
         ],
     }
 
@@ -1226,16 +1219,10 @@ def command(config):
         print(f"[Palworld] command={command_text}, instance_id={instance_id}", file=sys.stderr)
         
         if not command_text:
-            return {
-                "success": False,
-                "message": f"No command specified. Config keys: {list(config.keys())}"
-            }
+            return {"success": False, "message": i18n.t("errors.no_command")}
         
         if not instance_id:
-            return {
-                "success": False,
-                "message": f"No instance_id specified. Config keys: {list(config.keys())}, config: {str(config)[:300]}"
-            }
+            return {"success": False, "message": i18n.t("errors.no_instance_id")}
         
         print(f"[Palworld] Executing command '{command_text}' with args: {args}", file=sys.stderr)
         
@@ -1264,7 +1251,7 @@ def command(config):
         print(f"Error details: {error_details}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Failed to execute command: {str(e)}"
+            "message": i18n.t("errors.command_failed", error=str(e))
         }
 
 
@@ -1277,14 +1264,14 @@ def execute_command_via_rest(instance_id, command_lower, args, config):
     if command_lower == "announce":
         message = args.get("message", "")
         if not message:
-            return {"success": False, "message": "Message parameter required"}
+            return {"success": False, "message": i18n.t("errors.message_required")}
         endpoint = "/v1/api/announce"
         body = {"message": message}
     
     elif command_lower == "kick":
         userid = args.get("userid")
         if not userid:
-            return {"success": False, "message": "userid is required"}
+            return {"success": False, "message": i18n.t("errors.userid_required")}
         message = args.get("message", "Kicked from server")
         endpoint = "/v1/api/kick"
         body = {"userid": userid, "message": message}
@@ -1292,7 +1279,7 @@ def execute_command_via_rest(instance_id, command_lower, args, config):
     elif command_lower == "ban":
         userid = args.get("userid")
         if not userid:
-            return {"success": False, "message": "userid is required"}
+            return {"success": False, "message": i18n.t("errors.userid_required")}
         message = args.get("message", "Banned from server")
         endpoint = "/v1/api/ban"
         body = {"userid": userid, "message": message}
@@ -1300,7 +1287,7 @@ def execute_command_via_rest(instance_id, command_lower, args, config):
     elif command_lower == "unban":
         userid = args.get("userid")
         if not userid:
-            return {"success": False, "message": "userid is required"}
+            return {"success": False, "message": i18n.t("errors.userid_required")}
         endpoint = "/v1/api/unban"
         body = {"userid": userid}
     
@@ -1331,7 +1318,7 @@ def execute_command_via_rest(instance_id, command_lower, args, config):
         body = {"waittime": waittime, "message": message}
     
     else:
-        return {"success": False, "message": f"Unknown REST command: {command_lower}"}
+        return {"success": False, "message": i18n.t("errors.unknown_command", command=command_lower)}
     
     # 직접 Palworld 서버에 요청 (Daemon을 거치지 않음 - 데드락 방지)
     return execute_rest_direct(endpoint, body, method, command_lower, config)
@@ -1378,7 +1365,7 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
             
             return {
                 "success": True,
-                "message": f"REST command '{command_text}' executed successfully",
+                "message": i18n.t("messages.command_executed", command=command_text),
                 "data": result,
                 "protocol": "rest"
             }
@@ -1388,19 +1375,19 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
         print(f"[Palworld] HTTP Error {e.code}: {error_body}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"HTTP Error {e.code}: {error_body}"
+            "message": i18n.t("errors.http_error", code=e.code, body=error_body)
         }
     except urllib.error.URLError as e:
         print(f"[Palworld] Connection error: {e}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Failed to connect to Palworld server: {str(e)}"
+            "message": i18n.t("errors.connection_failed", error=str(e))
         }
     except Exception as e:
         print(f"[Palworld] Error: {e}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Failed to execute REST command: {str(e)}"
+            "message": i18n.t("errors.command_failed", error=str(e))
         }
 
 
@@ -1418,7 +1405,7 @@ def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
         
         return {
             "success": result.get("success", True),
-            "message": f"REST API command executed: {command_text}",
+            "message": i18n.t("messages.command_executed", command=command_text),
             "data": result.get("data"),
             "protocol": "rest"
         }
@@ -1427,19 +1414,19 @@ def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
         print(f"[Palworld] Daemon connection error: {e}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Failed to connect to daemon: {str(e)}"
+            "message": i18n.t("errors.daemon_connection_error", error=str(e))
         }
     except json.JSONDecodeError as e:
         print(f"[Palworld] Invalid JSON response from daemon: {e}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Invalid daemon response: {str(e)}"
+            "message": i18n.t("errors.invalid_json_response", error=str(e))
         }
     except Exception as e:
         print(f"[Palworld] Daemon error: {e}", file=sys.stderr)
         return {
             "success": False,
-            "message": f"Failed to execute via daemon: {str(e)}"
+            "message": i18n.t("errors.daemon_error", error=str(e))
         }
 
 

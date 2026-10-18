@@ -76,6 +76,16 @@ _MARKERS = [
     ("fabric-server-launcher.properties", "fabric"),
 ]
 
+# server.jar가 없을 때 서버 폴더에서 찾는 흔한 서버 jar 이름 (앞의 것이 먼저다)
+_JAR_NAMES = [
+    "server.jar",
+    "fabric-server-launch.jar",
+    "fabric-server-mc.*.jar",
+    "paper-*.jar",
+    "purpur-*.jar",
+    "minecraft_server.*.jar",
+]
+
 # Paperclip 계열은 같은 진입점을 쓰므로 jar 안의 versions.list가 결정한다
 _PAPERCLIP_MAIN = ("io.papermc.paperclip.", "com.destroystokyo.paperclip.")
 _MC_VERSION = re.compile(r"^(\d+\.\d+(?:\.\d+)?|\d{2}w\d{2}[a-z])")
@@ -150,6 +160,17 @@ def inspect_jar(path):
         if "net/minecraft/server/MinecraftServer.class" in names:
             return {"type": "vanilla", "version": version,
                     "evidence": f"{os.path.basename(path)}: net/minecraft/server/MinecraftServer"}
+    return None
+
+
+def find_server_jar(working_dir):
+    """서버 폴더에서 `_JAR_NAMES` 순서로 서버 jar를 찾는다. 같은 무늬가 여럿이면 이름이 가장 뒤인 것 (없으면 None)"""
+    if not working_dir or not os.path.isdir(working_dir):
+        return None
+    for pattern in _JAR_NAMES:
+        found = sorted(p for p in glob.glob(os.path.join(working_dir, pattern)) if os.path.isfile(p))
+        if found:
+            return found[-1]
     return None
 
 

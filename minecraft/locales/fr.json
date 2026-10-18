@@ -188,7 +188,23 @@
       "permission_denied": "Lancez saba-chan en tant qu'administrateur, ou modifiez les permissions des fichiers pour autoriser l'accès en lecture/écriture.",
       "working_dir_error": "Créez le répertoire manuellement ou choisissez un autre emplacement avec les permissions d'écriture.",
       "server_overloaded": "Réduisez la distance de vue et la distance de simulation, diminuez le nombre maximum de joueurs, ou allouez plus de RAM."
-    }
+    },
+    "java_download_failed": "Échec du téléchargement de Java : {{error}}",
+    "java_extract_failed": "Échec de l'extraction de Java : {{error}}",
+    "java_executable_missing": "Java a été extrait, mais l'exécutable java est introuvable",
+    "java_run_failed": "Java a été extrait, mais ne parvient pas à démarrer",
+    "java_download_warning": "Impossible de télécharger Java {{version}} : {{error}}. Veuillez installer Java {{version}} ou une version ultérieure manuellement.",
+    "status_check_failed": "Échec de la vérification de l'état : {{error}}",
+    "no_install_dir": "Aucun dossier d'installation indiqué",
+    "no_version": "Aucune version indiquée",
+    "no_command": "Aucune commande indiquée",
+    "no_instance_id": "Aucun identifiant d'instance indiqué",
+    "version_info_unreadable": "Impossible de lire les informations de version du jar du serveur",
+    "version_not_found": "Version « {{version}} » introuvable",
+    "version_no_server": "La version {{version}} ne propose pas de téléchargement de serveur dédié",
+    "download_lookup_failed": "Échec de la recherche du téléchargement : {{error}}",
+    "download_failed": "Échec du téléchargement : {{error}}",
+    "checksum_mismatch": "{{algorithm}} ne correspond pas : attendu {{expected}}, obtenu {{actual}}"
   },
   "messages": {
     "downloading_server": "Téléchargement du serveur Minecraft {{version}}",
@@ -214,7 +230,9 @@
     "eula_accepted": "EULA Minecraft acceptée avec succès",
     "server_reset_complete": "Réinitialisation du serveur terminée",
     "server_reset_deleted": "{{count}} éléments supprimés",
-    "rcon_password_generated": "Mot de passe RCON généré automatiquement (aucun mot de passe n'était défini)"
+    "rcon_password_generated": "Mot de passe RCON généré automatiquement (aucun mot de passe n'était défini)",
+    "no_properties_found": "Aucun paramètre de serveur trouvé.",
+    "server_installed": "Serveur Minecraft {{version}} installé dans {{path}}"
   },
   "rcon": {
     "connecting": "Connexion à {{host}}:{{port}}...",

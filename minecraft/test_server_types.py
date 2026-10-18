@@ -94,6 +94,32 @@ def test_validate_warns_when_the_chosen_type_is_not_what_is_installed(tmp_path):
     assert "SERVER_TYPE_MISMATCH" in [i["code"] for i in result["issues"]]
 
 
+@pytest.mark.parametrize("name", [
+    "paper-1.21.4-130.jar",
+    "purpur-1.21.4-2400.jar",
+    "fabric-server-launch.jar",
+    "fabric-server-mc.1.21.4-loader.0.16.10-launcher.1.0.1.jar",
+    "minecraft_server.1.12.2.jar",
+])
+def test_server_jar_is_found_by_its_usual_name_when_server_jar_is_missing(tmp_path, name):
+    (tmp_path / name).write_bytes(b"")
+    config = {"working_dir": str(tmp_path), "server_executable": str(tmp_path / "server.jar")}
+    assert lifecycle._resolve_server_jar(config) == str(tmp_path / name)
+
+
+def test_server_jar_keeps_priority_and_missing_jar_stays_missing(tmp_path):
+    (tmp_path / "paper-1.21.4-130.jar").write_bytes(b"")
+    (tmp_path / "server.jar").write_bytes(b"")
+    config = {"working_dir": str(tmp_path), "server_executable": "server.jar"}
+    assert lifecycle._resolve_server_jar(config) == str(tmp_path / "server.jar")
+
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    (empty / "something-else.jar").write_bytes(b"")
+    config = {"working_dir": str(empty), "server_executable": "server.jar"}
+    assert lifecycle._resolve_server_jar(config) == str(empty / "server.jar")
+
+
 # ─── 설치 소스 ──────────────────────────────────────────────────
 
 def test_paper_downloads_the_newest_stable_build():

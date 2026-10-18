@@ -20,10 +20,10 @@
 
 ## 2. 데몬과 모듈이 주고받는 방식
 
-```
-데몬 ──(stdin: config JSON)──▶ python lifecycle.py <함수 이름> ──(stdout 마지막 줄: 결과 JSON)──▶ 데몬
-                                         └─ stderr: 로그, PROGRESS:{json} 진행 상황
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/module-call-dark.svg">
+  <img src="images/module-call-light.svg" alt="데몬이 python lifecycle.py &lt;함수 이름&gt;을 띄워 stdin으로 설정 JSON을 넣고, stdout에서 결과 JSON을, stderr에서 로그와 PROGRESS 진행 상황을 받는다.">
+</picture>
 
 - 함수마다 새 Python 프로세스가 뜬다. 모듈은 상태를 메모리에 들고 있지 않는다. 필요한 값은 매번 config나 게임 설정 파일에서 읽는다.
 - 답은 늘 JSON 객체이고 `success: bool`을 넣는다. 실패해도 **종료 코드 0**으로 끝낸다(0이 아니면 데몬이 stdout을 버린다).

@@ -188,7 +188,23 @@
       "permission_denied": "以管理員身分執行saba-chan，或變更檔案權限以允許讀寫存取。",
       "working_dir_error": "手動建立目錄或選擇具有寫入權限的其他位置。",
       "server_overloaded": "減少視距和模擬距離，降低最大玩家數，或分配更多RAM。"
-    }
+    },
+    "java_download_failed": "Java 下載失敗：{{error}}",
+    "java_extract_failed": "Java 解壓縮失敗：{{error}}",
+    "java_executable_missing": "Java 已解壓縮，但找不到 java 執行檔",
+    "java_run_failed": "Java 已解壓縮，但無法執行",
+    "java_download_warning": "下載 Java {{version}} 失敗：{{error}}。請手動安裝 Java {{version}} 或更新版本。",
+    "status_check_failed": "狀態檢查失敗：{{error}}",
+    "no_install_dir": "未指定安裝目錄",
+    "no_version": "未指定版本",
+    "no_command": "未指定指令",
+    "no_instance_id": "未指定執行個體 ID",
+    "version_info_unreadable": "無法從伺服器 jar 讀取版本資訊",
+    "version_not_found": "找不到版本 '{{version}}'",
+    "version_no_server": "版本 {{version}} 沒有專用伺服器下載",
+    "download_lookup_failed": "查詢下載資訊失敗：{{error}}",
+    "download_failed": "下載失敗：{{error}}",
+    "checksum_mismatch": "{{algorithm}} 校驗不一致：應為 {{expected}}，實際為 {{actual}}"
   },
   "messages": {
     "downloading_server": "正在下載 Minecraft 伺服器 {{version}}",
@@ -214,7 +230,9 @@
     "eula_accepted": "Minecraft EULA已成功接受",
     "server_reset_complete": "伺服器重設完成",
     "server_reset_deleted": "已刪除 {{count}} 個項目",
-    "rcon_password_generated": "RCON 密碼已自動產生（未設定密碼）"
+    "rcon_password_generated": "RCON 密碼已自動產生（未設定密碼）",
+    "no_properties_found": "找不到伺服器設定。",
+    "server_installed": "已將 Minecraft 伺服器 {{version}} 安裝到 {{path}}"
   },
   "rcon": {
     "connecting": "正在連線 {{host}}:{{port}}...",

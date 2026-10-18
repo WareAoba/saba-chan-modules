@@ -188,7 +188,23 @@
       "permission_denied": "Führen Sie saba-chan als Administrator aus oder ändern Sie die Dateiberechtigungen, um Lese-/Schreibzugriff zu erlauben.",
       "working_dir_error": "Erstellen Sie das Verzeichnis manuell oder wählen Sie einen anderen Speicherort mit Schreibberechtigung.",
       "server_overloaded": "Reduzieren Sie Sichtweite und Simulationsdistanz, verringern Sie die maximale Spielerzahl oder weisen Sie mehr RAM zu."
-    }
+    },
+    "java_download_failed": "Java-Download fehlgeschlagen: {{error}}",
+    "java_extract_failed": "Entpacken von Java fehlgeschlagen: {{error}}",
+    "java_executable_missing": "Java wurde entpackt, aber die ausführbare Java-Datei wurde nicht gefunden",
+    "java_run_failed": "Java wurde entpackt, lässt sich aber nicht ausführen",
+    "java_download_warning": "Java {{version}} konnte nicht heruntergeladen werden: {{error}}. Bitte installieren Sie Java {{version}} oder neuer manuell.",
+    "status_check_failed": "Statusprüfung fehlgeschlagen: {{error}}",
+    "no_install_dir": "Kein Installationsverzeichnis angegeben",
+    "no_version": "Keine Version angegeben",
+    "no_command": "Kein Befehl angegeben",
+    "no_instance_id": "Keine Instanz-ID angegeben",
+    "version_info_unreadable": "Versionsinformationen konnten nicht aus der Server-JAR gelesen werden",
+    "version_not_found": "Version '{{version}}' nicht gefunden",
+    "version_no_server": "Für Version {{version}} gibt es keinen Download für einen dedizierten Server",
+    "download_lookup_failed": "Download-Informationen konnten nicht abgerufen werden: {{error}}",
+    "download_failed": "Download fehlgeschlagen: {{error}}",
+    "checksum_mismatch": "{{algorithm}} stimmt nicht überein: erwartet {{expected}}, erhalten {{actual}}"
   },
   "messages": {
     "downloading_server": "Minecraft-Server {{version}} wird heruntergeladen",
@@ -214,7 +230,9 @@
     "eula_accepted": "Minecraft EULA erfolgreich akzeptiert",
     "server_reset_complete": "Server-Reset abgeschlossen",
     "server_reset_deleted": "{{count}} Elemente gelöscht",
-    "rcon_password_generated": "RCON-Passwort automatisch generiert (kein Passwort war gesetzt)"
+    "rcon_password_generated": "RCON-Passwort automatisch generiert (kein Passwort war gesetzt)",
+    "no_properties_found": "Keine Servereinstellungen gefunden.",
+    "server_installed": "Minecraft-Server {{version}} wurde in {{path}} installiert"
   },
   "rcon": {
     "connecting": "Verbindung zu {{host}}:{{port}}...",

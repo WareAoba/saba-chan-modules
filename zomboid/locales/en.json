@@ -206,7 +206,10 @@
       "mod_error": "A mod is causing errors. Try disabling recently added mods or check the Workshop page for compatibility updates.",
       "save_status": "This is informational. If saves are failing, check disk space and file permissions.",
       "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
-    }
+    },
+    "no_command": "No command specified",
+    "command_send_failed": "Failed to send command: {{error}}",
+    "unknown_error": "Unknown error"
   },
   "messages": {
     "server_online": "Server is online and responding",
@@ -225,7 +228,10 @@
     "install_complete": "Project Zomboid server installed successfully",
     "server_reset_complete": "Server world data reset complete",
     "rcon_password_generated": "Auto-generated RCON password (none was set)",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "no_properties_found": "No properties found.",
+    "command_sent": "Command sent to the console: {{command}}",
+    "no_log_files": "No log files found"
   },
   "rcon": {
     "connecting": "Connecting to {{host}}:{{port}}...",

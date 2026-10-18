@@ -188,7 +188,23 @@
       "permission_denied": "Запустите saba-chan от имени администратора или измените права доступа к файлам для разрешения чтения/записи.",
       "working_dir_error": "Создайте каталог вручную или выберите другое расположение с правами на запись.",
       "server_overloaded": "Уменьшите дальность прорисовки и дистанцию симуляции, снизьте максимальное количество игроков или выделите больше RAM."
-    }
+    },
+    "java_download_failed": "Не удалось загрузить Java: {{error}}",
+    "java_extract_failed": "Не удалось распаковать Java: {{error}}",
+    "java_executable_missing": "Java распакована, но исполняемый файл java не найден",
+    "java_run_failed": "Java распакована, но не запускается",
+    "java_download_warning": "Не удалось загрузить Java {{version}}: {{error}}. Установите Java {{version}} или новее вручную.",
+    "status_check_failed": "Не удалось проверить состояние: {{error}}",
+    "no_install_dir": "Не указана папка установки",
+    "no_version": "Не указана версия",
+    "no_command": "Не указана команда",
+    "no_instance_id": "Не указан ID экземпляра",
+    "version_info_unreadable": "Не удалось прочитать сведения о версии из jar-файла сервера",
+    "version_not_found": "Версия '{{version}}' не найдена",
+    "version_no_server": "Для версии {{version}} нет загрузки выделенного сервера",
+    "download_lookup_failed": "Не удалось получить сведения о загрузке: {{error}}",
+    "download_failed": "Ошибка загрузки: {{error}}",
+    "checksum_mismatch": "Несовпадение {{algorithm}}: ожидалось {{expected}}, получено {{actual}}"
   },
   "messages": {
     "downloading_server": "Загрузка сервера Minecraft {{version}}",
@@ -214,7 +230,9 @@
     "eula_accepted": "EULA Minecraft успешно принято",
     "server_reset_complete": "Сброс сервера завершён",
     "server_reset_deleted": "{{count}} элементов удалено",
-    "rcon_password_generated": "Пароль RCON сгенерирован автоматически (пароль не был задан)"
+    "rcon_password_generated": "Пароль RCON сгенерирован автоматически (пароль не был задан)",
+    "no_properties_found": "Настройки сервера не найдены.",
+    "server_installed": "Сервер Майнкрафт {{version}} установлен в {{path}}"
   },
   "rcon": {
     "connecting": "Подключение к {{host}}:{{port}}...",

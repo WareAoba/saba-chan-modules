@@ -109,7 +109,18 @@
     "no_settings": "未提供设置。",
     "no_server_dir": "无法确定服务器目录。请设置 working_dir 或 server_executable。",
     "settings_write_failed": "写入设置文件失败。",
-    "settings_not_found": "未找到设置文件。请先启动一次服务器以生成文件。"
+    "settings_not_found": "未找到设置文件。请先启动一次服务器以生成文件。",
+    "no_install_dir": "未指定安装目录",
+    "install_failed": "服务器安装失败：{{error}}",
+    "no_command": "未指定命令",
+    "no_instance_id": "未指定实例 ID",
+    "command_failed": "执行命令失败：{{error}}",
+    "message_required": "需要填写消息",
+    "userid_required": "需要玩家 ID（userid）",
+    "unknown_command": "未知命令：{{command}}",
+    "http_error": "服务器返回 HTTP 错误 {{code}}：{{body}}",
+    "connection_failed": "无法连接到幻兽帕鲁服务器：{{error}}",
+    "player_ambiguous": "有多名玩家匹配 '{{player}}'：{{names}}。请输入更准确的名称。"
   },
   "messages": {
     "starting_server": "正在启动服务器：{{command}}",
@@ -136,7 +147,12 @@
     "install_via_steamcmd": "幻兽帕鲁专用服务器必须通过 SteamCMD 安装。",
     "versions_via_steam": "幻兽帕鲁服务器通过 Steam/SteamCMD 分发（App ID 2394010）。请使用 SteamCMD 安装或更新。",
     "versions_managed_via_steam": "幻兽帕鲁服务器版本通过 Steam 管理。请使用 SteamCMD 并执行 app_update 2394010 进行更新。",
-    "extension_not_enabled": "SteamCMD 扩展未启用。请先在 设置 → 扩展 中启用。"
+    "extension_not_enabled": "SteamCMD 扩展未启用。请先在 设置 → 扩展 中启用。",
+    "no_properties_found": "未找到服务器设置。",
+    "command_executed": "已执行命令 '{{command}}'",
+    "install_step_download": "1. 从 https://developer.valvesoftware.com/wiki/SteamCMD 下载 SteamCMD。",
+    "install_step_run": "2. 运行：{{command}}",
+    "install_step_set_path": "3. 在 saba-chan 中将可执行文件路径设置为安装目录中的 PalServer.exe。"
   },
   "reset": {
     "no_path": "无法确定服务器目录。请设置 working_dir 或 server_executable。",
@@ -154,6 +170,16 @@
     "cannot_create_dir": "无法创建工作目录：{{path}}",
     "cannot_create_dir_hint": "请检查文件夹权限或选择其他路径。",
     "port_in_use": "端口 {{port}} 已被占用。",
-    "port_in_use_hint": "请停止占用端口 {{port}} 的其他进程或更改端口。"
+    "port_in_use_hint": "请停止占用端口 {{port}} 的其他进程或更改端口。",
+    "log_port_in_use": "端口已被占用",
+    "log_port_in_use_hint": "请停止占用该端口的其他进程，或更改服务器端口。",
+    "log_out_of_memory": "内存不足",
+    "log_out_of_memory_hint": "请增加系统内存，或降低服务器设置（最大玩家数、世界大小）。",
+    "log_executable_crash": "服务器程序崩溃",
+    "log_executable_crash_hint": "请通过 Steam 验证游戏文件、检查模组冲突，或更新服务器。",
+    "log_save_corrupt": "存档数据已损坏",
+    "log_save_corrupt_hint": "请从备份存档恢复。备份位于 Pal/Saved/SaveGames/。",
+    "log_steam_auth_failed": "Steam 认证失败",
+    "log_steam_auth_failed_hint": "请确认 Steam 正在运行，且 steamclient 库可以访问。"
   }
 }

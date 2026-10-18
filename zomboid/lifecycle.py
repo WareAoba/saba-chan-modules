@@ -1170,7 +1170,7 @@ def import_settings(config):
 
     raw_props = result.get("properties", {})
     if not raw_props:
-        return {"success": True, "settings": {}, "message": "No properties found."}
+        return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
 
     from daemon_rcon import coerce_setting, load_setting_types
     types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
@@ -1214,14 +1214,14 @@ def command(config):
     instance_id = config.get("instance_id", "")
     actual_cmd = cmd_text or cmd_name
     if not actual_cmd:
-        return {"success": False, "message": "No command specified"}
+        return {"success": False, "message": i18n.t("errors.no_command")}
     if not instance_id:
         return {"success": False, "message": i18n.t("errors.server_not_running")}
     try:
         result = daemon_stdin_command(instance_id, actual_cmd)
     except Exception as e:
-        return {"success": False, "message": f"Failed to send command: {e}"}
-    return {"success": True, "message": f"Command sent via stdin: {actual_cmd}", "data": result}
+        return {"success": False, "message": i18n.t("errors.command_send_failed", error=str(e))}
+    return {"success": True, "message": i18n.t("messages.command_sent", command=actual_cmd), "data": result}
 
 
 def diagnose_log(config):
@@ -1252,7 +1252,7 @@ def diagnose_log(config):
                 continue
     
     if not log_text:
-        return {"success": True, "issues": [], "message": "No log files found"}
+        return {"success": True, "issues": [], "message": i18n.t("messages.no_log_files")}
     
     issues = ErrorDetector.scan(log_text)
     return {"success": True, "issues": issues}
@@ -1317,7 +1317,7 @@ def install_server(config):
         print("[Zomboid] SteamCMD extension not available, trying raw SteamCMD", file=sys.stderr)
     except Exception as e:
         print(f"[Zomboid] SteamCMD extension install failed: {e}", file=sys.stderr)
-        return {"success": False, "message": f"SteamCMD install failed: {e}"}
+        return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
 
     # ── Fallback: raw SteamCMD ──
     steamcmd = _find_steamcmd()
@@ -1364,7 +1364,7 @@ def install_server(config):
         else:
             return {
                 "success": False,
-                "message": i18n.t("errors.install_failed", error=result.stderr[-500:] if result.stderr else "Unknown error"),
+                "message": i18n.t("errors.install_failed", error=result.stderr[-500:] if result.stderr else i18n.t("errors.unknown_error")),
             }
     except subprocess.TimeoutExpired:
         return {"success": False, "message": i18n.t("errors.install_timeout")}

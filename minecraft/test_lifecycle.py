@@ -604,6 +604,17 @@ def test_install_reports_download_progress_to_the_daemon(tmp_path, capsys):
     assert all(p["message"] for p in lines)
 
 
+def test_java_download_failure_is_reported_in_the_user_language(tmp_path, monkeypatch):
+    """설치 중 Java 받기가 실패하면 영어 고정 문구가 아니라 데몬 언어(ko)로 알린다."""
+    from i18n import I18n
+    from minecraft import lifecycle
+    monkeypatch.setenv("SABA_LANG", "ko")
+    monkeypatch.setattr(lifecycle, "i18n", I18n(MODULE_DIR))
+    with mock.patch("urllib.request.urlopen", side_effect=OSError("boom")):
+        result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
+    assert result == {"success": False, "message": "Java 다운로드 실패: boom"}
+
+
 def test_player_count_reads_server_list_ping():
     from minecraft import lifecycle
     ping = {"players": {"online": 3, "max": 20, "sample": []}, "version": {"name": "1.21"}}

@@ -188,7 +188,23 @@
       "permission_denied": "saba-chanを管理者として実行するか、ファイルのアクセス権を変更して読み書きアクセスを許可してください。",
       "working_dir_error": "ディレクトリを手動で作成するか、書き込み権限のある別の場所を選択してください。",
       "server_overloaded": "描画距離とシミュレーション距離を減らし、最大プレイヤー数を減らすか、より多くのRAMを割り当ててください。"
-    }
+    },
+    "java_download_failed": "Java のダウンロードに失敗しました: {{error}}",
+    "java_extract_failed": "Java の展開に失敗しました: {{error}}",
+    "java_executable_missing": "Java を展開しましたが、java 実行ファイルが見つかりません",
+    "java_run_failed": "Java を展開しましたが、実行できません",
+    "java_download_warning": "Java {{version}} のダウンロードに失敗しました: {{error}}。Java {{version}} 以降を手動でインストールしてください。",
+    "status_check_failed": "状態の確認に失敗しました: {{error}}",
+    "no_install_dir": "インストール先フォルダーが指定されていません",
+    "no_version": "バージョンが指定されていません",
+    "no_command": "コマンドが指定されていません",
+    "no_instance_id": "インスタンス ID が指定されていません",
+    "version_info_unreadable": "サーバー jar からバージョン情報を読み取れません",
+    "version_not_found": "バージョン '{{version}}' が見つかりません",
+    "version_no_server": "バージョン {{version}} には専用サーバーのダウンロードがありません",
+    "download_lookup_failed": "ダウンロード情報の取得に失敗しました: {{error}}",
+    "download_failed": "ダウンロードに失敗しました: {{error}}",
+    "checksum_mismatch": "{{algorithm}} が一致しません: 期待値 {{expected}}、実際 {{actual}}"
   },
   "messages": {
     "downloading_server": "Minecraft サーバー {{version}} をダウンロード中",
@@ -214,7 +230,9 @@
     "eula_accepted": "Minecraft EULA が正常に同意されました",
     "server_reset_complete": "サーバーリセット完了",
     "server_reset_deleted": "{{count}}個のアイテムを削除",
-    "rcon_password_generated": "RCONパスワードを自動生成しました（パスワードが設定されていませんでした）"
+    "rcon_password_generated": "RCONパスワードを自動生成しました（パスワードが設定されていませんでした）",
+    "no_properties_found": "読み込めるサーバー設定がありません。",
+    "server_installed": "マインクラフトサーバー {{version}} を {{path}} にインストールしました"
   },
   "rcon": {
     "connecting": "{{host}}:{{port}} に接続中...",

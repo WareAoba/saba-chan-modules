@@ -170,7 +170,10 @@
       "mod_error": "某個模組導致了錯誤。嘗試停用最近新增的模組，或在 Workshop 頁面檢查相容性更新。",
       "save_status": "這是資訊性訊息。如果存檔失敗，請檢查磁碟空間和檔案權限。",
       "steamcmd_not_found": "從 https://developer.valvesoftware.com/wiki/SteamCMD 安裝 SteamCMD 並確保其在 PATH 中。"
-    }
+    },
+    "no_command": "未指定指令",
+    "command_send_failed": "傳送指令失敗：{{error}}",
+    "unknown_error": "未知錯誤"
   },
   "messages": {
     "server_online": "伺服器在線並正在回應",
@@ -189,7 +192,10 @@
     "rcon_password_generated": "已自動產生 RCON 密碼（之前未設定密碼）",
     "server_starting": "Server starting with PID {{pid}}",
     "starting_server": "Starting server: {{command}}",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)"
+    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "no_properties_found": "找不到伺服器設定。",
+    "command_sent": "已向主控台傳送指令：{{command}}",
+    "no_log_files": "找不到記錄檔"
   },
   "rcon": {
     "connecting": "正在連線至 {{host}}:{{port}}...",

@@ -188,7 +188,23 @@
       "permission_denied": "Execute o saba-chan como administrador, ou altere as permissões dos arquivos para permitir acesso de leitura/escrita.",
       "working_dir_error": "Crie o diretório manualmente ou escolha outro local com permissões de escrita.",
       "server_overloaded": "Reduza a distância de visão e a distância de simulação, diminua o máximo de jogadores, ou aloque mais RAM."
-    }
+    },
+    "java_download_failed": "Falha ao baixar o Java: {{error}}",
+    "java_extract_failed": "Falha ao extrair o Java: {{error}}",
+    "java_executable_missing": "O Java foi extraído, mas o executável java não foi encontrado",
+    "java_run_failed": "O Java foi extraído, mas não foi possível executá-lo",
+    "java_download_warning": "Falha ao baixar o Java {{version}}: {{error}}. Instale o Java {{version}} ou superior manualmente.",
+    "status_check_failed": "Falha ao verificar o status: {{error}}",
+    "no_install_dir": "Nenhum diretório de instalação especificado",
+    "no_version": "Nenhuma versão especificada",
+    "no_command": "Nenhum comando especificado",
+    "no_instance_id": "Nenhum ID de instância especificado",
+    "version_info_unreadable": "Não foi possível ler as informações de versão do jar do servidor",
+    "version_not_found": "Versão '{{version}}' não encontrada",
+    "version_no_server": "A versão {{version}} não tem download de servidor dedicado",
+    "download_lookup_failed": "Falha ao consultar o download: {{error}}",
+    "download_failed": "Falha no download: {{error}}",
+    "checksum_mismatch": "{{algorithm}} não confere: esperado {{expected}}, obtido {{actual}}"
   },
   "messages": {
     "downloading_server": "Baixando o servidor do Minecraft {{version}}",
@@ -214,7 +230,9 @@
     "eula_accepted": "EULA do Minecraft aceito com sucesso",
     "server_reset_complete": "Redefinição do servidor concluída",
     "server_reset_deleted": "{{count}} itens excluídos",
-    "rcon_password_generated": "Senha RCON gerada automaticamente (nenhuma senha estava definida)"
+    "rcon_password_generated": "Senha RCON gerada automaticamente (nenhuma senha estava definida)",
+    "no_properties_found": "Nenhuma configuração do servidor encontrada.",
+    "server_installed": "Servidor de Minecraft {{version}} instalado em {{path}}"
   },
   "rcon": {
     "connecting": "Conectando a {{host}}:{{port}}...",

@@ -181,7 +181,18 @@
     "no_settings": "No settings provided.",
     "no_server_dir": "Cannot determine server directory. Set working_dir or server_executable.",
     "settings_write_failed": "Failed to write settings file.",
-    "settings_not_found": "Settings file not found. Start the server once to generate it."
+    "settings_not_found": "Settings file not found. Start the server once to generate it.",
+    "no_install_dir": "No install directory specified",
+    "install_failed": "Server install failed: {{error}}",
+    "no_command": "No command specified",
+    "no_instance_id": "No instance ID specified",
+    "command_failed": "Failed to execute command: {{error}}",
+    "message_required": "A message is required",
+    "userid_required": "A player ID (userid) is required",
+    "unknown_command": "Unknown command: {{command}}",
+    "http_error": "Server returned HTTP error {{code}}: {{body}}",
+    "connection_failed": "Failed to connect to the Palworld server: {{error}}",
+    "player_ambiguous": "Multiple players match '{{player}}': {{names}}. Please be more specific."
   },
   "messages": {
     "starting_server": "Starting server: {{command}}",
@@ -209,7 +220,12 @@
     "versions_via_steam": "Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Use SteamCMD to install or update.",
     "versions_managed_via_steam": "Palworld server versions are managed through Steam. Use SteamCMD with app_update 2394010 to update.",
     "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
-    "extension_missing": "The {{extension}} extension is required. Install and enable it in Settings → Extensions."
+    "extension_missing": "The {{extension}} extension is required. Install and enable it in Settings → Extensions.",
+    "no_properties_found": "No properties found.",
+    "command_executed": "Command '{{command}}' executed",
+    "install_step_download": "1. Download SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD",
+    "install_step_run": "2. Run: {{command}}",
+    "install_step_set_path": "3. Set the executable path in saba-chan to PalServer.exe in the installed directory."
   },
   "reset": {
     "no_path": "Cannot determine server directory. Set working_dir or server_executable.",
@@ -227,6 +243,16 @@
     "cannot_create_dir": "Cannot create working directory: {{path}}",
     "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
     "port_in_use": "Port {{port}} is already in use.",
-    "port_in_use_hint": "Stop the other process using port {{port}} or change the port."
+    "port_in_use_hint": "Stop the other process using port {{port}} or change the port.",
+    "log_port_in_use": "The port is already in use",
+    "log_port_in_use_hint": "Stop any other process using the port or change the server port.",
+    "log_out_of_memory": "Out of memory",
+    "log_out_of_memory_hint": "Increase system RAM or reduce server settings (max players, world size).",
+    "log_executable_crash": "The server executable crashed",
+    "log_executable_crash_hint": "Verify game files via Steam, check for mod conflicts, or update the server.",
+    "log_save_corrupt": "Save data is corrupted",
+    "log_save_corrupt_hint": "Restore from a backup save. Check Pal/Saved/SaveGames/ for backups.",
+    "log_steam_auth_failed": "Steam authentication failed",
+    "log_steam_auth_failed_hint": "Ensure Steam is running and the steamclient libraries are accessible."
   }
 }

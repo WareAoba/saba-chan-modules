@@ -76,6 +76,16 @@ _MARKERS = [
     ("fabric-server-launcher.properties", "fabric"),
 ]
 
+# server.jar가 없을 때 서버 폴더에서 찾는 흔한 서버 jar 이름 (앞의 것이 먼저다)
+_JAR_NAMES = [
+    "server.jar",
+    "fabric-server-launch.jar",
+    "fabric-server-mc.*.jar",
+    "paper-*.jar",
+    "purpur-*.jar",
+    "minecraft_server.*.jar",
+]
+
 # Paperclip 계열은 같은 진입점을 쓰므로 jar 안의 versions.list가 결정한다
 _PAPERCLIP_MAIN = ("io.papermc.paperclip.", "com.destroystokyo.paperclip.")
 _MC_VERSION = re.compile(r"^(\d+\.\d+(?:\.\d+)?|\d{2}w\d{2}[a-z])")
@@ -150,6 +160,22 @@ def inspect_jar(path):
         if "net/minecraft/server/MinecraftServer.class" in names:
             return {"type": "vanilla", "version": version,
                     "evidence": f"{os.path.basename(path)}: net/minecraft/server/MinecraftServer"}
+    return None
+
+
+def _version_key(path):
+    """이름 속 숫자를 수로 비교한다: paper-1.21.4-130.jar가 -99.jar보다, 1.21이 1.9보다 뒤다"""
+    return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", os.path.basename(path).lower())]
+
+
+def find_server_jar(working_dir):
+    """서버 폴더에서 `_JAR_NAMES` 순서로 서버 jar를 찾는다. 같은 무늬가 여럿이면 버전이 가장 높은 것 (없으면 None)"""
+    if not working_dir or not os.path.isdir(working_dir):
+        return None
+    for pattern in _JAR_NAMES:
+        found = [p for p in glob.glob(os.path.join(working_dir, pattern)) if os.path.isfile(p)]
+        if found:
+            return max(found, key=_version_key)
     return None
 
 

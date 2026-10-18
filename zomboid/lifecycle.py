@@ -877,7 +877,7 @@ def validate(config):
         
         if not found:
             issues.append({
-                "severity": "error",
+                "severity": "critical",
                 "code": "executable_not_found",
                 "message": i18n.t("errors.executable_not_found"),
                 "solution": i18n.t("errors.solutions.executable_not_found"),

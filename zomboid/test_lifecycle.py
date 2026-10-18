@@ -173,6 +173,16 @@ def test_missing_server_folder_blocks_the_start(tmp_path):
     assert all(i.get("solution") for i in issues)
 
 
+def test_missing_start_script_blocks_the_start(tmp_path):
+    """시작 스크립트가 없으면 켜도 실패하므로 점검이 막는다 (실행 경로와 같은 파일을 찾는다)"""
+    from zomboid.lifecycle import validate
+    server = tmp_path / "server"
+    server.mkdir()
+    config = {"working_dir": str(server), "cache_dir": str(tmp_path / "home"), "server_name": "s1", "admin_password": "pw12"}
+    critical = [i for i in validate(config)["issues"] if i["severity"] == "critical"]
+    assert [i["code"] for i in critical] == ["executable_not_found"] and critical[0]["solution"]
+
+
 def test_first_launch_without_admin_password_is_blocked(tmp_path):
     from zomboid.lifecycle import validate
     server = tmp_path / "server"

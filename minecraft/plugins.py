@@ -15,6 +15,7 @@ import glob
 import json
 import os
 import re
+import sys
 import zipfile
 
 from i18n import I18n
@@ -231,7 +232,7 @@ def _read_descriptor(zf, names):
                 name = meta.get("name")
             if not meta.get("id"):
                 continue
-            return [{"id": meta["id"], "name": name or meta["id"], "version": _str(meta.get("version")),
+            return [{"id": str(meta["id"]), "name": str(name or meta["id"]), "version": _str(meta.get("version")),
                      "kind": kind, "commands": {}}]
         mods = _parse_mods_toml(text)
         if mods:
@@ -257,11 +258,13 @@ def scan(working_dir):
         folder = os.path.join(working_dir, sub)
         if not os.path.isdir(folder):
             continue
-        for path in sorted(glob.glob(os.path.join(folder, "*.jar")) + glob.glob(os.path.join(folder, "*.jar.disabled"))):
+        pattern = os.path.join(glob.escape(folder), "*.jar")
+        for path in sorted(glob.glob(pattern) + glob.glob(pattern + ".disabled")):
             try:
                 with zipfile.ZipFile(path) as zf:
                     entries = _read_descriptor(zf, set(zf.namelist()))
-            except (OSError, zipfile.BadZipFile, KeyError):
+            except Exception as e:  # 깨진 jar 하나 때문에 나머지 목록을 잃지 않는다
+                print(f"skipped {sub}/{os.path.basename(path)}: {type(e).__name__}", file=sys.stderr)
                 continue
             for entry in entries:
                 entry["file"] = f"{sub}/{os.path.basename(path)}"

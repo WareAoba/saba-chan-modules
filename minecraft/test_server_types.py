@@ -225,6 +225,32 @@ def server_with_plugins(tmp_path):
     return tmp_path
 
 
+def test_forge_picks_the_highest_build_by_number(tmp_path):
+    for build in ("1.20.1-47.9.0", "1.20.1-47.10.0"):
+        args = tmp_path / "libraries" / "net" / "minecraftforge" / "forge" / build
+        args.mkdir(parents=True)
+        (args / "unix_args.txt").write_text("-cp x\n")
+    assert server_types.detect(str(tmp_path))["loader_version"] == "1.20.1-47.10.0"
+
+
+def test_server_folder_with_brackets_is_still_read(tmp_path):
+    work = tmp_path / "srv [paper]"
+    bundler(str(work / "paper-1.21.4-130.jar"), "paper-1.21.4.jar")
+    make_jar(str(work / "plugins" / "lp.jar"), {"plugin.yml": "name: LuckPerms\nversion: 5.4\n"})
+    found = server_types.detect(str(work))
+    assert (found["type"], found["jar"]) == ("paper", "paper-1.21.4-130.jar")
+    assert [p["id"] for p in plugins.scan(str(work))] == ["LuckPerms"]
+
+
+def test_one_broken_plugin_is_skipped_not_fatal(tmp_path):
+    make_jar(str(tmp_path / "mods" / "array.jar"), {"quilt.mod.json": "[1, 2]"})
+    make_jar(str(tmp_path / "mods" / "num.jar"), {"fabric.mod.json": '{"id": 42}'})
+    make_jar(str(tmp_path / "plugins" / "lp.jar"), {"plugin.yml": "name: LuckPerms\nversion: 5.4\n"})
+    found = {p["id"] for p in plugins.scan(str(tmp_path))}
+    assert "LuckPerms" in found
+    assert lifecycle.instance_commands({"working_dir": str(tmp_path)})["success"]
+
+
 def test_plugins_are_identified_from_their_metadata_not_file_names(tmp_path):
     found = {p["id"]: p for p in plugins.scan(str(server_with_plugins(tmp_path)))}
     assert set(found) == {"LuckPerms", "CoolPaper", "Old", "spark", "examplemod"}

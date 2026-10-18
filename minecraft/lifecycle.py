@@ -1938,7 +1938,8 @@ def install_server(config):
         install_dir (str): Directory to install into
         jar_name (str): Name for server jar (default: "server.jar")
         accepted_agreements (list): 사용자가 동의한 약관 id. "eula"가 있으면 eula.txt에 동의를 쓴다
-        initial_settings (dict): Optional initial server.properties values
+        settings (dict): 인스턴스 설정. server.properties 키는 처음 값으로 쓴다
+        initial_settings (dict): Optional initial server.properties values (settings보다 우선)
     """
     try:
         version_id = config.get("version")
@@ -1951,9 +1952,12 @@ def install_server(config):
 
         jar_name = config.get("jar_name", "server.jar")
         do_eula = "eula" in (config.get("accepted_agreements") or [])
-        initial_settings = config.get("initial_settings")
+        settings = config.get("settings") or {}
+        # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
+        initial_settings = {k: v for k, v in settings.items() if k in _PROPERTY_KEY_MAP and v is not None}
+        initial_settings.update(config.get("initial_settings") or {})
         # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다
-        server_type = (config.get("settings") or {}).get("server_type") or config.get("server_type") or "vanilla"
+        server_type = settings.get("server_type") or config.get("server_type") or "vanilla"
 
         return ServerInstaller.install_server(
             version_id=version_id,

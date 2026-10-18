@@ -173,7 +173,7 @@ def find_server_jar(working_dir):
     if not working_dir or not os.path.isdir(working_dir):
         return None
     for pattern in _JAR_NAMES:
-        found = [p for p in glob.glob(os.path.join(working_dir, pattern)) if os.path.isfile(p)]
+        found = [p for p in glob.glob(os.path.join(glob.escape(working_dir), pattern)) if os.path.isfile(p)]
         if found:
             return max(found, key=_version_key)
     return None
@@ -193,10 +193,11 @@ def _modern_forge_version(working_dir, server_type):
     if not root:
         return None
     base = os.path.join(working_dir, "libraries", *root)
-    candidates = sorted(glob.glob(os.path.join(base, "*", "unix_args.txt")))
+    candidates = glob.glob(os.path.join(glob.escape(base), "*", "unix_args.txt"))
     if not candidates:
         return None
-    return os.path.basename(os.path.dirname(candidates[-1]))
+    # 47.10.0이 47.9.0보다 뒤다 — 글자 순서가 아니라 버전 숫자로 고른다
+    return os.path.basename(os.path.dirname(max(candidates, key=lambda p: _version_key(os.path.dirname(p)))))
 
 
 def detect(working_dir, server_jar=None):
@@ -212,7 +213,7 @@ def detect(working_dir, server_jar=None):
     jars = []
     if server_jar and os.path.isfile(server_jar):
         jars.append(server_jar)
-    jars.extend(p for p in sorted(glob.glob(os.path.join(working_dir, "*.jar"))) if p not in jars)
+    jars.extend(p for p in sorted(glob.glob(os.path.join(glob.escape(working_dir), "*.jar"))) if p not in jars)
 
     infos = [(jar, info) for jar in jars for info in [inspect_jar(jar)] if info]
     marker, marker_rel = _marker_type(working_dir)

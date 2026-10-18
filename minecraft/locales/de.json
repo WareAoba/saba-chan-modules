@@ -191,6 +191,8 @@
     }
   },
   "messages": {
+    "downloading_server": "Minecraft-Server {{version}} wird heruntergeladen",
+    "downloading_java": "Java {{version}} wird heruntergeladen",
     "starting_server": "Server wird gestartet: {{command}}",
     "working_directory": "Arbeitsverzeichnis: {{path}}",
     "server_starting": "Minecraft-Server startet mit PID {{pid}}",

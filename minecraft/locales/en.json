@@ -209,6 +209,8 @@
     }
   },
   "messages": {
+    "downloading_server": "Downloading Minecraft server {{version}}",
+    "downloading_java": "Downloading Java {{version}}",
     "starting_server": "Starting server: {{command}}",
     "working_directory": "Working directory: {{path}}",
     "server_starting": "Minecraft server starting with PID {{pid}}",

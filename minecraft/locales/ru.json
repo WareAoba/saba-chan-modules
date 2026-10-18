@@ -191,6 +191,8 @@
     }
   },
   "messages": {
+    "downloading_server": "Загрузка сервера Minecraft {{version}}",
+    "downloading_java": "Загрузка Java {{version}}",
     "starting_server": "Запуск сервера: {{command}}",
     "working_directory": "Рабочий каталог: {{path}}",
     "server_starting": "Сервер Minecraft запускается с PID {{pid}}",

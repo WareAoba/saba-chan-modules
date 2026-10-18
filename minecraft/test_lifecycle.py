@@ -654,3 +654,44 @@ def test_player_count_reads_server_list_ping():
     for reply in [None, {"version": {"name": "1.21"}}, {"players": {"online": "many"}}]:
         with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=reply):
             assert lifecycle.player_count({"port": 25570})["success"] is False, reply
+
+
+def test_find_java_picks_a_runtime_new_enough_from_the_daemon_list(monkeypatch):
+    """데몬이 넘긴 런타임 중 필요한 버전 이상인 64비트를 고르고, `-version`을 돌리지 않는다"""
+    import json as _json
+    from minecraft.lifecycle import JavaDetector
+    runtimes = [
+        {"java": "C:/Program Files (x86)/Java/jre1.8.0_381/bin/java.exe", "version": "1.8.0_381", "major": 8, "arch": "x86"},
+        {"java": "C:/Program Files/Java/jdk-25/bin/java.exe", "version": "25", "major": 25, "arch": "amd64"},
+        {"java": "C:/Program Files/Eclipse Adoptium/jdk-21/bin/java.exe", "version": "21.0.5", "major": 21, "arch": "amd64"},
+    ]
+    monkeypatch.setenv("SABA_JAVA_RUNTIMES", _json.dumps(runtimes))
+    monkeypatch.setattr(JavaDetector, "get_java_info", staticmethod(lambda p: pytest.fail(f"probed {p}")))
+    assert JavaDetector.find_java("java", min_major=21)["major_version"] == 21
+    assert JavaDetector.find_java("java", min_major=8)["major_version"] == 21  # 32비트 8보다 64비트가 먼저
+    # 맞는 것이 없으면 가장 높은 버전을 돌려줘서 "Java N 이상 필요" 안내가 나온다
+    assert JavaDetector.find_java("java", min_major=26)["major_version"] == 25
+
+
+def test_find_java_without_daemon_list_skips_oracle_shims(monkeypatch, tmp_path):
+    from minecraft import lifecycle
+    from minecraft.lifecycle import JavaDetector
+    shim = tmp_path / "Oracle" / "Java" / "java8path" / "java"
+    real = tmp_path / "jdk-21" / "bin" / "java"
+    for p in (shim, real):
+        p.parent.mkdir(parents=True)
+        p.write_text("")
+    monkeypatch.delenv("SABA_JAVA_RUNTIMES", raising=False)
+    monkeypatch.delenv("JAVA_HOME", raising=False)
+    monkeypatch.setattr(lifecycle.shutil, "which", lambda name: str(shim))
+    monkeypatch.setattr(JavaDetector, "WINDOWS_PATHS", [str(tmp_path)])
+    monkeypatch.setattr(JavaDetector, "UNIX_PATHS", [str(tmp_path)])
+    probed = []
+
+    def info(path):
+        probed.append(path)
+        return {"path": path, "version": "21.0.5", "major_version": 21, "bits64": True}
+    monkeypatch.setattr(JavaDetector, "get_java_info", staticmethod(info))
+    found = JavaDetector.find_java(min_major=17)
+    assert found["path"] == str(real)
+    assert str(shim) not in probed

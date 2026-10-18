@@ -19,6 +19,7 @@ import json
 import subprocess
 import os
 import re
+import shutil
 import socket
 import struct
 import time
@@ -170,55 +171,120 @@ class JavaDetector:
         "/Library/Java/JavaVirtualMachines",
     ]
 
+    # Oracle 설치기가 PATH 앞에 넣는 바로가기 폴더. 실제 런타임이 아니고, 32비트 Java 8을 가리키기도 한다
+    SHIM_MARKERS = ("javapath", "java8path")
+    # 후보 하나의 `-version` 제한과 전체 탐색 상한 (초)
+    PROBE_TIMEOUT = 5
+    SEARCH_BUDGET = 20
+
     @staticmethod
-    def find_java(preferred_path=None):
+    def is_shim(path):
+        parts = re.split(r"[\\/]+", str(path).lower())
+        return any(marker in parts for marker in JavaDetector.SHIM_MARKERS)
+
+    @staticmethod
+    def daemon_runtimes():
+        """데몬이 찾은 Java 런타임 (env `SABA_JAVA_RUNTIMES`, `[{java, home, version, major, arch}]`).
+        각 JDK의 `release` 파일에서 읽은 값이라 `-version`을 돌리지 않아도 된다. 없거나 읽을 수 없으면 []"""
+        try:
+            runtimes = json.loads(os.environ.get("SABA_JAVA_RUNTIMES") or "[]")
+        except ValueError:
+            return []
+        found = []
+        for rt in runtimes if isinstance(runtimes, list) else []:
+            if not isinstance(rt, dict) or not isinstance(rt.get("java"), str) or not isinstance(rt.get("major"), int):
+                continue
+            found.append({
+                "path": rt["java"],
+                "version": str(rt.get("version", rt["major"])),
+                "major_version": rt["major"],
+                "bits64": str(rt.get("arch", "")).lower() not in ("x86", "i386", "i586", "i686"),
+            })
+        return found
+
+    @staticmethod
+    def _choose(infos, min_major):
+        """조건에 맞는 것 중 64비트를, 그중 필요한 버전을 넘는 가장 낮은 주 버전을 고른다.
+        맞는 것이 없으면 가장 높은 버전을 돌려줘서 "Java N 이상 필요" 안내가 나오게 한다"""
+        if not infos:
+            return None
+        prefer64 = sorted(infos, key=lambda i: not i.get("bits64", True))
+        if min_major:
+            enough = [i for i in prefer64 if i["major_version"] >= min_major]
+            if enough:
+                return min(enough, key=lambda i: (not i.get("bits64", True), i["major_version"]))
+            return max(prefer64, key=lambda i: (i.get("bits64", True), i["major_version"]))
+        return prefer64[0]
+
+    @staticmethod
+    def find_java(preferred_path=None, min_major=None):
         """
         Find a working Java executable.
+        `min_major`가 있으면 그 주 버전 이상의 64비트 런타임을 고른다.
         Returns dict with path, version, major_version or None.
         """
-        candidates = []
-
-        # 1. User-specified path
+        # 1. 사용자가 정한 경로는 그것만 본다
         if preferred_path and preferred_path != "java":
-            candidates.append(preferred_path)
+            return JavaDetector.get_java_info(preferred_path)
 
-        # 2. JAVA_HOME
+        # 2. 데몬이 찾은 런타임 (JAVA_HOME, PATH, 알려진 설치 위치)
+        found = JavaDetector.daemon_runtimes()
+        if found:
+            return JavaDetector._choose(found, min_major)
+
+        # 3. 데몬이 목록을 주지 않으면 직접 찾는다 (바로가기는 건너뛴다)
+        candidates = []
         java_home = os.environ.get("JAVA_HOME")
         if java_home:
             exe = "java.exe" if os.name == "nt" else "java"
             candidates.append(os.path.join(java_home, "bin", exe))
-
-        # 3. PATH (just "java")
-        candidates.append("java")
-
-        # 4. Platform-specific common paths
+        on_path = shutil.which("java")
+        if on_path:
+            candidates.append(on_path)
         if os.name == "nt":
             for base in JavaDetector.WINDOWS_PATHS:
-                expanded = os.path.expandvars(base)
-                if os.path.isdir(expanded):
-                    for root, _dirs, files in os.walk(expanded):
-                        if "java.exe" in files:
-                            candidates.append(os.path.join(root, "java.exe"))
+                candidates.extend(JavaDetector._runtimes_under(os.path.expandvars(base), "java.exe"))
         else:
             for path in JavaDetector.UNIX_PATHS:
                 if os.path.isfile(path):
                     candidates.append(path)
-                elif os.path.isdir(path):
-                    for root, _dirs, files in os.walk(path):
-                        if "java" in files:
-                            candidates.append(os.path.join(root, "java"))
+                else:
+                    candidates.extend(JavaDetector._runtimes_under(path, "java"))
 
-        # Try each candidate
-        seen = set()
+        deadline = time.monotonic() + JavaDetector.SEARCH_BUDGET
+        seen, infos = set(), []
         for candidate in candidates:
-            if candidate in seen:
+            key = os.path.normcase(os.path.abspath(candidate))
+            if key in seen or JavaDetector.is_shim(candidate):
                 continue
-            seen.add(candidate)
+            seen.add(key)
+            if time.monotonic() > deadline:
+                break
             info = JavaDetector.get_java_info(candidate)
-            if info:
-                return info
+            if not info:
+                continue
+            infos.append(info)
+            if info.get("bits64", True) and (not min_major or info["major_version"] >= min_major):
+                break
+        return JavaDetector._choose(infos, min_major)
 
-        return None
+    @staticmethod
+    def _runtimes_under(base, exe):
+        """`<base>/<jdk>/bin/<exe>`와 `<base>/<jdk>/Contents/Home/bin/<exe>`(macOS)만 본다"""
+        if not os.path.isdir(base):
+            return []
+        found = []
+        try:
+            homes = sorted(os.listdir(base))
+        except OSError:
+            return []
+        for name in homes:
+            for rel in (("bin", exe), ("Contents", "Home", "bin", exe)):
+                path = os.path.join(base, name, *rel)
+                if os.path.isfile(path):
+                    found.append(path)
+                    break
+        return found
 
     @staticmethod
     def get_java_info(java_path):
@@ -227,7 +293,7 @@ class JavaDetector:
             creationflags = 0x08000000 if os.name == "nt" else 0
             result = subprocess.run(
                 [java_path, "-version"],
-                capture_output=True, text=True, timeout=10,
+                capture_output=True, text=True, timeout=JavaDetector.PROBE_TIMEOUT,
                 creationflags=creationflags
             )
             output = result.stderr + result.stdout
@@ -239,6 +305,8 @@ class JavaDetector:
                     "path": java_path,
                     "version": version_str,
                     "major_version": major,
+                    # 64비트 JVM은 `-version`에 "64-Bit"를 적는다 (HotSpot, OpenJ9)
+                    "bits64": "64-bit" in output.lower(),
                     "raw_output": output.strip()
                 }
         except (subprocess.TimeoutExpired, FileNotFoundError, OSError, PermissionError):
@@ -927,14 +995,33 @@ def _java_memory(value):
     return f"{int(gb)}G" if gb == int(gb) else f"{int(gb * 1024)}M"
 
 
-def _launch_java(config, server_jar):
-    """실제로 띄울 Java: <working_dir>/java/의 번들 Java가 시스템 Java보다 먼저다."""
+def _required_java_for(config, server_jar, jar_info=None):
+    """이 서버에 필요한 Java 주 버전: 서버 jar의 version.json java_version, 없으면 Minecraft 버전으로 추정"""
+    if jar_info is None and server_jar:
+        jar_info = _read_jar_version(*os.path.split(server_jar))
+    min_java = (jar_info or {}).get("java_version")
+    if isinstance(min_java, int) and min_java > 0:
+        return min_java
+    return required_java(_minecraft_version(config, server_jar, jar_info))
+
+
+def _minecraft_version(config, server_jar, jar_info=None):
+    """설정의 server_version, 없으면 서버 jar, 그것도 없으면 서버 폴더(인자 파일로 뜨는 Forge/NeoForge의 로더 버전)"""
+    version = config.get("server_version") or (jar_info or {}).get("version")
+    if version or not config.get("working_dir"):
+        return version
+    return server_types.detect(config["working_dir"], server_jar).get("version")
+
+
+def _launch_java(config, server_jar, jar_info=None):
+    """실제로 띄울 Java: <working_dir>/java/의 번들 Java가 시스템 Java보다 먼저다.
+    시스템 Java는 이 서버에 필요한 주 버전 이상인 것을 고른다."""
     java_path = config.get("java_path", "java")
     wd = config.get("working_dir") or (os.path.dirname(os.path.abspath(server_jar)) if server_jar else "")
     bundled = JavaDownloader._find_bundled_java(os.path.join(wd, "java")) if wd else None
     if bundled:
         return bundled
-    java_info = JavaDetector.find_java(java_path)
+    java_info = JavaDetector.find_java(java_path, min_major=_required_java_for(config, server_jar, jar_info))
     return java_info["path"] if java_info else java_path
 
 
@@ -948,9 +1035,10 @@ def validate(config):
     working_dir = config.get("working_dir", "")
 
     # Java: 띄울 Java로 검사한다. 필요한 버전은 서버 jar의 version.json(java_version, id)을 먼저 본다
-    java_info = JavaDetector.find_java(_launch_java(config, server_jar))
     jar_info = _read_jar_version(*os.path.split(server_jar)) if server_jar else None
-    mc_version = config.get("server_version") or (jar_info or {}).get("version")
+    launch_java = _launch_java(config, server_jar, jar_info)
+    java_info = JavaDetector.get_java_info(launch_java) if launch_java != "java" else None
+    mc_version = _minecraft_version(config, server_jar, jar_info)
     issues.extend(JavaDetector.validate_for_minecraft(
         java_info, mc_version, min_java=(jar_info or {}).get("java_version")))
 
@@ -1861,7 +1949,7 @@ class ServerInstaller:
         java_req = details.get("java_major_version")
         if java_req:
             # Check if system Java is already sufficient
-            java_info = JavaDetector.find_java()
+            java_info = JavaDetector.find_java(min_major=java_req)
             if java_info and java_info["major_version"] >= java_req:
                 result["java_ok"] = True
                 result["java_path"] = java_info["path"]

@@ -342,3 +342,23 @@ def resolve_download(server_type, mc_version):
         return {"url": f"https://meta.fabricmc.net/v2/versions/loader/{mc_version}/{stable[0]}/{installer}/server/jar",
                 "build": stable[0]}
     raise ValueError("install_unsupported")
+
+
+def latest_installable(server_type, releases, tries=10):
+    """서버 종류가 받을 수 있는 가장 새 릴리스 (`releases`는 새것부터).
+
+    Paper·Folia는 새 마인크래프트 버전이 나온 뒤 안정 빌드가 늦게 나오므로, Mojang 최신이 아직 없을 수 있다.
+    받을 곳이 따로 없는 종류(바닐라 등)나 확인하지 못하면(네트워크) None — 호출 쪽이 Mojang 최신을 쓴다
+    """
+    if not SERVER_TYPES.get(server_type, {}).get("install"):
+        return None
+    for version in releases[:tries]:
+        try:
+            resolve_download(server_type, version)
+            return version
+        except ValueError as e:
+            if str(e) != "version_unavailable":
+                return None
+        except Exception:
+            return None
+    return None

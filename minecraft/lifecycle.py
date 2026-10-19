@@ -1597,7 +1597,14 @@ def status(config):
 
 def player_count(config):
     """접속자 수 (module.toml [status] players). 데몬이 켜진 서버에 1분마다 부른다 (Server List Ping)"""
-    ping_result = MinecraftPing.ping(config.get("host", "127.0.0.1"), int(config.get("port", 25565)), timeout=3)
+    props = ServerPropertiesManager(config.get("working_dir", "")).read() if config.get("working_dir") else {}
+    if props.get("enable-status", "").lower() == "false":
+        # 핑에 답하지 않는 설정: 수는 모르지만 실패가 아니다 (실패로 답하면 데몬이 응답 없음으로 알린다)
+        return {"success": True}
+    # server-ip로 한 주소에만 묶었으면 127.0.0.1로는 닿지 않는다
+    bound = props.get("server-ip", "")
+    host = bound if bound not in ("", "0.0.0.0", "::") else config.get("host", "127.0.0.1")
+    ping_result = MinecraftPing.ping(host, int(config.get("port", 25565)), timeout=3)
     if not ping_result:
         return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
     players = ping_result.get("players")

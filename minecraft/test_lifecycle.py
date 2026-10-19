@@ -656,6 +656,24 @@ def test_player_count_reads_server_list_ping():
             assert lifecycle.player_count({"port": 25570})["success"] is False, reply
 
 
+def test_player_count_without_status_answers_that_the_count_is_unknown(tmp_path):
+    """enable-status=false면 핑이 늘 실패한다: 실패로 답하면 데몬이 5분 뒤 응답 없음으로 알린다 (saba-chan 리뷰 282)"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("enable-status=false\n", encoding="utf-8")
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", side_effect=AssertionError("pinged")):
+        assert lifecycle.player_count({"working_dir": str(tmp_path), "port": 25565}) == {"success": True}
+
+
+def test_player_count_pings_the_address_the_server_listens_on(tmp_path):
+    """server-ip를 LAN 주소로 묶으면 127.0.0.1로는 닿지 않는다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("server-ip=192.168.0.10\n", encoding="utf-8")
+    ping = {"players": {"online": 1, "max": 20}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping) as p:
+        assert lifecycle.player_count({"working_dir": str(tmp_path), "port": 25565})["online"] == 1
+    p.assert_called_once_with("192.168.0.10", 25565, timeout=3)
+
+
 def test_find_java_picks_a_runtime_new_enough_from_the_daemon_list(monkeypatch):
     """데몬이 넘긴 런타임 중 필요한 버전 이상인 64비트를 고르고, `-version`을 돌리지 않는다"""
     import json as _json

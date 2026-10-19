@@ -908,30 +908,21 @@ class MinecraftPing:
     def ping(host="127.0.0.1", port=25565, timeout=3):
         """Ping a server and get status dict (players, version, motd) or None."""
         try:
+            # 격리 실행(미확인 모듈)은 127.0.0.1에 닿지 못한다: 데몬이 이 인스턴스 포트로 대신 보낸다
+            if os.environ.get("SABA_LOOPBACK_DIR") and host in ("127.0.0.1", "localhost"):
+                from daemon_rcon import loopback_exchange
+                data = loopback_exchange(port, MinecraftPing._request(host, port), timeout=timeout, idle_ms=300)
+                return MinecraftPing._parse_response(data)
             # with 블록이라 오류가 나도 소켓이 닫힌다
             with socket.create_connection((host, port), timeout=timeout) as sock:
                 return MinecraftPing._exchange(sock, host, port)
-        except (socket.timeout, socket.error, OSError):
+        except (socket.timeout, socket.error, OSError, ImportError, ValueError):
             return None
 
     @staticmethod
     def _exchange(sock, host, port):
         """핸드셰이크와 상태 요청을 보내고 응답을 읽는다."""
-        # Handshake
-        protocol_version = MinecraftPing._encode_varint(-1)
-        host_bytes = host.encode("utf-8")
-        host_len = MinecraftPing._encode_varint(len(host_bytes))
-        port_bytes = struct.pack(">H", port)
-        next_state = MinecraftPing._encode_varint(1)
-
-        handshake_data = (
-            MinecraftPing._encode_varint(0x00)
-            + protocol_version + host_len + host_bytes + port_bytes + next_state
-        )
-        sock.sendall(MinecraftPing._encode_varint(len(handshake_data)) + handshake_data)
-
-        # Status request
-        sock.sendall(MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
+        sock.sendall(MinecraftPing._request(host, port))
 
         # Read response
         data = b""
@@ -948,6 +939,24 @@ class MinecraftPing:
                 continue
 
         return None
+
+    @staticmethod
+    def _request(host, port):
+        """핸드셰이크와 상태 요청 바이트"""
+        # Handshake
+        protocol_version = MinecraftPing._encode_varint(-1)
+        host_bytes = host.encode("utf-8")
+        host_len = MinecraftPing._encode_varint(len(host_bytes))
+        port_bytes = struct.pack(">H", port)
+        next_state = MinecraftPing._encode_varint(1)
+
+        handshake_data = (
+            MinecraftPing._encode_varint(0x00)
+            + protocol_version + host_len + host_bytes + port_bytes + next_state
+        )
+        # Status request
+        return (MinecraftPing._encode_varint(len(handshake_data)) + handshake_data
+                + MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
 
     @staticmethod
     def _encode_varint(value):

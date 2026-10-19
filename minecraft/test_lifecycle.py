@@ -674,6 +674,24 @@ def test_player_count_pings_the_address_the_server_listens_on(tmp_path):
     p.assert_called_once_with("192.168.0.10", 25565, timeout=3)
 
 
+def test_a_sandboxed_run_pings_its_server_through_the_daemon(monkeypatch, tmp_path):
+    """격리 실행은 127.0.0.1에 닿지 못해 접속자 핑이 늘 실패했다. SABA_LOOPBACK_DIR이 있으면 데몬 중계로 핑한다"""
+    import daemon_rcon
+    from minecraft import lifecycle
+    status = json.dumps({"players": {"online": 1, "max": 20}}).encode()
+    body = lifecycle.MinecraftPing._encode_varint(0) + lifecycle.MinecraftPing._encode_varint(len(status)) + status
+    sent = []
+
+    def relay(port, data, *, timeout=5, idle_ms=None):
+        sent.append((port, data, idle_ms))
+        return lifecycle.MinecraftPing._encode_varint(len(body)) + body
+    monkeypatch.setenv("SABA_LOOPBACK_DIR", str(tmp_path))
+    monkeypatch.setattr(daemon_rcon, "loopback_exchange", relay)
+    monkeypatch.setattr(lifecycle.socket, "create_connection", lambda *a, **k: pytest.fail("a direct connection was tried"))
+    assert lifecycle.MinecraftPing.ping("127.0.0.1", 25570)["players"]["online"] == 1
+    assert sent == [(25570, lifecycle.MinecraftPing._request("127.0.0.1", 25570), 300)]
+
+
 def test_find_java_picks_a_runtime_new_enough_from_the_daemon_list(monkeypatch):
     """데몬이 넘긴 런타임 중 필요한 버전 이상인 64비트를 고르고, `-version`을 돌리지 않는다"""
     import json as _json

@@ -13,6 +13,7 @@ import struct
 import time
 import random
 import base64
+import io
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -28,6 +29,41 @@ except ImportError:
     # 예전 코어의 daemon_rcon에는 daemon_post가 없다: 모듈은 불러지고, 그 경로를 쓰는 명령만 안내와 함께 실패한다
     def daemon_post(path, payload, timeout=10):
         raise ConnectionError("this saba-chan core is too old for this Palworld module; update saba-chan")
+# 격리 실행(미확인 모듈)은 127.0.0.1에 닿지 못한다: 데몬이 이 인스턴스 포트로 대신 보낸다 (SABA_LOOPBACK_DIR)
+try:
+    from daemon_rcon import loopback_http
+except ImportError:
+    loopback_http = None
+
+
+class _RelayedResponse(io.BytesIO):
+    """`urllib.request.urlopen` 응답처럼 쓰는 중계 응답"""
+
+    def __init__(self, status, body):
+        super().__init__(body)
+        self.status = status
+
+    def getcode(self):
+        return self.status
+
+
+def _urlopen(req, timeout):
+    """`urllib.request.urlopen`과 같다. 격리 실행이 루프백에 보내는 요청만 데몬 중계(`loopback_http`)로 보낸다.
+    실패는 urlopen과 같은 예외(HTTPError·URLError)로 낸다"""
+    url = urllib.parse.urlsplit(req.full_url)
+    if not (os.environ.get("SABA_LOOPBACK_DIR") and loopback_http and url.hostname in ("127.0.0.1", "localhost")):
+        return urllib.request.urlopen(req, timeout=timeout)
+    path = url.path + (f"?{url.query}" if url.query else "")
+    try:
+        status, body = loopback_http(url.port or 80, req.get_method(), path, headers=dict(req.header_items()),
+                                     body=req.data, timeout=timeout)
+    except OSError as e:
+        raise urllib.error.URLError(e) from e
+    if status >= 400:
+        raise urllib.error.HTTPError(req.full_url, status, "", None, io.BytesIO(body))
+    return _RelayedResponse(status, body)
+
+
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
 # functions that touch PalWorldSettings.ini return extension_required.
 try:
@@ -67,7 +103,7 @@ class PalworldRestClient:
         print(f"[REST] {method} {url} payload={payload}", file=sys.stderr)
 
         try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            with _urlopen(req, timeout=self.timeout) as resp:
                 body = resp.read().decode('utf-8', errors='ignore')
                 if not body:
                     return None
@@ -145,7 +181,7 @@ def resolve_player_id(instance_id, player_input, config):
             encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
             req.add_header('Authorization', f'Basic {encoded_credentials}')
         
-        with urllib.request.urlopen(req, timeout=5) as response:
+        with _urlopen(req, timeout=5) as response:
             result = json.loads(response.read().decode('utf-8'))
             
             # Palworld API 직접 응답 구조
@@ -1373,7 +1409,7 @@ def execute_rest_direct(endpoint, body, method, command_text, config):
             encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
             req.add_header('Authorization', f'Basic {encoded_credentials}')
         
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with _urlopen(req, timeout=10) as response:
             response_text = response.read().decode('utf-8')
             status_code = response.getcode()
             

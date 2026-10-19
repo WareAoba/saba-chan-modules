@@ -299,10 +299,17 @@ def launch_target(config, server_jar, working_dir):
 # ─── 설치 소스 ──────────────────────────────────────────────────
 
 def _get_json(url, timeout=15):
+    """받을 곳의 JSON. 그 버전이 없으면(404: Folia·Purpur·등록 초기의 Paper) ValueError("version_unavailable")"""
+    import urllib.error
     import urllib.request
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            raise ValueError("version_unavailable") from e
+        raise
 
 
 def resolve_download(server_type, mc_version):
@@ -342,3 +349,28 @@ def resolve_download(server_type, mc_version):
         return {"url": f"https://meta.fabricmc.net/v2/versions/loader/{mc_version}/{stable[0]}/{installer}/server/jar",
                 "build": stable[0]}
     raise ValueError("install_unsupported")
+
+
+def latest_installable(server_type, releases, tries=10, deadline_secs=60):
+    """서버 종류가 받을 수 있는 가장 새 릴리스 (`releases`는 새것부터).
+
+    Paper·Folia는 새 마인크래프트 버전이 나온 뒤 안정 빌드가 늦게 나오므로, Mojang 최신이 아직 없을 수 있다.
+    받을 곳이 따로 없는 종류(바닐라 등)나 확인하지 못하면(네트워크) None — 호출 쪽이 Mojang 최신을 쓴다
+    """
+    if not SERVER_TYPES.get(server_type, {}).get("install"):
+        return None
+    import time
+    # 차례로 묻는다: 받을 곳이 느려도 데몬의 list_versions 한도(120초) 안에 끝나게
+    deadline = time.monotonic() + deadline_secs
+    for version in releases[:tries]:
+        if time.monotonic() > deadline:
+            return None
+        try:
+            resolve_download(server_type, version)
+            return version
+        except ValueError as e:
+            if str(e) != "version_unavailable":
+                return None
+        except Exception:
+            return None
+    return None

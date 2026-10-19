@@ -383,3 +383,43 @@ def test_a_fabric_launcher_jar_tells_its_minecraft_version(tmp_path):
     })
     info = server_types.inspect_jar(jar)
     assert (info["type"], info["version"]) == ("fabric", "1.21.1")
+
+
+def test_new_instances_pick_the_newest_version_their_server_type_can_install():
+    """만들 때 고르는 최신 버전은 서버 종류가 받을 수 있는 것이다 (Paper·Folia는 안정 빌드가 나와야 한다)"""
+    manifest = {"latest": {"release": "1.21.5", "snapshot": "25w01a"},
+                "versions": [{"id": v, "type": "release"} for v in ["1.21.5", "1.21.4", "1.21.3"]]}
+
+    def resolve(server_type, version):
+        if version == "1.21.5":
+            raise ValueError("version_unavailable")
+        return {"url": "u"}
+
+    with mock.patch.object(lifecycle.ServerInstaller, "fetch_version_manifest", return_value=manifest), \
+            mock.patch.object(server_types, "resolve_download", side_effect=resolve):
+        paper = lifecycle.list_versions({"settings": {"server_type": "paper"}})
+        vanilla = lifecycle.list_versions({"settings": {"server_type": "vanilla"}})
+        plain = lifecycle.list_versions({})
+    assert paper["success"] and paper["latest"]["release"] == "1.21.4"
+    assert vanilla["latest"]["release"] == "1.21.5"
+    assert plain["latest"]["release"] == "1.21.5"
+
+
+def test_a_version_the_source_does_not_have_yet_is_skipped_not_given_up_on():
+    """Folia·Purpur는 아직 없는 버전에 404를 준다: 그 버전을 건너뛰고 다음 릴리스를 본다 (Mojang 최신으로 돌아가지 않는다)"""
+    import io
+    import urllib.error
+
+    def fake_urlopen(req, timeout=None):
+        url = req.full_url
+        if "1.21.5" in url:
+            raise urllib.error.HTTPError(url, 404, "Not Found", {}, io.BytesIO(b"{}"))
+        if "purpur" in url:
+            body = {"build": "100", "md5": "x"}
+        else:
+            body = [{"id": 7, "channel": "STABLE", "downloads": {"server:default": {"url": "u", "checksums": {"sha256": "s"}}}}]
+        return io.BytesIO(json.dumps(body).encode())
+
+    with mock.patch("urllib.request.urlopen", side_effect=fake_urlopen):
+        for server_type in ("paper", "folia", "purpur"):
+            assert server_types.latest_installable(server_type, ["1.21.5", "1.21.4"]) == "1.21.4", server_type

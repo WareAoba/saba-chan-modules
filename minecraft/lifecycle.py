@@ -2037,6 +2037,8 @@ def list_versions(config):
         include_snapshots (bool): Include snapshots/pre-releases (default: false)
         page (int): Page number, 1-based (default: 1)
         per_page (int): Results per page (default: 25)
+        settings (dict): 인스턴스 설정. `server_type`이 있으면 `latest.release`는 그 종류가 받을 수 있는
+            가장 새 릴리스다 (데몬이 새 인스턴스의 버전을 고를 때 넘긴다)
     """
     try:
         include_snapshots = config.get("include_snapshots", False)
@@ -2048,6 +2050,12 @@ def list_versions(config):
             page=page,
             per_page=per_page,
         )
+        server_type = (config.get("settings") or {}).get("server_type")
+        if server_type and server_type != "vanilla":
+            releases = [v["id"] for v in result["versions"] if v["type"] == "release"]
+            installable = server_types.latest_installable(server_type, releases)
+            if installable:
+                result["latest"] = {**result.get("latest", {}), "release": installable}
         return {"success": True, **result}
     except Exception as e:
         return {"success": False, "message": str(e)}

@@ -1039,6 +1039,14 @@ def get_launch_command(config):
         # -Dzomboid.steam=1 → 0으로 교체
         args = ["-Dzomboid.steam=0" if a == "-Dzomboid.steam=1" else a for a in args]
     
+    # 데몬이 정한 포트(다른 인스턴스와 겹치지 않게 옮긴 값). ini의 DefaultPort보다 앞선다
+    try:
+        port = int(config.get("port") or 0)
+    except (ValueError, TypeError):
+        port = 0
+    if 0 < port < 65536:
+        args.extend(["-port", str(port)])
+
     # Admin password (only on first launch to bypass prompt)
     admin_password = config.get("admin_password", "")
     if admin_password:
@@ -1134,6 +1142,19 @@ def stop(config):
     return _kill(pid)
 
 
+def _ini_updates(settings):
+    """saba-chan 설정 키를 ini 키·값으로 (ini에 없는 키는 뺀다)"""
+    updates = {}
+    for key, value in (settings or {}).items():
+        ini_key = _INI_KEY_MAP.get(key)
+        if ini_key and value is not None:
+            # Convert booleans to lowercase strings
+            if isinstance(value, bool):
+                value = "true" if value else "false"
+            updates[ini_key] = str(value)
+    return updates
+
+
 def configure(config):
     """Apply settings from saba-chan to servertest.ini.
     
@@ -1144,15 +1165,7 @@ def configure(config):
         return {"success": False, "message": i18n.t("errors.no_settings")}
     
     ini_path = IniManager.get_ini_path(config)
-    updates = {}
-    
-    for key, value in settings.items():
-        ini_key = _INI_KEY_MAP.get(key)
-        if ini_key:
-            # Convert booleans to lowercase strings
-            if isinstance(value, bool):
-                value = "true" if value else "false"
-            updates[ini_key] = str(value)
+    updates = _ini_updates(settings)
     
     if not updates:
         return {"success": True, "updated_keys": [], "message": i18n.t("messages.no_mappable_settings")}
@@ -1322,6 +1335,7 @@ def install_server(config):
                 exe = os.path.join(install_dir, "start-server.sh")
             result["install_path"] = install_dir
             result["executable_path"] = exe if os.path.exists(exe) else ""
+            _write_initial_ini(config)
 
         return result
 
@@ -1366,6 +1380,7 @@ def install_server(config):
                 exe = os.path.join(install_dir, "StartServer64.bat")
             else:
                 exe = os.path.join(install_dir, "start-server.sh")
+            _write_initial_ini(config)
 
             return {
                 "success": True,
@@ -1382,6 +1397,22 @@ def install_server(config):
         return {"success": False, "message": i18n.t("errors.install_timeout")}
     except Exception as e:
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
+
+
+def _write_initial_ini(config):
+    """첫 설치: 만들 때 고른 설정(접속 암호·인원·포트 등)으로 서버 ini를 만든다. 서버는 첫 실행 때 나머지 키를
+    기본값으로 채운다. 이미 있으면(업데이트) 건드리지 않는다"""
+    settings = config.get("settings") or {}
+    ini_path = IniManager.get_ini_path({**config, **settings})
+    if os.path.exists(ini_path):
+        return
+    updates = _ini_updates(settings)
+    if not updates:
+        return
+    try:
+        IniManager.write(ini_path, updates)
+    except Exception as e:
+        print(f"[Zomboid] Provisioning: could not write {ini_path}: {e}", file=sys.stderr)
 
 
 def _find_steamcmd():

@@ -418,3 +418,27 @@ def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypat
     props = lifecycle.read_properties({"working_dir": install})["properties"]
     assert props["ServerName"] == "우리서버"
     assert props["ServerPassword"] == "secret"
+
+
+def test_a_new_server_starts_with_the_settings_chosen_when_creating_it(tmp_path, monkeypatch):
+    """만들 때 고른 이름·비밀번호·인원은 첫 설치의 PalWorldSettings.ini에 들어간다 (비밀번호 없이 열리지 않게)"""
+    from palworld import lifecycle
+
+    class FakeSteam:
+        def ensure_available(self):
+            pass
+
+        def install(self, **kwargs):
+            return {"success": True}
+
+    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
+    install = str(tmp_path / "server")
+    settings = {"server_name": "우리서버", "server_password": "secret", "max_players": 8, "managed_start": True}
+    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+        assert lifecycle.install_server({"install_dir": install, "settings": settings})["success"]
+    props = lifecycle.read_properties({"working_dir": install})["properties"]
+    assert props["ServerName"] == "우리서버"
+    assert props["ServerPassword"] == "secret"
+    assert props["ServerPlayerMaxNum"] == "8"
+    assert props["RESTAPIEnabled"] == "True"
+    assert props["RCONEnabled"] == "False"

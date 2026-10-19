@@ -422,3 +422,41 @@ def test_reset_server_reports_a_data_folder_it_cannot_reach(tmp_path, monkeypatc
     assert lifecycle.reset_server({"cache_dir": str(tmp_path), "server_name": "servertest"})["success"] is False
     monkeypatch.setattr(lifecycle.os, "stat", real_stat)
     assert lifecycle.reset_server({"cache_dir": str(tmp_path / "none"), "server_name": "servertest"})["success"] is True
+
+
+def test_the_assigned_port_reaches_the_server(tmp_path):
+    """두 번째 인스턴스는 데몬이 옮긴 포트로 떠야 한다: 실행 인자 -port로 넘긴다"""
+    from unittest import mock
+    from zomboid import lifecycle
+    parsed = {"java_exe_abs": "java", "classpath": "a.jar", "jvm_flags": ["-Xmx2g"], "main_class": "zombie.network.GameServer", "extra_args": []}
+    with mock.patch.object(lifecycle, "_find_server_dir", return_value=str(tmp_path)), \
+         mock.patch.object(lifecycle, "_parse_launch_info", return_value=parsed):
+        args = lifecycle.get_launch_command({"port": 16300, "preview": True})["args"]
+        default = lifecycle.get_launch_command({"preview": True})["args"]
+    assert args[args.index("-port") + 1] == "16300"
+    assert "-port" not in default
+
+
+def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(tmp_path, monkeypatch):
+    """만들 때 고른 접속 암호·인원·포트는 첫 설치에서 서버 ini에 들어간다 (암호 없이 열리지 않게). 업데이트는 덮지 않는다"""
+    from unittest import mock
+    from zomboid import lifecycle
+
+    class FakeSteam:
+        def ensure_available(self):
+            pass
+
+        def install(self, **kwargs):
+            return {"success": True}
+
+    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
+    home = tmp_path / "data"
+    settings = {"cache_dir": str(home), "server_name": "srv", "password": "pw", "max_players": 4, "port": 16300, "ram": 4}
+    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+        assert lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": settings})["success"]
+        ini = home / "Server" / "srv.ini"
+        values = lifecycle.IniManager.read(str(ini))
+        assert (values["Password"], values["MaxPlayers"], values["DefaultPort"]) == ("pw", "4", "16300")
+        lifecycle.IniManager.update(str(ini), {"Password": "changed"})
+        assert lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": settings})["success"]
+    assert lifecycle.IniManager.read(str(ini))["Password"] == "changed"

@@ -922,6 +922,23 @@ def _from_ini_list(value):
     return ",".join(item.strip().strip('"') for item in text.split(",") if item.strip().strip('"'))
 
 
+def _apply_settings(props, settings):
+    """saba-chan 설정 키를 INI 값으로 바꿔 `props`에 넣고, 바꾼 INI 키 목록을 돌려준다.
+    INI에 없는 키(데몬 내부 필드 등)는 건너뛴다"""
+    updated_keys = []
+    for key, value in (settings or {}).items():
+        ini_key = _PALWORLD_KEY_MAP.get(key)
+        if ini_key is None or value is None:
+            continue
+        if isinstance(value, bool):
+            value = "True" if value else "False"
+        elif ini_key in _LIST_KEYS:
+            value = _to_ini_list(value, _LIST_KEYS[ini_key])
+        props[ini_key] = str(value)
+        updated_keys.append(ini_key)
+    return updated_keys
+
+
 def configure(config):
     """Apply settings to PalWorldSettings.ini."""
     settings = config.get("settings", {})
@@ -934,19 +951,7 @@ def configure(config):
 
     # Read existing properties (or start fresh)
     props = _parse_option_settings(ini_path)
-
-    updated_keys = []
-    for key, value in settings.items():
-        ini_key = _PALWORLD_KEY_MAP.get(key)
-        if ini_key is None:
-            # Not a recognized INI setting — skip (saba-chan internal fields)
-            continue
-        if isinstance(value, bool):
-            value = "True" if value else "False"
-        elif ini_key in _LIST_KEYS:
-            value = _to_ini_list(value, _LIST_KEYS[ini_key])
-        props[ini_key] = str(value)
-        updated_keys.append(ini_key)
+    updated_keys = _apply_settings(props, settings)
 
     # RCON은 보안 정책으로 막는다: 손으로 켠 INI라도 저장할 때 끈다
     props["RCONEnabled"] = "False"
@@ -1194,6 +1199,8 @@ def install_server(config):
                 else:
                     defaults = dict(DEFAULT_PALWORLD_SETTINGS)
                     defaults["RESTAPIEnabled"] = "True"
+                    # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
+                    _apply_settings(defaults, config.get("settings"))
                     defaults["RCONEnabled"] = "False"
                     _write_option_settings(ini_path, defaults)
                     print(

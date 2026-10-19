@@ -1044,8 +1044,10 @@ def get_launch_command(config):
         port = int(config.get("port") or 0)
     except (ValueError, TypeError):
         port = 0
-    if 0 < port < 65536:
-        args.extend(["-port", str(port)])
+    if 0 < port < 65535:
+        # 두 번째 포트(ini UDPPort, 기본 port+1)도 함께: ini 값이 남으면 다른 인스턴스와 겹친다.
+        # 데몬은 포트를 10씩 옮기므로 port+1은 다른 인스턴스의 포트와 겹치지 않는다
+        args.extend(["-port", str(port), "-udpport", str(port + 1)])
 
     # Admin password (only on first launch to bypass prompt)
     admin_password = config.get("admin_password", "")

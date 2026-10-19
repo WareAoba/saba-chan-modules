@@ -434,7 +434,9 @@ def test_the_assigned_port_reaches_the_server(tmp_path):
         args = lifecycle.get_launch_command({"port": 16300, "preview": True})["args"]
         default = lifecycle.get_launch_command({"preview": True})["args"]
     assert args[args.index("-port") + 1] == "16300"
-    assert "-port" not in default
+    # 두 번째 포트(UDPPort, 기본 port+1)도 함께 옮긴다: ini 값(16262)이 남으면 첫 서버와 겹친다
+    assert args[args.index("-udpport") + 1] == "16301"
+    assert "-port" not in default and "-udpport" not in default
 
 
 def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(tmp_path, monkeypatch):

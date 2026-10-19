@@ -387,14 +387,15 @@ class IniManager:
 
     @staticmethod
     def encoding_of(ini_path):
-        """ini의 인코딩: UTF-8이 아니면(PZ·메모장이 ANSI로 쓴 cp949 등) 시스템 로캘·cp949·latin-1 순서.
+        """ini의 인코딩: UTF-8이 아니면(PZ·메모장이 ANSI로 쓴 cp949 등) cp949·시스템 로캘·latin-1 순서
+        (영문 Windows의 cp1252는 거의 모든 바이트를 받아 한글을 깨진 글자로 읽으므로 cp949가 먼저다).
         쓸 때도 같은 인코딩을 써서 건드리지 않은 키의 한글 값이 깨지지 않게 한다"""
         try:
             with open(ini_path, "rb") as f:
                 raw = f.read()
         except OSError:
             return "utf-8"
-        for encoding in ("utf-8", locale.getpreferredencoding(False), "cp949", "latin-1"):
+        for encoding in ("utf-8", "cp949", locale.getpreferredencoding(False), "latin-1"):
             try:
                 raw.decode(encoding)
                 return encoding

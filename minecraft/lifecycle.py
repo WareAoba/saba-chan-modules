@@ -505,33 +505,47 @@ class JavaDownloader:
                                 member.name = member.name[len(top_dir) + 1:]
                             if member.name:
                                 tf.extract(member, java_dir)
-            # 옛 java/는 먼저 옆으로 옮긴다: 쓰는 중이라 옮기지 못하면 손대지 않고 실패한다
-            old_dir = final_dir + ".old"
-            shutil.rmtree(old_dir, ignore_errors=True)
-            if os.path.exists(final_dir):
-                os.replace(final_dir, old_dir)
-            os.replace(java_dir, final_dir)
-            shutil.rmtree(old_dir, ignore_errors=True)
-            java_dir = final_dir
         except Exception as e:
-            shutil.rmtree(final_dir + ".part", ignore_errors=True)
+            shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
         finally:
             if os.path.exists(tmp_file):
                 os.remove(tmp_file)
 
-        # Make java executable on Unix
+        # 새 JRE가 이 PC에서 도는지 먼저 본다: 돌지 않으면 원래 java/를 그대로 둔다
         java_exe = JavaDownloader._find_bundled_java(java_dir)
         if java_exe and os.name != "nt":
             import stat
             st = os.stat(java_exe)
             os.chmod(java_exe, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-
         if not java_exe:
+            shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_executable_missing")}
+        if not JavaDetector.get_java_info(java_exe):
+            shutil.rmtree(java_dir, ignore_errors=True)
+            return {"success": False, "message": i18n.t("errors.java_run_failed")}
 
-        # Verify it works
-        info = JavaDetector.get_java_info(java_exe)
+        # 옛 java/는 먼저 옆으로 옮긴다: 쓰는 중이라 옮기지 못하면 손대지 않고 실패한다.
+        # 새 것을 들이지 못하면 옛 것을 되돌린다
+        old_dir = final_dir + ".old"
+        try:
+            shutil.rmtree(old_dir, ignore_errors=True)
+            had_old = os.path.exists(final_dir)
+            if had_old:
+                os.replace(final_dir, old_dir)
+            try:
+                os.replace(java_dir, final_dir)
+            except OSError:
+                if had_old:
+                    os.replace(old_dir, final_dir)
+                raise
+        except OSError as e:
+            shutil.rmtree(java_dir, ignore_errors=True)
+            return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
+        shutil.rmtree(old_dir, ignore_errors=True)
+        java_dir = final_dir
+        java_exe = JavaDownloader._find_bundled_java(java_dir)
+        info = JavaDetector.get_java_info(java_exe) if java_exe else None
         if not info:
             return {"success": False, "message": i18n.t("errors.java_run_failed")}
 
@@ -655,10 +669,11 @@ class ServerPropertiesManager:
         return os.path.isfile(self.path)
 
     def _lines(self):
-        """파일의 줄. UTF-8이 아니면(ANSI 편집기로 저장한 cp949 등) 시스템 로캘·cp949·latin-1 순서로 읽는다"""
+        """파일의 줄. UTF-8이 아니면(ANSI 편집기로 저장한 cp949 등) cp949·시스템 로캘·latin-1 순서로 읽는다.
+        cp949가 로캘보다 먼저다: 영문 Windows의 cp1252는 거의 모든 바이트를 받아 한글을 깨진 글자로 읽는다"""
         with open(self.path, "rb") as f:
             raw = f.read()
-        for encoding in ("utf-8-sig", locale.getpreferredencoding(False), "cp949", "latin-1"):
+        for encoding in ("utf-8-sig", "cp949", locale.getpreferredencoding(False), "latin-1"):
             try:
                 return raw.decode(encoding).splitlines(keepends=True)
             except (UnicodeDecodeError, LookupError):

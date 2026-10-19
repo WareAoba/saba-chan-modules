@@ -393,11 +393,15 @@ def test_highlight_marks_unix_path_after_space_only():
     assert not any(c == "path" for _, c in _highlighted("LOG  : General      f:0, t:1765669004675, st:1> see a.b/c/d", rules))
 
 
-def test_saving_one_setting_keeps_other_values_in_a_locale_encoded_ini(tmp_path):
-    """PZ나 메모장이 cp949로 쓴 ini에서 설정 하나를 저장하면 다른 키의 한글 값이 U+FFFD로 영구히 깨졌다"""
+def test_saving_one_setting_keeps_other_values_in_a_locale_encoded_ini(tmp_path, monkeypatch):
+    """PZ나 메모장이 cp949로 쓴 ini에서 설정 하나를 저장하면 다른 키의 한글 값이 U+FFFD로 영구히 깨졌다.
+    영문 Windows(cp1252)에서도 한글 값을 깨진 글자로 읽지 않는다"""
+    from zomboid import lifecycle
     from zomboid.lifecycle import IniManager
+    monkeypatch.setattr(lifecycle.locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
     ini = tmp_path / "servertest.ini"
     ini.write_bytes("PublicName=우리 서버\nMaxPlayers=8\n".encode("cp949"))
+    assert IniManager.read(str(ini))["PublicName"] == "우리 서버"
     IniManager.write(str(ini), {"MaxPlayers": "16"})
     raw = ini.read_bytes()
     assert "PublicName=우리 서버".encode("cp949") in raw

@@ -749,6 +749,67 @@ def test_a_failed_jre_extraction_leaves_no_half_java(tmp_path, monkeypatch):
     assert sorted(p.name for p in tmp_path.iterdir()) == ["java"], "no partial folder or archive is left"
 
 
+def _jre_zip_response(exe):
+    import io
+    import zipfile as _zip
+    buf = io.BytesIO()
+    with _zip.ZipFile(buf, "w") as zf:
+        zf.writestr(f"jdk-21-jre/bin/{exe}", "new")
+    body = buf.getvalue()
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+    return Resp(body)
+
+
+def test_a_new_jre_that_does_not_run_keeps_the_old_java(tmp_path, monkeypatch):
+    """받은 JRE가 이 PC에서 돌지 않으면 원래 java/를 지운 뒤에야 알게 되어 돌던 런타임까지 잃었다.
+    새 JRE를 먼저 확인하고, 확인된 뒤에만 바꾼다"""
+    from minecraft import lifecycle
+    exe = "java.exe" if os.name == "nt" else "java"
+    old = tmp_path / "java" / "bin"
+    old.mkdir(parents=True)
+    (old / exe).write_text("old")
+    monkeypatch.setattr(lifecycle.JavaDownloader, "_platform_info", staticmethod(lambda: ("windows", "x64")))
+    monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(lambda p: None))
+    with mock.patch("urllib.request.urlopen", return_value=_jre_zip_response(exe)):
+        result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
+    assert result["success"] is False
+    assert (old / exe).read_text() == "old"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["java"]
+
+
+def test_a_failed_java_swap_puts_the_old_java_back(tmp_path, monkeypatch):
+    """옛 java/를 옆으로 옮긴 뒤 새 것을 들이지 못하면 java/가 없어져 다음 시작이 Java를 찾지 못했다"""
+    from minecraft import lifecycle
+    exe = "java.exe" if os.name == "nt" else "java"
+    old = tmp_path / "java" / "bin"
+    old.mkdir(parents=True)
+    (old / exe).write_text("old")
+    monkeypatch.setattr(lifecycle.JavaDownloader, "_platform_info", staticmethod(lambda: ("windows", "x64")))
+    # 새로 받은 JRE만 돈다 (옛 java/가 돌면 받지 않고 그것을 쓴다)
+    monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(
+        lambda p: {"path": p, "version": "21.0.5", "major_version": 21, "bits64": True} if open(p).read() == "new" else None))
+    real_replace = os.replace
+
+    def replace(src, dst):
+        if str(src).endswith(".part"):
+            raise PermissionError("in use")
+        return real_replace(src, dst)
+    monkeypatch.setattr(lifecycle.os, "replace", replace)
+    with mock.patch("urllib.request.urlopen", return_value=_jre_zip_response(exe)):
+        result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
+    assert result["success"] is False
+    assert (old / exe).read_text() == "old"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["java"]
+
+
 def test_reset_server_keeps_what_the_loader_needs_to_start(tmp_path):
     """서버 초기화는 월드·설정만 지운다. Forge·NeoForge(1.17+)는 libraries/의 인자 파일과
     user_jvm_args.txt로 뜨므로 지우면 다시 시작할 수 없다"""
@@ -767,9 +828,12 @@ def test_reset_server_keeps_what_the_loader_needs_to_start(tmp_path):
         assert not (tmp_path / rel).exists(), rel
 
 
-def test_server_properties_saved_in_the_windows_locale_are_read(tmp_path):
-    """ANSI(cp949) 편집기로 한글 MOTD를 저장한 server.properties 때문에 시작이 UnicodeDecodeError로 막혔다"""
+def test_server_properties_saved_in_the_windows_locale_are_read(tmp_path, monkeypatch):
+    """ANSI(cp949) 편집기로 한글 MOTD를 저장한 server.properties 때문에 시작이 UnicodeDecodeError로 막혔다.
+    영문 Windows(cp1252)에서도 cp949 파일을 깨진 글자로 읽어 MOTD를 망가뜨리지 않는다"""
+    from minecraft import lifecycle
     from minecraft.lifecycle import ServerPropertiesManager
+    monkeypatch.setattr(lifecycle.locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
     (tmp_path / "server.properties").write_bytes("motd=우리 서버\nserver-port=25565\n".encode("cp949"))
     manager = ServerPropertiesManager(str(tmp_path))
     assert manager.read()["motd"] == "우리 서버"

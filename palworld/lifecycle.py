@@ -1188,14 +1188,18 @@ def install_server(config):
                 os.makedirs(ini_dir, exist_ok=True)
                 ini_path = os.path.join(ini_dir, "PalWorldSettings.ini")
 
-                defaults = dict(DEFAULT_PALWORLD_SETTINGS)
-                defaults["RESTAPIEnabled"] = "True"
-                defaults["RCONEnabled"] = "False"
-                _write_option_settings(ini_path, defaults)
-                print(
-                    f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
-                    file=sys.stderr,
-                )
+                # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
+                if os.path.isfile(ini_path) and _parse_option_settings(ini_path):
+                    print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
+                else:
+                    defaults = dict(DEFAULT_PALWORLD_SETTINGS)
+                    defaults["RESTAPIEnabled"] = "True"
+                    defaults["RCONEnabled"] = "False"
+                    _write_option_settings(ini_path, defaults)
+                    print(
+                        f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
+                        file=sys.stderr,
+                    )
             except Exception as e:
                 print(
                     f"[Palworld] Provisioning: failed to write default INI: {e}",

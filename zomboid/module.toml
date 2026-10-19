@@ -1,7 +1,7 @@
 [module]
 schema_version = 1
 name = "zomboid"
-version = "0.1.1"
+version = "0.1.2"
 description = "Project Zomboid dedicated server management module"
 author = "WareAoba"
 game_name = "Project Zomboid"
@@ -24,6 +24,8 @@ default = "stdin"
 interaction_mode = "console"
 
 [config]
+# 큰 월드는 정지 때 저장이 30초(기본)를 넘는다: 저장 도중 강제 종료되지 않게
+stop_timeout = 120
 executable_path = ""
 server_executable = "StartServer64.bat"
 process_name = "java.exe"
@@ -67,6 +69,8 @@ crash_artifacts = ["hs_err_pid*.log"]
 [[settings.fields]]
 name = "cache_dir"
 type = "text"
+# 경로: 원격(디스코드·챗봇)에서 바꿀 수 없다 (다른 서버의 데이터 폴더나 네트워크 경로로 바꾸지 못하게)
+format = "path"
 label = "Data Folder"
 description = "Where this server keeps its settings, saves and logs (-cachedir). Empty uses ~/Zomboid"
 default = "{instance_dir}/zomboid"

@@ -695,3 +695,84 @@ def test_find_java_without_daemon_list_skips_oracle_shims(monkeypatch, tmp_path)
     found = JavaDetector.find_java(min_major=17)
     assert found["path"] == str(real)
     assert str(shim) not in probed
+
+
+def test_a_bundled_java_too_old_for_the_server_is_skipped(monkeypatch, tmp_path):
+    """예전 버전용으로 받아 둔 java/(JRE 17)를 1.21 서버에 쓰면 시작이 영구히 막힌다.
+    번들 Java는 필요한 주 버전 이상일 때만 쓰고, 아니면 데몬이 찾은 시스템 Java를 쓴다"""
+    import json as _json
+    from minecraft import lifecycle
+    bundled = tmp_path / "java" / "bin" / ("java.exe" if os.name == "nt" else "java")
+    bundled.parent.mkdir(parents=True)
+    bundled.write_text("")
+    (tmp_path / "java" / "release").write_text('JAVA_VERSION="17.0.12"\n')
+    system = {"java": "C:/Program Files/Eclipse Adoptium/jdk-21/bin/java.exe", "version": "21.0.5", "major": 21, "arch": "amd64"}
+    monkeypatch.setenv("SABA_JAVA_RUNTIMES", _json.dumps([system]))
+    config = {"working_dir": str(tmp_path), "server_version": "1.21.1"}
+    assert lifecycle._launch_java(config, None) == system["java"]
+    assert lifecycle._launch_java({"working_dir": str(tmp_path), "server_version": "1.20.4"}, None) == str(bundled)
+
+
+def test_a_failed_jre_extraction_leaves_no_half_java(tmp_path, monkeypatch):
+    """압축 풀기가 중간에 실패하면 반쯤 풀린 java/가 남아 그 뒤로 계속 골라졌다.
+    새 JRE는 임시 폴더에 풀고 다 풀린 뒤에만 java/를 바꾼다"""
+    import io
+    import zipfile as _zip
+    from minecraft import lifecycle
+    old = tmp_path / "java" / "bin"
+    old.mkdir(parents=True)
+    (old / ("java.exe" if os.name == "nt" else "java")).write_text("old")
+    buf = io.BytesIO()
+    exe = "java.exe" if os.name == "nt" else "java"
+    with _zip.ZipFile(buf, "w", _zip.ZIP_STORED) as zf:
+        zf.writestr(f"jdk-21-jre/bin/{exe}", "new")
+        zf.writestr("jdk-21-jre/lib/modules", "X" * 64)
+    data = bytearray(buf.getvalue())
+    data[data.index(b"X" * 64)] = ord("Y")  # 두 번째 파일의 CRC가 맞지 않는다
+    body = bytes(data)
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(lifecycle.JavaDownloader, "_platform_info", staticmethod(lambda: ("windows", "x64")))
+    monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(lambda p: None))
+    with mock.patch("urllib.request.urlopen", return_value=Resp(body)):
+        result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
+    assert result["success"] is False
+    assert (old / exe).read_text() == "old", "the previous java/ is untouched"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["java"], "no partial folder or archive is left"
+
+
+def test_reset_server_keeps_what_the_loader_needs_to_start(tmp_path):
+    """서버 초기화는 월드·설정만 지운다. Forge·NeoForge(1.17+)는 libraries/의 인자 파일과
+    user_jvm_args.txt로 뜨므로 지우면 다시 시작할 수 없다"""
+    from minecraft import lifecycle
+    keep = ["server.jar", "eula.txt", "user_jvm_args.txt", "run.bat", "fabric-server-launcher.properties",
+            "libraries/net/minecraftforge/forge/47.3.0/win_args.txt", ".fabric/remappedJars/x.jar", "java/bin/java", "versions/1.21/x.jar"]
+    gone = ["world/level.dat", "server.properties", "logs/latest.log", "ops.json"]
+    for rel in keep + gone:
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    assert lifecycle.reset_server({"working_dir": str(tmp_path)})["success"]
+    for rel in keep:
+        assert (tmp_path / rel).exists(), rel
+    for rel in gone:
+        assert not (tmp_path / rel).exists(), rel
+
+
+def test_server_properties_saved_in_the_windows_locale_are_read(tmp_path):
+    """ANSI(cp949) 편집기로 한글 MOTD를 저장한 server.properties 때문에 시작이 UnicodeDecodeError로 막혔다"""
+    from minecraft.lifecycle import ServerPropertiesManager
+    (tmp_path / "server.properties").write_bytes("motd=우리 서버\nserver-port=25565\n".encode("cp949"))
+    manager = ServerPropertiesManager(str(tmp_path))
+    assert manager.read()["motd"] == "우리 서버"
+    assert manager.update({"server-port": "25570"})
+    props = manager.read()
+    assert (props["motd"], props["server-port"]) == ("우리 서버", "25570")

@@ -15,6 +15,7 @@ Project Zomboid is a Java-based game server (Steam App 380870) that:
 import sys
 import json
 import subprocess
+import locale
 import os
 import re
 import socket
@@ -385,6 +386,23 @@ class IniManager:
         return os.path.join(zomboid_dir, f"{server_name}.ini")
 
     @staticmethod
+    def encoding_of(ini_path):
+        """ini의 인코딩: UTF-8이 아니면(PZ·메모장이 ANSI로 쓴 cp949 등) 시스템 로캘·cp949·latin-1 순서.
+        쓸 때도 같은 인코딩을 써서 건드리지 않은 키의 한글 값이 깨지지 않게 한다"""
+        try:
+            with open(ini_path, "rb") as f:
+                raw = f.read()
+        except OSError:
+            return "utf-8"
+        for encoding in ("utf-8", locale.getpreferredencoding(False), "cp949", "latin-1"):
+            try:
+                raw.decode(encoding)
+                return encoding
+            except (UnicodeDecodeError, LookupError):
+                continue
+        return "utf-8"
+
+    @staticmethod
     def read(ini_path):
         """Read an INI file and return {key: value} dict."""
         props = {}
@@ -392,7 +410,7 @@ class IniManager:
             return props
         
         try:
-            with open(ini_path, 'r', encoding='utf-8', errors='replace') as f:
+            with open(ini_path, 'r', encoding=IniManager.encoding_of(ini_path), errors='replace') as f:
                 for raw in f:
                     # 값은 첫 "=" 뒤를 그대로 둔다 (비밀번호의 앞뒤 공백도 값이다). 줄바꿈만 뗀다
                     line = raw.rstrip('\r\n')
@@ -419,8 +437,9 @@ class IniManager:
             # Read existing file, update values in place
             lines = []
             updated_keys = set()
+            encoding = IniManager.encoding_of(ini_path)
             
-            with open(ini_path, 'r', encoding='utf-8', errors='replace') as f:
+            with open(ini_path, 'r', encoding=encoding, errors='replace') as f:
                 for line in f:
                     stripped = line.strip()
                     if stripped and not stripped.startswith('#') and '=' in stripped:
@@ -439,8 +458,14 @@ class IniManager:
                 if key not in updated_keys:
                     lines.append(f"{key}={value}\n")
             
-            with open(ini_path, 'w', encoding='utf-8') as f:
-                f.writelines(lines)
+            text = "".join(lines)
+            try:
+                data = text.encode(encoding)
+            except UnicodeEncodeError:
+                # 원래 인코딩에 없는 글자를 새로 넣었다: UTF-8로 바꿔 쓴다
+                data = text.encode("utf-8")
+            with open(ini_path, 'wb') as f:
+                f.write(data)
         else:
             # Create new file
             with open(ini_path, 'w', encoding='utf-8') as f:
@@ -1406,7 +1431,15 @@ def reset_server(config):
     deleted = []
     errors = []
     
-    if os.path.isdir(saves_dir):
+    # 접근할 수 없는 폴더를 '없음'으로 보고 성공을 돌려주지 않는다 (os.path.isdir은 권한 오류를 삼킨다)
+    try:
+        os.stat(saves_dir)
+        exists = os.path.isdir(saves_dir)
+    except FileNotFoundError:
+        exists = False
+    except OSError as e:
+        return {"success": False, "message": i18n.t("errors.server_reset_partial", errors=f"{saves_dir}: {e}")}
+    if exists:
         import shutil
         try:
             shutil.rmtree(saves_dir)

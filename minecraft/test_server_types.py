@@ -359,3 +359,27 @@ def test_every_catalog_command_has_a_korean_label():
         slug = os.path.splitext(os.path.basename(path))[0]
         for cmd in json.load(open(path, encoding="utf-8"))["commands"]:
             assert ko.get(slug, {}).get(cmd["name"], {}).get("label"), f"{slug}:{cmd['name']}"
+
+
+def test_installing_a_version_without_settings_keeps_the_folders_server_type(tmp_path):
+    """GUI의 '버전 설치'는 {version, install_dir}만 보낸다. Paper 폴더를 바닐라로 덮으면
+    플러그인이 꺼지고 따로 저장된 지옥·엔드가 사라진 것처럼 보인다"""
+    bundler(str(tmp_path / "paper-1.21.4.jar"), "paper-1.21.4.jar")
+    with mock.patch.object(lifecycle.ServerInstaller, "install_server", return_value={"success": True}) as install:
+        lifecycle.install_server({"version": "1.21.5", "install_dir": str(tmp_path)})
+    assert install.call_args.kwargs["server_type"] == "paper"
+    empty = tmp_path / "new"
+    empty.mkdir()
+    with mock.patch.object(lifecycle.ServerInstaller, "install_server", return_value={"success": True}) as install:
+        lifecycle.install_server({"version": "1.21.5", "install_dir": str(empty)})
+    assert install.call_args.kwargs["server_type"] == "vanilla"
+
+
+def test_a_fabric_launcher_jar_tells_its_minecraft_version(tmp_path):
+    """Fabric 런처 jar에는 version.json이 없다. 버전을 모르면 Java 17이 골라져 1.20.5+ 서버가 시작부터 실패한다"""
+    jar = make_jar(str(tmp_path / "fabric-server-launch.jar"), {
+        "META-INF/MANIFEST.MF": "Manifest-Version: 1.0\nMain-Class: net.fabricmc.loader.impl.launch.server.FabricServerLauncher\n",
+        "install.properties": "fabric-loader-version=0.16.9\ngame-version=1.21.1\n",
+    })
+    info = server_types.inspect_jar(jar)
+    assert (info["type"], info["version"]) == ("fabric", "1.21.1")

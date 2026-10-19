@@ -16,6 +16,7 @@
     "password": { "label": "Server Password", "description": "Password required to join the server" },
     "max_players": { "label": "Max Players", "description": "Maximum number of players allowed" },
     "port": { "label": "Game Port", "description": "UDP port the game server listens on" },
+    "udp_port": { "label": "Second UDP Port", "description": "Second UDP port the game server listens on (UDPPort, usually game port + 1)" },
     "pvp": { "label": "PVP", "description": "Allow player vs player combat" },
     "open": { "label": "Open Server", "description": "Open to all players (no whitelist)" },
     "public": { "label": "Public Visibility", "description": "Show server in the Steam server browser" },

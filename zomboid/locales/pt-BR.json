@@ -15,6 +15,7 @@
     "password": { "label": "Senha do servidor", "description": "Senha para entrar no servidor" },
     "max_players": { "label": "Máx. jogadores", "description": "Número máximo de jogadores" },
     "port": { "label": "Porta do jogo", "description": "Porta UDP do servidor" },
+    "udp_port": { "label": "Segunda porta UDP", "description": "Segunda porta UDP em que o servidor escuta (UDPPort, geralmente porta do jogo + 1)" },
     "pvp": { "label": "PVP", "description": "Permitir combate entre jogadores" },
     "open": { "label": "Servidor aberto", "description": "Aberto a todos (sem lista branca)" },
     "pause_empty": { "label": "Pausar quando vazio", "description": "Pausar o mundo sem jogadores" },

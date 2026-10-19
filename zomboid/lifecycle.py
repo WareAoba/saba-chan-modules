@@ -49,6 +49,7 @@ _INI_KEY_MAP = {
     "password":              "Password",
     "max_players":           "MaxPlayers",
     "port":                  "DefaultPort",
+    "udp_port":              "UDPPort",
     "pvp":                   "PVP",
     "open":                  "Open",
     "public":                "Public",
@@ -1044,10 +1045,18 @@ def get_launch_command(config):
         port = int(config.get("port") or 0)
     except (ValueError, TypeError):
         port = 0
-    if 0 < port < 65535:
-        # 두 번째 포트(ini UDPPort, 기본 port+1)도 함께: ini 값이 남으면 다른 인스턴스와 겹친다.
-        # 데몬은 포트를 10씩 옮기므로 port+1은 다른 인스턴스의 포트와 겹치지 않는다
-        args.extend(["-port", str(port), "-udpport", str(port + 1)])
+    if 0 < port <= 65535:
+        args.extend(["-port", str(port)])
+        # 두 번째 포트(ini UDPPort): ini 값이 남으면 다른 인스턴스와 겹친다. udp_port 설정은 데몬이 다른 포트와
+        # 함께 옮기고 충돌을 검사한다. 그 설정이 없던 인스턴스는 기본 간격대로 port+1
+        try:
+            udp_port = int(config.get("udp_port") or 0)
+        except (ValueError, TypeError):
+            udp_port = 0
+        if not 0 < udp_port <= 65535:
+            udp_port = port + 1 if port < 65535 else 0
+        if udp_port:
+            args.extend(["-udpport", str(udp_port)])
 
     # Admin password (only on first launch to bypass prompt)
     admin_password = config.get("admin_password", "")

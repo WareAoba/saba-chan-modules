@@ -16,6 +16,7 @@
     "password": { "label": "サーバーパスワード", "description": "サーバー接続に必要なパスワード" },
     "max_players": { "label": "最大プレイヤー数", "description": "最大許容プレイヤー数" },
     "port": { "label": "ゲームポート", "description": "ゲームサーバーが待ち受けるUDPポート" },
+    "udp_port": { "label": "2番目のUDPポート", "description": "ゲームサーバーが待ち受ける2番目のUDPポート (UDPPort、通常はゲームポート + 1)" },
     "pvp": { "label": "PVP", "description": "プレイヤー間戦闘を許可" },
     "open": { "label": "オープンサーバー", "description": "全プレイヤーに公開（ホワイトリスト不要）" },
     "public": { "label": "公開表示", "description": "Steamサーバーブラウザに表示" },

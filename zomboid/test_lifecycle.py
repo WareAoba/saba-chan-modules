@@ -439,6 +439,21 @@ def test_the_assigned_port_reaches_the_server(tmp_path):
     assert "-port" not in default and "-udpport" not in default
 
 
+def test_the_declared_udp_port_reaches_the_server(tmp_path):
+    """두 번째 포트는 udp_port 설정(데몬이 다른 인스턴스와 함께 옮기고 충돌을 검사하는 포트)에서 넘긴다 (saba-chan 리뷰 289)"""
+    from unittest import mock
+    from zomboid import lifecycle
+    parsed = {"java_exe_abs": "java", "classpath": "a.jar", "jvm_flags": [], "main_class": "zombie.network.GameServer", "extra_args": []}
+    with mock.patch.object(lifecycle, "_find_server_dir", return_value=str(tmp_path)), \
+         mock.patch.object(lifecycle, "_parse_launch_info", return_value=parsed):
+        args = lifecycle.get_launch_command({"port": 16271, "udp_port": 16300, "preview": True})["args"]
+        top = lifecycle.get_launch_command({"port": 65535, "preview": True})["args"]
+    assert args[args.index("-udpport") + 1] == "16300"
+    # 마지막 포트도 -port로 넘긴다. port+1이 없으니 -udpport만 뺀다
+    assert top[top.index("-port") + 1] == "65535" and "-udpport" not in top
+    assert lifecycle._INI_KEY_MAP["udp_port"] == "UDPPort"
+
+
 def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(tmp_path, monkeypatch):
     """만들 때 고른 접속 암호·인원·포트는 첫 설치에서 서버 ini에 들어간다 (암호 없이 열리지 않게). 업데이트는 덮지 않는다"""
     from unittest import mock

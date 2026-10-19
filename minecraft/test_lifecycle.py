@@ -713,6 +713,33 @@ def test_a_bundled_java_too_old_for_the_server_is_skipped(monkeypatch, tmp_path)
     assert lifecycle._launch_java({"working_dir": str(tmp_path), "server_version": "1.20.4"}, None) == str(bundled)
 
 
+def test_the_java_path_the_user_set_wins_over_the_bundled_java(monkeypatch, tmp_path):
+    """사용자가 java_path를 정했는데도 서버 폴더의 java/가 먼저 쓰였다"""
+    from minecraft import lifecycle
+    bundled = tmp_path / "java" / "bin" / ("java.exe" if os.name == "nt" else "java")
+    bundled.parent.mkdir(parents=True)
+    bundled.write_text("")
+    (tmp_path / "java" / "release").write_text('JAVA_VERSION="21.0.5"\n')
+    mine = "D:/jdk-21/bin/java.exe"
+    monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(
+        lambda p: {"path": p, "version": "21.0.5", "major_version": 21, "bits64": True}))
+    config = {"working_dir": str(tmp_path), "server_version": "1.21.1", "java_path": mine}
+    assert lifecycle._launch_java(config, None) == mine
+
+
+def test_validate_uses_the_java_the_daemon_found_without_running_it(monkeypatch, tmp_path):
+    """격리 안에서는 `java -version`이 돌지 않을 수 있다. 데몬이 넘긴 런타임은 버전을 이미 알므로
+    validate가 다시 돌려 보다 실패를 삼키고 JAVA_NOT_FOUND를 내지 않는다"""
+    import json as _json
+    from minecraft import lifecycle
+    system = {"java": "C:/Program Files/Eclipse Adoptium/jdk-21/bin/java.exe", "version": "21.0.5", "major": 21, "arch": "amd64"}
+    monkeypatch.setenv("SABA_JAVA_RUNTIMES", _json.dumps([system]))
+    monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(lambda p: None))
+    result = lifecycle.validate({"working_dir": str(tmp_path), "server_version": "1.21.1"})
+    codes = [i["code"] for i in result.get("issues", [])]
+    assert "JAVA_NOT_FOUND" not in codes and "JAVA_VERSION_TOO_OLD" not in codes, codes
+
+
 def test_a_failed_jre_extraction_leaves_no_half_java(tmp_path, monkeypatch):
     """압축 풀기가 중간에 실패하면 반쯤 풀린 java/가 남아 그 뒤로 계속 골라졌다.
     새 JRE는 임시 폴더에 풀고 다 풀린 뒤에만 java/를 바꾼다"""

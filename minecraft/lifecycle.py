@@ -1064,17 +1064,26 @@ def _minecraft_version(config, server_jar, jar_info=None):
 
 
 def _launch_java(config, server_jar, jar_info=None):
-    """실제로 띄울 Java: <working_dir>/java/의 번들 Java가 시스템 Java보다 먼저다.
-    시스템 Java는 이 서버에 필요한 주 버전 이상인 것을 고른다."""
-    java_path = config.get("java_path", "java")
+    """실제로 띄울 Java의 경로 (`_launch_java_info`). 찾지 못하면 설정의 java_path"""
+    info = _launch_java_info(config, server_jar, jar_info)
+    return info["path"] if info else config.get("java_path", "java")
+
+
+def _launch_java_info(config, server_jar, jar_info=None):
+    """실제로 띄울 Java와 그 버전: 사용자가 정한 java_path, <working_dir>/java/의 번들 Java, 시스템 Java 순이다.
+    시스템 Java는 이 서버에 필요한 주 버전 이상인 것을 고른다. 번들과 데몬이 찾은 런타임은 `-version`을 돌리지 않는다
+    (격리 안에서는 돌지 않을 수 있다). 찾지 못하면 None"""
+    java_path = config.get("java_path") or "java"
+    if java_path != "java":
+        return JavaDetector.get_java_info(java_path)
     wd = config.get("working_dir") or (os.path.dirname(os.path.abspath(server_jar)) if server_jar else "")
     required = _required_java_for(config, server_jar, jar_info)
     bundled = JavaDownloader._find_bundled_java(os.path.join(wd, "java")) if wd else None
     # 예전 버전용으로 받아 둔 번들 Java가 이 서버에 낮으면 쓰지 않는다
-    if bundled and JavaDownloader.bundled_major(os.path.join(wd, "java"), bundled) >= required:
-        return bundled
-    java_info = JavaDetector.find_java(java_path, min_major=required)
-    return java_info["path"] if java_info else java_path
+    major = JavaDownloader.bundled_major(os.path.join(wd, "java"), bundled) if bundled else 0
+    if bundled and major >= required:
+        return {"path": bundled, "version": str(major), "major_version": major, "bits64": True}
+    return JavaDetector.find_java(java_path, min_major=required)
 
 
 def validate(config):
@@ -1088,8 +1097,7 @@ def validate(config):
 
     # Java: 띄울 Java로 검사한다. 필요한 버전은 서버 jar의 version.json(java_version, id)을 먼저 본다
     jar_info = _read_jar_version(*os.path.split(server_jar)) if server_jar else None
-    launch_java = _launch_java(config, server_jar, jar_info)
-    java_info = JavaDetector.get_java_info(launch_java) if launch_java != "java" else None
+    java_info = _launch_java_info(config, server_jar, jar_info)
     mc_version = _minecraft_version(config, server_jar, jar_info)
     issues.extend(JavaDetector.validate_for_minecraft(
         java_info, mc_version, min_java=(jar_info or {}).get("java_version")))

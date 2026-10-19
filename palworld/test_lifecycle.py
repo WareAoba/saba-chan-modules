@@ -393,3 +393,28 @@ def test_rest_client_uses_the_configured_host():
     with mock.patch.object(lifecycle, "_read_admin_password_from_ini", return_value="pw"):
         client = lifecycle._rest_client({"rest_host": "10.0.0.5", "rest_port": 8300})
     assert client.base_url == "http://10.0.0.5:8300/v1/api"
+
+
+def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypatch):
+    """서버 업데이트는 install_server를 다시 부른다. 채워진 PalWorldSettings.ini를 기본값으로 덮으면
+    서버 이름·비밀번호가 초기화되어 비공개 서버가 공개가 된다"""
+    from palworld import lifecycle
+
+    class FakeSteam:
+        def ensure_available(self):
+            pass
+
+        def install(self, **kwargs):
+            return {"success": True}
+
+    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
+    install = str(tmp_path / "server")
+    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+        assert lifecycle.install_server({"install_dir": install})["success"]
+        props = lifecycle.read_properties({"working_dir": install})["properties"]
+        assert props["RESTAPIEnabled"] == "True", "a fresh install still gets the REST-enabled defaults"
+        lifecycle.configure({"working_dir": install, "settings": {"server_name": "우리서버", "server_password": "secret"}})
+        assert lifecycle.install_server({"install_dir": install})["success"]
+    props = lifecycle.read_properties({"working_dir": install})["properties"]
+    assert props["ServerName"] == "우리서버"
+    assert props["ServerPassword"] == "secret"

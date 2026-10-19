@@ -144,6 +144,12 @@ def inspect_jar(path):
             except (ValueError, KeyError):
                 version = None
 
+        # Fabric 서버 런처 jar는 version.json 대신 install.properties에 게임 버전을 적는다
+        if version is None and "install.properties" in names:
+            props = zf.read("install.properties").decode("utf-8", "replace")
+            m = re.search(r"^game-version=(\S+)", props, re.M)
+            version = m.group(1) if m else None
+
         # 예전 Paperclip(1.17 이하)은 versions.list가 없다 — 폴더 흔적으로 포크를 가린다
         if main.startswith(_PAPERCLIP_MAIN):
             return {"type": "paper", "version": version, "paper_family": True,

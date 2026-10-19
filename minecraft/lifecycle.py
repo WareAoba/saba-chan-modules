@@ -16,6 +16,7 @@ Always outputs JSON to stdout, logs to stderr.
 
 import sys
 import json
+import locale
 import subprocess
 import os
 import re
@@ -467,8 +468,11 @@ class JavaDownloader:
                 os.remove(tmp_file)
             return {"success": False, "message": i18n.t("errors.java_download_failed", error=str(e))}
 
-        # Extract
-        print(f"  Extracting to {java_dir}...", file=sys.stderr)
+        # Extract: 임시 폴더에 다 푼 뒤에만 java/를 바꾼다 (중간 실패가 반쯤 풀린 Java를 남기지 않게)
+        final_dir = java_dir
+        java_dir = final_dir + ".part"
+        print(f"  Extracting to {final_dir}...", file=sys.stderr)
+        shutil.rmtree(java_dir, ignore_errors=True)
         os.makedirs(java_dir, exist_ok=True)
 
         try:
@@ -502,23 +506,46 @@ class JavaDownloader:
                             if member.name:
                                 tf.extract(member, java_dir)
         except Exception as e:
+            shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
         finally:
             if os.path.exists(tmp_file):
                 os.remove(tmp_file)
 
-        # Make java executable on Unix
+        # 새 JRE가 이 PC에서 도는지 먼저 본다: 돌지 않으면 원래 java/를 그대로 둔다
         java_exe = JavaDownloader._find_bundled_java(java_dir)
         if java_exe and os.name != "nt":
             import stat
             st = os.stat(java_exe)
             os.chmod(java_exe, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-
         if not java_exe:
+            shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_executable_missing")}
+        if not JavaDetector.get_java_info(java_exe):
+            shutil.rmtree(java_dir, ignore_errors=True)
+            return {"success": False, "message": i18n.t("errors.java_run_failed")}
 
-        # Verify it works
-        info = JavaDetector.get_java_info(java_exe)
+        # 옛 java/는 먼저 옆으로 옮긴다: 쓰는 중이라 옮기지 못하면 손대지 않고 실패한다.
+        # 새 것을 들이지 못하면 옛 것을 되돌린다
+        old_dir = final_dir + ".old"
+        try:
+            shutil.rmtree(old_dir, ignore_errors=True)
+            had_old = os.path.exists(final_dir)
+            if had_old:
+                os.replace(final_dir, old_dir)
+            try:
+                os.replace(java_dir, final_dir)
+            except OSError:
+                if had_old:
+                    os.replace(old_dir, final_dir)
+                raise
+        except OSError as e:
+            shutil.rmtree(java_dir, ignore_errors=True)
+            return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
+        shutil.rmtree(old_dir, ignore_errors=True)
+        java_dir = final_dir
+        java_exe = JavaDownloader._find_bundled_java(java_dir)
+        info = JavaDetector.get_java_info(java_exe) if java_exe else None
         if not info:
             return {"success": False, "message": i18n.t("errors.java_run_failed")}
 
@@ -531,6 +558,19 @@ class JavaDownloader:
             "version": info["version"],
             "major_version": info["major_version"],
         }
+
+    @staticmethod
+    def bundled_major(java_dir, java_exe):
+        """번들 Java의 주 버전: JRE의 `release` 파일(실행하지 않는다), 없으면 `-version`. 모르면 0"""
+        try:
+            with open(os.path.join(java_dir, "release"), encoding="utf-8", errors="replace") as f:
+                m = re.search(r'^JAVA_VERSION="([^"]+)"', f.read(), re.M)
+            if m:
+                return JavaDetector.parse_major_version(m.group(1))
+        except OSError:
+            pass
+        info = JavaDetector.get_java_info(java_exe)
+        return info["major_version"] if info else 0
 
     @staticmethod
     def _find_bundled_java(java_dir):
@@ -628,20 +668,31 @@ class ServerPropertiesManager:
     def exists(self):
         return os.path.isfile(self.path)
 
+    def _lines(self):
+        """파일의 줄. UTF-8이 아니면(ANSI 편집기로 저장한 cp949 등) cp949·시스템 로캘·latin-1 순서로 읽는다.
+        cp949가 로캘보다 먼저다: 영문 Windows의 cp1252는 거의 모든 바이트를 받아 한글을 깨진 글자로 읽는다"""
+        with open(self.path, "rb") as f:
+            raw = f.read()
+        for encoding in ("utf-8-sig", "cp949", locale.getpreferredencoding(False), "latin-1"):
+            try:
+                return raw.decode(encoding).splitlines(keepends=True)
+            except (UnicodeDecodeError, LookupError):
+                continue
+        return []
+
     def read(self):
         """Parse server.properties into a dict."""
         props = {}
         if not self.exists():
             return props
         try:
-            with open(self.path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    if "=" in line:
-                        key, _, value = line.partition("=")
-                        props[key.strip()] = value.strip()
+            for line in self._lines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" in line:
+                    key, _, value = line.partition("=")
+                    props[key.strip()] = value.strip()
         except OSError:
             pass
         return props
@@ -671,18 +722,17 @@ class ServerPropertiesManager:
         try:
             lines = []
             updated_keys = set()
-            with open(self.path, "r", encoding="utf-8") as f:
-                for line in f:
-                    stripped = line.strip()
-                    if stripped and not stripped.startswith("#") and "=" in stripped:
-                        key = stripped.partition("=")[0].strip()
-                        if key in changes:
-                            lines.append(f"{key}={changes[key]}\n")
-                            updated_keys.add(key)
-                        else:
-                            lines.append(line)
+            for line in self._lines():
+                stripped = line.strip()
+                if stripped and not stripped.startswith("#") and "=" in stripped:
+                    key = stripped.partition("=")[0].strip()
+                    if key in changes:
+                        lines.append(f"{key}={changes[key]}\n")
+                        updated_keys.add(key)
                     else:
                         lines.append(line)
+                else:
+                    lines.append(line)
 
             for key, value in changes.items():
                 if key not in updated_keys:
@@ -1018,10 +1068,12 @@ def _launch_java(config, server_jar, jar_info=None):
     시스템 Java는 이 서버에 필요한 주 버전 이상인 것을 고른다."""
     java_path = config.get("java_path", "java")
     wd = config.get("working_dir") or (os.path.dirname(os.path.abspath(server_jar)) if server_jar else "")
+    required = _required_java_for(config, server_jar, jar_info)
     bundled = JavaDownloader._find_bundled_java(os.path.join(wd, "java")) if wd else None
-    if bundled:
+    # 예전 버전용으로 받아 둔 번들 Java가 이 서버에 낮으면 쓰지 않는다
+    if bundled and JavaDownloader.bundled_major(os.path.join(wd, "java"), bundled) >= required:
         return bundled
-    java_info = JavaDetector.find_java(java_path, min_major=_required_java_for(config, server_jar, jar_info))
+    java_info = JavaDetector.find_java(java_path, min_major=required)
     return java_info["path"] if java_info else java_path
 
 
@@ -1336,7 +1388,8 @@ def reset_properties(config):
 
 
 def reset_server(config):
-    """Full server reset: delete everything except server.jar, eula.txt and the bundled java/.
+    """Full server reset: delete worlds and settings, keep what starts the server
+    (jars, eula.txt, the bundled java/, loader files of Forge/NeoForge/Fabric/Quilt).
 
     server.properties will be recreated from module defaults on next configure().
     """
@@ -1351,8 +1404,11 @@ def reset_server(config):
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
 
     # 보존할 파일 패턴 (대소문자 무시)
-    KEEP_FILES = {"eula.txt"}
+    KEEP_FILES = {"eula.txt", "user_jvm_args.txt", "run.bat", "run.sh",
+                  "fabric-server-launcher.properties", "quilt-server-launcher.properties"}
     KEEP_EXTENSIONS = {".jar"}
+    # 받아 둔 번들 Java(크다)와 로더가 서버를 띄우는 데 쓰는 폴더 (1.17+ Forge는 libraries/의 인자 파일로 뜬다)
+    KEEP_DIRS = {"java", "libraries", "versions", ".fabric", ".quilt"}
 
     deleted = []
     errors = []
@@ -1366,8 +1422,7 @@ def reset_server(config):
         # eula.txt 보존
         if item.is_file() and name_lower in KEEP_FILES:
             continue
-        # 받아 둔 번들 Java 보존 (다시 받으려면 크다)
-        if item.is_dir() and name_lower == "java":
+        if item.is_dir() and name_lower in KEEP_DIRS:
             continue
 
         try:
@@ -2044,8 +2099,10 @@ def install_server(config):
         # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
         initial_settings = {k: v for k, v in settings.items() if k in _PROPERTY_KEY_MAP and v is not None}
         initial_settings.update(config.get("initial_settings") or {})
-        # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다
-        server_type = settings.get("server_type") or config.get("server_type") or "vanilla"
+        # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다.
+        # 없으면(GUI의 버전 설치) 폴더에 있는 서버의 종류를 따른다: Paper·Fabric을 바닐라로 덮지 않는다
+        server_type = (settings.get("server_type") or config.get("server_type")
+                       or server_types.detect(install_dir).get("type") or "vanilla")
 
         return ServerInstaller.install_server(
             version_id=version_id,

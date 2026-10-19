@@ -391,3 +391,34 @@ def test_highlight_marks_unix_path_after_space_only():
     rules = _load_module_toml()["syntax_highlight"]["rules"]
     assert ("/home/pz/Zomboid/Server", "path") in _highlighted("LOG  : General      f:0, t:1765669004675, st:1> loading /home/pz/Zomboid/Server", rules)
     assert not any(c == "path" for _, c in _highlighted("LOG  : General      f:0, t:1765669004675, st:1> see a.b/c/d", rules))
+
+
+def test_saving_one_setting_keeps_other_values_in_a_locale_encoded_ini(tmp_path, monkeypatch):
+    """PZ나 메모장이 cp949로 쓴 ini에서 설정 하나를 저장하면 다른 키의 한글 값이 U+FFFD로 영구히 깨졌다.
+    영문 Windows(cp1252)에서도 한글 값을 깨진 글자로 읽지 않는다"""
+    from zomboid import lifecycle
+    from zomboid.lifecycle import IniManager
+    monkeypatch.setattr(lifecycle.locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
+    ini = tmp_path / "servertest.ini"
+    ini.write_bytes("PublicName=우리 서버\nMaxPlayers=8\n".encode("cp949"))
+    assert IniManager.read(str(ini))["PublicName"] == "우리 서버"
+    IniManager.write(str(ini), {"MaxPlayers": "16"})
+    raw = ini.read_bytes()
+    assert "PublicName=우리 서버".encode("cp949") in raw
+    assert b"MaxPlayers=16" in raw
+
+
+def test_reset_server_reports_a_data_folder_it_cannot_reach(tmp_path, monkeypatch):
+    """데이터 폴더에 접근할 수 없으면 아무것도 지우지 않고 '초기화 완료'를 돌려주던 것을 실패로 알린다"""
+    from zomboid import lifecycle
+    real_stat = os.stat
+
+    def denied(path, *a, **kw):
+        if str(path).startswith(str(tmp_path)):
+            raise PermissionError(13, "Access is denied", str(path))
+        return real_stat(path, *a, **kw)
+
+    monkeypatch.setattr(lifecycle.os, "stat", denied)
+    assert lifecycle.reset_server({"cache_dir": str(tmp_path), "server_name": "servertest"})["success"] is False
+    monkeypatch.setattr(lifecycle.os, "stat", real_stat)
+    assert lifecycle.reset_server({"cache_dir": str(tmp_path / "none"), "server_name": "servertest"})["success"] is True

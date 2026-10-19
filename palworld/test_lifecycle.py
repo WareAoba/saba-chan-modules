@@ -18,6 +18,8 @@ import sys
 import tomllib
 from unittest import mock
 
+import pytest
+
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODULE_TOML = os.path.join(MODULE_DIR, "module.toml")
 
@@ -393,6 +395,23 @@ def test_rest_client_uses_the_configured_host():
     with mock.patch.object(lifecycle, "_read_admin_password_from_ini", return_value="pw"):
         client = lifecycle._rest_client({"rest_host": "10.0.0.5", "rest_port": 8300})
     assert client.base_url == "http://10.0.0.5:8300/v1/api"
+
+
+def test_a_sandboxed_run_reaches_its_rest_api_through_the_daemon(monkeypatch, tmp_path):
+    """격리 실행(미확인 모듈)은 127.0.0.1에 닿지 못해 접속자 질의와 REST 정지가 늘 시간 초과였다.
+    SABA_LOOPBACK_DIR이 있으면 REST 요청을 데몬 중계(loopback_http)로 보낸다"""
+    from palworld import lifecycle
+    calls = []
+
+    def relay(port, method, path, *, headers=None, body=None, timeout=5):
+        calls.append((port, method, path, headers.get("Authorization")))
+        return 200, b'{"currentplayernum": 2, "maxplayernum": 32}'
+    monkeypatch.setenv("SABA_LOOPBACK_DIR", str(tmp_path))
+    monkeypatch.setattr(lifecycle, "loopback_http", relay)
+    monkeypatch.setattr(lifecycle.urllib.request, "urlopen", lambda *a, **k: pytest.fail("a direct connection was tried"))
+    with mock.patch.object(lifecycle, "_read_admin_password_from_ini", return_value="pw"):
+        assert lifecycle.player_count({"rest_port": 8242}) == {"success": True, "online": 2, "max": 32}
+    assert calls == [(8242, "GET", "/v1/api/metrics", "Basic YWRtaW46cHc=")]
 
 
 def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypatch):

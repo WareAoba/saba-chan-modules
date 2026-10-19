@@ -16,6 +16,7 @@
     "password": { "label": "伺服器密碼", "description": "加入伺服器所需的密碼" },
     "max_players": { "label": "最大玩家數", "description": "允許的最大玩家人數" },
     "port": { "label": "遊戲連接埠", "description": "遊戲伺服器監聽的 UDP 連接埠" },
+    "udp_port": { "label": "第二個 UDP 連接埠", "description": "遊戲伺服器監聽的第二個 UDP 連接埠 (UDPPort，通常為遊戲連接埠 + 1)" },
     "pvp": { "label": "PVP", "description": "允許玩家對戰" },
     "open": { "label": "開放伺服器", "description": "對所有人開放（無白名單）" },
     "public": { "label": "公開顯示", "description": "在 Steam 伺服器瀏覽器中顯示" },

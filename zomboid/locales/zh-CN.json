@@ -16,6 +16,7 @@
     "password": { "label": "服务器密码", "description": "连接服务器所需的密码" },
     "max_players": { "label": "最大玩家数", "description": "最大玩家连接数" },
     "port": { "label": "游戏端口", "description": "主 UDP 游戏端口" },
+    "udp_port": { "label": "第二个 UDP 端口", "description": "游戏服务器监听的第二个 UDP 端口 (UDPPort，通常为游戏端口 + 1)" },
     "pvp": { "label": "PVP", "description": "启用玩家对战" },
     "open": { "label": "开放服务器", "description": "对所有人开放（无白名单）" },
     "public": { "label": "公开显示", "description": "在 Steam 服务器浏览器中显示" },

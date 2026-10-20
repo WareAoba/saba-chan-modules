@@ -494,6 +494,9 @@ def stop(config):
             # REST가 없어 저장 후 종료를 요청할 수 없다: 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
             return {"success": False, "error_code": "graceful_stop_unavailable",
                     "message": i18n.t("errors.graceful_stop_unavailable")}
+        if not force and config.get("managed"):
+            # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 90초 상한에 잘린다
+            return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
         if not force:
             for _ in range(_stop_timeout(config)):
                 time.sleep(1)

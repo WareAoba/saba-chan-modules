@@ -1239,3 +1239,20 @@ def test_an_update_still_installs_where_file_modes_cannot_be_set(tmp_path):
         result = ServerInstaller.install_server("1.21.1", str(tmp_path))
     assert result["success"], result
     assert jar.read_bytes() == body
+
+
+def test_ready_patterns_match_the_done_line_only_from_the_server():
+    """서버가 접속을 받기 시작하면 데몬이 instance.ready를 낸다(계약 06 §4). 문구는 PC 정규 설치 26.3 서버의 실제 줄이다.
+    러너·로그 머리가 앞에 붙으므로 줄 처음에 묶지 않고, 채팅(`<이름> Done (...)`)으로는 흉내 내지 못하게 `]: `부터 맞춘다.
+    0.1.8 데몬은 schema v1의 모르는 키를 거부하므로 검사하지 않는 [extensions.saba-core] 표에 둔다(코어 의존성은 그대로)"""
+    import re
+    import tomllib
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        toml = tomllib.load(f)
+    patterns = [re.compile(p) for p in toml["extensions"]["saba-core"]["ready_patterns"]]
+    real = '[2026-10-20 11:07:01] [STDOUT/INFO] [20:07:01] [Server thread/INFO]: Done (0.267s)! For help, type "help"'
+    assert any(p.search(real) for p in patterns)
+    chat = '[20:08:00] [Server thread/INFO]: <Steve> Done (1.0s)! For help, type "help"'
+    assert not any(p.search(chat) for p in patterns)
+    assert "ready_patterns" not in toml["detection"]
+    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.5"

@@ -518,9 +518,9 @@ def test_commands_that_change_access_or_grant_things_are_danger():
 
 
 def test_stop_waits_for_the_configured_stop_timeout():
-    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한을 stop_timeout + 30초로 잡으므로 그 값을 그대로 쓴다(데몬 범위 1~3600, MA2)"""
+    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한(stop_call_limit)을 알려 주면 그 30초 앞까지, 모르면(0.1.8 데몬, 120초 제한) 90초까지 (MA2, 리뷰 526)"""
     from palworld import lifecycle
-    for config, expected in (({"stop_timeout": "45"}, 45), ({}, 60), ({"stop_timeout": 600}, 600), ({"stop_timeout": 9999}, 3600)):
+    for config, expected in (({"stop_timeout": "45"}, 45), ({}, 60), ({"stop_timeout": 600}, 90), ({"stop_timeout": 600, "stop_call_limit": 630}, 600), ({"stop_timeout": 600, "stop_call_limit": 100}, 70)):
         with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
              mock.patch.object(lifecycle, "_pid_running", return_value=True), \
              mock.patch.object(lifecycle, "_kill", return_value=True), \

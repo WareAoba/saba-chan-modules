@@ -62,7 +62,7 @@
       "name": "mvinv-config",
       "label": "Config",
       "description": "Shows or sets a config value.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mvinv config {name} {value}",
       "inputs": [
         {

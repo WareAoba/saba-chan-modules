@@ -1395,7 +1395,7 @@
       "name": "powertool",
       "label": "Assign powertool",
       "description": "Assigns a command to the given item for the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "powertool {player} {item} {command}",
       "inputs": [
         {

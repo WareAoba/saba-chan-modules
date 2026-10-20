@@ -429,12 +429,16 @@ def test_a_version_the_source_does_not_have_yet_is_skipped_not_given_up_on():
 # caution은 말하는 사바쨩이 확인 없이 실행할 수 있어서, 이런 명령이 caution이면 권한을 바꾸지 않는다는 규칙이 깨진다(L48)
 GRANTING_COMMANDS = {
     "essentialsx.json": {"eco-give", "eco-take", "exp-give", "exp-set", "exp-reset", "ess-gamemode", "ess-give",
-                         "ess-give-meta", "god", "fly", "kit-give", "unban", "unbanip", "socialspy"},
+                         "ess-give-meta", "god", "fly", "kit-give", "unban", "unbanip", "socialspy", "powertool"},
+    "citizens.json": {"npc-owner"},
+    "multiverse-core.json": {"mv-config"},
+    "multiverse-portals.json": {"mvp-config"},
     "floodgate.json": {"fwhitelist-add", "fwhitelist-remove"},
     "griefprevention.json": {"adjustbonusclaimblocks", "adjustbonusclaimblocksall", "setaccruedclaimblocks"},
-    "multiverse-inventories.json": {"mvinv-give"},
+    "multiverse-inventories.json": {"mvinv-give", "mvinv-config"},
     "worldguard.json": {"wg-god", "ungod", "region-setparent", "region-addmember", "region-addowner",
-                        "region-removemember", "region-removeowner", "region-flag"},
+                        "region-removemember", "region-removeowner", "region-flag", "region-define",
+                        "region-setpriority"},
 }
 
 

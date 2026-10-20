@@ -95,7 +95,7 @@
       "name": "mvp-config",
       "label": "Config",
       "description": "Sets or shows global Multiverse-Portals config values.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mvp config {property} {value}",
       "inputs": [
         {

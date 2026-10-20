@@ -362,7 +362,7 @@
       "name": "mv-config",
       "label": "Config",
       "description": "Shows or sets a config value.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv config {name} {value}",
       "inputs": [
         {

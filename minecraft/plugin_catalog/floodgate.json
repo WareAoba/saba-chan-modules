@@ -11,10 +11,10 @@
     {"name": "floodgate", "label": "Subcommand help", "description": "Lists the available Floodgate subcommands.", "risk": "safe", "console_template": "floodgate", "inputs": []},
     {"name": "floodgate-firewall", "label": "Firewall check", "description": "Check if your outgoing firewall allows Floodgate to work properly.", "risk": "safe", "console_template": "floodgate firewall", "inputs": []},
     {"name": "floodgate-version", "label": "Version", "description": "Displays version information about Floodgate.", "risk": "safe", "console_template": "floodgate version", "inputs": []},
-    {"name": "fwhitelist-add", "label": "Whitelist Bedrock player", "description": "Adds a Floodgate (Bedrock) player to whitelist.json; the username prefix doesn't need to be included.", "risk": "caution", "console_template": "fwhitelist add {player}", "inputs": [
+    {"name": "fwhitelist-add", "label": "Whitelist Bedrock player", "description": "Adds a Floodgate (Bedrock) player to whitelist.json; the username prefix doesn't need to be included.", "risk": "danger", "console_template": "fwhitelist add {player}", "inputs": [
       {"name": "player", "type": "text", "label": "Player", "required": true, "placeholder": "Bedrock gamertag or Floodgate UUID"}
     ]},
-    {"name": "fwhitelist-remove", "label": "Remove from whitelist", "description": "Removes a Floodgate (Bedrock) player from whitelist.json; the username prefix doesn't need to be included.", "risk": "caution", "console_template": "fwhitelist remove {player}", "inputs": [
+    {"name": "fwhitelist-remove", "label": "Remove from whitelist", "description": "Removes a Floodgate (Bedrock) player from whitelist.json; the username prefix doesn't need to be included.", "risk": "danger", "console_template": "fwhitelist remove {player}", "inputs": [
       {"name": "player", "type": "text", "label": "Player", "required": true, "placeholder": "Bedrock gamertag or Floodgate UUID"}
     ]}
   ]

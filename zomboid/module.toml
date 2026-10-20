@@ -1182,7 +1182,7 @@ inputs = [
 
 [[commands.fields]]
 name = "unbanuser"
-risk = "caution"
+risk = "danger"
 label = "Unban Player"
 description = "Unban a previously banned player"
 method = "console"
@@ -1193,7 +1193,7 @@ inputs = [
 
 [[commands.fields]]
 name = "adduser"
-risk = "caution"
+risk = "danger"
 label = "Add User"
 description = "Add a new user to the whitelist"
 method = "console"
@@ -1240,7 +1240,7 @@ inputs = [
 
 [[commands.fields]]
 name = "createhorde"
-risk = "caution"
+risk = "danger"
 label = "Create Horde"
 description = "Spawn a zombie horde near a player"
 method = "console"
@@ -1252,7 +1252,7 @@ inputs = [
 
 [[commands.fields]]
 name = "godmod"
-risk = "caution"
+risk = "danger"
 label = "God Mode"
 description = "Make a player invincible"
 method = "console"
@@ -1264,7 +1264,7 @@ inputs = [
 
 [[commands.fields]]
 name = "invisible"
-risk = "caution"
+risk = "danger"
 label = "Invisible"
 description = "Make a player invisible to zombies"
 method = "console"
@@ -1312,7 +1312,7 @@ inputs = []
 
 [[commands.fields]]
 name = "additem"
-risk = "caution"
+risk = "danger"
 label = "Give Item"
 description = "Give an item to a player"
 method = "console"
@@ -1325,7 +1325,7 @@ inputs = [
 
 [[commands.fields]]
 name = "addxp"
-risk = "caution"
+risk = "danger"
 label = "Give XP"
 description = "Give experience to a player"
 method = "console"
@@ -1347,7 +1347,7 @@ inputs = []
 
 [[commands.fields]]
 name = "reloadoptions"
-risk = "caution"
+risk = "danger"
 label = "Reload Options"
 description = "Reload server options from INI file"
 method = "console"
@@ -1356,7 +1356,7 @@ inputs = []
 
 [[commands.fields]]
 name = "changeoption"
-risk = "caution"
+risk = "danger"
 label = "Change Option"
 description = "Change a server option at runtime"
 method = "console"

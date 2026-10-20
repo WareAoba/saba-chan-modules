@@ -721,7 +721,7 @@ inputs = [
 
 [[commands.fields]]
 name = "give"
-risk = "caution"
+risk = "danger"
 label = "Give Item"
 description = "Give an item to a player"
 method = "console"
@@ -775,7 +775,7 @@ inputs = [
 
 [[commands.fields]]
 name = "gamemode"
-risk = "caution"
+risk = "danger"
 label = "Change Game Mode"
 description = "Change a player's game mode"
 method = "console"
@@ -834,7 +834,7 @@ inputs = [
 
 [[commands.fields]]
 name = "pardon"
-risk = "caution"
+risk = "danger"
 label = "Unban Player"
 description = "Remove a player's ban"
 method = "console"
@@ -856,7 +856,7 @@ inputs = [
 
 [[commands.fields]]
 name = "deop"
-risk = "caution"
+risk = "danger"
 label = "Deop Player"
 description = "Remove operator permissions"
 method = "console"
@@ -867,7 +867,7 @@ inputs = [
 
 [[commands.fields]]
 name = "whitelist"
-risk = "caution"
+risk = "danger"
 label = "Whitelist"
 description = "Manage the server whitelist"
 method = "console"

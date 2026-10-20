@@ -304,7 +304,7 @@ def _catalog_command(slug, cmd):
         "description": _translated(f"{base}.description", cmd.get("description", "")),
         "method": "console",
         "console_template": cmd["console_template"],
-        "risk": cmd.get("risk", "caution"),
+        "risk": cmd.get("risk", "danger"),
         "inputs": [],
     }
     for item in cmd.get("inputs", []):
@@ -328,7 +328,8 @@ def _declared_command(name, spec):
         "description": str(spec.get("description") or "").strip(),
         "method": "console",
         "console_template": f"{name} {{args}}",
-        "risk": "caution",
+        # 무엇을 하는지 모르는 명령이고 인자도 자유롭다
+        "risk": "danger",
         "inputs": [{
             "name": "args",
             "type": "text",

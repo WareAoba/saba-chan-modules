@@ -991,3 +991,13 @@ def test_backup_keeps_plugin_mod_and_server_type_configs():
         assert name in paths, name
     for name in (".paper-remapped", "libraries", "logs", "versions", "cache"):
         assert name not in paths, name
+
+
+def test_commands_that_change_access_or_grant_things_are_danger():
+    """권한·밴 해제·허용 목록을 바꾸거나 아이템·게임 모드를 주는 명령은 danger.
+    caution은 말하는 사바쨩이 확인 없이 실행할 수 있다(L48)"""
+    import tomllib
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
+    for name in ("give", "gamemode", "pardon", "op", "deop", "whitelist", "ban"):
+        assert risks[name] == "danger", name

@@ -506,3 +506,12 @@ def test_backup_paths_fail_when_a_save_folder_cannot_be_read(tmp_path):
         result = lifecycle.backup_paths({"working_dir": str(tmp_path)})
     assert result["success"] is False and result.get("message"), result
     assert lifecycle.backup_paths({"working_dir": str(tmp_path / "none")}) == {"success": True, "paths": []}
+
+
+def test_commands_that_change_access_or_grant_things_are_danger():
+    """권한·밴 해제·계정·서버 옵션을 바꾸거나 아이템·경험치·무적을 주는 명령은 danger.
+    caution은 말하는 사바쨩이 확인 없이 실행할 수 있다(L48)"""
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
+    for name in ('unban', 'ban'):
+        assert risks[name] == "danger", name

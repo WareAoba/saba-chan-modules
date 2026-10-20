@@ -291,7 +291,7 @@
       "name": "mvinv-give",
       "label": "Give item",
       "description": "Gives a player an item for a world or group, even if they are offline.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mvinv give {player} {world} {item}",
       "inputs": [
         {

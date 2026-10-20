@@ -15,7 +15,7 @@
       "name": "wg-god",
       "label": "Enable god mode",
       "description": "Give another player invincibility.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "worldguard:god {player} {flags}",
       "inputs": [
         {
@@ -38,7 +38,7 @@
       "name": "ungod",
       "label": "Disable god mode",
       "description": "Remove invincibility from another player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "ungod {player} {flags}",
       "inputs": [
         {
@@ -420,7 +420,7 @@
       "name": "region-addmember",
       "label": "Add members",
       "description": "Adds any number of members to a region.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "region addmember -w {world} {id} {members}",
       "inputs": [
         {
@@ -450,7 +450,7 @@
       "name": "region-addowner",
       "label": "Add owners",
       "description": "Adds any number of owners to a region.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "region addowner -w {world} {id} {owners}",
       "inputs": [
         {
@@ -480,7 +480,7 @@
       "name": "region-removemember",
       "label": "Remove members",
       "description": "Removes any number of members from a region; -a removes all members.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "region removemember -w {world} {id} {members}",
       "inputs": [
         {
@@ -510,7 +510,7 @@
       "name": "region-removeowner",
       "label": "Remove owners",
       "description": "Removes any number of owners from a region; -a removes all owners.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "region removeowner -w {world} {id} {owners}",
       "inputs": [
         {
@@ -646,7 +646,7 @@
       "name": "region-flag",
       "label": "Set flag",
       "description": "Sets a flag on a region; leave the value empty to unset it.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "region flag -w {world} {id} {flag} {value}",
       "inputs": [
         {
@@ -713,7 +713,7 @@
       "name": "region-setparent",
       "label": "Set parent",
       "description": "Sets the parent of a region; specify no parent to unset it.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "region setparent -w {world} {id} {parent}",
       "inputs": [
         {

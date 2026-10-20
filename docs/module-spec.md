@@ -87,7 +87,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 |---|---|---|
 | `name` | ✔ | 명령 이름 |
 | `label`, `description` | ○ (키트 ✔) | 표시용. description은 AI가 명령을 고를 때도 읽는다 |
-| `risk` | ○ (키트 ✔) | `"safe"`(조회·채팅) / `"caution"`(게임 상태 변경, 기본) / `"danger"`(서버 종료, 추방·차단, 권한 변경). AI가 추론한 명령을 실행 전에 확인받을지 정한다 |
+| `risk` | ○ (키트 ✔) | `"safe"`(조회·채팅) / `"caution"`(게임 상태 변경, 기본) / `"danger"`(서버 종료, 추방·차단, 권한·밴 해제·허용 목록·계정·서버 옵션 변경, 아이템·돈·경험치·무적·게임 모드 지급). AI가 추론한 명령을 실행 전에 확인받을지 정한다 |
 | `method` | ○ | `"console"`(서버 콘솔 stdin) / `"rest"` / `"module"`(진입 파일의 `command()`, 기본). 예전 이름 `"rcon"`은 `"console"`로 읽는다 |
 | `console_template` | console | 예: `"kick {player}"`. `{입력 이름}`이 치환된다. 예전 이름 `rcon_template` |
 | `http_method`, `endpoint_template` | rest | REST 호출 |

@@ -39,7 +39,7 @@
       "name": "adjustbonusclaimblocks",
       "label": "Adjust bonus claim blocks",
       "description": "Adds or subtracts bonus claim blocks for a player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "adjustbonusclaimblocks {player} {amount}",
       "inputs": [
         {
@@ -62,7 +62,7 @@
       "name": "adjustbonusclaimblocksall",
       "label": "Adjust bonus claim blocks (all)",
       "description": "Adds or subtracts bonus claim blocks for all online players.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "adjustbonusclaimblocksall {amount}",
       "inputs": [
         {
@@ -78,7 +78,7 @@
       "name": "setaccruedclaimblocks",
       "label": "Set accrued claim blocks",
       "description": "Updates a player's accrued claim block total.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "setaccruedclaimblocks {player} {amount}",
       "inputs": [
         {

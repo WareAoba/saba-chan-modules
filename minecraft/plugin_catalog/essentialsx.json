@@ -399,7 +399,7 @@
       "name": "eco-give",
       "label": "Give money",
       "description": "Gives the specified player the specified amount of money.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "eco give {player} {amount}",
       "inputs": [
         {
@@ -422,7 +422,7 @@
       "name": "eco-take",
       "label": "Take money",
       "description": "Takes the specified amount of money from the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "eco take {player} {amount}",
       "inputs": [
         {
@@ -484,7 +484,7 @@
       "name": "exp-give",
       "label": "Give XP",
       "description": "Gives the target player the specified amount of xp.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "exp give {player} {amount}",
       "inputs": [
         {
@@ -507,7 +507,7 @@
       "name": "exp-set",
       "label": "Set XP",
       "description": "Sets the target player's xp the specified amount.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "exp set {player} {amount}",
       "inputs": [
         {
@@ -546,7 +546,7 @@
       "name": "exp-reset",
       "label": "Reset XP",
       "description": "Resets the target player's xp to 0.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "exp reset {player}",
       "inputs": [
         {
@@ -594,7 +594,7 @@
       "name": "fly",
       "label": "Toggle fly",
       "description": "Toggles fly for the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "fly {player} {state}",
       "inputs": [
         {
@@ -620,7 +620,7 @@
       "name": "ess-gamemode",
       "label": "Set gamemode",
       "description": "Sets the gamemode of the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "egamemode {mode} {player}",
       "inputs": [
         {
@@ -672,7 +672,7 @@
       "name": "ess-give",
       "label": "Give item",
       "description": "Gives the target player 64 (or the specified amount) of the specified item.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "egive {player} {item} {amount}",
       "inputs": [
         {
@@ -702,7 +702,7 @@
       "name": "ess-give-meta",
       "label": "Give item with metadata",
       "description": "Gives the target player the specified amount of the specified item with the given metadata.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "egive {player} {item} {amount} {meta}",
       "inputs": [
         {
@@ -739,7 +739,7 @@
       "name": "god",
       "label": "Toggle god mode",
       "description": "Toggles god mode for the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "god {player} {state}",
       "inputs": [
         {
@@ -928,7 +928,7 @@
       "name": "kit-give",
       "label": "Give kit",
       "description": "Gives the specified kit to the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "kit {kit} {player}",
       "inputs": [
         {
@@ -1730,7 +1730,7 @@
       "name": "socialspy",
       "label": "Toggle social spy",
       "description": "Toggles social spy for the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "socialspy {player} {state}",
       "inputs": [
         {
@@ -2224,7 +2224,7 @@
       "name": "unban",
       "label": "Unban player",
       "description": "Unbans the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "unban {player}",
       "inputs": [
         {
@@ -2240,7 +2240,7 @@
       "name": "unbanip",
       "label": "Unban IP address",
       "description": "Unbans the specified IP address.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "unbanip {address}",
       "inputs": [
         {

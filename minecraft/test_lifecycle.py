@@ -1047,4 +1047,4 @@ def test_backup_without_plugins_folder_and_unreadable_plugins(tmp_path):
     (tmp_path / "plugins").mkdir()
     with mock.patch.object(lifecycle.os, "listdir", side_effect=PermissionError("denied")):
         result = lifecycle.backup_paths({"working_dir": str(tmp_path)})
-    assert result["success"] is False and result.get("message")
+    assert result["success"] is False and "denied" in result.get("message", ""), result

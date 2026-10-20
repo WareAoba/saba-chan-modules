@@ -145,7 +145,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `backup_paths` | 백업 때, `[backup] hook = true`이면 | `paths[]`, 선택 `restore_roots[]`(복원만 허용하는 범위, 백업 대상 아님) (실패하면 백업과 그 뒤 업데이트·복원이 멈춘다) |
 | `instance_commands` | 명령 목록·실행 때, `[commands] hook = true`이면 | `commands[]` |
 | `[[queries]]`의 `function` | 조회할 때. config에 `args{입력 이름: 값}`이 온다 | `data` |
-| `[status] players`가 가리키는 함수 | 켜진 서버마다 1분에 한 번 | `online`(0 이상 정수), `max`(정수, 모르면 빼거나 0). 서버에 닿지 않으면 `success: false`. 읽기만 한다 |
+| `[status] players`가 가리키는 함수 | 켜진 서버마다 1분에 한 번 | `online`(0 이상 정수), `max`(정수, 모르면 빼거나 0), 선택 `players:[{name}]`(config에 `players_detail: true`가 있을 때만 데몬이 이름을 바란다. 그때만 콘솔 명령 등으로 이름을 읽고, 1분 갱신에는 싣지 않는다. 이름 말고는 싣지 않는다). 서버에 닿지 않으면 `success: false`. 읽기만 한다 |
 
 ✔ 표시가 없는 함수는 기능을 지원할 때만 만든다. 만들었다면 반드시 `FUNCTIONS` 표에 넣는다. 훅을 켰거나(`[backup]`·`[commands]`) module.toml이 이름으로 가리키는 함수(`[[queries]]`, `[status] players`)는 반드시 만든다.
 

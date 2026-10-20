@@ -1651,10 +1651,43 @@ def player_count(config):
         return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
     players = ping_result.get("players")
     try:
-        return {"success": True, "online": int(players["online"]), "max": int(players.get("max", 0))}
+        result = {"success": True, "online": int(players["online"]), "max": int(players.get("max", 0))}
     except (TypeError, KeyError, ValueError):
         # 모르는 값을 0명으로 보이지 않는다
         return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
+    # 이름은 데몬이 목록을 물을 때(players_detail)만 콘솔로 읽는다: 1분 갱신마다 콘솔에 list가 찍히지 않게
+    if config.get("players_detail"):
+        names = _console_player_names(config.get("instance_id"))
+        if names is not None:
+            result["players"] = [{"name": n} for n in names]
+    return result
+
+
+# 서버 jar en_us.json "commands.list.players" (26.3 server jar에서 확인). 줄 앞의 로그 머리는 건너뛴다
+_LIST_PLAYERS_RE = re.compile(r"There are (\d+) of a max of (\d+) players online: ?(.*)$")
+_PLAYER_NAME_RE = re.compile(r"[A-Za-z0-9_]{1,16}")
+
+
+def _console_player_names(instance_id):
+    """콘솔 `list`의 답에서 이름 목록. 문구·이름 규칙·수가 맞지 않으면 짐작하지 않고 None"""
+    if not instance_id:
+        return None
+    from daemon_rcon import daemon_stdin_command
+    try:
+        reply = daemon_stdin_command(instance_id, "list", timeout=5)
+    except Exception as e:
+        print(f"[Minecraft] list for player names failed: {e}", file=sys.stderr)
+        return None
+    response = ((reply or {}).get("data") or {}).get("response") or ""
+    for line in response.splitlines():
+        m = _LIST_PLAYERS_RE.search(line.strip())
+        if not m:
+            continue
+        names = [n.strip() for n in m.group(3).split(",") if n.strip()]
+        if len(names) != int(m.group(1)) or not all(_PLAYER_NAME_RE.fullmatch(n) for n in names):
+            return None
+        return names
+    return None
 
 
 # ─── JAR version parsing ──────────────────────────────────

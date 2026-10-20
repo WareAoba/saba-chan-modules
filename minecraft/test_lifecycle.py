@@ -656,6 +656,38 @@ def test_player_count_reads_server_list_ping():
             assert lifecycle.player_count({"port": 25570})["success"] is False, reply
 
 
+
+def test_player_count_names_the_players_from_the_console_list():
+    """이름은 데몬이 목록을 물을 때(players_detail)만 콘솔 `list`로 읽는다. 1분 갱신은 콘솔에 아무것도 보내지 않는다.
+    문구는 서버 jar의 en_us.json "commands.list.players" = "There are %s of a max of %s players online: %s"
+    (26.3 server jar에서 확인). 줄 앞에는 러너·서버 로그 머리가 붙는다 (검수 13, 계약 06 §2)"""
+    from minecraft import lifecycle
+    import daemon_rcon
+    ping = {"players": {"online": 2, "max": 20}}
+    reply = {"success": True, "data": {"response": "[STDOUT/INFO] [20:07:01] [Server thread/INFO]: There are 2 of a max of 20 players online: Steve, Alex_99"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping), \
+         mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=reply) as send:
+        assert lifecycle.player_count({"port": 25565, "instance_id": "i1"}) == {"success": True, "online": 2, "max": 20}
+        send.assert_not_called()
+        result = lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})
+    send.assert_called_once_with("i1", "list", timeout=5)
+    assert result == {"success": True, "online": 2, "max": 20, "players": [{"name": "Steve"}, {"name": "Alex_99"}]}
+
+    # 아무도 없으면 이름 칸이 빈다
+    empty = {"success": True, "data": {"response": "There are 0 of a max of 20 players online: "}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value={"players": {"online": 0, "max": 20}}), \
+         mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=empty):
+        assert lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})["players"] == []
+
+    # 문구가 다르거나(플러그인이 list를 바꿈), 이름 규칙에 맞지 않거나, 수가 맞지 않거나, 답이 없으면 이름을 짐작하지 않고 수만 답한다
+    for response in ["Online (2): Steve Alex", "There are 2 of a max of 20 players online: Steve and Alex",
+                     "There are 3 of a max of 20 players online: Steve, Alex", None]:
+        bad = {"success": True, "data": {"response": response} if response else None}
+        with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping), \
+             mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=bad):
+            assert lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True}) == \
+                {"success": True, "online": 2, "max": 20}, response
+
 def test_player_count_without_status_answers_that_the_count_is_unknown(tmp_path):
     """enable-status=false면 핑이 늘 실패한다: 실패로 답하면 데몬이 5분 뒤 응답 없음으로 알린다 (saba-chan 리뷰 282)"""
     from minecraft import lifecycle

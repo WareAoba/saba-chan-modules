@@ -1,7 +1,7 @@
 [module]
 schema_version = 1
 name = "palworld"
-version = "0.1.2"
+version = "0.1.3"
 description = "Palworld server management module"
 author = "WareAoba"
 game_name = "Palworld"

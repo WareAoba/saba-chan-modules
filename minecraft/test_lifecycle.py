@@ -712,8 +712,10 @@ def test_find_java_picks_a_runtime_new_enough_from_the_daemon_list(monkeypatch):
 def test_find_java_without_daemon_list_skips_oracle_shims(monkeypatch, tmp_path):
     from minecraft import lifecycle
     from minecraft.lifecycle import JavaDetector
-    shim = tmp_path / "Oracle" / "Java" / "java8path" / "java"
-    real = tmp_path / "jdk-21" / "bin" / "java"
+    # Windows는 java.exe를 찾는다
+    exe = "java.exe" if os.name == "nt" else "java"
+    shim = tmp_path / "Oracle" / "Java" / "java8path" / exe
+    real = tmp_path / "jdk-21" / "bin" / exe
     for p in (shim, real):
         p.parent.mkdir(parents=True)
         p.write_text("")

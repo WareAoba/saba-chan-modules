@@ -2,7 +2,8 @@
 
 1. module.toml이 스키마 v1을 통과한다
 2. 진입 파일의 `FUNCTIONS` 표: `get_launch_command`가 있고, 데몬이 부르는 이름으로
-   만든 함수는 빠짐없이 표에 있다 (빠지면 데몬은 "Unknown function"을 받는다)
+   만든 함수는 빠짐없이 표에 있다 (빠지면 데몬은 "Unknown function"을 받는다).
+   훅을 켰거나 module.toml이 이름으로 가리킨 함수도 표에 있다
 3. 모르는 함수에는 `{"success": false, "message": "Unknown function: X"}`
 4. 부르면 안전한 함수들을 빈 작업 폴더에서 불러, 제한 시간 안에 종료 코드 0으로 끝나고
    stdout 마지막 줄이 JSON 객체이며, stderr의 `PROGRESS:` 줄이 JSON인지
@@ -28,8 +29,10 @@ DAEMON_FUNCTIONS = {
     "validate", "configure", "read_properties", "reset_properties", "reset_server",
     "accept_agreements", "diagnose_log",
     "list_versions", "get_version_details", "install_server", "get_installed_version",
-    "import_settings", "backup_paths",
+    "import_settings", "backup_paths", "instance_commands",
 }
+# 켜면 데몬이 그 함수를 부르는 module.toml 훅
+HOOK_FUNCTIONS = {"backup": "backup_paths", "commands": "instance_commands"}
 REQUIRED_FUNCTIONS = {"get_launch_command"}
 # 빈 작업 폴더에서 불러도 아무것도 바꾸지 않는 함수
 SAFE_FUNCTIONS = ["get_launch_command", "validate", "status", "read_properties", "diagnose_log", "get_installed_version"]
@@ -104,6 +107,12 @@ def functions_table(module):
     return table, defined
 
 
+def hook_functions_missing(manifest, table):
+    """`hook = true`인 섹션인데 데몬이 부를 함수가 FUNCTIONS 표에 없는 것"""
+    return [f"[{section}] hook → {function}" for section, function in HOOK_FUNCTIONS.items()
+            if (manifest.get(section) or {}).get("hook") is True and function not in table]
+
+
 def flat_keys(obj, prefix=""):
     keys = set()
     for k, v in obj.items():
@@ -170,9 +179,21 @@ def test_functions_table(module):
     named.add((module.manifest.get("status") or {}).get("players"))
     undeclared = sorted(f for f in named if f and f not in table)
     assert not undeclared, f"module.toml이 부르는 함수가 FUNCTIONS에 없다: {undeclared}"
+    hooks = hook_functions_missing(module.manifest, table)
+    assert not hooks, f"훅을 켰는데 그 함수가 FUNCTIONS에 없다: {hooks}"
     unknown = sorted(table.keys() - DAEMON_FUNCTIONS - named)
     if unknown:
         warnings.warn(f"{module.name}: 데몬이 부르지 않는 이름이 FUNCTIONS에 있다: {unknown}")
+
+
+def test_kit_catches_hook_without_function():
+    """훅을 켜고 그 함수를 빠뜨린 모듈은 데몬이 부를 때 실패한다 (백업 훅이면 업데이트·복원까지 멈춘다)"""
+    manifest = {"backup": {"paths": ["world"], "hook": True}, "commands": {"hook": True}}
+    assert hook_functions_missing(manifest, {"get_launch_command": "get_launch_command"}) == [
+        "[backup] hook → backup_paths", "[commands] hook → instance_commands"]
+    table = {"backup_paths": "backup_paths", "instance_commands": "instance_commands"}
+    assert hook_functions_missing(manifest, table) == []
+    assert hook_functions_missing({"backup": {"hook": False}}, {}) == []
 
 
 # ── 3·4. 실행 계약 ──────────────────────────────────────

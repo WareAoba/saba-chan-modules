@@ -147,7 +147,14 @@ dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해�
 #    - "advanced"  : 고급 설정 (접힌 상태로 표시)
 #    - 빈 문자열   : 일반 게임 설정 (기본 표시)
 #
-#  지원 타입: text, number, boolean, select, password, file, folder
+#  지원 타입: text, number, boolean, select, password, file (이 밖의 값은 GUI에 보이지 않습니다)
+#
+#  자주 쓰는 선택 키:
+#    port = true      네트워크 포트. 같은 게임을 여럿 만들면 데몬이 겹치지 않게 옮깁니다
+#    install = true   서버를 만들 때 고르는 값(받을 서버 파일이 달라지는 값, select로)
+#    arg = "-port={value}"   이 값이 실행 인자로 들어가는 모양(실행 인자 미리보기용)
+#    format = "memory_size" | "port" | "integer" | "path",  pattern = '정규식'   값 형식 검사
+#    default = "{instance_dir}/data"   인스턴스마다 따로 둘 폴더
 #
 [settings]
 
@@ -253,7 +260,12 @@ group = "advanced"
 #  endpoint_template: REST API 엔드포인트 경로
 #  inputs의 값은 JSON body로 전송됩니다.
 #
+#  ── 인스턴스마다 달라지는 명령 ──
+#  설치된 플러그인처럼 서버 폴더에 따라 명령이 달라지면 hook = true를 켜고
+#  lifecycle.py에 instance_commands(config) → {"success": True, "commands": [...]}를 만드세요.
+#
 [commands]
+# hook = true
 
 # 콘솔 명령어 예시
 [[commands.fields]]
@@ -299,6 +311,48 @@ inputs = [
 # inputs = [
 #     { name = "message", type = "text", label = "Message", required = true }
 # ]
+
+# ═══════════════════════════════════════════════════════════════════
+#                         선택 기능
+# ═══════════════════════════════════════════════════════════════════
+#
+#  필요한 것만 주석을 풀어 쓰세요. 함수 이름을 적는 기능은 그 함수를
+#  lifecycle.py FUNCTIONS 표에도 넣어야 합니다(적합성 키트가 검사합니다).
+
+# 백업할 것. paths는 작업 폴더 기준, {설정 이름}은 설정 값으로 바뀝니다.
+# 경로를 코드로 계산해야 하면 hook = true + backup_paths(config) → {"success": True, "paths": [...]}
+# [backup]
+# paths = ["world"]
+# save_command = "save"                 # 묶기 전에 실행할 [[commands.fields]] 이름
+# hook = false
+
+# 읽기 전용 조회 (GUI·CLI·디스코드·챗봇에서 server.query:<name>으로 부름)
+# function은 {"success": True, "data": ...}를 돌려주고 아무것도 바꾸지 않아야 합니다.
+# [[queries]]
+# name = "players"
+# label = "Players Online"
+# description = "Players connected right now"
+# function = "list_players"
+# inputs = [{ name = "limit", type = "number", min = 1, max = 100 }]
+
+# 접속자 수. 켜진 서버마다 1분에 한 번 부릅니다 → {"success": True, "online": 3, "max": 20}
+# [status]
+# players = "player_count"
+
+# 서버를 켜기 전에 사용자가 직접 동의해야 하는 약관. 동의는 데몬이 받고,
+# 모듈은 accept_agreements(config)에서 config["accepted_agreements"]에 있는 id만 파일에 씁니다.
+# [[agreements]]
+# id = "eula"
+# url = "https://example.com/eula"
+
+# 서버를 만들 때 고르는 추천 설정 묶음. 값은 [[settings.fields]] 규칙을 따르고
+# password·file·path 설정은 넣지 못합니다. 표시 문구는 locales presets.<id>.label·description.
+# [[presets]]
+# id = "small"
+# label = "Small (friends)"
+# description = "Few players, low memory"
+# [presets.settings]
+# max_players = 8
 
 # ═══════════════════════════════════════════════════════════════════
 #                         ALIASES

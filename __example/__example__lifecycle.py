@@ -465,18 +465,16 @@ def _do_backup(config):
 #  (커맨드라인 인자로 전달 시 민감정보 노출 및 OS 길이 제한 문제 발생)
 #
 # ═══════════════════════════════════════════════════════════════════
-#  start()에 대한 중요 참고사항
+#  FUNCTIONS 표
 # ═══════════════════════════════════════════════════════════════════
-#  start()를 직접 구현하여 subprocess.Popen으로 프로세스를 생성하는 경우,
-#  반드시 stdout/stderr에 subprocess.DEVNULL을 사용하세요.
-#
-#    ✅  subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, ...)
-#    ❌  subprocess.Popen(cmd, stdout=subprocess.PIPE,    stderr=subprocess.PIPE, ...)
-#
-#  start()는 PID를 반환하고 종료되므로 PIPE를 읽는 주체가 없어집니다.
-#  게임 서버가 stdout에 로그를 쓰면 OS 파이프 버퍼(~4KB)가 가득 차고,
-#  서버 프로세스가 write()에서 영원히 블록됩니다.
-#  (managed 모드에서는 데몬이 stdout을 읽으므로 이 문제가 없습니다)
+#  만든 함수는 빠짐없이 표에 넣습니다. 서버 프로세스는 데몬이 띄우므로 start()는 없습니다.
+#  기능을 지원할 때만 더 만드는 함수 (계약: docs/module-spec.md §3):
+#    get_credentials, read_properties, reset_properties, reset_server,
+#    list_versions, get_version_details, get_installed_version,
+#    accept_agreements        [[agreements]]를 선언했을 때
+#    backup_paths             [backup] hook = true일 때 (없으면 백업·업데이트가 멈춤)
+#    instance_commands        [commands] hook = true일 때
+#    [[queries]] function, [status] players가 가리키는 함수
 
 FUNCTIONS = {
     "validate": validate,

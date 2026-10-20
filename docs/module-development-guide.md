@@ -51,9 +51,10 @@
 | 설정 화면 저장 / 읽기 / 초기화 | `configure` / `read_properties`, `import_settings` / `reset_properties`, `reset_server` |
 | 기존 서버 가져오기 | `import_settings` |
 | 설치·업데이트 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` |
-| 기타 | `accept_agreements`(`[[agreements]]`를 선언했을 때), `diagnose_log`, `backup_paths`(`[backup] hook = true`일 때) |
+| 기타 | `accept_agreements`(`[[agreements]]`를 선언했을 때), `diagnose_log`, `backup_paths`(`[backup] hook = true`일 때), `instance_commands`(`[commands] hook = true`일 때) |
+| 조회·접속자 수 | `[[queries]]`의 `function`, `[status] players`가 가리키는 함수 (이름은 module.toml이 정한다) |
 
-필수는 `get_launch_command` 하나다. 나머지는 지원할 기능만 만들고, 만들었으면 `FUNCTIONS` 표에 꼭 넣는다(적합성 키트가 검사한다).
+필수는 `get_launch_command` 하나다. 나머지는 지원할 기능만 만들고, 만들었으면 `FUNCTIONS` 표에 꼭 넣는다. 훅을 켰거나 module.toml이 이름으로 가리킨 함수는 반드시 만든다(적합성 키트가 둘 다 검사한다).
 
 ## 3. 빠른 시작
 
@@ -115,7 +116,7 @@
    (`daemon_rcon`을 찾으려면 `PYTHONPATH`에 saba-chan 저장소의 `modules/`를 넣는다.)
 6. 검사한다(§7).
 
-그 다음은 필요한 만큼 늘린다: `validate` → 설정 화면(`[[settings.fields]]` + `configure`/`import_settings`) → 명령(`[[commands.fields]]`) → 설치(`[install]`) → 크래시 판정(`[detection]`) → 백업·공지.
+그 다음은 필요한 만큼 늘린다: `validate` → 설정 화면(`[[settings.fields]]` + `configure`/`import_settings`) → 명령(`[[commands.fields]]`) → 설치(`[install]`) → 크래시 판정(`[detection]`) → 백업·공지 → 조회·접속자 수·약관·프리셋(§4 "선택 기능"). `__example__module.toml`의 "선택 기능" 절에 주석으로 된 예가 있다.
 
 ## 4. lifecycle.py 작성 요령
 
@@ -211,6 +212,18 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 - `[backup] paths`(작업 폴더 기준, `{설정 이름}` 치환), `save_command`(백업 직전 보낼 `[commands.fields]` 이름), 경로를 코드로 계산해야 하면 `hook = true` + `backup_paths(config)` → `{"success": true, "paths": [...]}`. 훅이 실패하면 백업도, 그 백업을 전제로 한 업데이트·복원도 멈춘다.
 - `[config] announce_command`: 예약 재시작 예고·공지에 쓸 `[commands.fields]` 이름(`message` 입력 하나).
 
+### 선택 기능: 조회, 접속자 수, 인스턴스별 명령, 약관, 프리셋, 권한
+
+키의 정확한 규칙은 module-spec.md에 있다. 여기서는 언제 쓰는지만 적는다.
+
+- **설정 필드 선택 키**: 포트는 `port = true`(여러 인스턴스를 만들 때 데몬이 겹치지 않게 옮긴다). 서버를 만들 때 골라야 하는 값(서버 종류처럼 받을 파일이 달라지는 값)은 `install = true` + `type = "select"`. 실행 인자로 들어가는 값은 `arg`, 값 형식은 `format`/`pattern`(데몬이 저장 때 검사하므로 모듈이 다시 검사하지 않아도 된다). `type`은 `text` `number` `password` `boolean` `select` `file`만 쓴다.
+- **`[[queries]]`**: 접속자 목록처럼 읽기만 하는 조회. `function`이 `{"success": true, "data": ...}`를 돌려준다. 챗봇과 일반 사용자도 부르므로 아무것도 바꾸지 않는다.
+- **`[status] players`**: 접속자 수 함수. `{"success": true, "online": 3, "max": 20}`. 서버에 닿지 않으면 `success: false`, 서버는 정상인데 수를 모르면 `online` 없이 `success: true`. 서버 로컬 REST·소켓은 `daemon_rcon.loopback_http`/`loopback_exchange`로 연다(격리 실행에서도 데몬이 중계한다).
+- **`[commands] hook = true` + `instance_commands`**: 설치된 플러그인처럼 서버 폴더에 따라 달라지는 명령. module.toml 명령 뒤에 붙는다.
+- **`[[agreements]]` + `accept_agreements`**: 게임 EULA처럼 사용자가 직접 동의해야 하는 약관. 동의는 데몬이 이 PC에서만 받는다. 모듈은 `accepted_agreements`에 자기 id가 있을 때만 파일(예: eula.txt)에 쓰고, 동의를 가정하지 않는다.
+- **`[[presets]]`**: 서버를 만들 때 고르는 추천 설정 묶음. 비밀번호·경로 설정은 넣지 못한다.
+- **`[permissions]`**: 코드가 네트워크·프로세스 실행·네이티브 코드 등을 쓰면 선언한다. `saba-core module audit`과 적합성 키트가 선언하지 않은 사용을 찾는다.
+
 ## 5. 공용 도우미 (`daemon_rcon.py`, 데몬이 배포)
 
 | 함수 | 용도 |
@@ -259,4 +272,6 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 - [ ] 명령은 `console` / `rest` 선언으로 되는 것은 선언으로, `risk`와 `description`을 적었다
 - [ ] 크래시 흔적(`crash_artifacts`)과 정상 종료 문구(`graceful_exit_patterns`)를 적었다
 - [ ] 익스텐션이 없을 때 `extension_required`로 답한다
+- [ ] 훅(`[backup]`·`[commands]`)을 켰거나 `[[queries]]`·`[status]`가 가리킨 함수가 `FUNCTIONS`에 있다
+- [ ] 코드가 쓰는 능력을 `[permissions]`에 선언했다(`saba-core module audit`)
 - [ ] `pytest conformance --module ...` 통과

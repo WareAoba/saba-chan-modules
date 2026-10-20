@@ -68,7 +68,8 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 - 모듈 Python은 `import extensions.<이름>`으로 익스텐션을 쓴다. 활성화된 익스텐션만 import된다: 데몬이 넣는 import 가드가 나머지를 `ModuleNotFoundError`로 막는다(`-`와 `_`는 같다). 익스텐션을 쓰는 코드는 함수 안에서 import하고 `ImportError`를 "익스텐션 없음" 응답으로 바꾼다(palworld의 `ExtensionMissing` 참고).
 
 ### `[[settings.fields]]` ○
-인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`).
+인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text. 이 밖의 값은 GUI가 그리지 않아 설정이 보이지 않는다), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`).
+- `install = true`: 서버를 만들 때 고르는 값(받을 서버 파일이 달라지는 값, 예: 서버 종류). GUI 새 서버 화면과 CLI `server add`가 묻는다. GUI는 `select`만 보인다.
 - `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`·`rest_port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
 - `arg`: 이 값이 실행 인자로 들어가는 모양. 문자열 하나나 배열이고, 공백으로 나눈 토큰에 `{value}`는 많아야 한 번이다(`"--port={value}"`, `"-servername {value}"`, `["-Xmx{value}", "-Xms{value}"]`). `{value}`가 없으면 boolean 플래그다. `{value}`뿐인 모양은 로드 오류다. 실행 인자 미리보기가 사용자가 친 추가 인자를 이 필드로 되돌릴 때만 쓴다. 실제 실행 줄은 여전히 `get_launch_command`가 만들므로 같은 모양으로 넣는다. 실행 인자로 들어가는 필드에만 쓴다.
 - `format`: 값 형식. `memory_size`(숫자+K/M/G 한 글자, `4G`·`1024M`), `port`(1~65535), `integer`, `path`. `pattern`: 값 전체가 맞아야 하는 정규식. 둘 다 저장과 미리보기에서 검사하고, 틀리면 "잘못된 형식입니다"로 막는다(모듈이 안내 문구를 줄 필요는 없다).
@@ -88,6 +89,8 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `http_method`, `endpoint_template` | rest | REST 호출 |
 | `inputs` | ○ | `{ name ✔, label, type, required, placeholder, default, min, max, options }` 목록. 데몬이 실행 전에 required·min·max·options를 검사한다 |
 
+`[commands] hook = true`: 서버 폴더에 따라 달라지는 명령(설치된 플러그인 명령 등)을 진입 파일 `instance_commands(config)`가 인스턴스마다 더 준다. 돌려줄 것은 `{success, commands:[명령 필드와 같은 모양 + group?], components?}`. module.toml 명령과 이름·별명이 겹치거나 이름에 공백이 있는 것은 데몬이 뺀다.
+
 ### `[backup]` ○
 백업(수동·예약·업데이트 전·복원 전)에 묶을 것. `paths`(작업 폴더 기준 폴더·파일, `{설정 이름}`은 인스턴스 설정 값으로 바뀐다), `save_command`(묶기 전에 실행할 `[[commands.fields]]` 이름, 예: `save-all`), `hook`(true면 진입 파일 `backup_paths(config)`가 `{"success": true, "paths": [...]}`로 경로를 더 준다. 실패하면 백업과 그 뒤 작업이 멈춘다). 없으면 수동 백업은 `backup_unsupported`, 업데이트 전·예약 백업은 건너뛴다.
 
@@ -96,6 +99,16 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 ### `[status]` ○
 `players`: 접속자 수를 돌려주는 진입 파일 함수 이름(Python 식별자, 상태를 바꾸는 함수는 안 된다). 데몬이 켜진 서버마다 1분에 한 번, 10초 안에 부른다. 그 값은 서버 목록과 디스코드 `/사바쨩 상태`에 접속자 수로 나온다. 함수 계약은 §3 표.
+
+### `[[queries]]` ○
+읽기 전용 조회(예: 접속자 목록). 액션 `server.query:<name>`이 되어 GUI·CLI·디스코드·챗봇에서 부른다. `name`(소문자·숫자·`-`·`_`, 모듈 안에서 겹치지 않음), `label`, `description`, `function`(진입 파일의 함수 이름, Python 식별자), `inputs`(명령 입력과 같은 모양). 함수는 `{"success": true, "data": <JSON>}`을 돌려주고 아무것도 바꾸지 않는다(감사 기록 없이 챗봇·일반 사용자도 부른다). 표시 문구는 locales `queries.<name>.label`·`description`.
+- 로드 때 검사: 입력 `type`은 `text`·`number`·`select`만, `select`에는 `options`가 있어야 하고 `min`은 `max` 이하, `function`에는 상태를 바꾸는 데몬 함수 이름(`stop`, `configure` 등)을 쓸 수 없다. 어기면 schema v1 모듈은 로드에 실패하고, `schema_version`이 없는 모듈은 경고를 남기고 조회를 모두 끈다.
+
+### `[[presets]]` ○
+서버를 만들 때 고르는 추천 설정 묶음. `id`(소문자·숫자·`-`·`_`, 겹치지 않음), `label`, `description`, `[presets.settings]`(`[[settings.fields]]` 이름 → 값). 값은 그 설정의 규칙(형식·범위·선택지)을 따라야 하고 `password`·`file`·`path` 형식 설정은 넣지 못한다. 어기면 로드 오류. 표시 문구는 locales `presets.<id>.label`·`description`.
+
+### `[permissions]` ○
+진입 파일 코드가 쓰는 위험한 능력의 선언. 모두 bool, 기본 false: `network`(데몬 API 호출은 들지 않음), `spawn_process`, `native_code`, `dynamic_code`, `env_secrets`, `fs_outside_instance`. 선언은 실행을 막거나 풀지 않는다(격리는 신뢰 표시로 정해진다). `saba-core module audit <모듈 폴더>`와 적합성 키트가 코드에서 찾은 능력 중 선언하지 않은 것을 알린다.
 
 ### 그 밖
 - `[aliases]`: `module_aliases`(모듈 별명), `[aliases.commands.<명령>]` `aliases`·`description`.
@@ -124,8 +137,11 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `diagnose_log` | 로그 진단 | `success` |
 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록 / `executable_path`, `install_path` / `version` |
 | `import_settings` | 기존 서버 가져오기 | `settings{}` |
+| `backup_paths` | 백업 때, `[backup] hook = true`이면 | `paths[]` (실패하면 백업과 그 뒤 업데이트·복원이 멈춘다) |
+| `instance_commands` | 명령 목록·실행 때, `[commands] hook = true`이면 | `commands[]` |
+| `[[queries]]`의 `function` | 조회할 때. config에 `args{입력 이름: 값}`이 온다 | `data` |
 | `[status] players`가 가리키는 함수 | 켜진 서버마다 1분에 한 번 | `online`(0 이상 정수), `max`(정수, 모르면 빼거나 0). 서버에 닿지 않으면 `success: false`. 읽기만 한다 |
 
-✔ 표시가 없는 함수는 기능을 지원할 때만 만든다. 만들었다면 반드시 `FUNCTIONS` 표에 넣는다.
+✔ 표시가 없는 함수는 기능을 지원할 때만 만든다. 만들었다면 반드시 `FUNCTIONS` 표에 넣는다. 훅을 켰거나(`[backup]`·`[commands]`) module.toml이 이름으로 가리키는 함수(`[[queries]]`, `[status] players`)는 반드시 만든다.
 
 답을 준 실패(모르는 함수, 잘못된 설정, 익스텐션 없음)도 종료 코드 0으로 끝낸다. 데몬은 종료 코드가 0이 아니면 stdout을 버리고 일반 오류로 본다. 이 계약은 `conformance/`의 키트가 검사한다.

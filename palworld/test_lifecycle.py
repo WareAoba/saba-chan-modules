@@ -515,3 +515,42 @@ def test_commands_that_change_access_or_grant_things_are_danger():
         risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
     for name in ('unban', 'ban'):
         assert risks[name] == "danger", name
+
+
+def test_stop_waits_for_the_configured_stop_timeout():
+    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 모듈 호출 제한(120초) 안에서 끝나게 90초를 넘기지 않는다 (MA2)"""
+    from palworld import lifecycle
+    for config, expected in (({"stop_timeout": "45"}, 45), ({}, 60), ({"stop_timeout": 3600}, 90)):
+        with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
+             mock.patch.object(lifecycle, "_pid_running", return_value=True), \
+             mock.patch.object(lifecycle, "_kill", return_value=True), \
+             mock.patch.object(lifecycle.time, "sleep") as sleep:
+            lifecycle.stop({"pid": 4321, **config})
+        assert sleep.call_count == expected, config
+
+
+def test_stop_reports_a_kill_that_did_not_work():
+    """강제 종료가 듣지 않으면(접근 거부 등) 정지됐다고 답하지 않는다: 데몬이 서버를 멈춘 것으로 표시한다 (MA4)"""
+    from palworld import lifecycle
+    with mock.patch.object(lifecycle, "_pid_running", return_value=True), \
+         mock.patch.object(lifecycle, "subprocess") as sub, \
+         mock.patch.object(lifecycle.os, "kill", side_effect=PermissionError("denied")), \
+         mock.patch.object(lifecycle.time, "sleep"):
+        sub.run.return_value = mock.Mock(returncode=1, stdout="", stderr="Access is denied.")
+        result = lifecycle.stop({"pid": 4321, "force": True})
+    assert result["success"] is False, result
+    assert result.get("message")
+
+
+def test_managed_stop_leaves_the_wait_to_the_daemon():
+    """managed 정지는 데몬이 인스턴스 stop_timeout(최대 3600초)까지 기다린다: 모듈이 REST로 요청한 뒤 기다리거나 죽이면
+    90초 상한에 잘려 저장 중에 끝난다 (리뷰 514 P2-1)"""
+    from palworld import lifecycle
+    with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
+         mock.patch.object(lifecycle, "_pid_running", return_value=True), \
+         mock.patch.object(lifecycle, "_kill") as kill, \
+         mock.patch.object(lifecycle.time, "sleep") as sleep:
+        result = lifecycle.stop({"pid": 4321, "managed": True, "stop_timeout": 600})
+    assert result["success"] is True, result
+    sleep.assert_not_called()
+    kill.assert_not_called()

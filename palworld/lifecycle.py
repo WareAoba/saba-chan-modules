@@ -295,7 +295,8 @@ def _enforce_rest_policy(working_dir, config=None):
         print(i18n.t("messages.rcon_forced_off"), file=sys.stderr)
 
     # Sync AdminPassword with daemon's rest_password to ensure credentials match.
-    # daemon의 ensure_passwords()가 항상 rest_password를 생성하므로 config에 존재함.
+    # 데몬은 시작할 때 "비밀번호 자동 생성"이 켜져 있으면 빈 rest_password만 채우고, 꺼져 있으면 비워 둔다
+    # (ensure_passwords). 그래서 config에 없을 수 있다: 그때는 INI 값을 쓰거나 아래에서 만든다.
     current_admin_pw = props.get("AdminPassword", "").strip('"').strip("'")
     daemon_pw = (config or {}).get("rest_password") or (config or {}).get("admin_password", "")
 

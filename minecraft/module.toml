@@ -42,7 +42,8 @@ announce_command = "say"
 paths = ["{level_name}", "{level_name}_nether", "{level_name}_the_end",
          "server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json",
          "plugins", "mods", "config",
-         "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml"]
+         "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml",
+         "paper.yml", "purpur.yml", "pufferfish.yml"]
 save_command = "save-all"
 
 [install]

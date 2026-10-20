@@ -986,7 +986,8 @@ def test_backup_keeps_plugin_mod_and_server_type_configs():
     import tomllib
     with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
         paths = tomllib.load(f)["backup"]["paths"]
-    for name in ("plugins", "mods", "config", "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml"):
+    for name in ("plugins", "mods", "config", "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml",
+                 "paper.yml", "purpur.yml", "pufferfish.yml"):
         assert name in paths, name
     for name in (".paper-remapped", "libraries", "logs", "versions", "cache"):
         assert name not in paths, name

@@ -200,8 +200,12 @@ def protocol_problems(manifest):
     others = sorted(set(supported) & {"stdin", "rest"})
     if others:
         return [f"{'·'.join(others)}이 있는데 rcon도 선언했다 (다른 경로가 있으면 RCON은 빼고 게임 설정에서 끈다)"]
-    if not protocols.get("rcon_port"):
+    port = protocols.get("rcon_port")
+    if port is None:
         return ["rcon만 선언했는데 [protocols] rcon_port가 없다"]
+    # 데몬은 u16으로 읽는다. 스키마 format uint16은 검사기가 상한을 보지 않으므로 여기서 본다
+    if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:
+        return [f"rcon_port {port!r}는 1~65535 정수가 아니다"]
     return []
 
 
@@ -215,6 +219,9 @@ def test_kit_catches_rcon_misuse():
         "stdin이 있는데 rcon도 선언했다 (다른 경로가 있으면 RCON은 빼고 게임 설정에서 끈다)"]
     assert protocol_problems({"protocols": {"supported": ["rcon"]}}) == ["rcon만 선언했는데 [protocols] rcon_port가 없다"]
     assert protocol_problems({"protocols": {"supported": ["rcon"], "rcon_port": 27015}}) == []
+    for bad in (0, 65536, -1, "27015", True):
+        assert protocol_problems({"protocols": {"supported": ["rcon"], "rcon_port": bad}}) == [
+            f"rcon_port {bad!r}는 1~65535 정수가 아니다"]
     assert protocol_problems({"protocols": {"supported": ["rest"]}}) == []
 
 # ── 2. FUNCTIONS 표 ─────────────────────────────────────

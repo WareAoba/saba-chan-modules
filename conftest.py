@@ -66,6 +66,9 @@ _install_runtime()
 # 하위 프로세스로 모듈을 띄우는 테스트가 같은 런타임을 PYTHONPATH로 쓰게 절대 경로로 남긴다
 if importlib.util.find_spec("i18n"):
     os.environ["SABA_RUNTIME_DIR"] = os.path.dirname(os.path.abspath(importlib.util.find_spec("i18n").origin))
-if _MODULES_ROOT not in sys.path:
-    sys.path.insert(0, _MODULES_ROOT)
+# 모듈 저장소가 공용 런타임보다 앞서야 한다: 설치본 %APPDATA%/saba-chan/modules에는 설치된 모듈(zomboid/ 등)도 있어,
+# 뒤에 두면 이 클론이 아니라 설치본 모듈을 import한다
+if _MODULES_ROOT in sys.path:
+    sys.path.remove(_MODULES_ROOT)
+sys.path.insert(0, _MODULES_ROOT)
 _install_extensions_alias()

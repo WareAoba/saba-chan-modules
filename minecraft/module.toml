@@ -38,12 +38,14 @@ announce_command = "say"
 # (PaperMC 문서 "Vanilla data files"). eula.txt는 동의를 복원으로 대신하지 않도록 넣지 않는다
 # 플러그인·모드 서버: plugins/·mods/(jar와 각 플러그인 데이터)와 config/, Bukkit 계열 설정 파일
 # (PaperMC 문서 "Configuration"). 사바쨩이 다시 받아 주지 않으므로 넣는다. 캐시(.paper-remapped,
-# libraries, logs)는 넣지 않는다
+# libraries, logs)는 넣지 않는다. plugins/는 hook(backup_paths)이 다시 그릴 수 있는 지도 타일을 빼고 고른다
+# (항목 단위라 복원은 백업에 든 플러그인만 되돌리고, 백업 뒤에 더한 플러그인 jar·폴더는 그대로 둔다)
 paths = ["{level_name}", "{level_name}_nether", "{level_name}_the_end",
          "server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json",
-         "plugins", "mods", "config",
+         "mods", "config",
          "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml",
          "paper.yml", "purpur.yml", "pufferfish.yml"]
+hook = true
 save_command = "save-all"
 
 [install]

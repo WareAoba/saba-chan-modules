@@ -2174,6 +2174,40 @@ def install_server(config):
 # ║                      Main Entry                           ║
 # ╚═══════════════════════════════════════════════════════════╝
 
+# plugins/ 안에서 백업에서 뺄 것: 플러그인이 다시 그릴 수 있는 지도 타일 (경로 조각, 대소문자 무시)
+# dynmap 기본 저장소 filetree의 tilespath = web/tiles (dynmap 위키 "Configuration.txt", fullrender로 다시 그림)
+_PLUGIN_BACKUP_EXCLUDES = [("dynmap", "web", "tiles")]
+
+
+def _plugin_entries(path, parts):
+    """path 아래 항목 중 뺄 경로 조각에 걸리는 것은 그 안으로 들어가 나머지만 고른다"""
+    try:
+        names = sorted(os.listdir(path))
+    except FileNotFoundError:
+        return []
+    picked = []
+    for name in names:
+        here = parts + (name.lower(),)
+        full = os.path.join(path, name)
+        if here in _PLUGIN_BACKUP_EXCLUDES:
+            continue
+        if os.path.isdir(full) and any(ex[:len(here)] == here for ex in _PLUGIN_BACKUP_EXCLUDES):
+            picked.extend(_plugin_entries(full, here))
+        else:
+            picked.append(full)
+    return picked
+
+
+def backup_paths(config):
+    """백업할 플러그인 데이터 (데몬 `[backup] hook`): plugins/ 전체에서 다시 그릴 수 있는 지도 타일만 뺀다.
+    월드·설정 파일은 module.toml `paths`에 있다. 읽지 못하는 폴더는 실패로 답한다(빠진 백업을 성공으로 남기지 않는다)"""
+    plugins = os.path.join(config.get("working_dir") or "", "plugins")
+    try:
+        return {"success": True, "paths": _plugin_entries(plugins, ())}
+    except OSError as e:
+        return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
+
+
 FUNCTIONS = {
     "stop": stop,
     "status": status,
@@ -2193,6 +2227,7 @@ FUNCTIONS = {
     "get_installed_version": get_installed_version,
     "instance_commands": instance_commands,
     "player_count": player_count,
+    "backup_paths": backup_paths,
 }
 # 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
 FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}

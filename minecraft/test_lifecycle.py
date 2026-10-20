@@ -677,9 +677,6 @@ def test_player_count_pings_the_address_the_server_listens_on(tmp_path):
 def test_a_sandboxed_run_pings_its_server_through_the_daemon(monkeypatch, tmp_path):
     """격리 실행은 127.0.0.1에 닿지 못해 접속자 핑이 늘 실패했다. SABA_LOOPBACK_DIR이 있으면 데몬 중계로 핑한다"""
     import daemon_rcon
-    if not hasattr(daemon_rcon, "loopback_exchange"):
-        # 설치본(%APPDATA%) 런타임이 이 저장소보다 오래되면 중계 도우미가 없다: 실패가 아니라 이유를 밝히고 건너뛴다
-        pytest.skip(f"공용 런타임 {daemon_rcon.__file__}에 loopback_exchange가 없습니다. SABA_RUNTIME_DIR로 최신 saba-chan/modules를 지정하세요")
     from minecraft import lifecycle
     status = json.dumps({"players": {"online": 1, "max": 20}}).encode()
     body = lifecycle.MinecraftPing._encode_varint(0) + lifecycle.MinecraftPing._encode_varint(len(status)) + status
@@ -689,7 +686,8 @@ def test_a_sandboxed_run_pings_its_server_through_the_daemon(monkeypatch, tmp_pa
         sent.append((port, data, idle_ms))
         return lifecycle.MinecraftPing._encode_varint(len(body)) + body
     monkeypatch.setenv("SABA_LOOPBACK_DIR", str(tmp_path))
-    monkeypatch.setattr(daemon_rcon, "loopback_exchange", relay)
+    # 설치본(%APPDATA%) 런타임이 오래되면 이 함수가 없으므로 raising=False로 끼운다
+    monkeypatch.setattr(daemon_rcon, "loopback_exchange", relay, raising=False)
     monkeypatch.setattr(lifecycle.socket, "create_connection", lambda *a, **k: pytest.fail("a direct connection was tried"))
     assert lifecycle.MinecraftPing.ping("127.0.0.1", 25570)["players"]["online"] == 1
     assert sent == [(25570, lifecycle.MinecraftPing._request("127.0.0.1", 25570), 300)]

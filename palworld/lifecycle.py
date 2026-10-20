@@ -295,7 +295,8 @@ def _enforce_rest_policy(working_dir, config=None):
         print(i18n.t("messages.rcon_forced_off"), file=sys.stderr)
 
     # Sync AdminPassword with daemon's rest_password to ensure credentials match.
-    # daemon의 ensure_passwords()가 항상 rest_password를 생성하므로 config에 존재함.
+    # 데몬은 시작할 때 "비밀번호 자동 생성"이 켜져 있으면 빈 rest_password만 채우고, 꺼져 있으면 비워 둔다
+    # (ensure_passwords). 그래서 config에 없을 수 있다: 그때는 INI 값을 쓰거나 아래에서 만든다.
     current_admin_pw = props.get("AdminPassword", "").strip('"').strip("'")
     daemon_pw = (config or {}).get("rest_password") or (config or {}).get("admin_password", "")
 
@@ -455,7 +456,7 @@ def stop(config):
     """Stop Palworld server.
 
     Palworld는 콘솔(stdin) 명령을 받지 않으므로 REST로 저장·종료를 요청하고,
-    시간 안에 끝나지 않으면 강제 종료한다. 데몬이 PID를 주면(managed) 그 프로세스만 다룬다.
+    시간 안에 끝나지 않으면 강제 종료한다. REST를 쓸 수 없으면 끝내지 않고 `graceful_stop_unavailable`로 답한다. 데몬이 PID를 주면(managed) 그 프로세스만 다룬다.
     """
     try:
         pid = config.get("pid")
@@ -465,7 +466,11 @@ def stop(config):
             # 데몬이 PID를 모르면 이 인스턴스의 서버가 아니다(또는 안 돌고 있다)
             return {"success": True, "message": i18n.t("messages.process_not_running", name=exe_name)}
 
-        if not force and _rest_shutdown(config):
+        if not force and not _rest_shutdown(config):
+            # REST가 없어 저장 후 종료를 요청할 수 없다: 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
+            return {"success": False, "error_code": "graceful_stop_unavailable",
+                    "message": i18n.t("errors.graceful_stop_unavailable")}
+        if not force:
             for _ in range(60):
                 time.sleep(1)
                 if not _pid_running(pid):
@@ -1101,6 +1106,42 @@ def reset_server(config):
     return reset_properties(config)
 
 
+def _entries(path):
+    """폴더 항목. 없는 폴더는 빈 목록, 읽지 못하는 폴더는 OSError (빈 세이브로 보고 성공하면 백업이 비어도 모른다)"""
+    try:
+        return sorted(os.listdir(path))
+    except FileNotFoundError:
+        return []
+
+
+def backup_paths(config):
+    """백업할 세이브 (데몬 `[backup] hook`): `Pal/Saved/SaveGames/<번호>/<월드>/` 안의 항목 전부.
+    다만 게임이 월드 폴더 안에 쌓는 자동 백업 `backup/`(bIsUseBackupSaveData)은 뺀다.
+    설정 폴더(`Pal/Saved/Config`)는 module.toml `paths`에 있다."""
+    saves = os.path.join(config.get("working_dir") or "", "Pal", "Saved", "SaveGames")
+    try:
+        return {"success": True, "paths": _save_entries(saves)}
+    except OSError as e:
+        return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
+
+
+def _save_entries(saves):
+    paths = []
+    for slot in _entries(saves):
+        slot_path = os.path.join(saves, slot)
+        if not os.path.isdir(slot_path):
+            paths.append(slot_path)
+            continue
+        for world in _entries(slot_path):
+            world_path = os.path.join(slot_path, world)
+            if not os.path.isdir(world_path):
+                paths.append(world_path)
+                continue
+            paths.extend(os.path.join(world_path, name) for name in _entries(world_path)
+                         if name.lower() != "backup")
+    return paths
+
+
 
 def diagnose_log(config):
     """Diagnose errors from provided log lines or server log files."""
@@ -1533,6 +1574,7 @@ if __name__ == "__main__":
         "get_version_details": get_version_details,
         "install_server": install_server,
         "player_count": player_count,
+        "backup_paths": backup_paths,
     }
     # 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
     FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}

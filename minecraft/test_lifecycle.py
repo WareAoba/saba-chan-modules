@@ -954,3 +954,27 @@ def test_install_server_names_the_jar_from_server_executable(tmp_path):
                                            "server_executable": "my-server.jar", "settings": {"server_type": "vanilla"}})
     assert result["success"], result
     assert (tmp_path / "my-server.jar").is_file() and not (tmp_path / "server.jar").exists()
+
+
+def test_backup_keeps_permissions_and_settings():
+    """복원하면 권한·밴·화이트리스트·서버 설정도 돌아와야 한다 (PaperMC 문서: 서버 루트의 데이터 파일)"""
+    import tomllib
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        paths = tomllib.load(f)["backup"]["paths"]
+    for name in ("server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json"):
+        assert name in paths, name
+
+
+def test_plain_stop_without_a_way_to_save_does_not_kill():
+    """콘솔도 SIGTERM도 없으면(Windows, 콘솔 없는 서버) 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
+    from minecraft import lifecycle
+    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
+            mock.patch.object(lifecycle, "_request_terminate", return_value=False), \
+            mock.patch.object(lifecycle, "force_kill") as kill:
+        result = lifecycle.stop({"pid": 4242, "instance_id": "x"})
+    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
+    assert result.get("message")
+    kill.assert_not_called()
+    with mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
+        assert lifecycle.stop({"pid": 4242, "force": True})["success"] is True
+    kill.assert_called_once()

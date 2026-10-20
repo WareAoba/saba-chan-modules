@@ -9,6 +9,9 @@
    stdout 마지막 줄이 JSON 객체이며, stderr의 `PROGRESS:` 줄이 JSON인지
 5. 예약 함수 `functions`가 FUNCTIONS 표의 이름을 돌려준다
 6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일에 en에 없는 키가 없다
+7. 명령마다 `risk`와 `description`이 있다
+8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다
+9. 콘솔 없는 서버의 일반 정지는 저장 후 종료를 요청하거나, 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 알린다
 """
 import ast
 import json
@@ -16,6 +19,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import time
 import warnings
 
 import jsonschema
@@ -54,6 +58,9 @@ def call(module, shared_libs, function, config, tmp_path):
         "SABA_TOKEN_PATH": str(tmp_path / "no-token"),
         "SABA_LANG": "en",
         "SABA_ENABLED_EXTENSIONS": "",
+        # 사용자 폴더를 기본 위치로 쓰는 게임(예: ~/Zomboid)도 임시 폴더 안에만 쓰게 한다
+        "HOME": str(tmp_path),
+        "USERPROFILE": str(tmp_path),
     }
     try:
         proc = subprocess.run(
@@ -164,6 +171,24 @@ def test_highlight_rules_fit_the_daemon(module):
     assert not problems, "\n".join(problems)
 
 
+def commands_missing_risk(manifest):
+    """`[[commands.fields]]`에 `risk`나 `description`이 없는 명령. risk가 없으면 데몬은 조용히 caution으로 본다"""
+    fields = (manifest.get("commands") or {}).get("fields", [])
+    return ([f"{c.get('name')}: risk" for c in fields if "risk" not in c]
+            + [f"{c.get('name')}: description" for c in fields if not c.get("description")])
+
+
+def test_commands_declare_risk_and_description(module):
+    """명령의 위험도와 설명은 모듈이 스스로 판단해 적는다 (권한·챗봇 확인·AI가 읽는다)"""
+    missing = commands_missing_risk(module.manifest)
+    assert not missing, "명령에 빠진 선언:\n" + "\n".join(missing)
+
+
+def test_kit_catches_command_without_risk():
+    manifest = {"commands": {"fields": [{"name": "kick", "description": "추방"}, {"name": "say", "risk": "safe"}]}}
+    assert commands_missing_risk(manifest) == ["kick: risk", "say: description"]
+    assert commands_missing_risk({"commands": {"fields": [{"name": "a", "risk": "safe", "description": "d"}]}}) == []
+
 # ── 2. FUNCTIONS 표 ─────────────────────────────────────
 
 def test_functions_table(module):
@@ -232,6 +257,138 @@ def test_functions_call_lists_the_table(module, shared_libs, tmp_path):
         f"functions 응답이 FUNCTIONS 표와 다르다: 응답만 {sorted(set(listed) - set(table) - {'functions'})}, "
         f"표만 {sorted(set(table) - set(listed))}")
 
+
+def changed_setting_values(fields, work_dir):
+    """게임 파일 설정(`group = "saba-chan"`이 아닌 것)의 기본값을 채우고, 바꿀 수 있는 형식
+    (boolean·number·select)은 기본과 다른 값으로 바꾼다. 사바쨩 설정은 데몬도 configure에 넘기지 않는다(MK6).
+    돌려주는 것: (configure에 넣을 settings, 바꾼 값)"""
+    settings, changed = {}, {}
+    for f in fields:
+        if "default" not in f or f.get("group") == "saba-chan":
+            continue
+        value = f["default"]
+        if isinstance(value, str):
+            value = value.replace("{instance_dir}", str(work_dir))
+        settings[f["name"]] = value
+        kind, new = f.get("type"), None
+        if kind == "boolean" and isinstance(value, bool):
+            new = not value
+        elif kind == "number" and isinstance(value, (int, float)) and not isinstance(value, bool):
+            step = 1 if isinstance(value, int) else 0.5
+            new = value + step if f.get("max") is None or value + step <= f["max"] else value - step
+            if f.get("min") is not None and new < f["min"]:
+                new = None
+        elif kind == "select":
+            options = [o.get("value") if isinstance(o, dict) else o for o in f.get("options", [])]
+            new = next((o for o in options if o != value), None)
+        if new is not None:
+            settings[f["name"]] = changed[f["name"]] = new
+    return settings, changed
+
+
+def test_settings_round_trip(module, shared_libs, tmp_path):
+    """앱에서 고친 값은 게임 파일에 쓰이고, 다시 읽으면 같은 값이어야 한다 (configure → import_settings).
+    게임 파일에 두지 않는 설정은 `group = "saba-chan"`으로 선언하므로 비교하지 않는다. 그 밖의 바꾼 설정은
+    import_settings가 모두 돌려줘야 한다(빠지면 앱이 게임 파일 값을 모른다)"""
+    table, _ = functions_table(module)
+    if not {"configure", "import_settings"} <= set(table or {}):
+        pytest.skip("configure·import_settings 미지원")
+    config = sandbox_config(tmp_path)
+    settings, changed = changed_setting_values((module.manifest.get("settings") or {}).get("fields", []),
+                                               config["working_dir"])
+    instance = {**config, **settings}
+    written = call(module, shared_libs, "configure", {**instance, "settings": settings}, tmp_path)
+    if written.get("error_code") == "extension_required":
+        pytest.skip(f"익스텐션 필요: {written.get('missing_extensions')}")
+    assert written.get("success") is True, f"새 작업 폴더에서 configure 실패: {written}"
+    read = call(module, shared_libs, "import_settings", instance, tmp_path)
+    assert read.get("success") is True, f"import_settings 실패: {read}"
+    back = read.get("settings") or {}
+    missing = sorted(k for k in changed if k not in back)
+    assert not missing, ("configure로 쓴 설정을 import_settings가 돌려주지 않는다 "
+                         f"(게임 파일에 두지 않는 설정이면 group = \"saba-chan\"): {missing}")
+    differ = [f"{k}: 썼음 {v!r} → 읽음 {back[k]!r}" for k, v in changed.items() if k in back and back[k] != v]
+    assert not differ, "앱 값과 게임 파일 값이 다르다:\n" + "\n".join(differ)
+
+
+def test_kit_changes_every_kind_it_can():
+    fields = [
+        {"name": "b", "type": "boolean", "default": False},
+        {"name": "n", "type": "number", "default": 10, "max": 10},
+        {"name": "s", "type": "select", "default": "a", "options": ["a", "b"]},
+        {"name": "t", "type": "text", "default": "{instance_dir}/x"},
+        {"name": "ram", "type": "number", "default": 4, "group": "saba-chan"},
+    ]
+    settings, changed = changed_setting_values(fields, "W")
+    assert changed == {"b": True, "n": 9, "s": "b"}
+    assert settings["t"] == "W/x" and "ram" not in settings
+
+def stop_answer_problems(result, still_alive):
+    """일반 정지(force=false)의 답: 끝냈으면 성공, 저장 후 종료를 요청할 길이 없으면 서버를 그대로 두고
+    `graceful_stop_unavailable`(데몬이 사용자에게 강제 종료를 고르게 한다, 02 §3.4)"""
+    if result.get("error_code") == "graceful_stop_unavailable":
+        problems = []
+        if result.get("success") is not False:
+            problems.append("graceful_stop_unavailable인데 success가 false가 아니다")
+        if not result.get("message"):
+            problems.append("graceful_stop_unavailable에 message(모듈 locales)가 없다")
+        if not still_alive:
+            problems.append("graceful_stop_unavailable라면서 서버를 끝냈다 (저장 없이 죽였다)")
+        return problems
+    if result.get("success") is True and still_alive:
+        return ["성공이라면서 서버가 아직 살아 있다"]
+    return []
+
+
+def _spawn_server_stand_in():
+    """정지 대상 프로세스. POSIX에서는 고아로 만들어 끝나면 바로 사라지게 한다(좀비로 남아 살아 보이지 않게)"""
+    if os.name == "nt":
+        return subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"]).pid
+    out = subprocess.run(["sh", "-c", "sleep 60 >/dev/null 2>&1 & echo $!"], capture_output=True, text=True, check=True)
+    return int(out.stdout.strip())
+
+
+def _alive(pid):
+    if os.name == "nt":
+        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True)
+        return str(pid) in out.stdout
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def test_plain_stop_never_kills_without_saving(module, shared_libs, tmp_path):
+    """콘솔이 없는(데몬이 닫힌) 서버에 일반 정지: 저장 후 종료를 요청해 끝내거나, 길이 없으면 죽이지 않고 알린다"""
+    table, _ = functions_table(module)
+    if "stop" not in (table or {}):
+        pytest.skip("stop 미지원")
+    pid = _spawn_server_stand_in()
+    try:
+        result = call(module, shared_libs, "stop", {**sandbox_config(tmp_path), "pid": pid, "force": False}, tmp_path)
+        for _ in range(20):  # 끝낸 프로세스가 목록에서 사라지기까지 잠깐 걸린다
+            if not _alive(pid):
+                break
+            time.sleep(0.1)
+        problems = stop_answer_problems(result, _alive(pid))
+        assert not problems, f"{result}\n" + "\n".join(problems)
+    finally:
+        if _alive(pid):
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
+            else:
+                os.kill(pid, 9)
+
+
+def test_kit_catches_a_stop_that_kills_without_saving():
+    unavailable = {"success": False, "error_code": "graceful_stop_unavailable", "message": "콘솔이 없어요"}
+    assert stop_answer_problems(unavailable, still_alive=True) == []
+    assert stop_answer_problems(unavailable, still_alive=False) == ["graceful_stop_unavailable라면서 서버를 끝냈다 (저장 없이 죽였다)"]
+    assert stop_answer_problems({"success": True, "error_code": "graceful_stop_unavailable", "message": "x"}, True) == [
+        "graceful_stop_unavailable인데 success가 false가 아니다"]
+    assert stop_answer_problems({"success": True}, still_alive=False) == []
+    assert stop_answer_problems({"success": True}, still_alive=True) == ["성공이라면서 서버가 아직 살아 있다"]
 
 # ── 5. 번역 ─────────────────────────────────────────────
 

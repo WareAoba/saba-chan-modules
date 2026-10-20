@@ -1137,6 +1137,7 @@ def stop(config):
 
     Normal stop: console `save` + `quit`, else SIGTERM, then wait for the exit.
     Force kill only when force=true or the server did not exit in time (RCON is off by policy).
+    With neither a console nor SIGTERM, do not kill: answer `graceful_stop_unavailable`.
     The daemon stops managed servers with a console itself, so this runs mostly without one.
     """
     pid = config.get("pid")
@@ -1145,11 +1146,14 @@ def stop(config):
     if config.get("force", False):
         return _kill(pid)
 
-    if _console_quit(config.get("instance_id", "")) or _request_terminate(pid):
-        print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-        if wait_for_exit(pid, timeout=STOP_TIMEOUT):
-            return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
-        print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
+    if not (_console_quit(config.get("instance_id", "")) or _request_terminate(pid)):
+        # 저장 후 종료를 요청할 길이 없다(콘솔 없음, Windows): 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
+        return {"success": False, "error_code": "graceful_stop_unavailable",
+                "message": i18n.t("errors.graceful_stop_unavailable")}
+    print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
+    if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+        return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
+    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
     return _kill(pid)
 
 
@@ -1503,16 +1507,36 @@ def reset_server(config):
     }
 
 
+def _server_config_files(server_dir, server_name):
+    """Server/ 폴더에서 이 서버 이름의 파일: `<이름>.ini`와 `<이름>_<종류>.lua`(SandboxVars·spawnregions·spawnpoints).
+    `<이름>_2.ini`나 `<이름>_2_SandboxVars.lua`는 다른 서버(`<이름>_2`) 것이다."""
+    ini = os.path.join(server_dir, f"{server_name}.ini")
+    try:
+        names = os.listdir(server_dir)
+    except FileNotFoundError:
+        return [ini]
+    # 읽지 못하는 폴더(권한·I/O)는 OSError로 올린다: 설정 일부가 조용히 빠진 백업을 성공으로 남기지 않는다
+    prefix = f"{server_name}_"
+    lua = sorted(n for n in names
+                 if n.startswith(prefix) and n.endswith(".lua") and "_" not in n[len(prefix):])
+    return [ini] + [os.path.join(server_dir, n) for n in lua]
+
+
 def backup_paths(config):
-    """백업할 세이브 위치 (데몬 `[backup] hook`): 이 서버 이름의 월드, 플레이어 DB, 서버 설정 폴더"""
+    """백업할 세이브 위치 (데몬 `[backup] hook`): 이 서버 이름의 월드, 플레이어 DB, 서버 설정 파일.
+    Server/ 폴더째 넣으면 다른 서버 이름의 설정까지 들어가므로 이 서버 것만 고른다"""
     server_name = config.get("server_name") or "servertest"
     home = _zomboid_home(config)
     layout = _legacy_layout(config)
     server_dir = layout[1] if layout else os.path.join(home, "Server")
+    try:
+        config_files = _server_config_files(server_dir, server_name)
+    except OSError as e:
+        return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
     paths = [
         os.path.join(home, "Saves", "Multiplayer", server_name),
         os.path.join(home, "db", f"{server_name}.db"),
-        server_dir,
+        *config_files,
     ]
     return {"success": True, "paths": paths}
 

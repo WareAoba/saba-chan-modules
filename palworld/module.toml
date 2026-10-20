@@ -38,7 +38,9 @@ stop_command = "Shutdown"  # stdin으로 전송하는 graceful 종료 명령어
 announce_command = "announce"
 
 [backup]
-paths = ["Pal/Saved/SaveGames", "Pal/Saved/Config"]
+# 세이브는 hook(backup_paths)이 월드 폴더에서 게임 자체 자동 백업(backup/)을 빼고 고른다
+paths = ["Pal/Saved/Config"]
+hook = true
 save_command = "save"
 
 # Shipping-Cmd는 stdout이 파이프면 끝날 때까지 모아 둔다(2026-10-16 실측). 의사 콘솔로 띄워 줄마다 받는다.

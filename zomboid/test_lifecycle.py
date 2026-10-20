@@ -237,9 +237,22 @@ def test_backup_paths_follow_cache_dir(tmp_path):
     assert result["paths"] == [
         os.path.join(str(tmp_path), "Saves", "Multiplayer", "myserver"),
         os.path.join(str(tmp_path), "db", "myserver.db"),
-        os.path.join(str(tmp_path), "Server"),
+        os.path.join(str(tmp_path), "Server", "myserver.ini"),
     ]
 
+
+def test_backup_paths_take_only_this_servers_files(tmp_path):
+    """Server/ 폴더에는 서버 이름마다 <이름>.ini와 <이름>_*.lua가 있다. 다른 서버 것은 넣지 않는다"""
+    from zomboid.lifecycle import backup_paths
+    server = tmp_path / "Server"
+    server.mkdir()
+    ours = ["myserver.ini", "myserver_SandboxVars.lua", "myserver_spawnregions.lua", "myserver_spawnpoints.lua"]
+    others = ["other.ini", "other_SandboxVars.lua", "myserver_2.ini", "myserver_2_SandboxVars.lua"]
+    for name in ours + others:
+        (server / name).write_text("x")
+    result = backup_paths({"cache_dir": str(tmp_path), "server_name": "myserver"})
+    taken = sorted(os.path.basename(p) for p in result["paths"] if os.path.dirname(p) == str(server))
+    assert taken == sorted(ours), taken
 
 # ─── 6. 인코딩 계약 ────────────────────────────────────────
 
@@ -477,3 +490,26 @@ def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(
         lifecycle.IniManager.update(str(ini), {"Password": "changed"})
         assert lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": settings})["success"]
     assert lifecycle.IniManager.read(str(ini))["Password"] == "changed"
+
+
+def test_plain_stop_without_a_way_to_save_does_not_kill():
+    """콘솔도 SIGTERM도 없으면(Windows, 콘솔 없는 서버) 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
+    from unittest import mock
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
+            mock.patch.object(lifecycle, "_request_terminate", return_value=False), \
+            mock.patch.object(lifecycle, "force_kill") as kill:
+        result = lifecycle.stop({"pid": 4242, "instance_id": "x"})
+    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
+    assert result.get("message")
+    kill.assert_not_called()
+
+
+def test_backup_paths_fail_when_the_server_folder_cannot_be_read(tmp_path):
+    """Server/를 읽지 못하면 SandboxVars·spawn 설정이 조용히 빠지므로 백업 훅을 실패시킨다"""
+    from unittest import mock
+    from zomboid import lifecycle
+    (tmp_path / "Server").mkdir()
+    with mock.patch.object(lifecycle.os, "listdir", side_effect=PermissionError("denied")):
+        result = lifecycle.backup_paths({"cache_dir": str(tmp_path), "server_name": "myserver"})
+    assert result["success"] is False and result.get("message"), result

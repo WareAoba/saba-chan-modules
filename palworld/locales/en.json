@@ -156,6 +156,8 @@
     "settings": { "label": "View Settings", "description": "View current server settings" }
   },
   "errors": {
+    "backup_paths_failed": "Could not read the save folder for backup: {{error}}",
+    "graceful_stop_unavailable": "There is no way to ask the server to save and exit (no console or REST). It was not stopped. Force stop it only if you accept losing unsaved progress.",
     "server_not_running": "Server is not running. Please start the server first.",
     "auth_failed": "Authentication failed. Please check the REST API username and password.",
     "player_not_found": "Player not found. Please check the nickname or SteamID.",

@@ -258,6 +258,29 @@ def test_status_returns_stopped_when_no_executable():
     assert result.get("status") == "stopped"
 
 
+def test_backup_paths_skip_the_games_own_backups(tmp_path):
+    """백업은 월드를 살리는 최소 구성만: 게임이 월드 폴더 안에 쌓는 자동 백업(backup/)은 넣지 않는다"""
+    from palworld.lifecycle import backup_paths
+    world = tmp_path / "Pal" / "Saved" / "SaveGames" / "0" / "ABCDEF0123456789"
+    (world / "Players").mkdir(parents=True)
+    (world / "backup" / "world").mkdir(parents=True)
+    for name in ("Level.sav", "LevelMeta.sav"):
+        (world / name).write_bytes(b"x")
+    result = backup_paths({"working_dir": str(tmp_path)})
+    assert result["success"] is True, result
+    paths = set(result["paths"])
+    assert str(world / "backup") not in paths
+    assert not any(p.startswith(str(world / "backup")) for p in paths)
+    assert {str(world / "Level.sav"), str(world / "LevelMeta.sav"), str(world / "Players")} <= paths
+
+
+def test_backup_is_declared_as_hook():
+    cfg = _load_module_toml()
+    assert cfg["backup"].get("hook") is True
+    assert not any("SaveGames" in p for p in cfg["backup"].get("paths", [])), "SaveGames 통째는 게임 자체 백업까지 넣는다"
+    assert "Pal/Saved/Config" in cfg["backup"]["paths"]
+
+
 # ─── 6. 인코딩 계약 (BOM 처리) ──────────────────────────────
 
 def test_module_toml_bom_roundtrip(tmp_path):
@@ -302,7 +325,9 @@ def _run_cli(function, config, include_extensions=False):
 def test_status_and_stop_work_without_ue4_extension():
     """ue4-ini 익스텐션이 없어도 status/stop은 동작해야 한다 (지연 import)."""
     assert _run_cli("status", {})["status"] == "stopped"
-    assert _run_cli("stop", {"pid": 2 ** 22 + 12345})["success"] is True
+    # REST 비밀번호가 없어 저장 후 종료를 요청할 수 없다: 죽이지 않고 알린다 (MK10)
+    assert _run_cli("stop", {"pid": 2 ** 22 + 12345})["error_code"] == "graceful_stop_unavailable"
+    assert _run_cli("stop", {"pid": 2 ** 22 + 12345, "force": True})["success"] is True
     assert _run_cli("nope", {})["success"] is False
 
 
@@ -316,11 +341,21 @@ def test_validate_accepts_daemon_server_jar_key(tmp_path):
 
 def test_stop_kills_only_given_pid():
     from palworld import lifecycle
+    with mock.patch.object(lifecycle, "_kill") as kill:
+        result = lifecycle.stop({"pid": 4321, "force": True, "server_executable": "C:/x/PalServer.exe"})
+    assert result["success"] is True
+    kill.assert_called_once_with(4321)
+
+
+def test_plain_stop_without_rest_does_not_kill():
+    """REST로 저장 후 종료를 요청할 수 없으면 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
+    from palworld import lifecycle
     with mock.patch.object(lifecycle, "_kill") as kill, \
          mock.patch.object(lifecycle, "_rest_shutdown", return_value=False):
         result = lifecycle.stop({"pid": 4321, "server_executable": "C:/x/PalServer.exe"})
-    assert result["success"] is True
-    kill.assert_called_once_with(4321)
+    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
+    assert result.get("message")
+    kill.assert_not_called()
 
 
 def test_status_uses_pid_liveness():
@@ -461,3 +496,13 @@ def test_a_new_server_starts_with_the_settings_chosen_when_creating_it(tmp_path,
     assert props["ServerPlayerMaxNum"] == "8"
     assert props["RESTAPIEnabled"] == "True"
     assert props["RCONEnabled"] == "False"
+
+
+def test_backup_paths_fail_when_a_save_folder_cannot_be_read(tmp_path):
+    """읽지 못하는 세이브 폴더를 빈 세이브로 보고 성공하면, 설정만 든 백업이 성공으로 남는다"""
+    from palworld import lifecycle
+    (tmp_path / "Pal" / "Saved" / "SaveGames" / "0").mkdir(parents=True)
+    with mock.patch.object(lifecycle.os, "listdir", side_effect=PermissionError("denied")):
+        result = lifecycle.backup_paths({"working_dir": str(tmp_path)})
+    assert result["success"] is False and result.get("message"), result
+    assert lifecycle.backup_paths({"working_dir": str(tmp_path / "none")}) == {"success": True, "paths": []}

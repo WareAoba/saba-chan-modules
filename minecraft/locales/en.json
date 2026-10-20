@@ -161,6 +161,7 @@
   },
   "errors": {
     "graceful_stop_unavailable": "There is no way to ask the server to save and exit (no console or REST). It was not stopped. Force stop it only if you accept losing unsaved progress.",
+    "backup_paths_failed": "Could not read the plugin folder to back up: {error}",
     "server_not_running": "Server is not running. Please start the server first.",
     "timeout": "Server response timed out. Please check the server status.",
     "internal_server_error": "An internal server error occurred.",

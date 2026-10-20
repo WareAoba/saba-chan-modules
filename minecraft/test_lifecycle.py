@@ -986,7 +986,8 @@ def test_backup_keeps_plugin_mod_and_server_type_configs():
     import tomllib
     with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
         paths = tomllib.load(f)["backup"]["paths"]
-    for name in ("plugins", "mods", "config", "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml",
+    # plugins/는 훅(backup_paths)이 지도 타일을 빼고 고른다
+    for name in ("mods", "config", "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml",
                  "paper.yml", "purpur.yml", "pufferfish.yml"):
         assert name in paths, name
     for name in (".paper-remapped", "libraries", "logs", "versions", "cache"):
@@ -1012,3 +1013,33 @@ def test_stop_waits_for_the_configured_stop_timeout():
              mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: waits.append(timeout) or True):
             lifecycle.stop({"pid": 99, **config})
         assert waits == [expected], config
+
+
+def test_backup_leaves_out_rendered_map_tiles(tmp_path):
+    """plugins/ 안에서 다시 그릴 수 있는 지도 타일(dynmap 기본 web/tiles, dynmap 위키 "Configuration.txt")은 빼고
+    나머지 플러그인 데이터는 그대로 넣는다 (MA5)"""
+    from minecraft import lifecycle
+    import tomllib
+    plugins = tmp_path / "plugins"
+    (plugins / "dynmap" / "web" / "tiles" / "world").mkdir(parents=True)
+    (plugins / "dynmap" / "web" / "index.html").write_text("x")
+    (plugins / "dynmap" / "configuration.txt").write_text("x")
+    (plugins / "LuckPerms").mkdir()
+    (plugins / "LuckPerms.jar").write_text("x")
+    result = lifecycle.backup_paths({"working_dir": str(tmp_path)})
+    assert result["success"] is True
+    got = sorted(os.path.relpath(p, tmp_path).replace(os.sep, "/") for p in result["paths"])
+    assert got == ["plugins/LuckPerms", "plugins/LuckPerms.jar",
+                   "plugins/dynmap/configuration.txt", "plugins/dynmap/web/index.html"], got
+    with open(os.path.join(os.path.dirname(lifecycle.__file__), "module.toml"), "rb") as f:
+        backup = tomllib.load(f)["backup"]
+    assert backup.get("hook") is True and "plugins" not in backup["paths"]
+
+
+def test_backup_without_plugins_folder_and_unreadable_plugins(tmp_path):
+    from minecraft import lifecycle
+    assert lifecycle.backup_paths({"working_dir": str(tmp_path)}) == {"success": True, "paths": []}
+    (tmp_path / "plugins").mkdir()
+    with mock.patch.object(lifecycle.os, "listdir", side_effect=PermissionError("denied")):
+        result = lifecycle.backup_paths({"working_dir": str(tmp_path)})
+    assert result["success"] is False and result.get("message")

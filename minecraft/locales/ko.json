@@ -161,6 +161,7 @@
   },
   "errors": {
     "graceful_stop_unavailable": "서버에 저장 후 종료를 요청할 방법이 없습니다(콘솔·REST 없음). 서버를 끄지 않았습니다. 저장하지 않은 진행이 사라져도 괜찮을 때만 강제 종료하세요.",
+    "backup_paths_failed": "백업할 플러그인 폴더를 읽지 못했습니다: {error}",
     "server_not_running": "서버가 실행 중이 아닙니다. 먼저 서버를 시작해주세요.",
     "timeout": "서버 응답 시간이 초과되었습니다. 서버 상태를 확인해주세요.",
     "internal_server_error": "서버 내부 오류가 발생했습니다.",

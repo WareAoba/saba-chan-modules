@@ -978,3 +978,16 @@ def test_plain_stop_without_a_way_to_save_does_not_kill():
     with mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
         assert lifecycle.stop({"pid": 4242, "force": True})["success"] is True
     kill.assert_called_once()
+
+
+def test_backup_keeps_plugin_mod_and_server_type_configs():
+    """Paper·Spigot·모드 서버는 플러그인·모드와 그 설정이 플레이 데이터다 (MK18, PaperMC 문서 "Configuration").
+    사바쨩이 다시 받아 주지 않는 것이라 복원 때 같이 돌아와야 한다. 다시 만들 수 있는 캐시(.paper-remapped, libraries, logs)는 넣지 않는다"""
+    import tomllib
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        paths = tomllib.load(f)["backup"]["paths"]
+    for name in ("plugins", "mods", "config", "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml",
+                 "paper.yml", "purpur.yml", "pufferfish.yml"):
+        assert name in paths, name
+    for name in (".paper-remapped", "libraries", "logs", "versions", "cache"):
+        assert name not in paths, name

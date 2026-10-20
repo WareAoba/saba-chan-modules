@@ -17,7 +17,8 @@
 
    3. stop()에 graceful 종료 구현 (콘솔 stdin으로 종료 명령 전송 → 대기 → 그래도 안 끝나면 강제 종료)
       → module.toml [config] stop_command만 적어도 데몬이 stdin으로 보내 줍니다
-      → RCON은 saba-chan 보안 정책으로 쓰지 않습니다. 명령은 전부 데몬을 거쳐 stdin(또는 게임 REST API)으로
+      → 명령 경로는 stdin → REST → RCON 순서입니다. RCON은 둘 다 없는 서버만 쓰고, 그때 정지 명령은
+        daemon_post(f"/api/instance/{instance_id}/rcon", {"command": "<정지 명령>"})로 데몬에 보냅니다
 
    4. configure()에 설정 파일 쓰기 로직 구현
       → _KEY_MAP에 saba-chan 키 → 게임 키 매핑 추가
@@ -204,7 +205,9 @@ def get_launch_command(config):
 
     # ── 실행 전 준비 작업 (게임별로 다름) ──
     # 예: 설정 파일 동기화, EULA 확인 등.
-    # 게임에 RCON 설정이 있으면 여기서 항상 끄세요 (보안 정책. 예: minecraft enable-rcon=false)
+    # 콘솔·REST가 있는 게임에 RCON 설정이 있으면 여기서 항상 끄세요 (예: minecraft enable-rcon=false).
+    # RCON만 받는 게임이면 데몬이 준 config["rcon_port"]·config["rcon_password"]를 게임 설정에 쓰고
+    # RCON을 127.0.0.1에서만 받게 하세요 (비밀번호는 로그에 쓰지 않습니다)
 
     args = [
         f"--port={port}",

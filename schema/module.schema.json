@@ -684,6 +684,16 @@
             "null"
           ]
         },
+        "rcon_port": {
+          "default": null,
+          "description": "게임의 기본 RCON 포트. `supported`에 rcon만 있을 때 데몬이 이 포트로 접속한다",
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "supported": {
           "default": null,
           "description": "\"rcon\" | \"rest\" | \"stdin\"",

@@ -18,6 +18,7 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 | `test_folder_name_is_module_name` | 폴더 이름과 `[module] name`이 다르다 |
 | `test_entry_file_exists` | `[module] entry` 파일이 없다 |
 | `test_commands_declare_risk_and_description` | `[[commands.fields]]`의 명령에 `risk`나 `description`이 없다 (risk가 없으면 데몬은 조용히 caution으로 본다) |
+| `test_protocols_follow_the_priority` | `[protocols] supported`에 `stdin`·`rest`가 있는데 `rcon`도 선언했거나(다른 경로가 있으면 RCON은 쓰지 않는다), `rcon`만 선언하고 `rcon_port`가 없다 |
 | `test_functions_table` | `FUNCTIONS`에 `get_launch_command`가 없거나, 데몬이 부르는 이름으로 만든 함수를 표에 안 넣었거나, 훅(`[backup]`·`[commands]` `hook = true`)이나 `[[queries]]`·`[status] players`가 가리키는 함수가 표에 없다 |
 | `test_unknown_function_is_answered` | 모르는 함수에 `{"success": false, "message": "Unknown function: X"}`로 답하지 않는다 |
 | `test_safe_call_keeps_the_contract` | 빈 작업 폴더에서 `get_launch_command` `validate` `status` `read_properties` `diagnose_log` `get_installed_version`을 불렀을 때 30초 안에 종료 코드 0으로 끝나지 않거나, stdout 마지막 줄이 JSON 객체가 아니거나, `success`가 bool이 아니거나, 실패 이유가 없거나, `PROGRESS:` 줄이 JSON이 아니다 |

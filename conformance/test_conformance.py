@@ -9,6 +9,8 @@
    stdout 마지막 줄이 JSON 객체이며, stderr의 `PROGRESS:` 줄이 JSON인지
 5. 예약 함수 `functions`가 FUNCTIONS 표의 이름을 돌려준다
 6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일에 en에 없는 키가 없다
+7. 명령마다 `risk`와 `description`이 있다
+8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다
 """
 import ast
 import json
@@ -54,6 +56,9 @@ def call(module, shared_libs, function, config, tmp_path):
         "SABA_TOKEN_PATH": str(tmp_path / "no-token"),
         "SABA_LANG": "en",
         "SABA_ENABLED_EXTENSIONS": "",
+        # 사용자 폴더를 기본 위치로 쓰는 게임(예: ~/Zomboid)도 임시 폴더 안에만 쓰게 한다
+        "HOME": str(tmp_path),
+        "USERPROFILE": str(tmp_path),
     }
     try:
         proc = subprocess.run(
@@ -164,6 +169,24 @@ def test_highlight_rules_fit_the_daemon(module):
     assert not problems, "\n".join(problems)
 
 
+def commands_missing_risk(manifest):
+    """`[[commands.fields]]`에 `risk`나 `description`이 없는 명령. risk가 없으면 데몬은 조용히 caution으로 본다"""
+    fields = (manifest.get("commands") or {}).get("fields", [])
+    return ([f"{c.get('name')}: risk" for c in fields if "risk" not in c]
+            + [f"{c.get('name')}: description" for c in fields if not c.get("description")])
+
+
+def test_commands_declare_risk_and_description(module):
+    """명령의 위험도와 설명은 모듈이 스스로 판단해 적는다 (권한·챗봇 확인·AI가 읽는다)"""
+    missing = commands_missing_risk(module.manifest)
+    assert not missing, "명령에 빠진 선언:\n" + "\n".join(missing)
+
+
+def test_kit_catches_command_without_risk():
+    manifest = {"commands": {"fields": [{"name": "kick", "description": "추방"}, {"name": "say", "risk": "safe"}]}}
+    assert commands_missing_risk(manifest) == ["kick: risk", "say: description"]
+    assert commands_missing_risk({"commands": {"fields": [{"name": "a", "risk": "safe", "description": "d"}]}}) == []
+
 # ── 2. FUNCTIONS 표 ─────────────────────────────────────
 
 def test_functions_table(module):
@@ -232,6 +255,66 @@ def test_functions_call_lists_the_table(module, shared_libs, tmp_path):
         f"functions 응답이 FUNCTIONS 표와 다르다: 응답만 {sorted(set(listed) - set(table) - {'functions'})}, "
         f"표만 {sorted(set(table) - set(listed))}")
 
+
+def changed_setting_values(fields, work_dir):
+    """기본값을 채우고, 바꿀 수 있는 형식(boolean·number·select)은 기본과 다른 값으로 바꾼다.
+    돌려주는 것: (configure에 넣을 settings, 바꾼 값)"""
+    settings, changed = {}, {}
+    for f in fields:
+        if "default" not in f:
+            continue
+        value = f["default"]
+        if isinstance(value, str):
+            value = value.replace("{instance_dir}", str(work_dir))
+        settings[f["name"]] = value
+        kind, new = f.get("type"), None
+        if kind == "boolean" and isinstance(value, bool):
+            new = not value
+        elif kind == "number" and isinstance(value, (int, float)) and not isinstance(value, bool):
+            step = 1 if isinstance(value, int) else 0.5
+            new = value + step if f.get("max") is None or value + step <= f["max"] else value - step
+            if f.get("min") is not None and new < f["min"]:
+                new = None
+        elif kind == "select":
+            options = [o.get("value") if isinstance(o, dict) else o for o in f.get("options", [])]
+            new = next((o for o in options if o != value), None)
+        if new is not None:
+            settings[f["name"]] = changed[f["name"]] = new
+    return settings, changed
+
+
+def test_settings_round_trip(module, shared_libs, tmp_path):
+    """앱에서 고친 값은 게임 파일에 쓰이고, 다시 읽으면 같은 값이어야 한다 (configure → import_settings).
+    게임 파일에 두지 않는 설정(실행 인자 등)은 import_settings가 돌려주지 않으므로 비교하지 않는다"""
+    table, _ = functions_table(module)
+    if not {"configure", "import_settings"} <= set(table or {}):
+        pytest.skip("configure·import_settings 미지원")
+    config = sandbox_config(tmp_path)
+    settings, changed = changed_setting_values((module.manifest.get("settings") or {}).get("fields", []),
+                                               config["working_dir"])
+    instance = {**config, **settings}
+    written = call(module, shared_libs, "configure", {**instance, "settings": settings}, tmp_path)
+    if written.get("error_code") == "extension_required":
+        pytest.skip(f"익스텐션 필요: {written.get('missing_extensions')}")
+    assert written.get("success") is True, f"새 작업 폴더에서 configure 실패: {written}"
+    read = call(module, shared_libs, "import_settings", instance, tmp_path)
+    assert read.get("success") is True, f"import_settings 실패: {read}"
+    back = read.get("settings") or {}
+    assert back, "configure로 쓴 파일을 import_settings가 하나도 읽지 못했다"
+    differ = [f"{k}: 썼음 {v!r} → 읽음 {back[k]!r}" for k, v in changed.items() if k in back and back[k] != v]
+    assert not differ, "앱 값과 게임 파일 값이 다르다:\n" + "\n".join(differ)
+
+
+def test_kit_changes_every_kind_it_can():
+    fields = [
+        {"name": "b", "type": "boolean", "default": False},
+        {"name": "n", "type": "number", "default": 10, "max": 10},
+        {"name": "s", "type": "select", "default": "a", "options": ["a", "b"]},
+        {"name": "t", "type": "text", "default": "{instance_dir}/x"},
+    ]
+    settings, changed = changed_setting_values(fields, "W")
+    assert changed == {"b": True, "n": 9, "s": "b"}
+    assert settings["t"] == "W/x"
 
 # ── 5. 번역 ─────────────────────────────────────────────
 

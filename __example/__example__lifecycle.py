@@ -338,13 +338,17 @@ def import_settings(config):
     try:
         current = _read_config_file(config_file)
 
+        # 파일 값은 문자열이다. module.toml 형식(number·boolean)으로 바꿔야 앱 값과 같아진다
+        from daemon_rcon import coerce_setting, load_setting_types
+        types = load_setting_types(MODULE_DIR)
+
         # 역매핑: 게임 키 → saba-chan 키
         reverse_map = {v: k for k, v in _KEY_MAP.items()}
         imported = {}
         for game_key, value in current.items():
             saba_key = reverse_map.get(game_key)
             if saba_key:
-                imported[saba_key] = value
+                imported[saba_key] = coerce_setting(value, types.get(saba_key))
 
         return {"success": True, "settings": imported}
     except Exception as e:

@@ -1101,6 +1101,34 @@ def reset_server(config):
     return reset_properties(config)
 
 
+def _entries(path):
+    try:
+        return sorted(os.listdir(path))
+    except OSError:
+        return []
+
+
+def backup_paths(config):
+    """백업할 세이브 (데몬 `[backup] hook`): `Pal/Saved/SaveGames/<번호>/<월드>/` 안의 항목 전부.
+    다만 게임이 월드 폴더 안에 쌓는 자동 백업 `backup/`(bIsUseBackupSaveData)은 뺀다.
+    설정 폴더(`Pal/Saved/Config`)는 module.toml `paths`에 있다."""
+    saves = os.path.join(config.get("working_dir") or "", "Pal", "Saved", "SaveGames")
+    paths = []
+    for slot in _entries(saves):
+        slot_path = os.path.join(saves, slot)
+        if not os.path.isdir(slot_path):
+            paths.append(slot_path)
+            continue
+        for world in _entries(slot_path):
+            world_path = os.path.join(slot_path, world)
+            if not os.path.isdir(world_path):
+                paths.append(world_path)
+                continue
+            paths.extend(os.path.join(world_path, name) for name in _entries(world_path)
+                         if name.lower() != "backup")
+    return {"success": True, "paths": paths}
+
+
 
 def diagnose_log(config):
     """Diagnose errors from provided log lines or server log files."""
@@ -1533,6 +1561,7 @@ if __name__ == "__main__":
         "get_version_details": get_version_details,
         "install_server": install_server,
         "player_count": player_count,
+        "backup_paths": backup_paths,
     }
     # 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
     FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}

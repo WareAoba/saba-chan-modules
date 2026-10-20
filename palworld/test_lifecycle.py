@@ -258,6 +258,29 @@ def test_status_returns_stopped_when_no_executable():
     assert result.get("status") == "stopped"
 
 
+def test_backup_paths_skip_the_games_own_backups(tmp_path):
+    """백업은 월드를 살리는 최소 구성만: 게임이 월드 폴더 안에 쌓는 자동 백업(backup/)은 넣지 않는다"""
+    from palworld.lifecycle import backup_paths
+    world = tmp_path / "Pal" / "Saved" / "SaveGames" / "0" / "ABCDEF0123456789"
+    (world / "Players").mkdir(parents=True)
+    (world / "backup" / "world").mkdir(parents=True)
+    for name in ("Level.sav", "LevelMeta.sav"):
+        (world / name).write_bytes(b"x")
+    result = backup_paths({"working_dir": str(tmp_path)})
+    assert result["success"] is True, result
+    paths = set(result["paths"])
+    assert str(world / "backup") not in paths
+    assert not any(p.startswith(str(world / "backup")) for p in paths)
+    assert {str(world / "Level.sav"), str(world / "LevelMeta.sav"), str(world / "Players")} <= paths
+
+
+def test_backup_is_declared_as_hook():
+    cfg = _load_module_toml()
+    assert cfg["backup"].get("hook") is True
+    assert not any("SaveGames" in p for p in cfg["backup"].get("paths", [])), "SaveGames 통째는 게임 자체 백업까지 넣는다"
+    assert "Pal/Saved/Config" in cfg["backup"]["paths"]
+
+
 # ─── 6. 인코딩 계약 (BOM 처리) ──────────────────────────────
 
 def test_module_toml_bom_roundtrip(tmp_path):

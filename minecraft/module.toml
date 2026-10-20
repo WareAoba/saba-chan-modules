@@ -34,7 +34,10 @@ announce_command = "say"
 
 # 월드 백업 (A2). Bukkit 계열은 네더·엔드를 따로 둔다 (없으면 빠진다)
 [backup]
-paths = ["{level_name}", "{level_name}_nether", "{level_name}_the_end"]
+# 월드와 서버 루트의 데이터 파일(권한·밴·화이트리스트)과 설정. 없는 경로는 데몬이 뺀다
+# (PaperMC 문서 "Vanilla data files"). eula.txt는 동의를 복원으로 대신하지 않도록 넣지 않는다
+paths = ["{level_name}", "{level_name}_nether", "{level_name}_the_end",
+         "server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json"]
 save_command = "save-all"
 
 [install]

@@ -954,3 +954,12 @@ def test_install_server_names_the_jar_from_server_executable(tmp_path):
                                            "server_executable": "my-server.jar", "settings": {"server_type": "vanilla"}})
     assert result["success"], result
     assert (tmp_path / "my-server.jar").is_file() and not (tmp_path / "server.jar").exists()
+
+
+def test_backup_keeps_permissions_and_settings():
+    """복원하면 권한·밴·화이트리스트·서버 설정도 돌아와야 한다 (PaperMC 문서: 서버 루트의 데이터 파일)"""
+    import tomllib
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        paths = tomllib.load(f)["backup"]["paths"]
+    for name in ("server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json"):
+        assert name in paths, name

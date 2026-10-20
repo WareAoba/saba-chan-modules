@@ -237,9 +237,22 @@ def test_backup_paths_follow_cache_dir(tmp_path):
     assert result["paths"] == [
         os.path.join(str(tmp_path), "Saves", "Multiplayer", "myserver"),
         os.path.join(str(tmp_path), "db", "myserver.db"),
-        os.path.join(str(tmp_path), "Server"),
+        os.path.join(str(tmp_path), "Server", "myserver.ini"),
     ]
 
+
+def test_backup_paths_take_only_this_servers_files(tmp_path):
+    """Server/ 폴더에는 서버 이름마다 <이름>.ini와 <이름>_*.lua가 있다. 다른 서버 것은 넣지 않는다"""
+    from zomboid.lifecycle import backup_paths
+    server = tmp_path / "Server"
+    server.mkdir()
+    ours = ["myserver.ini", "myserver_SandboxVars.lua", "myserver_spawnregions.lua", "myserver_spawnpoints.lua"]
+    others = ["other.ini", "other_SandboxVars.lua", "myserver_2.ini", "myserver_2_SandboxVars.lua"]
+    for name in ours + others:
+        (server / name).write_text("x")
+    result = backup_paths({"cache_dir": str(tmp_path), "server_name": "myserver"})
+    taken = sorted(os.path.basename(p) for p in result["paths"] if os.path.dirname(p) == str(server))
+    assert taken == sorted(ours), taken
 
 # ─── 6. 인코딩 계약 ────────────────────────────────────────
 

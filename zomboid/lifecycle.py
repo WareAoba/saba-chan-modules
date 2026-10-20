@@ -1503,8 +1503,23 @@ def reset_server(config):
     }
 
 
+def _server_config_files(server_dir, server_name):
+    """Server/ 폴더에서 이 서버 이름의 파일: `<이름>.ini`와 `<이름>_<종류>.lua`(SandboxVars·spawnregions·spawnpoints).
+    `<이름>_2.ini`나 `<이름>_2_SandboxVars.lua`는 다른 서버(`<이름>_2`) 것이다."""
+    ini = os.path.join(server_dir, f"{server_name}.ini")
+    try:
+        names = os.listdir(server_dir)
+    except OSError:
+        return [ini]
+    prefix = f"{server_name}_"
+    lua = sorted(n for n in names
+                 if n.startswith(prefix) and n.endswith(".lua") and "_" not in n[len(prefix):])
+    return [ini] + [os.path.join(server_dir, n) for n in lua]
+
+
 def backup_paths(config):
-    """백업할 세이브 위치 (데몬 `[backup] hook`): 이 서버 이름의 월드, 플레이어 DB, 서버 설정 폴더"""
+    """백업할 세이브 위치 (데몬 `[backup] hook`): 이 서버 이름의 월드, 플레이어 DB, 서버 설정 파일.
+    Server/ 폴더째 넣으면 다른 서버 이름의 설정까지 들어가므로 이 서버 것만 고른다"""
     server_name = config.get("server_name") or "servertest"
     home = _zomboid_home(config)
     layout = _legacy_layout(config)
@@ -1512,7 +1527,7 @@ def backup_paths(config):
     paths = [
         os.path.join(home, "Saves", "Multiplayer", server_name),
         os.path.join(home, "db", f"{server_name}.db"),
-        server_dir,
+        *_server_config_files(server_dir, server_name),
     ]
     return {"success": True, "paths": paths}
 

@@ -165,6 +165,7 @@
     "quit": { "label": "Shutdown Server", "description": "Save and gracefully shut down" }
   },
   "errors": {
+    "graceful_stop_unavailable": "There is no way to ask the server to save and exit (no console or REST). It was not stopped. Force stop it only if you accept losing unsaved progress.",
     "player_not_found": "Player not found. Please check the username.",
     "connection_refused": "Cannot connect to the server. Please check that the server is running and the port is correct.",
     "timeout": "Server response timed out. Please check the server status.",

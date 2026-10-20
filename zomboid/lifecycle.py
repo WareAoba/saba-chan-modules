@@ -1137,6 +1137,7 @@ def stop(config):
 
     Normal stop: console `save` + `quit`, else SIGTERM, then wait for the exit.
     Force kill only when force=true or the server did not exit in time (RCON is off by policy).
+    With neither a console nor SIGTERM, do not kill: answer `graceful_stop_unavailable`.
     The daemon stops managed servers with a console itself, so this runs mostly without one.
     """
     pid = config.get("pid")
@@ -1145,11 +1146,14 @@ def stop(config):
     if config.get("force", False):
         return _kill(pid)
 
-    if _console_quit(config.get("instance_id", "")) or _request_terminate(pid):
-        print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-        if wait_for_exit(pid, timeout=STOP_TIMEOUT):
-            return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
-        print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
+    if not (_console_quit(config.get("instance_id", "")) or _request_terminate(pid)):
+        # 저장 후 종료를 요청할 길이 없다(콘솔 없음, Windows): 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
+        return {"success": False, "error_code": "graceful_stop_unavailable",
+                "message": i18n.t("errors.graceful_stop_unavailable")}
+    print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
+    if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+        return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
+    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
     return _kill(pid)
 
 

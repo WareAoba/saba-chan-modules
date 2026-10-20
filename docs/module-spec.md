@@ -129,7 +129,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | 함수 | 언제 | 돌려줄 것 |
 |---|---|---|
 | `get_launch_command` ✔ | 서버 시작, 실행 인자 미리보기 | `program`, `args[]`, `working_dir`, `env_vars{}`. config에 `extra_args`(사용자가 더한 인자)가 온다: 알맞은 자리에 넣었으면 `extra_args_placed: true`(없으면 데몬이 끝에 붙인다). `preview: true`이면 미리보기다: 설정 파일·폴더를 쓰지 말고 실행 줄만 돌려준다 |
-| `stop` | managed인데 stdin 정지 명령이 없거나 안 통할 때, 그리고 non-managed 정지 | `success` |
+| `stop` | managed인데 stdin 정지 명령이 없거나 안 통할 때, 그리고 non-managed 정지 | `success`. `force: false`인데 저장 후 종료를 요청할 길(콘솔·REST·POSIX SIGTERM)이 없으면 서버를 끝내지 않고 `success: false`, `error_code: "graceful_stop_unavailable"`, `message` |
 | `status` | non-managed 상태 조회 | `status`, `pid` |
 | `command` | `method = "module"` 명령 | `success`, `message` |
 | `get_credentials` | REST 접속 정보가 필요할 때 | `rest_username`, `rest_password` |

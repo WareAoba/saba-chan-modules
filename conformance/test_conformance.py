@@ -11,6 +11,7 @@
 6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일에 en에 없는 키가 없다
 7. 명령마다 `risk`와 `description`이 있다
 8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다
+9. 콘솔 없는 서버의 일반 정지는 저장 후 종료를 요청하거나, 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 알린다
 """
 import ast
 import json
@@ -18,6 +19,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import time
 import warnings
 
 import jsonschema
@@ -315,6 +317,73 @@ def test_kit_changes_every_kind_it_can():
     settings, changed = changed_setting_values(fields, "W")
     assert changed == {"b": True, "n": 9, "s": "b"}
     assert settings["t"] == "W/x"
+
+def stop_answer_problems(result, still_alive):
+    """일반 정지(force=false)의 답: 끝냈으면 성공, 저장 후 종료를 요청할 길이 없으면 서버를 그대로 두고
+    `graceful_stop_unavailable`(데몬이 사용자에게 강제 종료를 고르게 한다, 02 §3.4)"""
+    if result.get("error_code") == "graceful_stop_unavailable":
+        problems = []
+        if result.get("success") is not False:
+            problems.append("graceful_stop_unavailable인데 success가 false가 아니다")
+        if not result.get("message"):
+            problems.append("graceful_stop_unavailable에 message(모듈 locales)가 없다")
+        if not still_alive:
+            problems.append("graceful_stop_unavailable라면서 서버를 끝냈다 (저장 없이 죽였다)")
+        return problems
+    if result.get("success") is True and still_alive:
+        return ["성공이라면서 서버가 아직 살아 있다"]
+    return []
+
+
+def _spawn_server_stand_in():
+    """정지 대상 프로세스. POSIX에서는 고아로 만들어 끝나면 바로 사라지게 한다(좀비로 남아 살아 보이지 않게)"""
+    if os.name == "nt":
+        return subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"]).pid
+    out = subprocess.run(["sh", "-c", "sleep 60 >/dev/null 2>&1 & echo $!"], capture_output=True, text=True, check=True)
+    return int(out.stdout.strip())
+
+
+def _alive(pid):
+    if os.name == "nt":
+        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True)
+        return str(pid) in out.stdout
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def test_plain_stop_never_kills_without_saving(module, shared_libs, tmp_path):
+    """콘솔이 없는(데몬이 닫힌) 서버에 일반 정지: 저장 후 종료를 요청해 끝내거나, 길이 없으면 죽이지 않고 알린다"""
+    table, _ = functions_table(module)
+    if "stop" not in (table or {}):
+        pytest.skip("stop 미지원")
+    pid = _spawn_server_stand_in()
+    try:
+        result = call(module, shared_libs, "stop", {**sandbox_config(tmp_path), "pid": pid, "force": False}, tmp_path)
+        for _ in range(20):  # 끝낸 프로세스가 목록에서 사라지기까지 잠깐 걸린다
+            if not _alive(pid):
+                break
+            time.sleep(0.1)
+        problems = stop_answer_problems(result, _alive(pid))
+        assert not problems, f"{result}\n" + "\n".join(problems)
+    finally:
+        if _alive(pid):
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
+            else:
+                os.kill(pid, 9)
+
+
+def test_kit_catches_a_stop_that_kills_without_saving():
+    unavailable = {"success": False, "error_code": "graceful_stop_unavailable", "message": "콘솔이 없어요"}
+    assert stop_answer_problems(unavailable, still_alive=True) == []
+    assert stop_answer_problems(unavailable, still_alive=False) == ["graceful_stop_unavailable라면서 서버를 끝냈다 (저장 없이 죽였다)"]
+    assert stop_answer_problems({"success": True, "error_code": "graceful_stop_unavailable", "message": "x"}, True) == [
+        "graceful_stop_unavailable인데 success가 false가 아니다"]
+    assert stop_answer_problems({"success": True}, still_alive=False) == []
+    assert stop_answer_problems({"success": True}, still_alive=True) == ["성공이라면서 서버가 아직 살아 있다"]
 
 # ── 5. 번역 ─────────────────────────────────────────────
 

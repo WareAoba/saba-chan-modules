@@ -325,7 +325,9 @@ def _run_cli(function, config, include_extensions=False):
 def test_status_and_stop_work_without_ue4_extension():
     """ue4-ini 익스텐션이 없어도 status/stop은 동작해야 한다 (지연 import)."""
     assert _run_cli("status", {})["status"] == "stopped"
-    assert _run_cli("stop", {"pid": 2 ** 22 + 12345})["success"] is True
+    # REST 비밀번호가 없어 저장 후 종료를 요청할 수 없다: 죽이지 않고 알린다 (MK10)
+    assert _run_cli("stop", {"pid": 2 ** 22 + 12345})["error_code"] == "graceful_stop_unavailable"
+    assert _run_cli("stop", {"pid": 2 ** 22 + 12345, "force": True})["success"] is True
     assert _run_cli("nope", {})["success"] is False
 
 
@@ -339,11 +341,21 @@ def test_validate_accepts_daemon_server_jar_key(tmp_path):
 
 def test_stop_kills_only_given_pid():
     from palworld import lifecycle
+    with mock.patch.object(lifecycle, "_kill") as kill:
+        result = lifecycle.stop({"pid": 4321, "force": True, "server_executable": "C:/x/PalServer.exe"})
+    assert result["success"] is True
+    kill.assert_called_once_with(4321)
+
+
+def test_plain_stop_without_rest_does_not_kill():
+    """REST로 저장 후 종료를 요청할 수 없으면 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
+    from palworld import lifecycle
     with mock.patch.object(lifecycle, "_kill") as kill, \
          mock.patch.object(lifecycle, "_rest_shutdown", return_value=False):
         result = lifecycle.stop({"pid": 4321, "server_executable": "C:/x/PalServer.exe"})
-    assert result["success"] is True
-    kill.assert_called_once_with(4321)
+    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
+    assert result.get("message")
+    kill.assert_not_called()
 
 
 def test_status_uses_pid_liveness():

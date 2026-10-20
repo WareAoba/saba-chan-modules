@@ -490,3 +490,16 @@ def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(
         lifecycle.IniManager.update(str(ini), {"Password": "changed"})
         assert lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": settings})["success"]
     assert lifecycle.IniManager.read(str(ini))["Password"] == "changed"
+
+
+def test_plain_stop_without_a_way_to_save_does_not_kill():
+    """콘솔도 SIGTERM도 없으면(Windows, 콘솔 없는 서버) 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
+    from unittest import mock
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
+            mock.patch.object(lifecycle, "_request_terminate", return_value=False), \
+            mock.patch.object(lifecycle, "force_kill") as kill:
+        result = lifecycle.stop({"pid": 4242, "instance_id": "x"})
+    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
+    assert result.get("message")
+    kill.assert_not_called()

@@ -248,11 +248,25 @@ def stop(config):
         return {"success": False, "message": "No PID available to stop the server"}
 
     if not force:
-        # 1) Graceful: 데몬을 거쳐 콘솔에 종료 명령 (게임의 실제 명령어로 바꾸세요)
+        # 1) Graceful: 데몬을 거쳐 콘솔에 종료 명령 (게임의 실제 명령어로 바꾸세요), 안 되면 POSIX SIGTERM
+        asked = False
         try:
             daemon_stdin_command(instance_id, "stop", timeout=5)
+            asked = True
         except Exception as e:
             print(f"[STOP] Graceful stop command failed: {e}", file=sys.stderr)
+        if not asked and os.name != "nt":
+            import signal
+            try:
+                os.kill(int(pid), signal.SIGTERM)
+                asked = True
+            except (OSError, ValueError) as e:
+                print(f"[STOP] SIGTERM failed: {e}", file=sys.stderr)
+        if not asked:
+            # 저장 후 종료를 요청할 길이 없다: 저장 없이 죽이지 말고 이렇게 답한다.
+            # 데몬이 사용자에게 알리고, 사용자가 고르면 force=true로 다시 부른다
+            return {"success": False, "error_code": "graceful_stop_unavailable",
+                    "message": "No way to ask the server to save and exit"}
         if wait_for_exit(pid, timeout=STOP_TIMEOUT):
             return {"success": True, "message": "Server stopped gracefully"}
 

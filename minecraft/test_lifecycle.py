@@ -963,3 +963,18 @@ def test_backup_keeps_permissions_and_settings():
         paths = tomllib.load(f)["backup"]["paths"]
     for name in ("server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json"):
         assert name in paths, name
+
+
+def test_plain_stop_without_a_way_to_save_does_not_kill():
+    """콘솔도 SIGTERM도 없으면(Windows, 콘솔 없는 서버) 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
+    from minecraft import lifecycle
+    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
+            mock.patch.object(lifecycle, "_request_terminate", return_value=False), \
+            mock.patch.object(lifecycle, "force_kill") as kill:
+        result = lifecycle.stop({"pid": 4242, "instance_id": "x"})
+    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
+    assert result.get("message")
+    kill.assert_not_called()
+    with mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
+        assert lifecycle.stop({"pid": 4242, "force": True})["success"] is True
+    kill.assert_called_once()

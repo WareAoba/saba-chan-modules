@@ -1539,6 +1539,7 @@ def _request_terminate(pid):
 def stop(config):
     """서버 정지. 일반 정지는 콘솔 `stop` → SIGTERM 순서로 저장 후 종료를 기다리고,
     force이거나 기다려도 안 끝날 때만 강제 종료한다 (RCON은 보안 정책으로 꺼져 있다).
+    둘 다 보낼 수 없으면 끝내지 않고 `graceful_stop_unavailable`로 답한다.
 
     데몬은 콘솔이 있는 managed 서버를 직접 멈추므로, 이 함수는 콘솔이 없을 때 주로 불린다.
     """
@@ -1549,12 +1550,15 @@ def stop(config):
 
         if not config.get("force", False):
             asked = _send_console_stop(config.get("instance_id")) or _request_terminate(pid)
-            if asked:
-                # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
-                if wait_for_exit(pid, timeout=STOP_TIMEOUT):
-                    return {"success": True,
-                            "message": i18n.t("messages.graceful_stop", pid=pid)}
-                print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
+            if not asked:
+                # 저장 후 종료를 요청할 길이 없다(콘솔 없음, Windows): 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
+                return {"success": False, "error_code": "graceful_stop_unavailable",
+                        "message": i18n.t("errors.graceful_stop_unavailable")}
+            # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
+            if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+                return {"success": True,
+                        "message": i18n.t("messages.graceful_stop", pid=pid)}
+            print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
 
         ok, error = force_kill(pid)
         if ok:

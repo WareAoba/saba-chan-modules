@@ -455,7 +455,7 @@ def stop(config):
     """Stop Palworld server.
 
     Palworld는 콘솔(stdin) 명령을 받지 않으므로 REST로 저장·종료를 요청하고,
-    시간 안에 끝나지 않으면 강제 종료한다. 데몬이 PID를 주면(managed) 그 프로세스만 다룬다.
+    시간 안에 끝나지 않으면 강제 종료한다. REST를 쓸 수 없으면 끝내지 않고 `graceful_stop_unavailable`로 답한다. 데몬이 PID를 주면(managed) 그 프로세스만 다룬다.
     """
     try:
         pid = config.get("pid")
@@ -465,7 +465,11 @@ def stop(config):
             # 데몬이 PID를 모르면 이 인스턴스의 서버가 아니다(또는 안 돌고 있다)
             return {"success": True, "message": i18n.t("messages.process_not_running", name=exe_name)}
 
-        if not force and _rest_shutdown(config):
+        if not force and not _rest_shutdown(config):
+            # REST가 없어 저장 후 종료를 요청할 수 없다: 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
+            return {"success": False, "error_code": "graceful_stop_unavailable",
+                    "message": i18n.t("errors.graceful_stop_unavailable")}
+        if not force:
             for _ in range(60):
                 time.sleep(1)
                 if not _pid_running(pid):

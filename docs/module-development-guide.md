@@ -143,9 +143,10 @@ def validate(config):
 
 콘솔이 있는 managed 서버는 데몬이 `stop_command`를 보내고 `[config] stop_timeout`(기본 30초)만큼 기다린 뒤 강제 종료한다. 모듈의 `stop`은 그 밖의 경우에 불리므로 이 순서를 지킨다.
 
-1. `force`가 아니면 정상 종료를 요청한다: `daemon_stdin_command(instance_id, "stop")`로 콘솔에 종료 명령, 콘솔이 없으면 POSIX에서 `SIGTERM`.
-2. `wait_for_exit(pid, timeout=30)`으로 기다린다.
-3. 그래도 안 끝났거나 `force`면 `force_kill(pid)`.
+1. `force`가 아니면 정상 종료를 요청한다: `daemon_stdin_command(instance_id, "stop")`로 콘솔에 종료 명령(REST 게임이면 REST 저장·종료), 콘솔이 없으면 POSIX에서 `SIGTERM`.
+2. 요청할 길이 하나도 없으면(콘솔도 REST도 없고 Windows라 SIGTERM도 없음) 서버를 끝내지 않고 `{"success": false, "error_code": "graceful_stop_unavailable", "message": <모듈 locales>}`로 답한다. 데몬은 서버를 그대로 두고 사용자에게 알리며, 사용자가 고르면 `force: true`로 다시 부른다. 저장 없이 죽이는 것은 사용자가 고른 강제 종료뿐이다.
+3. `wait_for_exit(pid, timeout=…)`으로 기다린다(실측한 저장 시간보다 넉넉히).
+4. 그래도 안 끝났거나 `force`면 `force_kill(pid)`.
 
 ```python
 from daemon_rcon import daemon_stdin_command, force_kill, wait_for_exit
@@ -157,15 +158,17 @@ def stop(config):
     if not config.get("force"):
         try:
             daemon_stdin_command(config.get("instance_id"), "quit", timeout=5)
-            if wait_for_exit(pid, timeout=30):
-                return {"success": True, "message": "Stopped"}
-        except Exception as e:  # 콘솔 없음, 데몬 없음
+        except Exception as e:  # 콘솔 없음, 데몬 없음 (POSIX면 여기서 SIGTERM을 시도한다)
             print(f"console stop unavailable: {e}", file=sys.stderr)
+            return {"success": False, "error_code": "graceful_stop_unavailable",
+                    "message": i18n.t("errors.graceful_stop_unavailable")}
+        if wait_for_exit(pid, timeout=30):
+            return {"success": True, "message": "Stopped"}
     ok, error = force_kill(pid)
     return {"success": ok, "message": "Force killed" if ok else str(error)}
 ```
 
-프로세스 확인과 종료는 직접 만들지 말고 `is_process_alive`, `wait_for_exit`, `force_kill`을 쓴다. Windows에서 `os.kill(pid, 0)`은 프로세스를 끝내 버린다. 실행 파일 이름으로 프로세스를 찾아 죽이지 않는다: 같은 게임의 다른 인스턴스까지 끝난다. 데몬이 넘긴 `pid`만 다룬다. 실제 구현은 minecraft `stop()`(콘솔 `stop` → SIGTERM → 대기 → 강제 종료)을 본다.
+프로세스 확인과 종료는 직접 만들지 말고 `is_process_alive`, `wait_for_exit`, `force_kill`을 쓴다. Windows에서 `os.kill(pid, 0)`은 프로세스를 끝내 버린다. 실행 파일 이름으로 프로세스를 찾아 죽이지 않는다: 같은 게임의 다른 인스턴스까지 끝난다. 데몬이 넘긴 `pid`만 다룬다. 실제 구현은 minecraft `stop()`(콘솔 `stop` → SIGTERM → 둘 다 없으면 `graceful_stop_unavailable` → 대기 → 강제 종료)을 본다.
 
 ### 설정 화면: configure / import_settings
 
@@ -271,7 +274,7 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 - [ ] `python lifecycle.py functions`가 FUNCTIONS 표의 이름을 돌려준다(`run_lifecycle`이면 자동)
 - [ ] 로그는 stderr로만
 - [ ] RCON은 끄고, `supported`에 `"rcon"`이 없다
-- [ ] 콘솔이 있으면 `stop_command`, `stop`은 정상 종료 → 대기 → 강제 종료 순서, 데몬이 준 `pid`만 다룬다
+- [ ] 콘솔이 있으면 `stop_command`, `stop`은 정상 종료 → 대기 → 강제 종료 순서, 정상 종료를 요청할 길이 없으면 죽이지 않고 `graceful_stop_unavailable`, 데몬이 준 `pid`만 다룬다
 - [ ] 명령은 `console` / `rest` 선언으로 되는 것은 선언으로, `risk`와 `description`을 적었다
 - [ ] 크래시 흔적(`crash_artifacts`)과 정상 종료 문구(`graceful_exit_patterns`)를 적었다
 - [ ] 익스텐션이 없을 때 `extension_required`로 답한다

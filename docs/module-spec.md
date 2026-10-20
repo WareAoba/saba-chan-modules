@@ -68,7 +68,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 - 모듈 Python은 `import extensions.<이름>`으로 익스텐션을 쓴다. 활성화된 익스텐션만 import된다: 데몬이 넣는 import 가드가 나머지를 `ModuleNotFoundError`로 막는다(`-`와 `_`는 같다). 익스텐션을 쓰는 코드는 함수 안에서 import하고 `ImportError`를 "익스텐션 없음" 응답으로 바꾼다(palworld의 `ExtensionMissing` 참고).
 
 ### `[[settings.fields]]` ○
-인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text. 이 밖의 값은 GUI가 그리지 않아 설정이 보이지 않는다), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`).
+인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text. 이 밖의 값은 GUI가 그리지 않아 설정이 보이지 않는다), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`). `saba-chan`은 게임 설정 파일에 없는 사바쨩 설정(실행 방식·Java 경로·메모리·실행 인자 등)이라는 선언이라, 설정을 저장할 때 `configure`의 `settings`로 넘어가지 않는다. 진입 파일은 이 값을 config 최상위에서 읽는다.
 - `install = true`: 서버를 만들 때 고르는 값(받을 서버 파일이 달라지는 값, 예: 서버 종류). GUI 새 서버 화면과 CLI `server add`가 묻는다. GUI는 `select`만 보인다.
 - `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`·`rest_port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
 - `arg`: 이 값이 실행 인자로 들어가는 모양. 문자열 하나나 배열이고, 공백으로 나눈 토큰에 `{value}`는 많아야 한 번이다(`"--port={value}"`, `"-servername {value}"`, `["-Xmx{value}", "-Xms{value}"]`). `{value}`가 없으면 boolean 플래그다. `{value}`뿐인 모양은 로드 오류다. 실행 인자 미리보기가 사용자가 친 추가 인자를 이 필드로 되돌릴 때만 쓴다. 실제 실행 줄은 여전히 `get_launch_command`가 만들므로 같은 모양으로 넣는다. 실행 인자로 들어가는 필드에만 쓴다.
@@ -122,7 +122,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 데몬은 `python <entry> <함수 이름>`으로 실행하고 stdin에 JSON 하나를 쓴다. 모듈은 결과 JSON을 stdout에 쓰고 종료 코드 0으로 끝낸다. 결과는 stdout 전체이거나 **마지막 줄**이어야 한다(그 앞의 디버그 출력은 무시된다). 진행 상황은 stderr에 `PROGRESS:{json}` 줄로 쓴다.
 
 - 데몬이 넣는 환경 변수: `SABA_IPC_URL`, `SABA_IPC_PORT`, `SABA_TOKEN_PATH`(토큰 파일 경로), `SABA_LANG`. 데몬 역호출은 `daemon_rcon.daemon_post()`를 쓴다.
-- 공통 응답: `success: bool`, `message: str`. 사용자 조치가 필요하면 `action_required: "<코드>"`. 익스텐션이 없으면 `error_code: "extension_required"`, `missing_extensions[]`.
+- 공통 응답: `success: bool`, `message: str`. 사용자 조치가 필요하면 `action_required: "<코드>"`. 서버 실행 파일을 찾지 못하면(`get_launch_command`) 범용 코드 `executable_not_found`에 `configured_path`(설정된 경로, 있으면)와 `options: ["update_path", "install_new"]`를 싣는다. 파일 종류는 GUI·CLI가 `[config] server_executable`의 확장자로 정한다. 익스텐션이 없으면 `error_code: "extension_required"`, `missing_extensions[]`.
 - 모르는 함수 이름에는 `{"success": false, "message": "Unknown function: X"}`.
 - 예약 함수 `functions`: `{"success": true, "functions": [FUNCTIONS 표의 함수 이름…]}`. 데몬은 이것으로 모듈이 지원하는 기능을 알고, 없는 기능(예: `reset_server`가 없으면 서버 초기화)은 화면에서 숨긴다. 공용 `run_lifecycle(FUNCTIONS)`을 쓰면 자동으로 답한다. 진입점을 직접 쓰면 `FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}` 한 줄을 더한다.
 

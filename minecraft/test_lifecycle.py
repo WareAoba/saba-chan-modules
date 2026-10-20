@@ -137,7 +137,7 @@ def test_build_launch_info_missing_jar():
             "ram": 2,
         })
         assert result["success"] is False
-        assert result.get("action_required") == "server_jar_not_found"
+        assert result.get("action_required") == "executable_not_found"
 
 
 def test_build_launch_info_nonexistent_jar():
@@ -150,7 +150,7 @@ def test_build_launch_info_nonexistent_jar():
             "ram": 2,
         })
         assert result["success"] is False
-        assert result.get("action_required") == "server_jar_not_found"
+        assert result.get("action_required") == "executable_not_found"
 
 
 def test_build_launch_info_fractional_ram():
@@ -903,3 +903,54 @@ def test_server_properties_saved_in_the_windows_locale_are_read(tmp_path, monkey
     assert manager.update({"server-port": "25570"})
     props = manager.read()
     assert (props["motd"], props["server-port"]) == ("우리 서버", "25570")
+
+
+def _jar_with_version(path, version):
+    import zipfile
+    with zipfile.ZipFile(path, "w") as zf:
+        zf.writestr("version.json", json.dumps({"id": version, "name": version, "stable": True}))
+
+
+def test_installed_version_reads_the_same_config_as_start(tmp_path):
+    """데몬은 설치된 버전 확인에도 시작·점검과 같은 값(server_executable 전체 경로, working_dir)을 넘긴다.
+    server.jar가 아닌 이름(paper 등)도 그 경로의 jar를 읽는다 (MK7)"""
+    from minecraft import lifecycle
+    jar = tmp_path / "paper-1.21.4.jar"
+    _jar_with_version(jar, "1.21.4")
+    (tmp_path / "server.jar").write_bytes(b"not a jar")
+    result = lifecycle.get_installed_version({"server_executable": str(jar), "working_dir": str(tmp_path)})
+    assert result["success"] and result["version"] == "1.21.4", result
+
+
+def test_offline_status_reads_the_version_from_server_executable(tmp_path):
+    from minecraft import lifecycle
+    jar = tmp_path / "custom.jar"
+    _jar_with_version(jar, "1.20.6")
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=None):
+        result = lifecycle.status({"server_executable": str(jar), "working_dir": str(tmp_path)})
+    assert result["status"] == "stopped" and result.get("version") == "1.20.6", result
+
+
+def test_install_server_names_the_jar_from_server_executable(tmp_path):
+    """데몬은 설치할 실행 파일 이름을 server_executable로 넘긴다 (예전 이름 jar_name)"""
+    import hashlib
+    import io
+    from minecraft import lifecycle
+    body = b"jar"
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": hashlib.sha1(body).hexdigest()}
+    with mock.patch.object(lifecycle.ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch("urllib.request.urlopen", return_value=Resp(body)):
+        result = lifecycle.install_server({"version": "1.21.1", "install_dir": str(tmp_path),
+                                           "server_executable": "my-server.jar", "settings": {"server_type": "vanilla"}})
+    assert result["success"], result
+    assert (tmp_path / "my-server.jar").is_file() and not (tmp_path / "server.jar").exists()

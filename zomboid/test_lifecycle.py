@@ -231,6 +231,7 @@ def test_get_launch_command_missing_executable():
 
 
 def test_backup_paths_follow_cache_dir(tmp_path):
+    """서버가 만드는 설정 파일 넷은 아직 없어도 경로로 낸다: 지운 파일도 복원할 수 있어야 한다(데몬은 훅 경로 안만 복원한다, MA3)"""
     from zomboid.lifecycle import backup_paths
     result = backup_paths({"cache_dir": str(tmp_path), "server_name": "myserver"})
     assert result["success"] is True
@@ -238,6 +239,9 @@ def test_backup_paths_follow_cache_dir(tmp_path):
         os.path.join(str(tmp_path), "Saves", "Multiplayer", "myserver"),
         os.path.join(str(tmp_path), "db", "myserver.db"),
         os.path.join(str(tmp_path), "Server", "myserver.ini"),
+        os.path.join(str(tmp_path), "Server", "myserver_SandboxVars.lua"),
+        os.path.join(str(tmp_path), "Server", "myserver_spawnpoints.lua"),
+        os.path.join(str(tmp_path), "Server", "myserver_spawnregions.lua"),
     ]
 
 
@@ -522,3 +526,15 @@ def test_commands_that_change_access_or_grant_things_are_danger():
         risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
     for name in ('unbanuser', 'adduser', 'setaccesslevel', 'banuser', 'additem', 'addxp', 'godmod', 'invisible', 'createhorde', 'changeoption', 'reloadoptions'):
         assert risks[name] == "danger", name
+
+
+def test_stop_waits_for_the_configured_stop_timeout():
+    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 모듈 호출 제한(120초) 안에서 끝나게 90초를 넘기지 않는다 (MA2)"""
+    from unittest import mock
+    from zomboid import lifecycle
+    for config, expected in (({"stop_timeout": "75"}, 75), ({}, 90), ({"stop_timeout": 3600}, 90)):
+        waits = []
+        with mock.patch.object(lifecycle, "_console_quit", return_value=True), \
+             mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: waits.append(timeout) or True):
+            lifecycle.stop({"pid": 7, **config})
+        assert waits == [expected], config

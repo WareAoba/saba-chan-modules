@@ -1094,7 +1094,22 @@ def status(config):
 # ║                  Optional Functions                       ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-STOP_TIMEOUT = 30
+# 모듈 호출 제한(120초) 안에 강제 종료까지 끝나도록 정지 대기 상한을 둔다
+STOP_TIMEOUT_MAX = 90
+
+
+def _stop_timeout(config):
+    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout, STOP_TIMEOUT_MAX를 넘기지 않는다"""
+    value = config.get("stop_timeout")
+    if value in (None, ""):
+        import tomllib
+        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
+            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        value = 30
+    return max(1, min(value, STOP_TIMEOUT_MAX))
 
 
 def _request_terminate(pid):
@@ -1151,7 +1166,7 @@ def stop(config):
         return {"success": False, "error_code": "graceful_stop_unavailable",
                 "message": i18n.t("errors.graceful_stop_unavailable")}
     print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-    if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+    if wait_for_exit(pid, timeout=_stop_timeout(config)):
         return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
     print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
     return _kill(pid)
@@ -1507,19 +1522,25 @@ def reset_server(config):
     }
 
 
+# 서버가 처음 띄울 때 Server/에 만드는 이 서버의 설정 파일(.ini 말고)
+_SERVER_LUA_KINDS = ("SandboxVars", "spawnregions", "spawnpoints")
+
+
 def _server_config_files(server_dir, server_name):
     """Server/ 폴더에서 이 서버 이름의 파일: `<이름>.ini`와 `<이름>_<종류>.lua`(SandboxVars·spawnregions·spawnpoints).
-    `<이름>_2.ini`나 `<이름>_2_SandboxVars.lua`는 다른 서버(`<이름>_2`) 것이다."""
+    `<이름>_2.ini`나 `<이름>_2_SandboxVars.lua`는 다른 서버(`<이름>_2`) 것이다.
+    정해진 파일은 지금 없어도 낸다: 데몬은 훅 경로 안만 복원하므로, 지워진 파일도 되살릴 수 있어야 한다"""
     ini = os.path.join(server_dir, f"{server_name}.ini")
+    prefix = f"{server_name}_"
+    lua = {f"{prefix}{kind}.lua" for kind in _SERVER_LUA_KINDS}
     try:
         names = os.listdir(server_dir)
     except FileNotFoundError:
-        return [ini]
+        names = []
     # 읽지 못하는 폴더(권한·I/O)는 OSError로 올린다: 설정 일부가 조용히 빠진 백업을 성공으로 남기지 않는다
-    prefix = f"{server_name}_"
-    lua = sorted(n for n in names
-                 if n.startswith(prefix) and n.endswith(".lua") and "_" not in n[len(prefix):])
-    return [ini] + [os.path.join(server_dir, n) for n in lua]
+    lua.update(n for n in names
+               if n.startswith(prefix) and n.endswith(".lua") and "_" not in n[len(prefix):])
+    return [ini] + [os.path.join(server_dir, n) for n in sorted(lua)]
 
 
 def backup_paths(config):

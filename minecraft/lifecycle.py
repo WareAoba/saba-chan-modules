@@ -1507,7 +1507,22 @@ def diagnose_log(config):
     }
 
 
-STOP_TIMEOUT = 30
+# 모듈 호출 제한(120초) 안에 강제 종료까지 끝나도록 정지 대기 상한을 둔다
+STOP_TIMEOUT_MAX = 90
+
+
+def _stop_timeout(config):
+    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout, STOP_TIMEOUT_MAX를 넘기지 않는다"""
+    value = config.get("stop_timeout")
+    if value in (None, ""):
+        import tomllib
+        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
+            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        value = 30
+    return max(1, min(value, STOP_TIMEOUT_MAX))
 
 
 def _send_console_stop(instance_id):
@@ -1555,7 +1570,7 @@ def stop(config):
                 return {"success": False, "error_code": "graceful_stop_unavailable",
                         "message": i18n.t("errors.graceful_stop_unavailable")}
             # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
-            if wait_for_exit(pid, timeout=STOP_TIMEOUT):
+            if wait_for_exit(pid, timeout=_stop_timeout(config)):
                 return {"success": True,
                         "message": i18n.t("messages.graceful_stop", pid=pid)}
             print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)

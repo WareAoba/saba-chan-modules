@@ -440,8 +440,27 @@ def _rest_shutdown(config):
         return False
 
 
+# 모듈 호출 제한(120초) 안에 강제 종료까지 끝나도록 정지 대기 상한을 둔다
+STOP_TIMEOUT_MAX = 90
+
+
+def _stop_timeout(config):
+    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout, STOP_TIMEOUT_MAX를 넘기지 않는다"""
+    value = config.get("stop_timeout")
+    if value in (None, ""):
+        import tomllib
+        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
+            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        value = 30
+    return max(1, min(value, STOP_TIMEOUT_MAX))
+
+
 def _kill(pid):
-    """그 PID(와 자식)만 강제 종료한다. 실행 파일 이름으로는 끝내지 않는다: 같은 게임의 다른 인스턴스까지 죽는다"""
+    """그 PID(와 자식)만 강제 종료한다. 실행 파일 이름으로는 끝내지 않는다: 같은 게임의 다른 인스턴스까지 죽는다.
+    끝났으면 True. taskkill·os.kill이 실패해도(접근 거부 등) 살아 있으면 False"""
     if sys.platform == 'win32':
         subprocess.run(['taskkill', '/F', '/T', '/PID', str(pid)], capture_output=True, text=True,
                        check=False, creationflags=0x08000000)
@@ -450,6 +469,11 @@ def _kill(pid):
             os.kill(pid, 9)
         except OSError:
             pass
+    for _ in range(10):
+        if not _pid_running(pid):
+            return True
+        time.sleep(0.5)
+    return False
 
 
 def stop(config):
@@ -471,13 +495,14 @@ def stop(config):
             return {"success": False, "error_code": "graceful_stop_unavailable",
                     "message": i18n.t("errors.graceful_stop_unavailable")}
         if not force:
-            for _ in range(60):
+            for _ in range(_stop_timeout(config)):
                 time.sleep(1)
                 if not _pid_running(pid):
                     return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
             print("[Palworld] Server did not exit after REST shutdown, force killing", file=sys.stderr)
 
-        _kill(pid)
+        if not _kill(pid):
+            return {"success": False, "message": i18n.t("errors.failed_to_stop_process", error=f"PID {pid}")}
         return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
     except Exception as e:
         error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))

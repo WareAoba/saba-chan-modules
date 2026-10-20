@@ -1559,7 +1559,8 @@ def backup_paths(config):
         os.path.join(home, "db", f"{server_name}.db"),
         *config_files,
     ]
-    return {"success": True, "paths": paths}
+    # 옛 백업은 Server/ 폴더를 통째로 담았다: 그 폴더를 복원 허용 범위로 알린다(백업 대상은 아니다, MA3)
+    return {"success": True, "paths": paths, "restore_roots": [server_dir]}
 
 
 # ╔═══════════════════════════════════════════════════════════╗

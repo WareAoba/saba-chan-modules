@@ -1008,9 +1008,9 @@ def test_commands_that_change_access_or_grant_things_are_danger():
 
 
 def test_stop_waits_for_the_configured_stop_timeout():
-    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 모듈 호출 제한(120초) 안에서 끝나게 90초를 넘기지 않는다 (MA2)"""
+    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한(stop_call_limit)을 알려 주면 그 30초 앞까지, 모르면(0.1.8 데몬, 120초 제한) 90초까지 (MA2, 리뷰 526)"""
     from minecraft import lifecycle
-    for config, expected in (({"stop_timeout": "75"}, 75), ({}, 90), ({"stop_timeout": 3600}, 90)):
+    for config, expected in (({"stop_timeout": "75"}, 75), ({}, 90), ({"stop_timeout": 3600}, 90), ({"stop_timeout": 3600, "stop_call_limit": 3630}, 3600), ({"stop_call_limit": 150}, 120), ({"stop_timeout": 600, "stop_call_limit": "100"}, 70), ({"stop_timeout": 600, "stop_call_limit": "x"}, 90)):
         waits = []
         with mock.patch.object(lifecycle, "_send_console_stop", return_value=True), \
              mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: waits.append(timeout) or True):

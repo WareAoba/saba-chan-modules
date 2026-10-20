@@ -13,7 +13,8 @@
 #    2단계: [protocols]에서 게임이 지원하는 프로토콜 선택하기
 #           - 콘솔 명령을 받는 서버(대부분) → supported = ["stdin"]
 #           - REST API만 → supported = ["rest"]
-#           - RCON은 쓰지 않습니다 (saba-chan 보안 정책). 게임에 RCON 설정이 있으면 lifecycle.py에서 끄세요
+#           - 콘솔·REST가 모두 없고 RCON만 받는 서버 → supported = ["rcon"] + rcon_port
+#             (우선순위 stdin → rest → rcon. 다른 경로가 있으면 RCON은 선언하지 말고 lifecycle.py에서 끄세요)
 #    3단계: [config]에서 실행 파일명, 프로세스명, 포트 채우기
 #           (작업관리자에서 서버 프로세스 이름을 확인하세요)
 #    4단계: [settings]에 GUI에서 조절할 항목 추가하기
@@ -46,7 +47,10 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 #  supported: 이 모듈이 지원하는 프로토콜 목록
 #    - "stdin" : 표준 입력 (데몬이 managed process의 콘솔 stdin으로 명령 전송)
 #    - "rest"  : HTTP REST API (게임이 제공할 때)
-#    RCON은 보안 정책으로 막혀 있어 선언하지 않습니다.
+#    - "rcon"  : 콘솔도 REST도 없을 때만. 그때 rcon_port(게임 기본 RCON 포트)가 필수이고,
+#                데몬이 인스턴스마다 포트·무작위 비밀번호를 정해 config의 rcon_port·rcon_password로 줍니다.
+#                모듈은 이 값을 게임 설정에 쓰고 127.0.0.1에서만 받게 합니다
+#  rcon_port: RCON만 받는 서버의 기본 RCON 포트 (예: rcon_port = 27015)
 #
 #  default: 기본 사용 프로토콜 (supported 중 하나)
 #
@@ -67,7 +71,7 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 spawn_process = true
 
 [protocols]
-supported = ["stdin"]                   # ← 게임에 맞게 선택 ("stdin" | "rest")
+supported = ["stdin"]                   # ← 게임에 맞게 선택 ("stdin" | "rest", 둘 다 없을 때만 "rcon")
 default = "stdin"
 interaction_mode = "console"            # "console" 또는 "commands"
 

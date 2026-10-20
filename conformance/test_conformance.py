@@ -12,6 +12,7 @@
 7. 명령마다 `risk`와 `description`이 있다
 8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다
 9. 콘솔 없는 서버의 일반 정지는 저장 후 종료를 요청하거나, 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 알린다
+10. `[protocols]`: rcon은 stdin·rest가 없을 때만, 그때 rcon_port
 """
 import ast
 import json
@@ -188,6 +189,33 @@ def test_kit_catches_command_without_risk():
     manifest = {"commands": {"fields": [{"name": "kick", "description": "추방"}, {"name": "say", "risk": "safe"}]}}
     assert commands_missing_risk(manifest) == ["kick: risk", "say: description"]
     assert commands_missing_risk({"commands": {"fields": [{"name": "a", "risk": "safe", "description": "d"}]}}) == []
+
+def protocol_problems(manifest):
+    """명령 경로는 stdin → rest → rcon. rcon은 둘 다 없을 때만 선언하고, 그때 rcon_port가 있어야 한다
+    (데몬은 다른 경로가 있으면 rcon을 쓰지 않고, rcon뿐인데 포트가 없으면 로드를 거부한다)"""
+    protocols = manifest.get("protocols") or {}
+    supported = protocols.get("supported") or []
+    if "rcon" not in supported:
+        return []
+    others = sorted(set(supported) & {"stdin", "rest"})
+    if others:
+        return [f"{'·'.join(others)}이 있는데 rcon도 선언했다 (다른 경로가 있으면 RCON은 빼고 게임 설정에서 끈다)"]
+    if not protocols.get("rcon_port"):
+        return ["rcon만 선언했는데 [protocols] rcon_port가 없다"]
+    return []
+
+
+def test_protocols_follow_the_priority(module):
+    problems = protocol_problems(module.manifest)
+    assert not problems, "\n".join(problems)
+
+
+def test_kit_catches_rcon_misuse():
+    assert protocol_problems({"protocols": {"supported": ["stdin", "rcon"]}}) == [
+        "stdin이 있는데 rcon도 선언했다 (다른 경로가 있으면 RCON은 빼고 게임 설정에서 끈다)"]
+    assert protocol_problems({"protocols": {"supported": ["rcon"]}}) == ["rcon만 선언했는데 [protocols] rcon_port가 없다"]
+    assert protocol_problems({"protocols": {"supported": ["rcon"], "rcon_port": 27015}}) == []
+    assert protocol_problems({"protocols": {"supported": ["rest"]}}) == []
 
 # ── 2. FUNCTIONS 표 ─────────────────────────────────────
 

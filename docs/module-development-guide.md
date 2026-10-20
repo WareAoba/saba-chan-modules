@@ -11,12 +11,15 @@
 | `palworld` | 콘솔이 없는 게임: REST 명령, `[credential_map]`, `ue4-ini` 익스텐션 |
 | `__example` | 주석이 달린 빈 틀 (`__example__module.toml`, `__example__lifecycle.py`) |
 
-## 1. 보안 정책: RCON은 쓰지 않는다
+## 1. 통신 경로: STDIN → REST → RCON
 
-- 게임 명령은 전부 데몬을 거쳐 **서버 콘솔(stdin)** 또는 게임의 **REST API**로 간다. `[protocols] supported`에는 `"stdin"`과 `"rest"`만 쓴다.
-- 게임에 RCON 설정이 있으면 모듈이 실행 전·설정 저장 때마다 **끈다**. 예: minecraft `_enforce_rcon_policy()`가 `enable-rcon=false`, palworld는 `RCONEnabled=False`, zomboid는 `RCONPassword`를 비운다.
-- RCON 포트·비밀번호를 설정 화면에 두지 않는다. 데몬은 예전 인스턴스 파일에 남은 RCON 키를 읽을 때 지운다.
-- 공용 도우미 파일 이름은 `daemon_rcon.py`지만 이름만 남은 것이다. 실제로는 데몬 API와 프로세스 처리 도우미다(§5).
+- 게임 명령은 전부 데몬을 거친다. 게임이 지원하는 것 중 **서버 콘솔(stdin)**을 먼저, 없으면 게임의 **REST API**, 둘 다 없을 때만 **RCON**을 쓴다. 다른 경로가 있으면 RCON은 쓰지 않는다(`supported`에 넣지 않는다).
+- 콘솔이나 REST가 있는 게임에 RCON 설정이 있으면 모듈이 실행 전·설정 저장 때마다 **끈다**. 예: minecraft `_enforce_rcon_policy()`가 `enable-rcon=false`, palworld는 `RCONEnabled=False`, zomboid는 `RCONPassword`를 비운다.
+- **RCON만 받는 게임**(`supported = ["rcon"]`): `[protocols] rcon_port`(게임의 기본 RCON 포트)가 필수다. 데몬이 처음 시작할 때 인스턴스마다 포트와 무작위 비밀번호를 정해 인스턴스 폴더 `rcon.json`에 두고, 모듈 config에 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 `get_launch_command`(또는 실행 전 준비)에서 이 값을 게임 설정에 쓰고, RCON을 127.0.0.1에서만 받게 한다. 데몬은 `127.0.0.1:<rcon_port>`에만 접속한다.
+  - 콘솔 명령(`method = "console"`)과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 모듈이 RCON 소켓을 직접 열지 않는다.
+  - 정지는 데몬이 RCON으로 `stop_command`를 보내지 않는다. 모듈 `stop()`이 데몬 `/api/instance/<id>/rcon`에 정지 명령을 보낸다: `daemon_post(f"/api/instance/{instance_id}/rcon", {"command": "<정지 명령>"})`. 보낼 수 없으면 `graceful_stop_unavailable`(§3 stop).
+  - RCON 포트·비밀번호를 설정 화면(`[[settings.fields]]`)에 두지 않는다. 비밀번호를 로그·응답·오류 문구에 쓰지 않는다.
+- 공용 도우미 파일 이름은 `daemon_rcon.py`지만 RCON 클라이언트가 아니다. 데몬 API와 프로세스 처리 도우미다(§5).
 
 ## 2. 데몬과 모듈이 주고받는 방식
 
@@ -240,7 +243,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 | `load_setting_types(module_dir)`, `coerce_setting(value, type)` | 파일 값을 필드 타입으로 |
 | `run_lifecycle(FUNCTIONS)` | `python lifecycle.py <함수>` 진입점 |
 
-`daemon_rcon_command`, `DaemonRconClient`, `rcon_command`는 예전 코드 호환용이다. 이름과 달리 이것들도 콘솔로 보내지만, 새 모듈은 `daemon_stdin_command`를 쓴다.
+콘솔 명령은 `daemon_stdin_command`, RCON만 받는 게임의 정지 명령은 `daemon_post(f"/api/instance/{instance_id}/rcon", {"command": ...})`를 쓴다(§1).
 
 ## 6. 화면 문구 (i18n)
 
@@ -273,7 +276,7 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 - [ ] `FUNCTIONS`에 만든 함수가 다 있고, 모든 실패가 종료 코드 0 + `success: false` + 이유
 - [ ] `python lifecycle.py functions`가 FUNCTIONS 표의 이름을 돌려준다(`run_lifecycle`이면 자동)
 - [ ] 로그는 stderr로만
-- [ ] RCON은 끄고, `supported`에 `"rcon"`이 없다
+- [ ] 콘솔·REST가 있으면 RCON은 끄고 `supported`에 `"rcon"`이 없다. RCON만 받는 게임이면 `supported = ["rcon"]`, `rcon_port`, 데몬이 준 `rcon_port`·`rcon_password`를 게임 설정에 쓰고 127.0.0.1에서만 받는다
 - [ ] 콘솔이 있으면 `stop_command`, `stop`은 정상 종료 → 대기 → 강제 종료 순서, 정상 종료를 요청할 길이 없으면 죽이지 않고 `graceful_stop_unavailable`, 데몬이 준 `pid`만 다룬다
 - [ ] 명령은 `console` / `rest` 선언으로 되는 것은 선언으로, `risk`와 `description`을 적었다
 - [ ] 크래시 흔적(`crash_artifacts`)과 정상 종료 문구(`graceful_exit_patterns`)를 적었다

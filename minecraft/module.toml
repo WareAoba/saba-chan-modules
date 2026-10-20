@@ -36,8 +36,13 @@ announce_command = "say"
 [backup]
 # 월드와 서버 루트의 데이터 파일(권한·밴·화이트리스트)과 설정. 없는 경로는 데몬이 뺀다
 # (PaperMC 문서 "Vanilla data files"). eula.txt는 동의를 복원으로 대신하지 않도록 넣지 않는다
+# 플러그인·모드 서버: plugins/·mods/(jar와 각 플러그인 데이터)와 config/, Bukkit 계열 설정 파일
+# (PaperMC 문서 "Configuration"). 사바쨩이 다시 받아 주지 않으므로 넣는다. 캐시(.paper-remapped,
+# libraries, logs)는 넣지 않는다
 paths = ["{level_name}", "{level_name}_nether", "{level_name}_the_end",
-         "server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json"]
+         "server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json",
+         "plugins", "mods", "config",
+         "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml"]
 save_command = "save-all"
 
 [install]

@@ -143,7 +143,8 @@ dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해�
 #
 #  GUI에 표시되는 인스턴스 설정 필드를 정의합니다.
 #  그룹으로 나누어 관리합니다:
-#    - "saba-chan" : saba-chan 전용 설정 (게임 설정 파일과 무관)
+#    - "saba-chan" : saba-chan 전용 설정 (게임 설정 파일과 무관: 실행 방식·메모리·실행 인자 등).
+#                    설정을 저장할 때 configure의 settings로 넘어가지 않습니다
 #    - "advanced"  : 고급 설정 (접힌 상태로 표시)
 #    - 빈 문자열   : 일반 게임 설정 (기본 표시)
 #

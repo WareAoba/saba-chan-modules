@@ -1534,6 +1534,8 @@ if __name__ == "__main__":
         "install_server": install_server,
         "player_count": player_count,
     }
+    # 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
+    FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
     
     fn = FUNCTIONS.get(function_name)
     if fn:

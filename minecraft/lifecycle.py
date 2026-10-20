@@ -1013,14 +1013,14 @@ class MinecraftPing:
 def _resolve_server_jar(config):
     """Resolve the server jar path from config.
 
-    Checks keys in order: server_jar → server_executable → executable_path.
+    Checks keys in order: server_executable → executable_path → server_jar (예전 데몬이 넘기던 이름).
     If the path is relative, resolves it against working_dir (if set).
     Returns an absolute path string or None.
     """
     jar = (
-        config.get("server_jar")
-        or config.get("server_executable")
+        config.get("server_executable")
         or config.get("executable_path")
+        or config.get("server_jar")
     )
     if not jar:
         return None
@@ -1033,7 +1033,7 @@ def _resolve_server_jar(config):
 
     jar = os.path.abspath(jar)
     if not os.path.isfile(jar) and os.path.basename(jar).lower() == "server.jar":
-        # 데몬은 기본 이름(server.jar)을 넘긴다 — 페이퍼·퍼퍼·패브릭 등은 흔한 이름으로 폴더에서 찾는다.
+        # 기본 이름(server.jar)이면 — 페이퍼·퍼퍼·패브릭 등은 흔한 이름으로 폴더에서 찾는다.
         # 사용자가 직접 적은 다른 이름은 없으면 없는 대로 둔다(다른 jar로 바꿔 띄우지 않는다)
         jar = server_types.find_server_jar(os.path.dirname(jar)) or jar
     return jar
@@ -1224,7 +1224,7 @@ def get_launch_command(config):
     if target is None and not server_jar:
         return {
             "success": False,
-            "action_required": "server_jar_not_found",
+            "action_required": "executable_not_found",
             "message": i18n.t("errors.server_jar_not_specified"),
             "options": ["update_path", "install_new"],
         }
@@ -1232,7 +1232,7 @@ def get_launch_command(config):
     if target is None:
         return {
             "success": False,
-            "action_required": "server_jar_not_found",
+            "action_required": "executable_not_found",
             "message": i18n.t("errors.server_jar_not_found", path=server_jar),
             "configured_path": server_jar,
             "options": ["update_path", "install_new"],
@@ -1599,9 +1599,8 @@ def status(config):
                 "message": i18n.t("messages.no_process_running")}
 
         # Attempt to detect installed version from server.jar even when offline
-        install_dir = config.get("install_dir", config.get("working_dir", ""))
-        jar_name = config.get("server_jar", config.get("jar_name", "server.jar"))
-        ver_info = _read_jar_version(install_dir, jar_name)
+        server_jar = _resolve_server_jar(config)
+        ver_info = _read_jar_version(*os.path.split(server_jar)) if server_jar else None
         if ver_info:
             result["version"] = ver_info["version"]
             result["java_version"] = ver_info.get("java_version")
@@ -1666,17 +1665,19 @@ def _read_jar_version(install_dir, jar_name="server.jar"):
 def get_installed_version(config):
     """Detect installed Minecraft server version by parsing version.json inside server.jar.
 
-    Config options:
-        install_dir (str): Server installation directory
-        jar_name (str): Server jar filename (default: "server.jar")
+    데몬은 시작·점검과 같은 config(server_executable 전체 경로, working_dir)를 넘긴다.
+    예전 데몬은 install_dir·jar_name을 넘겼다.
     """
-    install_dir = config.get("install_dir", "")
-    jar_name = config.get("jar_name", "server.jar")
+    jar_path = _resolve_server_jar(config)
+    if not jar_path and config.get("install_dir"):
+        jar_path = os.path.join(config["install_dir"], config.get("jar_name", "server.jar"))
+    install_dir = config.get("working_dir") or config.get("install_dir") or (os.path.dirname(jar_path) if jar_path else "")
 
     if not install_dir:
         return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-    jar_path = os.path.join(install_dir, jar_name)
+    jar_path = jar_path or os.path.join(install_dir, "server.jar")
+    install_dir, jar_name = os.path.split(jar_path)
     if not os.path.isfile(jar_path):
         found = server_types.find_server_jar(install_dir)
         if not found:
@@ -2111,7 +2112,7 @@ def install_server(config):
     Config options:
         version (str): Minecraft version (e.g., "1.21.11")
         install_dir (str): Directory to install into
-        jar_name (str): Name for server jar (default: "server.jar")
+        server_executable (str): Name for server jar (default: "server.jar", 예전 이름 jar_name)
         accepted_agreements (list): 사용자가 동의한 약관 id. "eula"가 있으면 eula.txt에 동의를 쓴다
         settings (dict): 인스턴스 설정. server.properties 키는 처음 값으로 쓴다
         initial_settings (dict): Optional initial server.properties values (settings보다 우선)
@@ -2125,7 +2126,7 @@ def install_server(config):
         if not install_dir:
             return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-        jar_name = config.get("jar_name", "server.jar")
+        jar_name = os.path.basename(config.get("server_executable") or config.get("jar_name") or "server.jar")
         do_eula = "eula" in (config.get("accepted_agreements") or [])
         settings = config.get("settings") or {}
         # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
@@ -2174,6 +2175,8 @@ FUNCTIONS = {
     "instance_commands": instance_commands,
     "player_count": player_count,
 }
+# 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
+FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

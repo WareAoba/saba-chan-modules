@@ -190,10 +190,14 @@ def validate(config):
 #
 def get_launch_command(config):
     executable = config.get("server_executable")
+    # 실행 파일이 없으면 범용 코드 executable_not_found로 답한다: GUI·CLI가 경로 다시 고르기·새로 설치를 묻는다
     if not executable:
-        return {"success": False, "message": "server_executable not specified"}
+        return {"success": False, "action_required": "executable_not_found",
+                "message": "server_executable not specified", "options": ["update_path", "install_new"]}
     if not os.path.exists(executable):
-        return {"success": False, "message": f"Executable not found: {executable}"}
+        return {"success": False, "action_required": "executable_not_found",
+                "message": f"Executable not found: {executable}", "configured_path": executable,
+                "options": ["update_path", "install_new"]}
 
     port = config.get("port", 7777)
     working_dir = config.get("working_dir") or os.path.dirname(os.path.abspath(executable))
@@ -468,6 +472,8 @@ def _do_backup(config):
 #  FUNCTIONS 표
 # ═══════════════════════════════════════════════════════════════════
 #  만든 함수는 빠짐없이 표에 넣습니다. 서버 프로세스는 데몬이 띄우므로 start()는 없습니다.
+#  데몬은 예약 함수 `functions`로 이 표의 이름을 물어 없는 기능을 화면에서 숨깁니다.
+#  run_lifecycle()이 대신 답하므로 따로 만들지 않습니다.
 #  기능을 지원할 때만 더 만드는 함수 (계약: docs/module-spec.md §3):
 #    get_credentials, read_properties, reset_properties, reset_server,
 #    list_versions, get_version_details, get_installed_version,

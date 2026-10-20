@@ -108,7 +108,7 @@
    if __name__ == "__main__":
        run_lifecycle(FUNCTIONS)
    ```
-   `run_lifecycle()`이 stdin 읽기, 모르는 함수 답, 예외를 JSON으로 바꾸기, 종료 코드 0을 처리한다.
+   `run_lifecycle()`이 stdin 읽기, 모르는 함수 답, 예외를 JSON으로 바꾸기, 종료 코드 0, 그리고 데몬이 지원 기능을 묻는 예약 함수 `functions`의 답을 처리한다. 진입점을 직접 쓰면 `functions`도 직접 답해야 한다(module-spec.md §3).
 5. 데몬 없이 돌려 본다.
    ```bash
    echo '{"server_executable": "C:/Games/MyGame/GameServer.exe", "port": 7777}' | python lifecycle.py get_launch_command
@@ -169,6 +169,7 @@ def stop(config):
 
 ### 설정 화면: configure / import_settings
 
+- 게임 설정 파일에 없는 값(실행 방식, 메모리, Java 경로, 실행 인자로만 쓰는 값)은 `group = "saba-chan"`으로 선언한다. 데몬이 이 값들을 `configure`에 넘기지 않으므로 게임 파일에 잘못 쓰일 일이 없다. 진입 파일은 config 최상위에서 읽는다.
 - `module.toml` `[[settings.fields]]`의 `name`과 게임 설정 파일의 키를 표 하나(`_KEY_MAP` 같은 dict)로 잇고, `configure`(사바쨩 → 파일)와 `import_settings`(파일 → 사바쨩) 모두 이 표를 쓴다. 키가 늘면 표에 한 줄만 더한다.
 - 파일에서 읽은 문자열은 `load_setting_types(MODULE_DIR)` + `coerce_setting(value, type)`으로 필드 타입에 맞춘다(비밀번호처럼 숫자로 보이는 문자열은 바꾸지 않는다).
 - 목록 값처럼 게임 형식이 따로 있는 값은 쓸 때 바꾼다. 예: palworld `_LIST_KEYS`가 `PALBOX, RepairBench`를 `("PALBOX","RepairBench")`로 쓴다.
@@ -203,6 +204,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 ### 설치
 
 - `[install] method = "download"`: 모듈의 `list_versions` / `install_server`가 내려받는다(minecraft).
+  - `install_server`는 config `install_dir`에 `server_executable`(받을 실행 파일 이름, 요청이 없으면 `[config] server_executable`)로 둔다. `get_installed_version`은 시작·점검과 같은 config(`server_executable` 전체 경로, `working_dir`)를 받는다.
 - `method = "steamcmd"` 같은 익스텐션 방식: 익스텐션이 설치를 맡고, 모듈은 `[install] requires_extensions`와 `[module.dependencies] ext-<id>`로 필요를 선언한다(zomboid, palworld).
 - 익스텐션은 `import extensions.<이름>`으로 쓰되 함수 안에서 import하고, 없으면 죽지 말고 `error_code: "extension_required"`, `missing_extensions: [...]`로 답한다(palworld `ExtensionMissing`).
 
@@ -264,8 +266,9 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 ## 8. 체크리스트
 
 - [ ] 폴더 이름 = `[module] name`, `schema_version = 1`, `saba-core module validate` 통과
-- [ ] `get_launch_command`가 진짜 서버 exe를 돌려준다(곧바로 끝나는 런처 exe가 아니라)
+- [ ] `get_launch_command`가 진짜 서버 exe를 돌려준다(곧바로 끝나는 런처 exe가 아니라). 실행 파일이 없으면 `action_required: "executable_not_found"`
 - [ ] `FUNCTIONS`에 만든 함수가 다 있고, 모든 실패가 종료 코드 0 + `success: false` + 이유
+- [ ] `python lifecycle.py functions`가 FUNCTIONS 표의 이름을 돌려준다(`run_lifecycle`이면 자동)
 - [ ] 로그는 stderr로만
 - [ ] RCON은 끄고, `supported`에 `"rcon"`이 없다
 - [ ] 콘솔이 있으면 `stop_command`, `stop`은 정상 종료 → 대기 → 강제 종료 순서, 데몬이 준 `pid`만 다룬다

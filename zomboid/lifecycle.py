@@ -1094,12 +1094,12 @@ def status(config):
 # ║                  Optional Functions                       ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-# 모듈 호출 제한(120초) 안에 강제 종료까지 끝나도록 정지 대기 상한을 둔다
-STOP_TIMEOUT_MAX = 90
+# 데몬이 받는 stop_timeout 범위의 끝. 데몬은 non-managed stop() 호출 제한을 stop_timeout + 30초로 잡는다
+STOP_TIMEOUT_MAX = 3600
 
 
 def _stop_timeout(config):
-    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout, STOP_TIMEOUT_MAX를 넘기지 않는다"""
+    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout. 데몬이 실제 값을 늘 config에 싣는다"""
     value = config.get("stop_timeout")
     if value in (None, ""):
         import tomllib

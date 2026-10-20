@@ -423,3 +423,39 @@ def test_a_version_the_source_does_not_have_yet_is_skipped_not_given_up_on():
     with mock.patch("urllib.request.urlopen", side_effect=fake_urlopen):
         for server_type in ("paper", "folia", "purpur"):
             assert server_types.latest_installable(server_type, ["1.21.5", "1.21.4"]) == "1.21.4", server_type
+
+
+# 접근 권한·밴 해제·허용 목록·권한 그룹을 바꾸거나 아이템·돈·경험치·무적·게임 모드를 주는 명령은 danger다.
+# caution은 말하는 사바쨩이 확인 없이 실행할 수 있어서, 이런 명령이 caution이면 권한을 바꾸지 않는다는 규칙이 깨진다(L48)
+GRANTING_COMMANDS = {
+    "essentialsx.json": {"eco-give", "eco-take", "exp-give", "exp-set", "exp-reset", "ess-gamemode", "ess-give",
+                         "ess-give-meta", "god", "fly", "kit-give", "unban", "unbanip", "socialspy", "powertool"},
+    "citizens.json": {"npc-owner"},
+    "multiverse-core.json": {"mv-config"},
+    "multiverse-portals.json": {"mvp-config"},
+    "floodgate.json": {"fwhitelist-add", "fwhitelist-remove"},
+    "griefprevention.json": {"adjustbonusclaimblocks", "adjustbonusclaimblocksall", "setaccruedclaimblocks"},
+    "multiverse-inventories.json": {"mvinv-give", "mvinv-config"},
+    "worldguard.json": {"wg-god", "ungod", "region-setparent", "region-addmember", "region-addowner",
+                        "region-removemember", "region-removeowner", "region-flag", "region-define",
+                        "region-setpriority"},
+}
+
+
+def test_commands_that_change_access_or_grant_things_are_danger():
+    risks = {}
+    for path in CATALOG:
+        data = json.load(open(path, encoding="utf-8"))
+        for cmd in data["commands"]:
+            risks[(os.path.basename(path), cmd["name"])] = cmd["risk"]
+    wrong = [key for file, names in GRANTING_COMMANDS.items() for key in ((file, n) for n in names)
+             if risks.get(key) != "danger"]
+    # 권한 플러그인은 조회 말고는 전부 권한을 바꾼다
+    wrong += [key for key, risk in risks.items() if key[0] == "luckperms.json" and risk == "caution"]
+    assert not wrong, wrong
+
+
+def test_plugin_commands_without_a_known_risk_are_danger():
+    """plugin.yml이 선언한 명령은 무엇을 하는지 모르고 인자도 자유롭다. 카탈로그에 risk가 없을 때도 같다"""
+    assert plugins._declared_command("lp", {"usage": "/<command>"})["risk"] == "danger"
+    assert plugins._catalog_command("x", {"name": "a", "console_template": "a"})["risk"] == "danger"

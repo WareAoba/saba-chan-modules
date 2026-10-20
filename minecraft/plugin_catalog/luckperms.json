@@ -36,7 +36,7 @@
       "name": "lp-sync",
       "label": "Sync data",
       "description": "Performs a refresh of all currently loaded data from storage.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp sync",
       "inputs": []
     },
@@ -80,7 +80,7 @@
       "name": "lp-applyedits",
       "label": "Apply web editor changes",
       "description": "Applies the changes saved in a web editor session using the code it generated.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp applyedits {code}",
       "inputs": [
         {
@@ -96,7 +96,7 @@
       "name": "lp-trusteditor",
       "label": "Trust editor session",
       "description": "Explicitly trusts a connected web editor session so its changes can be applied without running a command.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp trusteditor {id}",
       "inputs": [
         {
@@ -112,7 +112,7 @@
       "name": "lp-verbose",
       "label": "Verbose logging",
       "description": "Controls the verbose system that listens for permission checks: on, record, off or upload the recorded output.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp verbose {action} {filter}",
       "inputs": [
         {
@@ -140,7 +140,7 @@
       "name": "lp-verbose-command",
       "label": "Verbose check a command",
       "description": "Executes a command as the given player and lists all permission checks made for that command.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp verbose command {player} {command}",
       "inputs": [
         {
@@ -202,7 +202,7 @@
       "name": "lp-networksync",
       "label": "Network sync",
       "description": "Refreshes all cached data from storage and asks all other connected servers to sync too.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp networksync",
       "inputs": []
     },
@@ -233,7 +233,7 @@
       "name": "lp-export",
       "label": "Export data",
       "description": "Exports LuckPerms data into a file in the plugin directory, or to the web with --upload.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp export {file} {flags}",
       "inputs": [
         {
@@ -309,7 +309,7 @@
       "name": "lp-translations-install",
       "label": "Install translations",
       "description": "Installs or updates the latest community provided translation bundles.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp translations install",
       "inputs": []
     },
@@ -317,7 +317,7 @@
       "name": "lp-creategroup",
       "label": "Create group",
       "description": "Creates a new group.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp creategroup {name} {weight} {displayname}",
       "inputs": [
         {
@@ -377,7 +377,7 @@
       "name": "lp-createtrack",
       "label": "Create track",
       "description": "Creates a new track.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp createtrack {name}",
       "inputs": [
         {
@@ -449,7 +449,7 @@
       "name": "lp-user-promote",
       "label": "Promote user",
       "description": "Promotes a user along a track, adding them to the first group if they are not on it yet.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} promote {track} {context}",
       "inputs": [
         {
@@ -479,7 +479,7 @@
       "name": "lp-user-demote",
       "label": "Demote user",
       "description": "Demotes a user down a track.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} demote {track} {context}",
       "inputs": [
         {
@@ -626,7 +626,7 @@
       "name": "lp-group-setweight",
       "label": "Set group weight",
       "description": "Sets the group's weight, which determines the order groups are considered in; higher value means higher weight.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} setweight {weight}",
       "inputs": [
         {
@@ -648,7 +648,7 @@
       "name": "lp-group-setdisplayname",
       "label": "Set group display name",
       "description": "Sets the group's display name, which can act as an alias for the group.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} setdisplayname {name} {context}",
       "inputs": [
         {
@@ -716,7 +716,7 @@
       "name": "lp-group-rename",
       "label": "Rename group",
       "description": "Changes a group's name; existing members still point to the old name.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} rename {name}",
       "inputs": [
         {
@@ -739,7 +739,7 @@
       "name": "lp-group-clone",
       "label": "Clone group",
       "description": "Makes an exact copy of the group under a different name.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} clone {name}",
       "inputs": [
         {
@@ -797,7 +797,7 @@
       "name": "lp-user-permission-set",
       "label": "Set user permission",
       "description": "Sets a permission for a user; a value of false negates it, and no context means global.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} permission set {node} {value} {context}",
       "inputs": [
         {
@@ -838,7 +838,7 @@
       "name": "lp-user-permission-unset",
       "label": "Unset user permission",
       "description": "Unsets (removes) a permission for a user.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} permission unset {node} {context}",
       "inputs": [
         {
@@ -868,7 +868,7 @@
       "name": "lp-user-permission-settemp",
       "label": "Set temporary user permission",
       "description": "Sets a permission temporarily for a user until the duration expires.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} permission settemp {node} {value} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -927,7 +927,7 @@
       "name": "lp-user-permission-unsettemp",
       "label": "Unset temporary user permission",
       "description": "Unsets a temporary permission for a user, or subtracts a duration from it.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} permission unsettemp {node} {duration} {context}",
       "inputs": [
         {
@@ -1045,7 +1045,7 @@
       "name": "lp-user-parent-set",
       "label": "Set user parent",
       "description": "Sets the user's parent, clearing all existing parent groups in the given context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} parent set {group} {context}",
       "inputs": [
         {
@@ -1075,7 +1075,7 @@
       "name": "lp-user-parent-add",
       "label": "Add user parent",
       "description": "Adds a parent group to the user without removing existing parents.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} parent add {group} {context}",
       "inputs": [
         {
@@ -1105,7 +1105,7 @@
       "name": "lp-user-parent-remove",
       "label": "Remove user parent",
       "description": "Removes a parent group from the user.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} parent remove {group} {context}",
       "inputs": [
         {
@@ -1135,7 +1135,7 @@
       "name": "lp-user-parent-settrack",
       "label": "Set user track position",
       "description": "Sets the user's position on a track, clearing only existing parents on that track.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} parent settrack {track} {group} {context}",
       "inputs": [
         {
@@ -1172,7 +1172,7 @@
       "name": "lp-user-parent-addtemp",
       "label": "Add temporary user parent",
       "description": "Adds a parent group to the user temporarily until the duration expires.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} parent addtemp {group} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -1220,7 +1220,7 @@
       "name": "lp-user-parent-removetemp",
       "label": "Remove temporary user parent",
       "description": "Removes a temporary parent from the user, or subtracts a duration from it.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} parent removetemp {group} {duration} {context}",
       "inputs": [
         {
@@ -1280,7 +1280,7 @@
       "name": "lp-user-parent-cleartrack",
       "label": "Clear user parents on track",
       "description": "Removes all parents from the user on a given track.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} parent cleartrack {track} {context}",
       "inputs": [
         {
@@ -1310,7 +1310,7 @@
       "name": "lp-user-parent-switchprimarygroup",
       "label": "Switch primary group",
       "description": "Changes a user's primary group, adding them to it if they are not already a member.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} parent switchprimarygroup {group}",
       "inputs": [
         {
@@ -1349,7 +1349,7 @@
       "name": "lp-user-meta-set",
       "label": "Set user meta",
       "description": "Sets a meta key-value pair for the user.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta set {key} {value} {context}",
       "inputs": [
         {
@@ -1385,7 +1385,7 @@
       "name": "lp-user-meta-unset",
       "label": "Unset user meta",
       "description": "Unsets a meta key-value pair for the user.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta unset {key} {context}",
       "inputs": [
         {
@@ -1414,7 +1414,7 @@
       "name": "lp-user-meta-settemp",
       "label": "Set temporary user meta",
       "description": "Sets a temporary meta key-value pair for the user.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta settemp {key} {value} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -1468,7 +1468,7 @@
       "name": "lp-user-meta-unsettemp",
       "label": "Unset temporary user meta",
       "description": "Unsets a temporary meta key-value pair for the user.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta unsettemp {key} {context}",
       "inputs": [
         {
@@ -1497,7 +1497,7 @@
       "name": "lp-user-meta-addprefix",
       "label": "Add user prefix",
       "description": "Adds a prefix to the user at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta addprefix {priority} {prefix} {context}",
       "inputs": [
         {
@@ -1534,7 +1534,7 @@
       "name": "lp-user-meta-setprefix",
       "label": "Set user prefix",
       "description": "Sets a prefix for the user, removing existing prefixes set in the same context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta setprefix {priority} {prefix} {context}",
       "inputs": [
         {
@@ -1571,7 +1571,7 @@
       "name": "lp-user-meta-removeprefix",
       "label": "Remove user prefix",
       "description": "Removes a prefix from the user at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta removeprefix {priority} {prefix} {context}",
       "inputs": [
         {
@@ -1608,7 +1608,7 @@
       "name": "lp-user-meta-addtempprefix",
       "label": "Add temporary user prefix",
       "description": "Adds a prefix to the user temporarily until the duration expires.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta addtempprefix {priority} {prefix} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -1663,7 +1663,7 @@
       "name": "lp-user-meta-settempprefix",
       "label": "Set temporary user prefix",
       "description": "Sets a prefix for the user temporarily, removing existing prefixes set in the same context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta settempprefix {priority} {prefix} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -1718,7 +1718,7 @@
       "name": "lp-user-meta-removetempprefix",
       "label": "Remove temporary user prefix",
       "description": "Removes a temporary prefix from the user at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta removetempprefix {priority} {prefix} {context}",
       "inputs": [
         {
@@ -1755,7 +1755,7 @@
       "name": "lp-user-meta-addsuffix",
       "label": "Add user suffix",
       "description": "Adds a suffix to the user at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta addsuffix {priority} {suffix} {context}",
       "inputs": [
         {
@@ -1792,7 +1792,7 @@
       "name": "lp-user-meta-setsuffix",
       "label": "Set user suffix",
       "description": "Sets a suffix for the user, removing existing suffixes set in the same context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta setsuffix {priority} {suffix} {context}",
       "inputs": [
         {
@@ -1829,7 +1829,7 @@
       "name": "lp-user-meta-removesuffix",
       "label": "Remove user suffix",
       "description": "Removes a suffix from the user at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta removesuffix {priority} {suffix} {context}",
       "inputs": [
         {
@@ -1866,7 +1866,7 @@
       "name": "lp-user-meta-addtempsuffix",
       "label": "Add temporary user suffix",
       "description": "Adds a suffix to the user temporarily until the duration expires.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta addtempsuffix {priority} {suffix} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -1921,7 +1921,7 @@
       "name": "lp-user-meta-settempsuffix",
       "label": "Set temporary user suffix",
       "description": "Sets a suffix for the user temporarily, removing existing suffixes set in the same context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta settempsuffix {priority} {suffix} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -1976,7 +1976,7 @@
       "name": "lp-user-meta-removetempsuffix",
       "label": "Remove temporary user suffix",
       "description": "Removes a temporary suffix from the user at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp user {user} meta removetempsuffix {priority} {suffix} {context}",
       "inputs": [
         {
@@ -2084,7 +2084,7 @@
       "name": "lp-group-permission-set",
       "label": "Set group permission",
       "description": "Sets a permission for a group; a value of false negates it, and no context means global.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} permission set {node} {value} {context}",
       "inputs": [
         {
@@ -2125,7 +2125,7 @@
       "name": "lp-group-permission-unset",
       "label": "Unset group permission",
       "description": "Unsets (removes) a permission for a group.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} permission unset {node} {context}",
       "inputs": [
         {
@@ -2155,7 +2155,7 @@
       "name": "lp-group-permission-settemp",
       "label": "Set temporary group permission",
       "description": "Sets a permission temporarily for a group until the duration expires.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} permission settemp {node} {value} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -2214,7 +2214,7 @@
       "name": "lp-group-permission-unsettemp",
       "label": "Unset temporary group permission",
       "description": "Unsets a temporary permission for a group, or subtracts a duration from it.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} permission unsettemp {node} {duration} {context}",
       "inputs": [
         {
@@ -2332,7 +2332,7 @@
       "name": "lp-group-parent-set",
       "label": "Set group parent",
       "description": "Sets the group's parent, clearing all existing parent groups in the given context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} parent set {parent} {context}",
       "inputs": [
         {
@@ -2362,7 +2362,7 @@
       "name": "lp-group-parent-add",
       "label": "Add group parent",
       "description": "Adds a parent group to the group without removing existing parents.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} parent add {parent} {context}",
       "inputs": [
         {
@@ -2392,7 +2392,7 @@
       "name": "lp-group-parent-remove",
       "label": "Remove group parent",
       "description": "Removes a parent group from the group.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} parent remove {parent} {context}",
       "inputs": [
         {
@@ -2422,7 +2422,7 @@
       "name": "lp-group-parent-settrack",
       "label": "Set group track position",
       "description": "Sets the group's position on a track, clearing only existing parents on that track.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} parent settrack {track} {parent} {context}",
       "inputs": [
         {
@@ -2459,7 +2459,7 @@
       "name": "lp-group-parent-addtemp",
       "label": "Add temporary group parent",
       "description": "Adds a parent group to the group temporarily until the duration expires.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} parent addtemp {parent} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -2507,7 +2507,7 @@
       "name": "lp-group-parent-removetemp",
       "label": "Remove temporary group parent",
       "description": "Removes a temporary parent from the group, or subtracts a duration from it.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} parent removetemp {parent} {duration} {context}",
       "inputs": [
         {
@@ -2567,7 +2567,7 @@
       "name": "lp-group-parent-cleartrack",
       "label": "Clear group parents on track",
       "description": "Removes all parents from the group on a given track.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} parent cleartrack {track} {context}",
       "inputs": [
         {
@@ -2613,7 +2613,7 @@
       "name": "lp-group-meta-set",
       "label": "Set group meta",
       "description": "Sets a meta key-value pair for the group.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta set {key} {value} {context}",
       "inputs": [
         {
@@ -2649,7 +2649,7 @@
       "name": "lp-group-meta-unset",
       "label": "Unset group meta",
       "description": "Unsets a meta key-value pair for the group.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta unset {key} {context}",
       "inputs": [
         {
@@ -2678,7 +2678,7 @@
       "name": "lp-group-meta-settemp",
       "label": "Set temporary group meta",
       "description": "Sets a temporary meta key-value pair for the group.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta settemp {key} {value} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -2732,7 +2732,7 @@
       "name": "lp-group-meta-unsettemp",
       "label": "Unset temporary group meta",
       "description": "Unsets a temporary meta key-value pair for the group.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta unsettemp {key} {context}",
       "inputs": [
         {
@@ -2761,7 +2761,7 @@
       "name": "lp-group-meta-addprefix",
       "label": "Add group prefix",
       "description": "Adds a prefix to the group at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta addprefix {priority} {prefix} {context}",
       "inputs": [
         {
@@ -2798,7 +2798,7 @@
       "name": "lp-group-meta-setprefix",
       "label": "Set group prefix",
       "description": "Sets a prefix for the group, removing existing prefixes set in the same context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta setprefix {priority} {prefix} {context}",
       "inputs": [
         {
@@ -2835,7 +2835,7 @@
       "name": "lp-group-meta-removeprefix",
       "label": "Remove group prefix",
       "description": "Removes a prefix from the group at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta removeprefix {priority} {prefix} {context}",
       "inputs": [
         {
@@ -2872,7 +2872,7 @@
       "name": "lp-group-meta-addtempprefix",
       "label": "Add temporary group prefix",
       "description": "Adds a prefix to the group temporarily until the duration expires.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta addtempprefix {priority} {prefix} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -2927,7 +2927,7 @@
       "name": "lp-group-meta-settempprefix",
       "label": "Set temporary group prefix",
       "description": "Sets a prefix for the group temporarily, removing existing prefixes set in the same context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta settempprefix {priority} {prefix} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -2982,7 +2982,7 @@
       "name": "lp-group-meta-removetempprefix",
       "label": "Remove temporary group prefix",
       "description": "Removes a temporary prefix from the group at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta removetempprefix {priority} {prefix} {context}",
       "inputs": [
         {
@@ -3019,7 +3019,7 @@
       "name": "lp-group-meta-addsuffix",
       "label": "Add group suffix",
       "description": "Adds a suffix to the group at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta addsuffix {priority} {suffix} {context}",
       "inputs": [
         {
@@ -3056,7 +3056,7 @@
       "name": "lp-group-meta-setsuffix",
       "label": "Set group suffix",
       "description": "Sets a suffix for the group, removing existing suffixes set in the same context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta setsuffix {priority} {suffix} {context}",
       "inputs": [
         {
@@ -3093,7 +3093,7 @@
       "name": "lp-group-meta-removesuffix",
       "label": "Remove group suffix",
       "description": "Removes a suffix from the group at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta removesuffix {priority} {suffix} {context}",
       "inputs": [
         {
@@ -3130,7 +3130,7 @@
       "name": "lp-group-meta-addtempsuffix",
       "label": "Add temporary group suffix",
       "description": "Adds a suffix to the group temporarily until the duration expires.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta addtempsuffix {priority} {suffix} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -3185,7 +3185,7 @@
       "name": "lp-group-meta-settempsuffix",
       "label": "Set temporary group suffix",
       "description": "Sets a suffix for the group temporarily, removing existing suffixes set in the same context.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta settempsuffix {priority} {suffix} {duration} {modifier} {context}",
       "inputs": [
         {
@@ -3240,7 +3240,7 @@
       "name": "lp-group-meta-removetempsuffix",
       "label": "Remove temporary group suffix",
       "description": "Removes a temporary suffix from the group at the given priority.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp group {group} meta removetempsuffix {priority} {suffix} {context}",
       "inputs": [
         {
@@ -3345,7 +3345,7 @@
       "name": "lp-track-append",
       "label": "Append group to track",
       "description": "Adds a group onto the end of the track.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp track {track} append {group}",
       "inputs": [
         {
@@ -3368,7 +3368,7 @@
       "name": "lp-track-insert",
       "label": "Insert group into track",
       "description": "Inserts a group at a specific position in the track; position 1 is the start.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp track {track} insert {group} {position}",
       "inputs": [
         {
@@ -3398,7 +3398,7 @@
       "name": "lp-track-remove",
       "label": "Remove group from track",
       "description": "Removes a group from the track.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp track {track} remove {group}",
       "inputs": [
         {
@@ -3437,7 +3437,7 @@
       "name": "lp-track-rename",
       "label": "Rename track",
       "description": "Changes a track's name.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp track {track} rename {name}",
       "inputs": [
         {
@@ -3460,7 +3460,7 @@
       "name": "lp-track-clone",
       "label": "Clone track",
       "description": "Makes an exact copy of the track under a different name.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp track {track} clone {name}",
       "inputs": [
         {
@@ -3529,7 +3529,7 @@
       "name": "lp-log-notify",
       "label": "Log notifications",
       "description": "Toggles log notifications for the sender executing the command.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lp log notify {state}",
       "inputs": [
         {

@@ -1268,7 +1268,7 @@ inputs = [
 
 [[commands.fields]]
 name = "unban"
-risk = "caution"
+risk = "danger"
 label = "Unban Player"
 description = "Unban a banned player"
 method = "rest"

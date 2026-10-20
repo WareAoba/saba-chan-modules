@@ -358,7 +358,7 @@
       "name": "npc-owner",
       "label": "Set owner",
       "description": "Sets the owner of an NPC.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "npc owner --id {id} {owner}",
       "inputs": [
         {

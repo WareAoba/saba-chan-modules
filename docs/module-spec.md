@@ -89,7 +89,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `http_method`, `endpoint_template` | rest | REST 호출 |
 | `inputs` | ○ | `{ name ✔, label, type, required, placeholder, default, min, max, options }` 목록. 데몬이 실행 전에 required·min·max·options를 검사한다 |
 
-`[commands] hook = true`: 서버 폴더에 따라 달라지는 명령(설치된 플러그인 명령 등)을 진입 파일 `instance_commands(config)`가 인스턴스마다 더 준다. 돌려줄 것은 `{success, commands:[명령 필드와 같은 모양 + group?]}`. module.toml 명령과 이름·별명이 겹치거나 이름에 공백이 있는 것은 데몬이 뺀다.
+`[commands] hook = true`: 서버 폴더에 따라 달라지는 명령(설치된 플러그인 명령 등)을 진입 파일 `instance_commands(config)`가 인스턴스마다 더 준다. 돌려줄 것은 `{success, commands:[명령 필드와 같은 모양 + group?], components?}`. module.toml 명령과 이름·별명이 겹치거나 이름에 공백이 있는 것은 데몬이 뺀다.
 
 ### `[backup]` ○
 백업(수동·예약·업데이트 전·복원 전)에 묶을 것. `paths`(작업 폴더 기준 폴더·파일, `{설정 이름}`은 인스턴스 설정 값으로 바뀐다), `save_command`(묶기 전에 실행할 `[[commands.fields]]` 이름, 예: `save-all`), `hook`(true면 진입 파일 `backup_paths(config)`가 `{"success": true, "paths": [...]}`로 경로를 더 준다. 실패하면 백업과 그 뒤 작업이 멈춘다). 없으면 수동 백업은 `backup_unsupported`, 업데이트 전·예약 백업은 건너뛴다.
@@ -102,6 +102,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 ### `[[queries]]` ○
 읽기 전용 조회(예: 접속자 목록). 액션 `server.query:<name>`이 되어 GUI·CLI·디스코드·챗봇에서 부른다. `name`(소문자·숫자·`-`·`_`, 모듈 안에서 겹치지 않음), `label`, `description`, `function`(진입 파일의 함수 이름, Python 식별자), `inputs`(명령 입력과 같은 모양). 함수는 `{"success": true, "data": <JSON>}`을 돌려주고 아무것도 바꾸지 않는다(감사 기록 없이 챗봇·일반 사용자도 부른다). 표시 문구는 locales `queries.<name>.label`·`description`.
+- 로드 때 검사: 입력 `type`은 `text`·`number`·`select`만, `select`에는 `options`가 있어야 하고 `min`은 `max` 이하, `function`에는 상태를 바꾸는 데몬 함수 이름(`stop`, `configure` 등)을 쓸 수 없다. 어기면 schema v1 모듈은 로드에 실패하고, `schema_version`이 없는 모듈은 경고를 남기고 조회를 모두 끈다.
 
 ### `[[presets]]` ○
 서버를 만들 때 고르는 추천 설정 묶음. `id`(소문자·숫자·`-`·`_`, 겹치지 않음), `label`, `description`, `[presets.settings]`(`[[settings.fields]]` 이름 → 값). 값은 그 설정의 규칙(형식·범위·선택지)을 따라야 하고 `password`·`file`·`path` 형식 설정은 넣지 못한다. 어기면 로드 오류. 표시 문구는 locales `presets.<id>.label`·`description`.

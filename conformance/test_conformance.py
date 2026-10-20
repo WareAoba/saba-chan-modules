@@ -7,7 +7,8 @@
 3. 모르는 함수에는 `{"success": false, "message": "Unknown function: X"}`
 4. 부르면 안전한 함수들을 빈 작업 폴더에서 불러, 제한 시간 안에 종료 코드 0으로 끝나고
    stdout 마지막 줄이 JSON 객체이며, stderr의 `PROGRESS:` 줄이 JSON인지
-5. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일에 en에 없는 키가 없다
+5. 예약 함수 `functions`가 FUNCTIONS 표의 이름을 돌려준다
+6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일에 en에 없는 키가 없다
 """
 import ast
 import json
@@ -218,6 +219,18 @@ def test_safe_call_keeps_the_contract(module, shared_libs, tmp_path, function):
             assert isinstance(result.get("missing_extensions"), list), "extension_required에는 missing_extensions[]가 있어야 한다"
     if function == "get_launch_command" and result["success"]:
         assert isinstance(result.get("program"), str) and isinstance(result.get("args", []), list), result
+
+
+def test_functions_call_lists_the_table(module, shared_libs, tmp_path):
+    """데몬은 예약 함수 `functions`로 모듈이 무엇을 지원하는지 묻고, 없는 기능은 화면에서 숨긴다"""
+    table, _ = functions_table(module)
+    result = call(module, shared_libs, "functions", {}, tmp_path)
+    assert result.get("success") is True, f"functions 응답: {result}"
+    listed = result.get("functions")
+    assert isinstance(listed, list) and all(isinstance(f, str) for f in listed), f"functions[]가 문자열 목록이 아니다: {result}"
+    assert set(listed) - {"functions"} == set(table or {}), (
+        f"functions 응답이 FUNCTIONS 표와 다르다: 응답만 {sorted(set(listed) - set(table) - {'functions'})}, "
+        f"표만 {sorted(set(table) - set(listed))}")
 
 
 # ── 5. 번역 ─────────────────────────────────────────────

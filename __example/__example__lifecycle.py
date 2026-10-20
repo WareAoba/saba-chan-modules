@@ -468,6 +468,8 @@ def _do_backup(config):
 #  FUNCTIONS 표
 # ═══════════════════════════════════════════════════════════════════
 #  만든 함수는 빠짐없이 표에 넣습니다. 서버 프로세스는 데몬이 띄우므로 start()는 없습니다.
+#  데몬은 예약 함수 `functions`로 이 표의 이름을 물어 없는 기능을 화면에서 숨깁니다.
+#  run_lifecycle()이 대신 답하므로 따로 만들지 않습니다.
 #  기능을 지원할 때만 더 만드는 함수 (계약: docs/module-spec.md §3):
 #    get_credentials, read_properties, reset_properties, reset_server,
 #    list_versions, get_version_details, get_installed_version,

@@ -108,7 +108,7 @@
    if __name__ == "__main__":
        run_lifecycle(FUNCTIONS)
    ```
-   `run_lifecycle()`이 stdin 읽기, 모르는 함수 답, 예외를 JSON으로 바꾸기, 종료 코드 0을 처리한다.
+   `run_lifecycle()`이 stdin 읽기, 모르는 함수 답, 예외를 JSON으로 바꾸기, 종료 코드 0, 그리고 데몬이 지원 기능을 묻는 예약 함수 `functions`의 답을 처리한다. 진입점을 직접 쓰면 `functions`도 직접 답해야 한다(module-spec.md §3).
 5. 데몬 없이 돌려 본다.
    ```bash
    echo '{"server_executable": "C:/Games/MyGame/GameServer.exe", "port": 7777}' | python lifecycle.py get_launch_command
@@ -266,6 +266,7 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 - [ ] 폴더 이름 = `[module] name`, `schema_version = 1`, `saba-core module validate` 통과
 - [ ] `get_launch_command`가 진짜 서버 exe를 돌려준다(곧바로 끝나는 런처 exe가 아니라)
 - [ ] `FUNCTIONS`에 만든 함수가 다 있고, 모든 실패가 종료 코드 0 + `success: false` + 이유
+- [ ] `python lifecycle.py functions`가 FUNCTIONS 표의 이름을 돌려준다(`run_lifecycle`이면 자동)
 - [ ] 로그는 stderr로만
 - [ ] RCON은 끄고, `supported`에 `"rcon"`이 없다
 - [ ] 콘솔이 있으면 `stop_command`, `stop`은 정상 종료 → 대기 → 강제 종료 순서, 데몬이 준 `pid`만 다룬다

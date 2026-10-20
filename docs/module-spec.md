@@ -124,6 +124,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 - 데몬이 넣는 환경 변수: `SABA_IPC_URL`, `SABA_IPC_PORT`, `SABA_TOKEN_PATH`(토큰 파일 경로), `SABA_LANG`. 데몬 역호출은 `daemon_rcon.daemon_post()`를 쓴다.
 - 공통 응답: `success: bool`, `message: str`. 사용자 조치가 필요하면 `action_required: "<코드>"`. 익스텐션이 없으면 `error_code: "extension_required"`, `missing_extensions[]`.
 - 모르는 함수 이름에는 `{"success": false, "message": "Unknown function: X"}`.
+- 예약 함수 `functions`: `{"success": true, "functions": [FUNCTIONS 표의 함수 이름…]}`. 데몬은 이것으로 모듈이 지원하는 기능을 알고, 없는 기능(예: `reset_server`가 없으면 서버 초기화)은 화면에서 숨긴다. 공용 `run_lifecycle(FUNCTIONS)`을 쓰면 자동으로 답한다. 진입점을 직접 쓰면 `FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}` 한 줄을 더한다.
 
 | 함수 | 언제 | 돌려줄 것 |
 |---|---|---|

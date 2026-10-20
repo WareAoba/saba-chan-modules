@@ -226,7 +226,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 
 - **설정 필드 선택 키**: 포트는 `port = true`(여러 인스턴스를 만들 때 데몬이 겹치지 않게 옮긴다). 서버를 만들 때 골라야 하는 값(서버 종류처럼 받을 파일이 달라지는 값)은 `install = true` + `type = "select"`. 실행 인자로 들어가는 값은 `arg`, 값 형식은 `format`/`pattern`(데몬이 저장 때 검사하므로 모듈이 다시 검사하지 않아도 된다). `type`은 `text` `number` `password` `boolean` `select` `file`만 쓴다.
 - **`[[queries]]`**: 접속자 목록처럼 읽기만 하는 조회. `function`이 `{"success": true, "data": ...}`를 돌려준다. 챗봇과 일반 사용자도 부르므로 아무것도 바꾸지 않는다.
-- **`[status] players`**: 접속자 수 함수. `{"success": true, "online": 3, "max": 20}`. 서버에 닿지 않으면 `success: false`, 서버는 정상인데 수를 모르면 `online` 없이 `success: true`. 서버 로컬 REST·소켓은 `daemon_rcon.loopback_http`/`loopback_exchange`로 연다(격리 실행에서도 데몬이 중계한다).
+- **`[status] players`**: 접속자 수 함수. `{"success": true, "online": 3, "max": 20}`. 데몬이 플레이어 목록을 물을 때는 config에 `players_detail: true`가 실리고, 그때만 `"players": [{"name": "Steve"}]`를 더한다(공식 방법으로 읽고, 문구가 다르면 짐작하지 말고 뺀다). 서버에 닿지 않으면 `success: false`, 서버는 정상인데 수를 모르면 `online` 없이 `success: true`. 서버 로컬 REST·소켓은 `daemon_rcon.loopback_http`/`loopback_exchange`로 연다(격리 실행에서도 데몬이 중계한다).
 - **`[commands] hook = true` + `instance_commands`**: 설치된 플러그인처럼 서버 폴더에 따라 달라지는 명령. module.toml 명령 뒤에 붙는다.
 - **`[[agreements]]` + `accept_agreements`**: 게임 EULA처럼 사용자가 직접 동의해야 하는 약관. 동의는 데몬이 이 PC에서만 받는다. 모듈은 `accepted_agreements`에 자기 id가 있을 때만 파일(예: eula.txt)에 쓰고, 동의를 가정하지 않는다.
 - **`[[presets]]`**: 서버를 만들 때 고르는 추천 설정 묶음. 비밀번호·경로 설정은 넣지 못한다.

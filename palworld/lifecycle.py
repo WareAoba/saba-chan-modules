@@ -418,9 +418,23 @@ def player_count(config):
         return {"success": False, "message": i18n.t("errors.player_list_failed", error="AdminPassword")}
     try:
         metrics = client.metrics()
-        return {"success": True, "online": int(metrics["currentplayernum"]), "max": int(metrics.get("maxplayernum") or 0)}
+        result = {"success": True, "online": int(metrics["currentplayernum"]), "max": int(metrics.get("maxplayernum") or 0)}
     except (RuntimeError, KeyError, TypeError, ValueError) as e:
         return {"success": False, "message": i18n.t("errors.player_list_failed", error=str(e))}
+    # 이름은 데몬이 목록을 물을 때(players_detail)만 읽는다. 1분 갱신은 수만 쓴다
+    if not config.get("players_detail"):
+        return result
+    if result["online"] == 0:
+        result["players"] = []
+        return result
+    # 이름은 공식 REST GET /players: name(게임 안 이름), 비면 accountName. IP·ID는 내지 않는다
+    try:
+        names = (p.get("name") or p.get("accountName") for p in client.players()["players"])
+        result["players"] = [{"name": n} for n in names if n]
+    except (RuntimeError, KeyError, TypeError, AttributeError) as e:
+        # 이름을 못 읽어도 수는 맞다: 수만 답한다
+        print(f"[Palworld] REST players failed: {e}", file=sys.stderr)
+    return result
 
 
 def _rest_shutdown(config):

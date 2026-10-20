@@ -418,12 +418,37 @@ def test_player_count_reads_rest_metrics():
     client.metrics.return_value = {"currentplayernum": 2, "maxplayernum": 32, "serverfps": 60}
     with mock.patch.object(lifecycle, "_rest_client", return_value=client):
         assert lifecycle.player_count({}) == {"success": True, "online": 2, "max": 32}
+    client.players.assert_not_called()
     client.metrics.side_effect = RuntimeError("HTTP 401")
     with mock.patch.object(lifecycle, "_rest_client", return_value=client):
         assert lifecycle.player_count({})["success"] is False
     with mock.patch.object(lifecycle, "_rest_client", return_value=None):
         assert lifecycle.player_count({})["success"] is False
 
+
+
+def test_player_count_names_the_players_from_rest():
+    """플레이어 이름은 공식 REST GET /players의 name(게임 안 이름)이고, 비면 accountName이다.
+    IP·ID는 내지 않는다. 이름을 못 읽어도 수는 그대로 답한다. 데몬이 목록을 물을 때(players_detail)만 읽는다
+    (검수 13, docs.palworldgame.com/api/rest-api/players, 계약 06 §2)"""
+    from palworld import lifecycle
+    client = mock.Mock()
+    client.metrics.return_value = {"currentplayernum": 2, "maxplayernum": 32}
+    client.players.return_value = {"players": [
+        {"name": "Pal", "accountName": "acc1", "playerId": "p1", "userId": "steam_1", "ip": "10.0.0.5"},
+        {"name": "", "accountName": "acc2", "playerId": "p2", "userId": "steam_2", "ip": "10.0.0.6"},
+    ]}
+    with mock.patch.object(lifecycle, "_rest_client", return_value=client):
+        assert lifecycle.player_count({"players_detail": True})["players"] == [{"name": "Pal"}, {"name": "acc2"}]
+    client.players.side_effect = RuntimeError("HTTP 500")
+    with mock.patch.object(lifecycle, "_rest_client", return_value=client):
+        assert lifecycle.player_count({"players_detail": True}) == {"success": True, "online": 2, "max": 32}
+    # 아무도 없으면 목록을 묻지 않는다
+    client.reset_mock(side_effect=True)
+    client.metrics.return_value = {"currentplayernum": 0, "maxplayernum": 32}
+    with mock.patch.object(lifecycle, "_rest_client", return_value=client):
+        assert lifecycle.player_count({"players_detail": True}) == {"success": True, "online": 0, "max": 32, "players": []}
+    client.players.assert_not_called()
 
 def test_rest_client_uses_the_configured_host():
     from palworld import lifecycle
@@ -440,13 +465,15 @@ def test_a_sandboxed_run_reaches_its_rest_api_through_the_daemon(monkeypatch, tm
 
     def relay(port, method, path, *, headers=None, body=None, timeout=5):
         calls.append((port, method, path, headers.get("Authorization")))
+        if path.endswith("/players"):
+            return 200, b'{"players": [{"name": "Pal", "accountName": "acc", "ip": "10.0.0.5"}]}'
         return 200, b'{"currentplayernum": 2, "maxplayernum": 32}'
     monkeypatch.setenv("SABA_LOOPBACK_DIR", str(tmp_path))
     monkeypatch.setattr(lifecycle, "loopback_http", relay)
     monkeypatch.setattr(lifecycle.urllib.request, "urlopen", lambda *a, **k: pytest.fail("a direct connection was tried"))
     with mock.patch.object(lifecycle, "_read_admin_password_from_ini", return_value="pw"):
-        assert lifecycle.player_count({"rest_port": 8242}) == {"success": True, "online": 2, "max": 32}
-    assert calls == [(8242, "GET", "/v1/api/metrics", "Basic YWRtaW46cHc=")]
+        assert lifecycle.player_count({"rest_port": 8242, "players_detail": True}) == {"success": True, "online": 2, "max": 32, "players": [{"name": "Pal"}]}
+    assert calls == [(8242, "GET", "/v1/api/metrics", "Basic YWRtaW46cHc="), (8242, "GET", "/v1/api/players", "Basic YWRtaW46cHc=")]
 
 
 def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypatch):

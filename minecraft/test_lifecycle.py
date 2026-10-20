@@ -999,5 +999,5 @@ def test_commands_that_change_access_or_grant_things_are_danger():
     import tomllib
     with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
         risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
-    for name in ("give", "gamemode", "pardon", "op", "deop", "whitelist", "ban"):
+    for name in ("give", "gamemode", "pardon", "op", "deop", "whitelist", "ban", "difficulty"):
         assert risks[name] == "danger", name

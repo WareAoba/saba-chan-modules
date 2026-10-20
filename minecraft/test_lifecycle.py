@@ -1256,3 +1256,24 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     assert not any(p.search(chat) for p in patterns)
     assert "ready_patterns" not in toml["detection"]
     assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.5"
+
+
+def test_player_patterns_name_who_joined_or_left():
+    """접속·퇴장 줄에서 이름만 잡는다(계약 06 §8.3). 문구는 server jar en_us.json(26.3) 그대로이고,
+    채팅·/say로 같은 글을 써도 맞지 않는다"""
+    import re
+    import tomllib
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        table = tomllib.load(f)["extensions"]["saba-core"]
+    join = [re.compile(p) for p in table["player_join_patterns"]]
+    leave = [re.compile(p) for p in table["player_leave_patterns"]]
+
+    def name(patterns, line):
+        found = [m.group("name") for p in patterns if (m := p.search(line))]
+        return found[0] if found else None
+    head = "[2026-10-20 11:08:00] [STDOUT/INFO] [20:08:00] [Server thread/INFO]: "
+    assert name(join, head + "Steve joined the game") == "Steve"
+    assert name(join, head + "Alex_99 (formerly known as OldAlex) joined the game") == "Alex_99"
+    assert name(leave, head + "Steve left the game") == "Steve"
+    for spoof in ["<Steve> Alex joined the game", "[Server] Alex joined the game", "<Steve> Alex left the game"]:
+        assert name(join, head + spoof) is None and name(leave, head + spoof) is None, spoof

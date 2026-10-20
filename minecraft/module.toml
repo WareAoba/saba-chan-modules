@@ -75,6 +75,13 @@ crash_artifacts = ["crash-reports/*.txt", "hs_err_pid*.log"]
 # 접속을 받기 시작할 때의 콘솔 줄 (정규식, 데몬 instance.ready). 앞에 러너·로그 머리가 붙고,
 # 채팅으로 흉내 내지 못하게 "]: "부터 맞춘다. PC 정규 설치 26.3 서버의 실제 줄에서 확인
 ready_patterns = ['\]: Done \(\d+(\.\d+)?s\)! For help, type "help"']
+# 접속·퇴장 줄 (데몬 instance.player, name 그룹). 문구는 server jar en_us.json multiplayer.player.joined·
+# joined.renamed·left (26.3에서 확인). 이름 규칙(영숫자·밑줄 16자)과 "]: "로 채팅(<이름> ...)을 흉내 내지 못하게 한다
+player_join_patterns = [
+    '\]: (?P<name>[A-Za-z0-9_]{1,16}) joined the game\s*$',
+    '\]: (?P<name>[A-Za-z0-9_]{1,16}) \(formerly known as [A-Za-z0-9_]{1,16}\) joined the game\s*$',
+]
+player_leave_patterns = ['\]: (?P<name>[A-Za-z0-9_]{1,16}) left the game\s*$']
 
 # ─── Settings (displayed in GUI for instance configuration) ───
 

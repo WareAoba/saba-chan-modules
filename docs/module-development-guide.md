@@ -217,7 +217,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 ### 크래시 판정, 백업, 공지
 
 - `[detection] graceful_exit_patterns`(정상 종료 문구)와 `crash_artifacts`(크래시 때 생기는 파일)를 적어야 데몬이 크래시만 골라 자동 재시작한다. 판정 순서는 module-spec.md `[detection]`에 있다.
-- `[backup] paths`(작업 폴더 기준, `{설정 이름}` 치환), `save_command`(백업 직전 보낼 `[commands.fields]` 이름), 경로를 코드로 계산해야 하면 `hook = true` + `backup_paths(config)` → `{"success": true, "paths": [...]}`. 훅이 실패하면 백업도, 그 백업을 전제로 한 업데이트·복원도 멈춘다.
+- `[backup] paths`(작업 폴더 기준, `{설정 이름}` 치환), `save_command`(백업 직전 보낼 `[commands.fields]` 이름), 경로를 코드로 계산해야 하면 `hook = true` + `backup_paths(config)` → `{"success": true, "paths": [...], "restore_roots": [...]}`(`restore_roots`는 선택: 예전에 더 넓게 담은 백업도 복원되게 하는 범위이고 백업 대상은 아니다). 훅이 실패하면 백업도, 그 백업을 전제로 한 업데이트·복원도 멈춘다.
 - `[config] announce_command`: 예약 재시작 예고·공지에 쓸 `[commands.fields]` 이름(`message` 입력 하나).
 
 ### 선택 기능: 조회, 접속자 수, 인스턴스별 명령, 약관, 프리셋, 권한

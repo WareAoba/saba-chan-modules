@@ -245,6 +245,15 @@ def test_backup_paths_follow_cache_dir(tmp_path):
     ]
 
 
+
+def test_backup_paths_let_older_whole_server_folder_backups_restore(tmp_path):
+    """0.1.8 이전 백업은 Server/ 폴더를 통째로 담았다. 그 폴더를 restore_roots로 내야 데몬이 그 백업을 복원한다.
+    restore_roots는 백업 대상이 아니므로 paths에는 여전히 이 서버 것만 든다 (MA3)"""
+    from zomboid.lifecycle import backup_paths
+    result = backup_paths({"cache_dir": str(tmp_path), "server_name": "myserver"})
+    assert result["restore_roots"] == [os.path.join(str(tmp_path), "Server")]
+    assert os.path.join(str(tmp_path), "Server") not in result["paths"]
+
 def test_backup_paths_take_only_this_servers_files(tmp_path):
     """Server/ 폴더에는 서버 이름마다 <이름>.ini와 <이름>_*.lua가 있다. 다른 서버 것은 넣지 않는다"""
     from zomboid.lifecycle import backup_paths

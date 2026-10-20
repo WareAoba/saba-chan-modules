@@ -142,7 +142,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `diagnose_log` | 로그 진단 | `success` |
 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록 / `executable_path`, `install_path` / `version` |
 | `import_settings` | 기존 서버 가져오기 | `settings{}` |
-| `backup_paths` | 백업 때, `[backup] hook = true`이면 | `paths[]` (실패하면 백업과 그 뒤 업데이트·복원이 멈춘다) |
+| `backup_paths` | 백업 때, `[backup] hook = true`이면 | `paths[]`, 선택 `restore_roots[]`(복원만 허용하는 범위, 백업 대상 아님) (실패하면 백업과 그 뒤 업데이트·복원이 멈춘다) |
 | `instance_commands` | 명령 목록·실행 때, `[commands] hook = true`이면 | `commands[]` |
 | `[[queries]]`의 `function` | 조회할 때. config에 `args{입력 이름: 값}`이 온다 | `data` |
 | `[status] players`가 가리키는 함수 | 켜진 서버마다 1분에 한 번 | `online`(0 이상 정수), `max`(정수, 모르면 빼거나 0). 서버에 닿지 않으면 `success: false`. 읽기만 한다 |

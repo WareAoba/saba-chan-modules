@@ -1106,9 +1106,10 @@ def reset_server(config):
 
 
 def _entries(path):
+    """폴더 항목. 없는 폴더는 빈 목록, 읽지 못하는 폴더는 OSError (빈 세이브로 보고 성공하면 백업이 비어도 모른다)"""
     try:
         return sorted(os.listdir(path))
-    except OSError:
+    except FileNotFoundError:
         return []
 
 
@@ -1117,6 +1118,13 @@ def backup_paths(config):
     다만 게임이 월드 폴더 안에 쌓는 자동 백업 `backup/`(bIsUseBackupSaveData)은 뺀다.
     설정 폴더(`Pal/Saved/Config`)는 module.toml `paths`에 있다."""
     saves = os.path.join(config.get("working_dir") or "", "Pal", "Saved", "SaveGames")
+    try:
+        return {"success": True, "paths": _save_entries(saves)}
+    except OSError as e:
+        return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
+
+
+def _save_entries(saves):
     paths = []
     for slot in _entries(saves):
         slot_path = os.path.join(saves, slot)
@@ -1130,7 +1138,7 @@ def backup_paths(config):
                 continue
             paths.extend(os.path.join(world_path, name) for name in _entries(world_path)
                          if name.lower() != "backup")
-    return {"success": True, "paths": paths}
+    return paths
 
 
 

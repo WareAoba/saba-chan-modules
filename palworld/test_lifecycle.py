@@ -496,3 +496,13 @@ def test_a_new_server_starts_with_the_settings_chosen_when_creating_it(tmp_path,
     assert props["ServerPlayerMaxNum"] == "8"
     assert props["RESTAPIEnabled"] == "True"
     assert props["RCONEnabled"] == "False"
+
+
+def test_backup_paths_fail_when_a_save_folder_cannot_be_read(tmp_path):
+    """읽지 못하는 세이브 폴더를 빈 세이브로 보고 성공하면, 설정만 든 백업이 성공으로 남는다"""
+    from palworld import lifecycle
+    (tmp_path / "Pal" / "Saved" / "SaveGames" / "0").mkdir(parents=True)
+    with mock.patch.object(lifecycle.os, "listdir", side_effect=PermissionError("denied")):
+        result = lifecycle.backup_paths({"working_dir": str(tmp_path)})
+    assert result["success"] is False and result.get("message"), result
+    assert lifecycle.backup_paths({"working_dir": str(tmp_path / "none")}) == {"success": True, "paths": []}

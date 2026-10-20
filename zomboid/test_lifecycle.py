@@ -503,3 +503,13 @@ def test_plain_stop_without_a_way_to_save_does_not_kill():
     assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
     assert result.get("message")
     kill.assert_not_called()
+
+
+def test_backup_paths_fail_when_the_server_folder_cannot_be_read(tmp_path):
+    """Server/를 읽지 못하면 SandboxVars·spawn 설정이 조용히 빠지므로 백업 훅을 실패시킨다"""
+    from unittest import mock
+    from zomboid import lifecycle
+    (tmp_path / "Server").mkdir()
+    with mock.patch.object(lifecycle.os, "listdir", side_effect=PermissionError("denied")):
+        result = lifecycle.backup_paths({"cache_dir": str(tmp_path), "server_name": "myserver"})
+    assert result["success"] is False and result.get("message"), result

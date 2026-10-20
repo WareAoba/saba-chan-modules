@@ -79,11 +79,13 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 ### `[[commands.fields]]` ○
 명령 카탈로그에 실리는 게임 명령. GUI 버튼, CLI, 디스코드, AI 명령 해석이 모두 이 선언을 쓴다.
 
+데몬은 `risk`·`description`이 없어도 로드한다(risk는 caution). 이 저장소의 적합성 키트는 모듈이 명령마다 위험도를 스스로 판단해 적게 하려고 둘 다 요구한다(`test_commands_declare_risk_and_description`).
+
 | 키 | | 뜻 |
 |---|---|---|
 | `name` | ✔ | 명령 이름 |
-| `label`, `description` | ○ | 표시용. description은 AI가 명령을 고를 때도 읽는다 |
-| `risk` | ○ | `"safe"`(조회·채팅) / `"caution"`(게임 상태 변경, 기본) / `"danger"`(서버 종료, 추방·차단, 권한 변경). AI가 추론한 명령을 실행 전에 확인받을지 정한다 |
+| `label`, `description` | ○ (키트 ✔) | 표시용. description은 AI가 명령을 고를 때도 읽는다 |
+| `risk` | ○ (키트 ✔) | `"safe"`(조회·채팅) / `"caution"`(게임 상태 변경, 기본) / `"danger"`(서버 종료, 추방·차단, 권한 변경). AI가 추론한 명령을 실행 전에 확인받을지 정한다 |
 | `method` | ○ | `"console"`(서버 콘솔 stdin) / `"rest"` / `"module"`(진입 파일의 `command()`, 기본). 예전 이름 `"rcon"`은 `"console"`로 읽는다 |
 | `console_template` | console | 예: `"kick {player}"`. `{입력 이름}`이 치환된다. 예전 이름 `rcon_template` |
 | `http_method`, `endpoint_template` | rest | REST 호출 |

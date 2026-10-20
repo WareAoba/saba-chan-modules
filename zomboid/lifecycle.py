@@ -1513,8 +1513,9 @@ def _server_config_files(server_dir, server_name):
     ini = os.path.join(server_dir, f"{server_name}.ini")
     try:
         names = os.listdir(server_dir)
-    except OSError:
+    except FileNotFoundError:
         return [ini]
+    # 읽지 못하는 폴더(권한·I/O)는 OSError로 올린다: 설정 일부가 조용히 빠진 백업을 성공으로 남기지 않는다
     prefix = f"{server_name}_"
     lua = sorted(n for n in names
                  if n.startswith(prefix) and n.endswith(".lua") and "_" not in n[len(prefix):])
@@ -1528,10 +1529,14 @@ def backup_paths(config):
     home = _zomboid_home(config)
     layout = _legacy_layout(config)
     server_dir = layout[1] if layout else os.path.join(home, "Server")
+    try:
+        config_files = _server_config_files(server_dir, server_name)
+    except OSError as e:
+        return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
     paths = [
         os.path.join(home, "Saves", "Multiplayer", server_name),
         os.path.join(home, "db", f"{server_name}.db"),
-        *_server_config_files(server_dir, server_name),
+        *config_files,
     ]
     return {"success": True, "paths": paths}
 

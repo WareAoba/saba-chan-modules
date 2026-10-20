@@ -259,11 +259,12 @@ def test_functions_call_lists_the_table(module, shared_libs, tmp_path):
 
 
 def changed_setting_values(fields, work_dir):
-    """기본값을 채우고, 바꿀 수 있는 형식(boolean·number·select)은 기본과 다른 값으로 바꾼다.
+    """게임 파일 설정(`group = "saba-chan"`이 아닌 것)의 기본값을 채우고, 바꿀 수 있는 형식
+    (boolean·number·select)은 기본과 다른 값으로 바꾼다. 사바쨩 설정은 데몬도 configure에 넘기지 않는다(MK6).
     돌려주는 것: (configure에 넣을 settings, 바꾼 값)"""
     settings, changed = {}, {}
     for f in fields:
-        if "default" not in f:
+        if "default" not in f or f.get("group") == "saba-chan":
             continue
         value = f["default"]
         if isinstance(value, str):
@@ -287,7 +288,8 @@ def changed_setting_values(fields, work_dir):
 
 def test_settings_round_trip(module, shared_libs, tmp_path):
     """앱에서 고친 값은 게임 파일에 쓰이고, 다시 읽으면 같은 값이어야 한다 (configure → import_settings).
-    게임 파일에 두지 않는 설정(실행 인자 등)은 import_settings가 돌려주지 않으므로 비교하지 않는다"""
+    게임 파일에 두지 않는 설정은 `group = "saba-chan"`으로 선언하므로 비교하지 않는다. 그 밖의 바꾼 설정은
+    import_settings가 모두 돌려줘야 한다(빠지면 앱이 게임 파일 값을 모른다)"""
     table, _ = functions_table(module)
     if not {"configure", "import_settings"} <= set(table or {}):
         pytest.skip("configure·import_settings 미지원")
@@ -302,7 +304,9 @@ def test_settings_round_trip(module, shared_libs, tmp_path):
     read = call(module, shared_libs, "import_settings", instance, tmp_path)
     assert read.get("success") is True, f"import_settings 실패: {read}"
     back = read.get("settings") or {}
-    assert back, "configure로 쓴 파일을 import_settings가 하나도 읽지 못했다"
+    missing = sorted(k for k in changed if k not in back)
+    assert not missing, ("configure로 쓴 설정을 import_settings가 돌려주지 않는다 "
+                         f"(게임 파일에 두지 않는 설정이면 group = \"saba-chan\"): {missing}")
     differ = [f"{k}: 썼음 {v!r} → 읽음 {back[k]!r}" for k, v in changed.items() if k in back and back[k] != v]
     assert not differ, "앱 값과 게임 파일 값이 다르다:\n" + "\n".join(differ)
 
@@ -313,10 +317,11 @@ def test_kit_changes_every_kind_it_can():
         {"name": "n", "type": "number", "default": 10, "max": 10},
         {"name": "s", "type": "select", "default": "a", "options": ["a", "b"]},
         {"name": "t", "type": "text", "default": "{instance_dir}/x"},
+        {"name": "ram", "type": "number", "default": 4, "group": "saba-chan"},
     ]
     settings, changed = changed_setting_values(fields, "W")
     assert changed == {"b": True, "n": 9, "s": "b"}
-    assert settings["t"] == "W/x"
+    assert settings["t"] == "W/x" and "ram" not in settings
 
 def stop_answer_problems(result, still_alive):
     """일반 정지(force=false)의 답: 끝냈으면 성공, 저장 후 종료를 요청할 길이 없으면 서버를 그대로 두고

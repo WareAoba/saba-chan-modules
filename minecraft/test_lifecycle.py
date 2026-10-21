@@ -1172,3 +1172,42 @@ def test_backup_without_plugins_folder_and_unreadable_plugins(tmp_path):
     with mock.patch.object(lifecycle.os, "listdir", side_effect=PermissionError("denied")):
         result = lifecycle.backup_paths({"working_dir": str(tmp_path)})
     assert result["success"] is False and "denied" in result.get("message", ""), result
+
+
+def test_an_update_keeps_the_jar_mode_and_clears_old_leftover_downloads(tmp_path):
+    """임시 파일(mkstemp, 0600)로 받아도 새 jar는 옛 jar의 권한을 따른다. 강제 종료로 남은 오래된 받기 파일은
+    다음 설치가 지우고, 방금 시작한 다른 받기 파일은 건드리지 않는다 (리뷰 568 P3)"""
+    import hashlib
+    import io
+    import time
+    from minecraft.lifecycle import ServerInstaller
+
+    body = b"new" * 1000
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    jar = tmp_path / "server.jar"
+    jar.write_bytes(b"old")
+    os.chmod(jar, 0o644)
+    stale = tmp_path / "server.jar.abc123.download"
+    stale.write_bytes(b"x")
+    os.utime(stale, (time.time() - 7200, time.time() - 7200))
+    fresh = tmp_path / "server.jar.def456.download"
+    fresh.write_bytes(b"y")
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": hashlib.sha1(body).hexdigest()}
+    with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch("urllib.request.urlopen", return_value=Resp(body)):
+        result = ServerInstaller.install_server("1.21.1", str(tmp_path))
+    assert result["success"], result
+    assert jar.read_bytes() == body
+    if os.name != "nt":
+        assert jar.stat().st_mode & 0o777 == 0o644
+    assert not stale.exists()
+    assert fresh.exists()

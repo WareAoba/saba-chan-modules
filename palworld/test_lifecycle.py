@@ -596,3 +596,16 @@ def test_a_failed_rest_policy_write_does_not_sync_an_unwritten_password(tmp_path
         assert not result.get("admin_password")
         result = lifecycle._enforce_rest_policy(str(tmp_path), {})
         assert result["changed"] is False and not result.get("admin_password")
+
+
+def test_get_launch_command_refuses_to_start_when_the_rest_policy_cannot_be_saved(tmp_path):
+    """REST 설정을 INI에 저장하지 못하면 데몬이 관리할 수 없는 서버를 띄우지 않고, 이유를 알린다"""
+    from palworld import lifecycle
+    exe = tmp_path / "PalServer.exe"
+    exe.write_text("", encoding="utf-8")
+    with mock.patch.object(lifecycle, "_enforce_rest_policy",
+                           return_value={"changed": False, "write_failed": True, "admin_password": None}):
+        result = lifecycle.get_launch_command({"server_executable": str(exe), "working_dir": str(tmp_path)})
+    assert result["success"] is False, result
+    assert result["message"] == lifecycle.i18n.t("errors.rest_policy_write_failed")
+    assert "program" not in result

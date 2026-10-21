@@ -358,6 +358,9 @@ def get_launch_command(config):
 
     # Enforce REST-only policy before launch (미리보기는 INI를 고치지 않는다)
     rest_result = None if config.get("preview") else _enforce_rest_policy(abs_working_dir, config)
+    if rest_result and rest_result.get("write_failed"):
+        # REST가 꺼진 채 뜨면 데몬이 상태 확인·종료를 못 한다: 띄우지 않고 이유를 알린다
+        return {"success": False, "message": i18n.t("errors.rest_policy_write_failed")}
 
     args = [f"--port={port}"]
 

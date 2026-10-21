@@ -181,6 +181,7 @@
     "no_settings": "設定が指定されていません。",
     "no_server_dir": "サーバーディレクトリを特定できません。working_dir または server_executable を設定してください。",
     "settings_write_failed": "設定ファイルの書き込みに失敗しました。",
+    "rest_policy_write_failed": "PalWorldSettings.ini に REST API 設定を保存できなかったため、サーバーを起動しませんでした。ファイルの権限と、他のプログラムがファイルを使用していないか確認してください。",
     "settings_not_found": "設定ファイルが見つかりません。一度サーバーを起動して生成してください。",
     "no_install_dir": "インストール先フォルダーが指定されていません",
     "install_failed": "サーバーのインストールに失敗しました: {{error}}",

@@ -604,6 +604,54 @@ def test_install_reports_download_progress_to_the_daemon(tmp_path, capsys):
     assert all(p["message"] for p in lines)
 
 
+
+def test_a_failed_update_download_keeps_the_running_jar(tmp_path):
+    """업데이트 받기가 중간에 끊기거나 체크섬이 틀리면 지금 쓰던 jar를 지우지 않는다. 데몬은 server.jar만 백업하므로
+    fabric-server-launch.jar 같은 다른 이름은 모듈이 지켜야 한다 (외부 감사 P1). 받은 것은 검증한 뒤에 바꾼다"""
+    import hashlib
+    import io
+    from minecraft import lifecycle
+    from minecraft.lifecycle import ServerInstaller
+
+    body = b"new" * 1000
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    class Broken(Resp):
+        def read(self, n=-1):
+            if self.tell() >= 1000:
+                raise ConnectionResetError("reset")
+            return super().read(min(n, 1000))
+
+    jar = tmp_path / "fabric-server-launch.jar"
+    source = {"url": "https://example.invalid/fabric.jar", "sha256": hashlib.sha256(body).hexdigest(), "build": "x"}
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": None}
+    cases = [(Broken(body), source), (Resp(body), dict(source, sha256="0" * 64))]
+    for resp, src in cases:
+        jar.write_bytes(b"old launcher")
+        with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
+                mock.patch.object(lifecycle.server_types, "resolve_download", return_value=src), \
+                mock.patch("urllib.request.urlopen", return_value=resp):
+            result = ServerInstaller.install_server("1.21.1", str(tmp_path), server_type="fabric")
+        assert result["success"] is False, result
+        assert jar.read_bytes() == b"old launcher"
+        assert sorted(p.name for p in tmp_path.iterdir()) == ["fabric-server-launch.jar"], "받다 만 파일을 남기지 않는다"
+
+    with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch.object(lifecycle.server_types, "resolve_download", return_value=source), \
+            mock.patch("urllib.request.urlopen", return_value=Resp(body)):
+        result = ServerInstaller.install_server("1.21.1", str(tmp_path), server_type="fabric")
+    assert result["success"], result
+    assert jar.read_bytes() == body
+    assert not [p for p in tmp_path.iterdir() if p.name.startswith("fabric-server-launch.jar.")], "임시 파일이 남지 않는다"
+
 def test_new_install_writes_the_instance_settings_to_server_properties(tmp_path):
     """새 설치는 인스턴스 설정(프리셋·옮긴 포트)을 server.properties에 쓰고, 사바쨩 설정은 쓰지 않는다."""
     import hashlib

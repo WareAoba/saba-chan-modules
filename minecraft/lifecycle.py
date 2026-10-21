@@ -1808,6 +1808,14 @@ def _format_command(cmd, args):
 VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
 
+def _remove_quietly(path):
+    """받다 만 임시 파일을 지운다. 이미 없으면 그만이다"""
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+
+
 class ServerInstaller:
     """Download and install Minecraft server jars from Mojang."""
 
@@ -1980,6 +1988,9 @@ class ServerInstaller:
             }
 
         jar_path = os.path.join(install_path, jar_name)
+        # 받는 동안과 검증이 끝날 때까지는 임시 파일에 쓴다: 실패해도 지금 쓰던 jar가 남는다
+        # (데몬은 업데이트 전에 server.jar만 백업한다. fabric-server-launch.jar 같은 다른 이름은 여기서 지킨다)
+        part_path = jar_path + ".download"
 
         # Download with progress
         import urllib.request
@@ -1999,7 +2010,7 @@ class ServerInstaller:
                 last_pct = -1
                 message = i18n.t("messages.downloading_server", version=version_id)
 
-                with open(jar_path, "wb") as f:
+                with open(part_path, "wb") as f:
                     while True:
                         chunk = resp.read(chunk_size)
                         if not chunk:
@@ -2017,11 +2028,7 @@ class ServerInstaller:
 
         except Exception as e:
             # Clean up partial download
-            if os.path.exists(jar_path):
-                try:
-                    os.remove(jar_path)
-                except OSError:
-                    pass
+            _remove_quietly(part_path)
             return {
                 "success": False,
                 "message": i18n.t("errors.download_failed", error=str(e)),
@@ -2030,7 +2037,7 @@ class ServerInstaller:
         # Verify SHA1
         actual_sha1 = sha1.hexdigest()
         if expected_sha1 and actual_sha1 != expected_sha1:
-            os.remove(jar_path)
+            _remove_quietly(part_path)
             return {
                 "success": False,
                 "message": i18n.t("errors.checksum_mismatch", algorithm="SHA1",
@@ -2039,11 +2046,17 @@ class ServerInstaller:
 
         for name, expected, digest in (("SHA256", expected_sha256, sha256), ("MD5", expected_md5, md5)):
             if expected and digest.hexdigest() != expected.lower():
-                os.remove(jar_path)
+                _remove_quietly(part_path)
                 return {"success": False,
                         "message": i18n.t("errors.checksum_mismatch", algorithm=name,
                                           expected=expected, actual=digest.hexdigest())}
 
+        try:
+            os.replace(part_path, jar_path)
+        except OSError as e:
+            # 서버가 jar를 잡고 있으면(Windows) 바꾸지 못한다: 옛 jar는 그대로 둔다
+            _remove_quietly(part_path)
+            return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
         print(f"  Checksum verified: {actual_sha1}", file=sys.stderr)
 
         # Post-install setup

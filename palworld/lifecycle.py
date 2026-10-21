@@ -300,6 +300,7 @@ def _enforce_rest_policy(working_dir, config=None):
     current_admin_pw = props.get("AdminPassword", "").strip('"').strip("'")
     daemon_pw = (config or {}).get("rest_password") or (config or {}).get("admin_password", "")
 
+    ini_admin_pw = current_admin_pw
     if current_admin_pw:
         # INI already has a password — use it
         pass
@@ -322,7 +323,10 @@ def _enforce_rest_policy(working_dir, config=None):
         print(f"[Palworld] No password from daemon or INI — generated fallback AdminPassword", file=sys.stderr)
 
     if changes:
-        _write_option_settings(ini_path, props)
+        if not _write_option_settings(ini_path, props):
+            # 저장하지 못했다: INI에 실제로 있는 비밀번호만 데몬에 넘긴다
+            print("[Palworld] Failed to write REST policy to PalWorldSettings.ini", file=sys.stderr)
+            return {"changed": False, "write_failed": True, "admin_password": ini_admin_pw}
         return {"changed": True, "changes": changes, "admin_password": current_admin_pw}
     return {"changed": False, "admin_password": current_admin_pw}
 
@@ -1328,11 +1332,13 @@ def install_server(config):
                     # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
                     _apply_settings(defaults, config.get("settings"))
                     defaults["RCONEnabled"] = "False"
-                    _write_option_settings(ini_path, defaults)
-                    print(
-                        f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
-                        file=sys.stderr,
-                    )
+                    if _write_option_settings(ini_path, defaults):
+                        print(
+                            f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
+                            file=sys.stderr,
+                        )
+                    else:
+                        print("[Palworld] Provisioning: failed to write default INI", file=sys.stderr)
             except Exception as e:
                 print(
                     f"[Palworld] Provisioning: failed to write default INI: {e}",

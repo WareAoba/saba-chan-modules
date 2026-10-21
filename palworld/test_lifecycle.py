@@ -581,3 +581,18 @@ def test_managed_stop_leaves_the_wait_to_the_daemon():
     assert result["success"] is True, result
     sleep.assert_not_called()
     kill.assert_not_called()
+
+
+def test_a_failed_rest_policy_write_does_not_sync_an_unwritten_password(tmp_path):
+    """INI 저장이 실패하면(예: Windows ACL 교체 실패) 바뀌었다고 하지 않고, INI에 없는 비밀번호를 데몬에 넘기지 않는다"""
+    from palworld import lifecycle
+    ini = tmp_path / "PalWorldSettings.ini"
+    ini.write_text("", encoding="utf-8")
+    with mock.patch.object(lifecycle, "_get_settings_ini_path", return_value=str(ini)), \
+         mock.patch.object(lifecycle, "_parse_option_settings", return_value={}), \
+         mock.patch.object(lifecycle, "_write_option_settings", return_value=False):
+        result = lifecycle._enforce_rest_policy(str(tmp_path), {"rest_password": "fromdaemon"})
+        assert result["changed"] is False and result["write_failed"] is True
+        assert not result.get("admin_password")
+        result = lifecycle._enforce_rest_policy(str(tmp_path), {})
+        assert result["changed"] is False and not result.get("admin_password")

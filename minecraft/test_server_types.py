@@ -471,3 +471,12 @@ def test_player_only_commands_stay_out_of_the_console_list(tmp_path):
     names = {c["name"] for c in lifecycle.instance_commands({"working_dir": str(tmp_path)})["commands"]}
     assert "setspawn" not in names
     assert "spawn" in names
+
+    # 하위 명령이 플레이어 전용이면(CoreProtect "co inspect") 자유 입력 루트 "co {args}"로도 내지 않는다.
+    # 콘솔에서 되는 하위 명령은 카탈로그 정의(co-lookup 등)로 남는다 (PR #43 리뷰)
+    make_jar(str(tmp_path / "plugins" / "CoreProtect.jar"), {
+        "plugin.yml": "name: CoreProtect\nversion: 23.0\nmain: x\ncommands:\n  co:\n    aliases: [core]\n",
+    })
+    names = {c["name"] for c in lifecycle.instance_commands({"working_dir": str(tmp_path)})["commands"]}
+    assert "co" not in names
+    assert "co-lookup" in names

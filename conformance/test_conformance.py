@@ -148,8 +148,25 @@ def test_manifest_matches_schema(module):
     assert not errors, "module.toml이 스키마 v1과 맞지 않는다:\n" + "\n".join(errors)
 
 
+def _supports_core_0_1_8(manifest):
+    """[module.dependencies] saba-core의 최소 버전이 0.1.8 이하면(또는 없으면) 0.1.8 데몬에서도 로드되어야 한다"""
+    import re
+    req = str(manifest.get("module", {}).get("dependencies", {}).get("saba-core", ""))
+    m = re.search(r">=\s*(\d+)\.(\d+)\.(\d+)", req)
+    return not m or tuple(map(int, m.groups())) <= (0, 1, 8)
+
+
+def test_the_0_1_8_check_applies_only_to_modules_that_allow_that_core():
+    """saba-core >=0.1.9를 요구하는 외부 모듈은 0.1.8 데몬이 아예 로드하지 않으므로 0.1.8 스키마로 검사하지 않는다 (PR #46 리뷰)"""
+    deps = lambda v: {"module": {"dependencies": {"saba-core": v}}}
+    assert _supports_core_0_1_8({}) and _supports_core_0_1_8(deps(">=0.1.5")) and _supports_core_0_1_8(deps(">=0.1.8"))
+    assert not _supports_core_0_1_8(deps(">=0.1.9")) and not _supports_core_0_1_8(deps(">= 0.2.0"))
+
+
 def test_manifest_still_loads_on_a_0_1_8_daemon(module):
     """0.1.8 로더는 schema v1의 모르는 키를 거부한다: 새 선언은 그 로더가 검사하지 않는 [extensions.saba-core]에 둔다"""
+    if not _supports_core_0_1_8(module.manifest):
+        pytest.skip("saba-core 0.1.9 이상을 요구하는 모듈")
     errors = [
         f"{'.'.join(map(str, e.path)) or '(root)'}: {e.message[:200]}"
         for e in jsonschema.Draft7Validator(SCHEMA_0_1_8).iter_errors(module.manifest)

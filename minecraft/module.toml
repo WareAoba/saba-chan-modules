@@ -73,16 +73,17 @@ crash_artifacts = ["crash-reports/*.txt", "hs_err_pid*.log"]
 # 여기에 둔다 (예약 이름 saba-core, 계약 06 §4)
 [extensions.saba-core]
 # 게임 stdout 원문(데몬이 러너 머리 없이 맞춘다)의 줄 처음 로그 머리부터 맞춘다: 바닐라 `[시각] [스레드/INFO]: `,
-# Paper 계열 `[시각 INFO]: ` (log_pattern과 같은 두 모양). 머리를 줄 처음에 묶어야 채팅에 "]: …"를 쳐도 맞지 않는다
+# Paper 계열 `[시각 INFO]: ` (log_pattern과 같은 두 모양), Forge·NeoForge는 그 뒤에 로거 칸 ` [minecraft/로거]`
+# (fmlloader log4j2.xml). 머리를 줄 처음에 묶어야 채팅에 "]: …"를 쳐도 맞지 않는다
 # 접속을 받기 시작할 때의 줄 (데몬 instance.ready). PC 정규 설치 26.3 서버의 실제 줄에서 확인
-ready_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\]: Done \(\d+(\.\d+)?s\)! For help, type "help"']
+ready_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: Done \(\d+(\.\d+)?s\)! For help, type "help"']
 # 접속·퇴장 줄 (데몬 instance.player, name 그룹). 문구는 server jar en_us.json multiplayer.player.joined·
 # joined.renamed·left (26.3에서 확인). 이름은 영숫자·밑줄 16자
 player_join_patterns = [
-    '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\]: (?P<name>[A-Za-z0-9_]{1,16}) joined the game\s*$',
-    '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\]: (?P<name>[A-Za-z0-9_]{1,16}) \(formerly known as [A-Za-z0-9_]{1,16}\) joined the game\s*$',
+    '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?P<name>[A-Za-z0-9_]{1,16}) joined the game\s*$',
+    '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?P<name>[A-Za-z0-9_]{1,16}) \(formerly known as [A-Za-z0-9_]{1,16}\) joined the game\s*$',
 ]
-player_leave_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\]: (?P<name>[A-Za-z0-9_]{1,16}) left the game\s*$']
+player_leave_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?P<name>[A-Za-z0-9_]{1,16}) left the game\s*$']
 
 # ─── Settings (displayed in GUI for instance configuration) ───
 

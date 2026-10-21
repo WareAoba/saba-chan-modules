@@ -1243,7 +1243,7 @@ def test_an_update_still_installs_where_file_modes_cannot_be_set(tmp_path):
 
 def test_ready_patterns_match_the_done_line_only_from_the_server():
     """서버가 접속을 받기 시작하면 데몬이 instance.ready를 낸다(계약 06 §4). 문구는 PC 정규 설치 26.3 서버의 실제 줄이다.
-    러너·로그 머리가 앞에 붙으므로 줄 처음에 묶지 않고, 채팅(`<이름> Done (...)`)으로는 흉내 내지 못하게 `]: `부터 맞춘다.
+    데몬은 러너 머리를 뗀 게임 stdout 원문을 맞추므로 줄 처음의 로그 머리에 묶어, 채팅(`<이름> Done (...)`)으로는 흉내 내지 못하게 한다.
     0.1.8 데몬은 schema v1의 모르는 키를 거부하므로 검사하지 않는 [extensions.saba-core] 표에 둔다(코어 의존성은 그대로)"""
     import re
     import tomllib
@@ -1254,6 +1254,7 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     real = '[20:07:01] [Server thread/INFO]: Done (0.267s)! For help, type "help"'
     assert any(p.search('[20:07:01 INFO]: Done (3.120s)! For help, type "help"') for p in patterns)
     assert any(p.search(real) for p in patterns)
+    assert any(p.search('[20:07:01] [Server thread/INFO] [minecraft/DedicatedServer]: Done (9.512s)! For help, type "help"') for p in patterns)
     chat = '[20:08:00] [Server thread/INFO]: <Steve> Done (1.0s)! For help, type "help"'
     assert not any(p.search(chat) for p in patterns)
     # 채팅에 머리 흉내("]: ")를 넣어도 줄 처음의 로그 머리부터 맞춰야 한다 (리뷰 544)
@@ -1280,6 +1281,11 @@ def test_player_patterns_name_who_joined_or_left():
     assert name(join, head + "Alex_99 (formerly known as OldAlex) joined the game") == "Alex_99"
     assert name(leave, head + "Steve left the game") == "Steve"
     assert name(join, "[20:08:00 INFO]: Steve joined the game") == "Steve"
+    # Forge·NeoForge는 레벨 뒤에 로거 칸을 붙인다 (fmlloader log4j2.xml `[%t/%level] [minecraft/%logger{1}]: `)
+    forge = "[20:08:00] [Server thread/INFO] [minecraft/MinecraftServer]: "
+    assert name(join, forge + "Steve joined the game") == "Steve"
+    assert name(leave, forge + "Steve left the game") == "Steve"
+    assert name(join, forge + "<Alex> Steve joined the game") is None
     for spoof in ["<Steve> Alex joined the game", "[Server] Alex joined the game", "<Steve> Alex left the game",
                   "<Steve> ]: Notch joined the game", "<Steve> ]: Notch left the game",
                   "[Not Secure] <Steve> ]: Notch joined the game"]:

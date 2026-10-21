@@ -652,6 +652,52 @@ def test_a_failed_update_download_keeps_the_running_jar(tmp_path):
     assert jar.read_bytes() == body
     assert not [p for p in tmp_path.iterdir() if p.name.startswith("fabric-server-launch.jar.")], "임시 파일이 남지 않는다"
 
+
+def test_an_unhashed_launcher_must_arrive_whole_before_it_replaces_the_old_one(tmp_path):
+    """Fabric 런처는 해시가 없다. 연결이 Content-Length보다 일찍 정상 종료되거나 받은 것이 온전한 jar가 아니면
+    실패로 알리고 옛 런처를 둔다 (리뷰 561 P2-1). 온전한 jar는 해시 없이도 설치한다"""
+    import io
+    import zipfile
+    from minecraft import lifecycle
+    from minecraft.lifecycle import ServerInstaller
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("META-INF/MANIFEST.MF", "Main-Class: x\n" * 200)
+    good = buf.getvalue()
+
+    def resp(body, length):
+        class Resp(io.BytesIO):
+            headers = {"Content-Length": str(length)}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+        return Resp(body)
+
+    jar = tmp_path / "fabric-server-launch.jar"
+    source = {"url": "https://example.invalid/fabric.jar", "build": "x"}
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": None}
+
+    def install(r):
+        with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
+                mock.patch.object(lifecycle.server_types, "resolve_download", return_value=source), \
+                mock.patch("urllib.request.urlopen", return_value=r):
+            return ServerInstaller.install_server("1.21.1", str(tmp_path), server_type="fabric")
+
+    for r in (resp(good[: len(good) // 2], len(good)), resp(b"not a jar" * 100, 900)):
+        jar.write_bytes(b"old launcher")
+        result = install(r)
+        assert result["success"] is False, result
+        assert jar.read_bytes() == b"old launcher"
+        assert sorted(p.name for p in tmp_path.iterdir()) == ["fabric-server-launch.jar"]
+
+    result = install(resp(good, len(good)))
+    assert result["success"], result
+    assert jar.read_bytes() == good
+
 def test_new_install_writes_the_instance_settings_to_server_properties(tmp_path):
     """새 설치는 인스턴스 설정(프리셋·옮긴 포트)을 server.properties에 쓰고, 사바쨩 설정은 쓰지 않는다."""
     import hashlib

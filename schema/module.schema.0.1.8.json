@@ -1,0 +1,1090 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "definitions": {
+    "AliasesSection": {
+      "additionalProperties": false,
+      "description": "module.toml [aliases] 섹션",
+      "properties": {
+        "commands": {
+          "additionalProperties": {
+            "$ref": "#/definitions/CommandAliasSectionToml"
+          },
+          "type": "object"
+        },
+        "module_aliases": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "CommandAliasSectionToml": {
+      "additionalProperties": false,
+      "description": "module.toml [aliases.commands.*] 항목",
+      "properties": {
+        "aliases": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "description": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "CommandFieldToml": {
+      "additionalProperties": false,
+      "properties": {
+        "console_template": {
+          "default": null,
+          "description": "콘솔에 보낼 줄. 예전 이름 `rcon_template`도 받는다",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "endpoint_template": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "http_method": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/definitions/CommandInputToml"
+          },
+          "type": "array"
+        },
+        "label": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "method": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "risk": {
+          "default": null,
+          "description": "\"safe\" | \"caution\" | \"danger\" (없으면 caution)",
+          "enum": [
+            "safe",
+            "caution",
+            "danger",
+            null
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "CommandInputToml": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "default": null
+        },
+        "label": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "max": {
+          "default": null,
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "min": {
+          "default": null,
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "options": {
+          "default": null,
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "placeholder": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "type": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "CommandsSection": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/CommandFieldToml"
+          },
+          "type": "array"
+        },
+        "hook": {
+          "default": false,
+          "description": "lifecycle `instance_commands()`로 인스턴스별 명령을 더 받는다",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "ConfigSection": {
+      "additionalProperties": false,
+      "properties": {
+        "announce_command": {
+          "default": null,
+          "description": "게임 안 공지에 쓰는 `[commands.fields]` 이름 (`message` 입력 하나)",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "default_port": {
+          "default": null,
+          "format": "uint16",
+          "minimum": 0.0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "executable_path": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "process_name": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "server_executable": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stop_command": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stop_timeout": {
+          "default": null,
+          "description": "Graceful stop 타임아웃 (초). 예: Minecraft=30, ARK=120",
+          "format": "uint64",
+          "minimum": 0.0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "ConsoleMode": {
+      "description": "saba-runner가 서버 콘솔을 잇는 방식 (`[launch] console`)",
+      "enum": [
+        "pipe",
+        "pty"
+      ],
+      "type": "string"
+    },
+    "DetectionSection": {
+      "additionalProperties": false,
+      "properties": {
+        "cmd_patterns": {
+          "default": null,
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "crash_artifacts": {
+          "default": [],
+          "description": "크래시 때 생기는 파일 (작업 디렉터리 기준, 마지막 칸만 `*` `?`)",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dir_signatures": {
+          "default": null,
+          "description": "디렉토리 내 파일/폴더 시그니처 — 전부 있어야 이 게임의 서버 폴더로 본다",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "graceful_exit_patterns": {
+          "default": [],
+          "description": "정상 종료 때 콘솔에 찍히는 문구 (정규식)",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "process_patterns": {
+          "default": null,
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "HighlightRuleToml": {
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bold": {
+          "default": false,
+          "type": "boolean"
+        },
+        "color": {
+          "type": "string"
+        },
+        "italic": {
+          "default": false,
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "priority": {
+          "default": 0,
+          "format": "int32",
+          "type": "integer"
+        },
+        "underline": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "color",
+        "name",
+        "pattern"
+      ],
+      "type": "object"
+    },
+    "InstallSectionToml": {
+      "additionalProperties": false,
+      "description": "module.toml [install] 섹션",
+      "properties": {
+        "anonymous": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "app_id": {
+          "default": null,
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "beta": {
+          "default": null,
+          "description": "설치할 베타 브랜치 (지정하면 항상 이 브랜치로 설치)",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "download_url": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "install_subdir": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "method": {
+          "default": null,
+          "description": "\"manual\"(기본) | \"download\" | \"steamcmd\"",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "platform": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requires_extensions": {
+          "default": [],
+          "description": "이 설치 방식이 요구하는 익스텐션 ID 목록 예: requires_extensions = [\"steamcmd\"]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "LaunchSection": {
+      "additionalProperties": false,
+      "properties": {
+        "console": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ConsoleMode"
+            }
+          ],
+          "default": "pipe",
+          "description": "\"pipe\"(기본) | \"pty\". 출력을 파이프로 주면 끝날 때까지 모아 두는 서버(stdout 블록 버퍼링)는 \"pty\"로 의사 콘솔(Windows ConPTY)에 띄워 줄마다 받는다. stdout과 stderr가 한 갈래로 합쳐진다."
+        },
+        "log_files": {
+          "default": [],
+          "description": "서버가 콘솔 대신 파일에 쓰는 로그 (작업 디렉터리 기준, 마지막 칸만 `*` `?`)",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "ModuleAgreement": {
+      "additionalProperties": false,
+      "description": "`[[agreements]]` — 사용자가 원문을 읽고 동의해야 서버를 켤 수 있는 약관. 이름은 모듈 locales의 `agreements.<id>`, 동의는 인스턴스 레코드 `accepted_agreements`에 남는다",
+      "properties": {
+        "id": {
+          "description": "소문자·숫자·`-`·`_` (모듈 안에서 겹치지 않음, 예: \"eula\")",
+          "type": "string"
+        },
+        "url": {
+          "description": "사용자가 읽을 원문 (https)",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "url"
+      ],
+      "type": "object"
+    },
+    "ModuleBackup": {
+      "additionalProperties": false,
+      "description": "`[backup]` — 무엇을 백업할지",
+      "properties": {
+        "hook": {
+          "default": false,
+          "description": "true면 lifecycle `backup_paths(config)`가 `{\"success\": true, \"paths\": [...]}`로 경로를 준다 (세이브 위치를 모듈 코드가 계산하는 게임용). `paths`에 더해진다",
+          "type": "boolean"
+        },
+        "paths": {
+          "default": [],
+          "description": "백업할 폴더·파일 (서버 작업 폴더 기준, 절대 경로 가능). `{설정 이름}`은 인스턴스 설정 값으로 바뀌고 값이 비면 그 경로는 빠진다. 없는 경로도 빠진다. 예: [\"{level_name}\", \"{level_name}_nether\"]",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "save_command": {
+          "description": "서버가 켜져 있을 때 묶기 전에 실행할 `[commands.fields]` 이름 (예: \"save-all\")",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "ModulePermissions": {
+      "additionalProperties": false,
+      "description": "`[permissions]` — 모듈 Python 코드가 쓰는 능력 (M12). 선언하지 않은 능력을 코드에서 찾으면 `saba-core module audit`과 `GET /api/module/:name/audit`이 알린다. 새 권한은 여기와 `PERMISSIONS`, `modules/saba_audit.py` 표에 한 줄씩 더한다",
+      "properties": {
+        "dynamic_code": {
+          "default": false,
+          "description": "실행 중에 만든 코드 실행 (eval, exec, compile, 동적 __import__, pickle, importlib)",
+          "type": "boolean"
+        },
+        "env_secrets": {
+          "default": false,
+          "description": "환경 변수 전체 읽기 (dict(os.environ) 등)",
+          "type": "boolean"
+        },
+        "fs_outside_instance": {
+          "default": false,
+          "description": "서버 작업 폴더 밖의 파일 쓰기 (정적 검사로는 찾지 못한다: 선언만)",
+          "type": "boolean"
+        },
+        "native_code": {
+          "default": false,
+          "description": "네이티브 코드 (ctypes, cffi, winreg)",
+          "type": "boolean"
+        },
+        "network": {
+          "default": false,
+          "description": "네트워크 접속 (socket, urllib, requests 등). 데몬 API 호출(daemon_rcon)은 포함하지 않는다",
+          "type": "boolean"
+        },
+        "spawn_process": {
+          "default": false,
+          "description": "다른 프로그램 실행·프로세스 신호 (subprocess, os.system, os.kill 등)",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "ModulePreset": {
+      "additionalProperties": false,
+      "description": "`[[presets]]` — 서버를 만들 때 고르는 추천 설정 묶음 (예: \"친구용 소규모\", \"하드코어\"). 표시 문구는 모듈 locales의 `presets.<id>.label`·`description`이 덮는다",
+      "properties": {
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "description": "소문자·숫자·`-`·`_` (예: \"friends\")",
+          "type": "string"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "settings": {
+          "additionalProperties": true,
+          "default": {},
+          "description": "`[[settings.fields]]` 이름 → 값. 비밀번호·파일·경로 설정은 넣지 못한다",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "type": "object"
+    },
+    "ModuleSection": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dependencies": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "컴포넌트 의존성 — 이 모듈이 요구하는 다른 컴포넌트의 최소 버전 예: { \"saba-core\" = \">=0.3.0\", \"ext-steamcmd\" = \">=1.0.0\" }",
+          "type": "object"
+        },
+        "description": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "display_name": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "entry": {
+          "description": "모듈 폴더 기준 Python 진입 파일 (예: \"lifecycle.py\")",
+          "type": "string"
+        },
+        "game_name": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "icon": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "log_pattern": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "description": "모듈 id (폴더 이름과 같게)",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": null,
+          "description": "이 파일이 따르는 스키마 버전. 지금은 1",
+          "enum": [
+            1,
+            null
+          ]
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entry",
+        "name",
+        "version"
+      ],
+      "type": "object"
+    },
+    "OneOrMany": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "문자열 하나 또는 여럿 (`arg = \"-x\"` / `arg = [\"-a\", \"-b\"]`)"
+    },
+    "ProtocolsSection": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "interaction_mode": {
+          "default": null,
+          "description": "\"console\" | \"commands\"",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supported": {
+          "default": null,
+          "description": "\"rcon\" | \"rest\" | \"stdin\"",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "QueryToml": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "function": {
+          "description": "lifecycle.py `FUNCTIONS`의 함수 이름. 데몬이 따로 쓰는 함수(stop·command·configure 등)는 안 된다",
+          "type": "string"
+        },
+        "inputs": {
+          "description": "입력 (명령 입력과 같은 모양). type은 text·number·select만",
+          "items": {
+            "$ref": "#/definitions/CommandInputToml"
+          },
+          "type": "array"
+        },
+        "label": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "description": "소문자·숫자·`-`·`_` (모듈 안에서 겹치지 않음). 액션 id는 `server.query:<name>`",
+          "type": "string"
+        }
+      },
+      "required": [
+        "function",
+        "name"
+      ],
+      "type": "object"
+    },
+    "SettingFieldToml": {
+      "additionalProperties": false,
+      "properties": {
+        "arg": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OneOrMany"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "실행 인자 모양. 문자열 하나나 배열 (`SettingField::arg`)"
+        },
+        "default": {
+          "default": null
+        },
+        "description": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "format": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "group": {
+          "default": null,
+          "description": "\"basic\"(기본) | \"advanced\" | \"saba-chan\" 등",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "install": {
+          "default": false,
+          "description": "서버를 만들 때 고르는 설정이면 true (설치할 파일이 달라지는 값)",
+          "type": "boolean"
+        },
+        "label": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "max": {
+          "default": null,
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "min": {
+          "default": null,
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "options": {
+          "default": null,
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "pattern": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "port": {
+          "default": false,
+          "description": "네트워크 포트 값이면 true. 인스턴스를 만들 때 다른 인스턴스와 겹치지 않게 옮겨진다",
+          "type": "boolean"
+        },
+        "required": {
+          "default": null,
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "step": {
+          "default": null,
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "type": {
+          "default": "text",
+          "description": "\"text\" | \"number\" | \"password\" | \"boolean\" | \"select\" | \"file\" 등",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "SettingsSection": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/SettingFieldToml"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "StatusSection": {
+      "additionalProperties": false,
+      "properties": {
+        "players": {
+          "default": null,
+          "description": "접속자 수를 돌려주는 lifecycle.py 함수 이름. 데몬이 켜진 서버마다 1분에 한 번 부른다. `validate`와 같은 config를 받고 `{\"success\": true, \"online\": <정수>, \"max\": <정수>?}`를 돌려준다",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "SyntaxHighlightSection": {
+      "additionalProperties": false,
+      "properties": {
+        "rules": {
+          "items": {
+            "$ref": "#/definitions/HighlightRuleToml"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "description": "module.toml 최상위 구조",
+  "properties": {
+    "agreements": {
+      "default": [],
+      "description": "[[agreements]] 켜기 전에 동의할 약관",
+      "items": {
+        "$ref": "#/definitions/ModuleAgreement"
+      },
+      "type": "array"
+    },
+    "aliases": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/AliasesSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "[aliases] 모듈 및 명령어 별명 (Discord/CLI 다국어 지원)"
+    },
+    "backup": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ModuleBackup"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "[backup] 월드·세이브 백업 (A2)"
+    },
+    "commands": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/CommandsSection"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "config": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ConfigSection"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "credential_map": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": null,
+      "description": "[credential_map] 데몬 표준 키 ↔ 게임별 설정 키 매핑 예: rest_password = \"AdminPassword\" → 데몬의 rest_password가 게임 INI의 AdminPassword에 대응",
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "detection": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/DetectionSection"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "errors": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {},
+      "description": "[errors] 오류 코드 → 사용자 메시지 (채팅 명령 응답용)",
+      "type": "object"
+    },
+    "extensions": {
+      "additionalProperties": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "default": {},
+      "description": "[extensions.<익스텐션 id>] 익스텐션이 읽는 모듈별 설정. 데몬은 내용을 보지 않고 `ModuleMetadata.extensions`에 그대로 넘긴다 (익스텐션이 늘어나도 스키마는 그대로)",
+      "type": "object"
+    },
+    "install": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/InstallSectionToml"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "launch": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/LaunchSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "[launch] 실행 관련 선언 (C8b)"
+    },
+    "module": {
+      "$ref": "#/definitions/ModuleSection"
+    },
+    "permissions": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/ModulePermissions"
+        }
+      ],
+      "default": {
+        "dynamic_code": false,
+        "env_secrets": false,
+        "fs_outside_instance": false,
+        "native_code": false,
+        "network": false,
+        "spawn_process": false
+      },
+      "description": "[permissions] 모듈 코드가 쓰는 능력 (M12)"
+    },
+    "presets": {
+      "default": [],
+      "description": "[[presets]] 추천 설정 묶음 (I1-b)",
+      "items": {
+        "$ref": "#/definitions/ModulePreset"
+      },
+      "type": "array"
+    },
+    "protocols": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ProtocolsSection"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "queries": {
+      "description": "[[queries]] 읽기 전용 조회 (X-2)",
+      "items": {
+        "$ref": "#/definitions/QueryToml"
+      },
+      "type": "array"
+    },
+    "settings": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SettingsSection"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/StatusSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "[status] 켜진 서버의 상태를 더 알려 주는 함수"
+    },
+    "syntax_highlight": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SyntaxHighlightSection"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "module"
+  ],
+  "title": "saba-chan module.toml (schema v1)",
+  "type": "object"
+}

@@ -28,6 +28,9 @@ import pytest
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((REPO / "schema" / "module.schema.json").read_text(encoding="utf-8"))
+# 0.1.8 데몬이 내보낸 스키마(saba-chan 77333cab, 모듈 5980f20). 모듈 업데이트는 코어보다 먼저 들어갈 수 있고
+# 0.1.8 업데이터는 requires를 보지 않으므로, 새 모듈도 0.1.8 로더가 거부하지 않는 모양이어야 한다
+SCHEMA_0_1_8 = json.loads((REPO / "schema" / "module.schema.0.1.8.json").read_text(encoding="utf-8"))
 
 # 데몬이 이름으로 부르는 함수 (saba-chan src/에서 부르는 이름 전부)
 DAEMON_FUNCTIONS = {
@@ -143,6 +146,15 @@ def test_manifest_matches_schema(module):
         for e in jsonschema.Draft7Validator(SCHEMA).iter_errors(module.manifest)
     ]
     assert not errors, "module.toml이 스키마 v1과 맞지 않는다:\n" + "\n".join(errors)
+
+
+def test_manifest_still_loads_on_a_0_1_8_daemon(module):
+    """0.1.8 로더는 schema v1의 모르는 키를 거부한다: 새 선언은 그 로더가 검사하지 않는 [extensions.saba-core]에 둔다"""
+    errors = [
+        f"{'.'.join(map(str, e.path)) or '(root)'}: {e.message[:200]}"
+        for e in jsonschema.Draft7Validator(SCHEMA_0_1_8).iter_errors(module.manifest)
+    ]
+    assert not errors, "0.1.8 데몬이 이 module.toml을 거부한다:\n" + "\n".join(errors)
 
 
 def test_folder_name_is_module_name(module):

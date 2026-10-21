@@ -366,7 +366,7 @@ def instance_commands(working_dir):
                 add(_catalog_command(data["slug"], cmd), entry["name"])
         # 카탈로그가 플레이어 전용으로 적은 명령은 콘솔에서 실패하므로 plugin.yml에 있어도 내지 않는다.
         # 하위 명령("co inspect")이 플레이어 전용이면 그 루트의 자유 입력도 내지 않는다 (콘솔용 하위 명령은 카탈로그 정의로 남는다)
-        player_only = {str(n).lower() for n in (data or {}).get("player_only", [])}
+        player_only = {str(n).strip().lower() for n in (data or {}).get("player_only", [])}
         blocked = player_only | {n.split()[0] for n in player_only if " " in n}
         for name, spec in entry["commands"].items():
             if str(name).lower() not in blocked:

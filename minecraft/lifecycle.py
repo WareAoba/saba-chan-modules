@@ -2086,14 +2086,18 @@ class ServerInstaller:
                         "message": i18n.t("errors.checksum_mismatch", algorithm=name,
                                           expected=expected, actual=digest.hexdigest())}
 
+        # mkstemp는 0600으로 만든다: 옛 jar 권한(없으면 umask 기본값)을 따른다.
+        # 권한을 바꿀 수 없는 파일시스템이면 그대로 둔다
         try:
-            # mkstemp는 0600으로 만든다: 옛 jar 권한(없으면 umask 기본값)을 따른다
             if os.path.isfile(jar_path):
                 shutil.copymode(jar_path, part_path)
             else:
                 umask = os.umask(0)
                 os.umask(umask)
                 os.chmod(part_path, 0o666 & ~umask)
+        except OSError:
+            pass
+        try:
             os.replace(part_path, jar_path)
         except OSError as e:
             # 서버가 jar를 잡고 있으면(Windows) 바꾸지 못한다: 옛 jar는 그대로 둔다

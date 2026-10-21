@@ -1211,3 +1211,31 @@ def test_an_update_keeps_the_jar_mode_and_clears_old_leftover_downloads(tmp_path
         assert jar.stat().st_mode & 0o777 == 0o644
     assert not stale.exists()
     assert fresh.exists()
+
+
+def test_an_update_still_installs_where_file_modes_cannot_be_set(tmp_path):
+    """권한을 바꿀 수 없는 파일시스템(일부 네트워크·FAT 드라이브)에서도 권한 맞추기 실패로 설치를 막지 않는다 (리뷰 575 P3)"""
+    import hashlib
+    import io
+    from minecraft.lifecycle import ServerInstaller
+
+    body = b"new" * 1000
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    jar = tmp_path / "server.jar"
+    jar.write_bytes(b"old")
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": hashlib.sha1(body).hexdigest()}
+    with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch("urllib.request.urlopen", return_value=Resp(body)), \
+            mock.patch("shutil.copymode", side_effect=PermissionError("chmod not supported")):
+        result = ServerInstaller.install_server("1.21.1", str(tmp_path))
+    assert result["success"], result
+    assert jar.read_bytes() == body

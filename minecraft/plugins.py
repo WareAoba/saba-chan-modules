@@ -364,6 +364,9 @@ def instance_commands(working_dir):
         if data:
             for cmd in data.get("commands", []):
                 add(_catalog_command(data["slug"], cmd), entry["name"])
+        # 카탈로그가 플레이어 전용으로 적은 명령은 콘솔에서 실패하므로 plugin.yml에 있어도 내지 않는다
+        player_only = {str(n).lower() for n in (data or {}).get("player_only", [])}
         for name, spec in entry["commands"].items():
-            add(_declared_command(str(name), spec), entry["name"])
+            if str(name).lower() not in player_only:
+                add(_declared_command(str(name), spec), entry["name"])
     return {"commands": commands, "components": components}

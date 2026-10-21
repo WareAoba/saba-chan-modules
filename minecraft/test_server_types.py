@@ -459,3 +459,15 @@ def test_plugin_commands_without_a_known_risk_are_danger():
     """plugin.yml이 선언한 명령은 무엇을 하는지 모르고 인자도 자유롭다. 카탈로그에 risk가 없을 때도 같다"""
     assert plugins._declared_command("lp", {"usage": "/<command>"})["risk"] == "danger"
     assert plugins._catalog_command("x", {"name": "a", "console_template": "a"})["risk"] == "danger"
+
+
+def test_player_only_commands_stay_out_of_the_console_list(tmp_path):
+    """카탈로그가 플레이어 전용으로 적은 명령은 plugin.yml에 있어도 콘솔 명령으로 내지 않는다.
+    EssentialsSpawn의 setspawn은 콘솔에서 쓰면 "플레이어만 쓸 수 있다"로 실패한다 (외부 감사 P2)"""
+    make_jar(str(tmp_path / "plugins" / "EssentialsXSpawn.jar"), {
+        "plugin.yml": "name: EssentialsSpawn\nversion: 2.21.0\nmain: x\ncommands:\n"
+                      "  setspawn:\n    aliases: [esetspawn]\n  spawn:\n    aliases: [espawn]\n",
+    })
+    names = {c["name"] for c in lifecycle.instance_commands({"working_dir": str(tmp_path)})["commands"]}
+    assert "setspawn" not in names
+    assert "spawn" in names

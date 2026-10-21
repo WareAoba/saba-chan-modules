@@ -1809,6 +1809,26 @@ def _format_command(cmd, args):
 VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
 
+# 이보다 오래된 받기 파일은 끊긴 설치(강제 종료)가 남긴 것이다. 진행 중인 다른 설치의 파일은 남긴다
+_STALE_DOWNLOAD_SECONDS = 3600
+
+
+def _remove_stale_downloads(install_path, jar_name):
+    cutoff = time.time() - _STALE_DOWNLOAD_SECONDS
+    try:
+        names = os.listdir(install_path)
+    except OSError:
+        return
+    for name in names:
+        if name.startswith(jar_name + ".") and name.endswith(".download"):
+            path = os.path.join(install_path, name)
+            try:
+                if os.path.getmtime(path) < cutoff:
+                    os.remove(path)
+            except OSError:
+                pass
+
+
 def _remove_quietly(path):
     """받다 만 임시 파일을 지운다. 이미 없으면 그만이다"""
     try:
@@ -1992,6 +2012,7 @@ class ServerInstaller:
         # 받는 동안과 검증이 끝날 때까지는 임시 파일에 쓴다: 실패해도 지금 쓰던 jar가 남는다
         # (데몬은 업데이트 전에 server.jar만 백업한다. fabric-server-launch.jar 같은 다른 이름은 여기서 지킨다).
         # 해시가 있으면 해시로, 없으면(Fabric 런처) 크기와 jar 구조로 확인한다. 이름은 요청마다 다르다
+        _remove_stale_downloads(install_path, jar_name)
         try:
             fd, part_path = tempfile.mkstemp(prefix=jar_name + ".", suffix=".download", dir=install_path)
             os.close(fd)
@@ -2066,6 +2087,13 @@ class ServerInstaller:
                                           expected=expected, actual=digest.hexdigest())}
 
         try:
+            # mkstemp는 0600으로 만든다: 옛 jar 권한(없으면 umask 기본값)을 따른다
+            if os.path.isfile(jar_path):
+                shutil.copymode(jar_path, part_path)
+            else:
+                umask = os.umask(0)
+                os.umask(umask)
+                os.chmod(part_path, 0o666 & ~umask)
             os.replace(part_path, jar_path)
         except OSError as e:
             # 서버가 jar를 잡고 있으면(Windows) 바꾸지 못한다: 옛 jar는 그대로 둔다

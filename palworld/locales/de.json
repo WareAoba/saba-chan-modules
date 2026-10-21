@@ -181,6 +181,7 @@
     "no_settings": "No settings provided.",
     "no_server_dir": "Cannot determine server directory. Set working_dir or server_executable.",
     "settings_write_failed": "Failed to write settings file.",
+    "rest_policy_write_failed": "Could not save the REST API settings to PalWorldSettings.ini, so the server was not started. Check the file permissions and whether another program is using the file.",
     "settings_not_found": "Settings file not found. Start the server once to generate it.",
     "no_install_dir": "Kein Installationsverzeichnis angegeben",
     "install_failed": "Serverinstallation fehlgeschlagen: {{error}}",

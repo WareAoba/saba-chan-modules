@@ -1664,7 +1664,9 @@ def player_count(config):
     return result
 
 
-# 서버 jar en_us.json "commands.list.players" (26.3 server jar에서 확인). 줄 앞의 로그 머리는 건너뛴다
+# 서버 jar en_us.json "commands.list.players" (26.3 server jar에서 확인). 줄 앞의 로그 머리는 건너뛴다.
+# Paper·Spigot도 바닐라 ListPlayersCommand를 그대로 써서 문구가 같다(Paper 소스 ListPlayersCommand.java.patch는
+# 플레이어가 보낸 경우의 숨김 필터만 더한다). 플러그인이 표시 이름을 바꾸면 이름 규칙에 걸려 수만 답한다
 _LIST_PLAYERS_RE = re.compile(r"There are (\d+) of a max of (\d+) players online: ?(.*)$")
 _PLAYER_NAME_RE = re.compile(r"[A-Za-z0-9_]{1,16}")
 

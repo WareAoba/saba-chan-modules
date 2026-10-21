@@ -181,6 +181,7 @@
     "no_settings": "未提供設定。",
     "no_server_dir": "無法確定伺服器目錄。請設定 working_dir 或 server_executable。",
     "settings_write_failed": "寫入設定檔失敗。",
+    "rest_policy_write_failed": "無法將 REST API 設定儲存到 PalWorldSettings.ini，因此未啟動伺服器。請檢查檔案權限，以及是否有其他程式正在使用該檔案。",
     "settings_not_found": "找不到設定檔。請先啟動伺服器以產生設定檔。",
     "no_install_dir": "未指定安裝目錄",
     "install_failed": "伺服器安裝失敗：{{error}}",

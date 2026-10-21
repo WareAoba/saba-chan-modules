@@ -812,8 +812,7 @@ def test_a_sandboxed_run_pings_its_server_through_the_daemon(monkeypatch, tmp_pa
         sent.append((port, data, idle_ms))
         return lifecycle.MinecraftPing._encode_varint(len(body)) + body
     monkeypatch.setenv("SABA_LOOPBACK_DIR", str(tmp_path))
-    # 설치본(%APPDATA%) 런타임이 오래되면 이 함수가 없으므로 raising=False로 끼운다
-    monkeypatch.setattr(daemon_rcon, "loopback_exchange", relay, raising=False)
+    monkeypatch.setattr(daemon_rcon, "loopback_exchange", relay)
     monkeypatch.setattr(lifecycle.socket, "create_connection", lambda *a, **k: pytest.fail("a direct connection was tried"))
     assert lifecycle.MinecraftPing.ping("127.0.0.1", 25570)["players"]["online"] == 1
     assert sent == [(25570, lifecycle.MinecraftPing._request("127.0.0.1", 25570), 300)]

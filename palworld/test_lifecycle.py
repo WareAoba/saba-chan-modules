@@ -607,5 +607,6 @@ def test_get_launch_command_refuses_to_start_when_the_rest_policy_cannot_be_save
                            return_value={"changed": False, "write_failed": True, "admin_password": None}):
         result = lifecycle.get_launch_command({"server_executable": str(exe), "working_dir": str(tmp_path)})
     assert result["success"] is False, result
-    assert result["message"] == lifecycle.i18n.t("errors.rest_policy_write_failed")
+    # 키가 locale에 없으면 i18n.t가 키를 그대로 돌려주므로 실제 문구인지도 본다
+    assert result["message"] == lifecycle.i18n.t("errors.rest_policy_write_failed") != "errors.rest_policy_write_failed"
     assert "program" not in result

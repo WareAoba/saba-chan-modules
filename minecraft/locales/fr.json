@@ -172,6 +172,8 @@
     "invalid_json_response": "Réponse JSON invalide du daemon: {{error}}",
     "daemon_error": "Erreur du daemon: {{error}}",
     "no_working_dir": "Répertoire de travail non configuré. Veuillez définir un répertoire de travail pour cette instance.",
+    "not_a_server_folder": "Ce dossier ne semble pas être un dossier de serveur Minecraft (pas de server.properties ni d'eula.txt), rien n'a donc été supprimé : {{path}}",
+    "unsafe_world_name": "Le nom du monde (level-name) « {{name}} » ne désigne pas un dossier de monde dans le dossier du serveur ou correspond à un élément conservé, rien n'a donc été supprimé. Corrigez level-name dans server.properties puis réessayez.",
     "no_settings": "Aucun paramètre fourni",
     "properties_write_failed": "Échec de l'écriture de server.properties",
     "eula_write_failed": "Échec de l'écriture de eula.txt",
@@ -263,7 +265,7 @@
   },
   "reset": {
     "label": "Réinitialiser le serveur",
-    "description": "Supprime le monde, les paramètres et les plugins ; seuls le JAR du serveur et eula.txt sont conservés."
+    "description": "Supprime ce que le serveur a créé : le monde, les paramètres, les plugins, les mods (JAR des mods compris), config et les journaux. Le JAR du serveur, eula.txt, le Java fourni et les autres fichiers du dossier sont conservés. Si le serveur est dans le dossier de l'instance, les journaux sont aussi conservés."
   },
   "agreements": {
     "eula": "Contrat de licence utilisateur final de Minecraft (CLUF)"

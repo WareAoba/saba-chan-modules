@@ -1405,10 +1405,58 @@ def reset_properties(config):
     }
 
 
+# 서버 초기화가 지우는 것: 서버(바닐라·Bukkit 계열·모드 로더)가 서버 폴더에 만드는 월드 밖 항목
+_RESET_FILES = (
+    "server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json",
+    "usercache.json", "version_history.json", "permissions.yml", "commands.yml", "help.yml",
+    "bukkit.yml", "spigot.yml", "paper.yml", "purpur.yml", "wepif.yml", ".console_history",
+)
+_RESET_DIRS = ("logs", "crash-reports", "plugins", "mods", "config", "cache", "debug")
+
+
+# 초기화가 지우지 않는 것: 서버를 띄우는 파일·폴더(.jar도)와 인스턴스 폴더의 데몬 파일
+_RESET_KEEP = {
+    "eula.txt", "user_jvm_args.txt", "run.bat", "run.sh",
+    "fabric-server-launcher.properties", "quilt-server-launcher.properties",
+    "java", "libraries", "versions", ".fabric", ".quilt",
+    "instance.json", "settings.json", "settings.json.tmp", "managed.pid", "run", "backups", "rcon.json", "rcon.json.tmp",
+}
+
+
+def _unescape_property(value):
+    """Java .properties 값의 이스케이프를 푼다 (\\uXXXX, \\:, \\= 등)"""
+    def repl(m):
+        s = m.group(1)
+        if len(s) == 5:
+            return chr(int(s[1:], 16))
+        return {"t": "\t", "n": "\n", "r": "\r", "f": "\f"}.get(s, s)
+    return re.sub(r"\\(u[0-9a-fA-F]{4}|.)", repl, value)
+
+
+def _reset_world_paths(config, props, working_path, keep):
+    """지울 월드 폴더(서버 폴더 기준 상대 경로)와 다른 차원 폴더. level-name이 폴더 안을 가리키지 않거나
+    남길 항목과 겹치면 None"""
+    name = _unescape_property(props.get("level-name", "")) or str(config.get("level_name") or "") or "world"
+    parts = re.split(r"[\\/]", name)
+    if os.path.isabs(name) or any(p in ("", ".", "..") or ":" in p or p[-1] in " ." for p in parts):
+        return None
+    if parts[0].casefold() in keep or parts[0].casefold().endswith(".jar"):
+        return None
+    base = working_path.resolve()
+    world = "/".join(parts)
+    paths = [world, f"{world}_nether", f"{world}_the_end"]
+    for rel in paths:
+        if base not in (working_path / rel).resolve().parents:
+            return None
+    return paths
+
+
 def reset_server(config):
-    """Full server reset: delete worlds and settings, keep what starts the server
+    """Full server reset: delete the worlds and settings the server made, keep what starts the server
     (jars, eula.txt, the bundled java/, loader files of Forge/NeoForge/Fabric/Quilt).
 
+    서버 폴더(server.properties나 eula.txt가 있는 폴더)에서 서버가 만든 항목만 지운다.
+    사용자가 둔 다른 파일과 데몬 파일(인스턴스 폴더에 서버를 둔 경우)은 남긴다.
     server.properties will be recreated from module defaults on next configure().
     """
     import shutil
@@ -1420,37 +1468,38 @@ def reset_server(config):
     working_path = Path(working_dir)
     if not working_path.is_dir():
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
+    if not any((working_path / name).is_file() for name in ("server.properties", "eula.txt")):
+        return {"success": False, "message": i18n.t("errors.not_a_server_folder", path=str(working_path))}
 
-    # 보존할 파일 패턴 (대소문자 무시)
-    KEEP_FILES = {"eula.txt", "user_jvm_args.txt", "run.bat", "run.sh",
-                  "fabric-server-launcher.properties", "quilt-server-launcher.properties"}
-    KEEP_EXTENSIONS = {".jar"}
-    # 받아 둔 번들 Java(크다)와 로더가 서버를 띄우는 데 쓰는 폴더 (1.17+ Forge는 libraries/의 인자 파일로 뜬다)
-    KEEP_DIRS = {"java", "libraries", "versions", ".fabric", ".quilt"}
+    keep = set(_RESET_KEEP)
+    targets = list(_RESET_FILES) + list(_RESET_DIRS)
+    # 인스턴스 폴더에 서버를 두면 logs/는 데몬 로그와 같은 폴더다
+    if (working_path / "instance.json").is_file():
+        keep.add("logs")
+        targets.remove("logs")
+    # 월드를 못 찾았는데 나머지만 지우고 성공이라 하면 다음 시작에 옛 월드가 그대로 뜬다
+    props = ServerPropertiesManager(working_dir).read()
+    worlds = _reset_world_paths(config, props, working_path, keep)
+    if worlds is None:
+        name = props.get("level-name") or config.get("level_name") or ""
+        return {"success": False, "message": i18n.t("errors.unsafe_world_name", name=str(name))}
+    targets += worlds
 
     deleted = []
     errors = []
 
-    for item in list(working_path.iterdir()):
-        name_lower = item.name.lower()
-
-        # JAR 파일 보존 (server.jar 등)
-        if item.is_file() and any(name_lower.endswith(ext) for ext in KEEP_EXTENSIONS):
+    for name in targets:
+        item = working_path / name
+        if not os.path.lexists(item):
             continue
-        # eula.txt 보존
-        if item.is_file() and name_lower in KEEP_FILES:
-            continue
-        if item.is_dir() and name_lower in KEEP_DIRS:
-            continue
-
         try:
-            if item.is_dir():
+            if item.is_dir() and not item.is_symlink():
                 shutil.rmtree(item)
             else:
                 item.unlink()
-            deleted.append(item.name)
+            deleted.append(name)
         except OSError as e:
-            errors.append(f"{item.name}: {e}")
+            errors.append(f"{name}: {e}")
 
     success = len(errors) == 0
     msg_parts = []

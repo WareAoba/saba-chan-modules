@@ -1019,6 +1019,105 @@ def test_reset_server_keeps_what_the_loader_needs_to_start(tmp_path):
         assert not (tmp_path / rel).exists(), rel
 
 
+def test_reset_server_only_deletes_what_the_server_made(tmp_path):
+    """서버 폴더에 사용자 파일·데몬 파일이 섞여 있어도 서버가 만든 월드·설정만 지운다.
+    예전에는 허용 목록 밖을 모두 지워 바탕화면에 설치한 서버를 초기화하면 바탕화면이 비었다"""
+    from minecraft import lifecycle
+    gone = ["world/level.dat", "server.properties", "ops.json", "logs/latest.log"]
+    kept = ["server.jar", "Documents/report.docx", "notes.txt", "photo.png", "other-server/world/level.dat"]
+    for rel in gone + kept:
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    result = lifecycle.reset_server({"working_dir": str(tmp_path)})
+    assert result["success"], result
+    for rel in kept:
+        assert (tmp_path / rel).exists(), rel
+    for rel in gone:
+        assert not (tmp_path / rel).exists(), rel
+
+
+def test_reset_server_keeps_daemon_files_when_the_server_lives_in_the_instance_folder(tmp_path):
+    """인스턴스 폴더에 서버를 둔 경우 데몬의 백업·인스턴스 기록·로그를 지우지 않는다"""
+    from minecraft import lifecycle
+    for rel in ["instance.json", "settings.json", "backups/a.zip", "logs/daemon.log", "rcon.json", "server.properties", "world/level.dat"]:
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    assert lifecycle.reset_server({"working_dir": str(tmp_path)})["success"]
+    for rel in ["instance.json", "settings.json", "backups/a.zip", "logs/daemon.log", "rcon.json"]:
+        assert (tmp_path / rel).exists(), rel
+    assert not (tmp_path / "world").exists()
+
+
+def test_reset_server_refuses_a_folder_that_is_not_a_server(tmp_path):
+    """server.properties·eula.txt가 없는 폴더는 서버 폴더로 보지 않고 아무것도 지우지 않는다"""
+    from minecraft import lifecycle
+    for rel in ["server.jar", "world/level.dat", "notes.txt"]:
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    result = lifecycle.reset_server({"working_dir": str(tmp_path)})
+    assert result["success"] is False
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["notes.txt", "server.jar", "world"]
+
+
+def _server_dir(root, props, files=()):
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "server.properties").write_text(props, encoding="latin-1")
+    for rel in files:
+        p = root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    return root
+
+
+def test_reset_server_deletes_the_world_named_in_server_properties(tmp_path):
+    """월드 이름은 server.properties의 level-name을 따른다(다른 차원 폴더 포함)"""
+    from minecraft import lifecycle
+    srv = _server_dir(tmp_path, "level-name=survival\n", ["survival/level.dat", "survival_nether/x", "survival_the_end/x"])
+    assert lifecycle.reset_server({"working_dir": str(srv)})["success"]
+    assert sorted(p.name for p in srv.iterdir()) == []
+
+
+def test_reset_server_follows_a_world_in_a_subfolder_and_escaped_names(tmp_path):
+    """바닐라는 하위 경로 level-name을 받고, 값은 Java properties 이스케이프로 저장된다"""
+    from minecraft import lifecycle
+    srv = _server_dir(tmp_path / "a", "level-name=worlds/survival\n", ["worlds/survival/level.dat", "worlds/other/level.dat"])
+    assert lifecycle.reset_server({"working_dir": str(srv)})["success"]
+    assert not (srv / "worlds" / "survival").exists()
+    assert (srv / "worlds" / "other" / "level.dat").exists()
+
+    srv = _server_dir(tmp_path / "b", "level-name=\\uc6d4\\ub4dc\n", ["\uc6d4\ub4dc/level.dat"])
+    assert lifecycle.reset_server({"working_dir": str(srv)})["success"]
+    assert not (srv / "\uc6d4\ub4dc").exists()
+
+
+def test_reset_server_fails_without_deleting_when_the_world_name_is_unsafe(tmp_path):
+    """폴더 밖·폴더 자신·끝 점·드라이브를 가리키는 level-name이면 아무것도 지우지 않고 실패로 알린다
+    (월드를 남긴 채 성공이라고 하면 다음 시작에 옛 월드가 그대로 뜬다)"""
+    from minecraft import lifecycle
+    (tmp_path / "outside").mkdir()
+    for i, name in enumerate(["../outside", ".", "world.", "my\\:world", "/abs"]):
+        srv = _server_dir(tmp_path / f"s{i}", f"level-name={name}\n", ["world/level.dat", "ops.json"])
+        result = lifecycle.reset_server({"working_dir": str(srv)})
+        assert result["success"] is False, name
+        assert (srv / "server.properties").exists() and (srv / "ops.json").exists(), name
+    assert (tmp_path / "outside").exists()
+
+
+def test_reset_server_refuses_a_world_name_that_is_a_kept_item(tmp_path):
+    """level-name이 남겨야 할 항목(데몬 백업, 실행에 필요한 폴더·파일)과 같으면 지우지 않는다. Windows처럼 대소문자를 가리지 않는다"""
+    from minecraft import lifecycle
+    for name in ["backups", "Backups", "instance.json", "java", "libraries", "eula.txt", "server.jar"]:
+        srv = _server_dir(tmp_path / name, f"level-name={name}\n",
+                          ["instance.json", "backups/a.zip", "java/bin/java", "libraries/x", "eula.txt", "server.jar", "BACKUPS_nether/x"])
+        before = sorted(p.name for p in srv.iterdir())
+        result = lifecycle.reset_server({"working_dir": str(srv)})
+        assert result["success"] is False, name
+        assert sorted(p.name for p in srv.iterdir()) == before, name
+
+
 def test_server_properties_saved_in_the_windows_locale_are_read(tmp_path, monkeypatch):
     """ANSI(cp949) 편집기로 한글 MOTD를 저장한 server.properties 때문에 시작이 UnicodeDecodeError로 막혔다.
     영문 Windows(cp1252)에서도 cp949 파일을 깨진 글자로 읽어 MOTD를 망가뜨리지 않는다"""

@@ -172,6 +172,8 @@
     "invalid_json_response": "Resposta JSON inválida do daemon: {{error}}",
     "daemon_error": "Erro do daemon: {{error}}",
     "no_working_dir": "Diretório de trabalho não configurado. Por favor defina um diretório de trabalho para esta instância.",
+    "not_a_server_folder": "Esta pasta não parece ser uma pasta de servidor Minecraft (sem server.properties ou eula.txt), então nada foi excluído: {{path}}",
+    "unsafe_world_name": "O nome do mundo (level-name) \"{{name}}\" não aponta para uma pasta de mundo dentro da pasta do servidor ou coincide com um item que deve ser mantido, então nada foi excluído. Corrija level-name em server.properties e tente novamente.",
     "no_settings": "Nenhuma configuração fornecida",
     "properties_write_failed": "Falha ao gravar server.properties",
     "eula_write_failed": "Falha ao gravar eula.txt",
@@ -263,7 +265,7 @@
   },
   "reset": {
     "label": "Redefinir servidor",
-    "description": "Apaga o mundo, as configurações e os plugins, mantendo só o JAR do servidor e o eula.txt."
+    "description": "Exclui o que o servidor criou: o mundo, as configurações, os plugins, os mods (incluindo os JARs), config e os logs. O JAR do servidor, o eula.txt, o Java incluído e os outros arquivos da pasta são mantidos. Se o servidor estiver na pasta da instância, os logs também são mantidos."
   },
   "agreements": {
     "eula": "Contrato de Licença de Usuário Final do Minecraft (EULA)"

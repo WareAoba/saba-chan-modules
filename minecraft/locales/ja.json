@@ -172,6 +172,8 @@
     "invalid_json_response": "デーモンからの無効な JSON 応答: {{error}}",
     "daemon_error": "デーモンエラー: {{error}}",
     "no_working_dir": "作業ディレクトリが設定されていません。このインスタンスの作業ディレクトリを設定してください。",
+    "not_a_server_folder": "このフォルダーはMinecraftサーバーのフォルダーではないようです(server.properties・eula.txtがありません)。何も削除していません: {{path}}",
+    "unsafe_world_name": "ワールド名(level-name)「{{name}}」がサーバーフォルダー内のワールドフォルダーを指していないか、残すべき項目と同じため、何も削除していません。server.propertiesのlevel-nameを直してからもう一度お試しください。",
     "no_settings": "設定が提供されていません",
     "properties_write_failed": "server.properties の書き込みに失敗しました",
     "eula_write_failed": "eula.txt の書き込みに失敗しました",
@@ -263,7 +265,7 @@
   },
   "reset": {
     "label": "サーバー初期化",
-    "description": "サーバー JAR と eula.txt だけを残し、ワールド・設定・プラグインをすべて削除します。"
+    "description": "サーバーが作成したワールド・設定・プラグイン・Mod(Mod JARを含む)・config・ログを削除します。サーバーJAR、eula.txt、同梱のJava、フォルダー内のほかのファイルは残します。サーバーがインスタンスフォルダーにある場合はログも残します。"
   },
   "agreements": {
     "eula": "Minecraft エンドユーザー使用許諾契約 (EULA)"

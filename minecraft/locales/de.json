@@ -172,6 +172,8 @@
     "invalid_json_response": "Ungültige JSON-Antwort vom Daemon: {{error}}",
     "daemon_error": "Daemon-Fehler: {{error}}",
     "no_working_dir": "Arbeitsverzeichnis nicht konfiguriert. Bitte legen Sie ein Arbeitsverzeichnis für diese Instanz fest.",
+    "not_a_server_folder": "Dieser Ordner scheint kein Minecraft-Serverordner zu sein (keine server.properties oder eula.txt), daher wurde nichts gelöscht: {{path}}",
+    "unsafe_world_name": "Der Weltname (level-name) \"{{name}}\" verweist nicht auf einen Weltordner im Serverordner oder entspricht einem Eintrag, der erhalten bleibt. Daher wurde nichts gelöscht. Korrigieren Sie level-name in server.properties und versuchen Sie es erneut.",
     "no_settings": "Keine Einstellungen angegeben",
     "properties_write_failed": "Schreiben von server.properties fehlgeschlagen",
     "eula_write_failed": "Schreiben von eula.txt fehlgeschlagen",
@@ -263,7 +265,7 @@
   },
   "reset": {
     "label": "Server zurücksetzen",
-    "description": "Löscht Welt, Einstellungen und Plugins; nur die Server-JAR und eula.txt bleiben."
+    "description": "Löscht, was der Server erstellt hat: Welt, Einstellungen, Plugins, Mods (inklusive Mod-JARs), Konfigurationen und Logs. Die Server-JAR, eula.txt, das mitgelieferte Java und andere Dateien im Ordner bleiben erhalten. Liegt der Server im Instanzordner, bleiben auch die Logs erhalten."
   },
   "agreements": {
     "eula": "Minecraft-Endbenutzer-Lizenzvertrag (EULA)"

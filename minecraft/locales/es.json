@@ -172,6 +172,8 @@
     "invalid_json_response": "Respuesta JSON inválida del daemon: {{error}}",
     "daemon_error": "Error del daemon: {{error}}",
     "no_working_dir": "Directorio de trabajo no configurado. Por favor establezca un directorio de trabajo para esta instancia.",
+    "not_a_server_folder": "Esta carpeta no parece una carpeta de servidor de Minecraft (no hay server.properties ni eula.txt), así que no se eliminó nada: {{path}}",
+    "unsafe_world_name": "El nombre del mundo (level-name) \"{{name}}\" no apunta a una carpeta de mundo dentro de la carpeta del servidor o coincide con un elemento que se conserva, así que no se eliminó nada. Corrige level-name en server.properties e inténtalo de nuevo.",
     "no_settings": "No se proporcionaron ajustes",
     "properties_write_failed": "Error al escribir server.properties",
     "eula_write_failed": "Error al escribir eula.txt",
@@ -263,7 +265,7 @@
   },
   "reset": {
     "label": "Restablecer servidor",
-    "description": "Borra el mundo, los ajustes y los plugins; solo conserva el JAR del servidor y eula.txt."
+    "description": "Elimina lo que creó el servidor: el mundo, la configuración, los plugins, los mods (incluidos sus JAR), config y los registros. Se conservan el JAR del servidor, eula.txt, el Java incluido y los demás archivos de la carpeta. Si el servidor está en la carpeta de la instancia, también se conservan los registros."
   },
   "agreements": {
     "eula": "Contrato de licencia de usuario final de Minecraft (EULA)"

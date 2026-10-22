@@ -547,3 +547,18 @@ def test_stop_waits_for_the_configured_stop_timeout():
              mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: waits.append(timeout) or True):
             lifecycle.stop({"pid": 7, **config})
         assert waits == [expected], config
+
+
+def test_managed_stop_leaves_the_wait_to_the_daemon():
+    """managed 정지는 저장 후 종료만 요청하고 바로 돌려준다: 기다림과 강제 종료는 데몬이 인스턴스 stop_timeout까지 맡는다.
+    여기서 기다리면 호출 제한(stop_call_limit - 30초)에 잘려 저장 중에 강제 종료한다 (02 §3.4, palworld와 같다)"""
+    from unittest import mock
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
+         mock.patch.object(lifecycle, "_request_terminate", return_value=True), \
+         mock.patch.object(lifecycle, "wait_for_exit") as wait, \
+         mock.patch.object(lifecycle, "_kill") as kill:
+        result = lifecycle.stop({"pid": 7, "managed": True, "stop_timeout": 300, "stop_call_limit": 120})
+    assert result["success"] is True
+    wait.assert_not_called()
+    kill.assert_not_called()

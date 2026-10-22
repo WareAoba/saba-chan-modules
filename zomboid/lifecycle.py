@@ -1173,6 +1173,9 @@ def stop(config):
         return {"success": False, "error_code": "graceful_stop_unavailable",
                 "message": i18n.t("errors.graceful_stop_unavailable")}
     print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
+    if config.get("managed"):
+        # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 호출 제한에 잘린다
+        return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
     if wait_for_exit(pid, timeout=_stop_timeout(config)):
         return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
     print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)

@@ -1281,6 +1281,21 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.10"
 
 
+def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():
+    """정상 종료 문구도 줄 처음의 로그 머리부터 맞춘다. 채팅에 "Stopping the server"를 친 뒤 서버가 충돌 신호 없이 죽으면
+    "게임 안 정지"로 잘못 갈라 자동 재시작·알림이 빠지지 않게 한다 (EE2)"""
+    import re
+    import tomllib
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        toml = tomllib.load(f)
+    patterns = [re.compile(p) for p in toml["detection"]["graceful_exit_patterns"]]
+    assert any(p.search("[20:07:01] [Server thread/INFO]: Stopping the server") for p in patterns)
+    assert any(p.search("[20:07:01 INFO]: Stopping the server") for p in patterns)
+    assert any(p.search("[20:07:01] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping the server") for p in patterns)
+    assert not any(p.search("[20:08:00] [Server thread/INFO]: <Steve> Stopping the server") for p in patterns)
+    assert not any(p.search("[20:08:00] [Server thread/INFO]: <Steve> ]: Stopping the server") for p in patterns)
+
+
 def test_player_patterns_name_who_joined_or_left():
     """접속·퇴장 줄에서 이름만 잡는다(계약 06 §8.3). 문구는 server jar en_us.json(26.3) 그대로이고,
     채팅·/say로 같은 글을 써도 맞지 않는다"""

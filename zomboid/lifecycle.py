@@ -1504,8 +1504,8 @@ def reset_server(config):
     server_name = _server_name(config)
     multiplayer = os.path.join(_zomboid_home(config), "Saves", "Multiplayer")
     saves_dir = os.path.join(multiplayer, server_name)
-    # 이 서버의 월드 폴더 하나만 지운다 (이름에 구분자·'..'가 있으면 다른 서버의 월드까지 지울 수 있다)
-    if server_name in (".", "..") or any(sep in server_name for sep in ("/", "\\")) or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
+    # 이 서버의 월드 폴더 하나만 지운다 (이름에 구분자·'..'·드라이브(C:)가 있거나, Windows가 잘라 내는 끝 공백·점이 있으면 다른 서버의 월드까지 지울 수 있다)
+    if server_name in (".", "..") or any(sep in server_name for sep in ("/", "\\", ":")) or server_name[-1] in " ." or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
         return {"success": False, "message": i18n.t("errors.invalid_server_name", name=server_name)}
     
     deleted = []

@@ -584,7 +584,7 @@ def test_reset_with_an_empty_server_name_deletes_only_the_default_world(tmp_path
     assert str(home / "Saves" / "Multiplayer" / "servertest") in backup_paths(config)["paths"]
 
 
-@pytest.mark.parametrize("name", ["..", ".", "a/b", "a\\b", "../other"])
+@pytest.mark.parametrize("name", ["..", ".", "a/b", "a\\b", "../other", "C:other", "other ", "other."])
 def test_reset_refuses_a_server_name_outside_its_own_world(tmp_path, name):
     from zomboid.lifecycle import reset_server
     home = tmp_path / "home"

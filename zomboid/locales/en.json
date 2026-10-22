@@ -185,6 +185,7 @@
     "failed_to_kill": "Failed to kill process: {{error}}",
     "server_not_running": "Server is not running. Please start the server first.",
     "server_reset_partial": "Some items could not be deleted: {{errors}}",
+    "invalid_server_name": "This server name cannot be used: {{name}}. Use a name without folder separators or '..'",
     "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
     "detect": {
       "out_of_memory": "Server ran out of memory (OutOfMemoryError)",

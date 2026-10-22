@@ -562,3 +562,35 @@ def test_managed_stop_leaves_the_wait_to_the_daemon():
     assert result["success"] is True
     wait.assert_not_called()
     kill.assert_not_called()
+
+
+def _worlds(home, *names):
+    for n in names:
+        world = home / "Saves" / "Multiplayer" / n
+        world.mkdir(parents=True)
+        (world / "map.bin").write_text("x")
+
+
+def test_reset_with_an_empty_server_name_deletes_only_the_default_world(tmp_path):
+    from zomboid.lifecycle import reset_server, backup_paths
+    home = tmp_path / "home"
+    _worlds(home, "servertest", "other")
+    config = {"working_dir": str(tmp_path / "server"), "cache_dir": str(home), "server_name": ""}
+
+    assert reset_server(config)["success"] is True
+
+    assert not (home / "Saves" / "Multiplayer" / "servertest").exists()
+    assert (home / "Saves" / "Multiplayer" / "other" / "map.bin").exists()
+    assert str(home / "Saves" / "Multiplayer" / "servertest") in backup_paths(config)["paths"]
+
+
+@pytest.mark.parametrize("name", ["..", ".", "a/b", "a\\b", "../other"])
+def test_reset_refuses_a_server_name_outside_its_own_world(tmp_path, name):
+    from zomboid.lifecycle import reset_server
+    home = tmp_path / "home"
+    _worlds(home, "other")
+    config = {"working_dir": str(tmp_path / "server"), "cache_dir": str(home), "server_name": name}
+
+    assert reset_server(config)["success"] is False
+
+    assert (home / "Saves" / "Multiplayer" / "other" / "map.bin").exists()

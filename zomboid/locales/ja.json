@@ -148,6 +148,7 @@
     "failed_to_kill": "プロセスの終了に失敗しました: {{error}}",
     "server_not_running": "サーバーは実行されていません。先にサーバーを起動してください。",
     "server_reset_partial": "一部のアイテムを削除できませんでした: {{errors}}",
+    "invalid_server_name": "このサーバー名は使えません: {{name}}。フォルダ区切りや「..」を含まない名前にしてください",
     "extension_not_enabled": "SteamCMD拡張機能が有効化されていません。設定 → 拡張機能で先に有効化してください。",
     "detect": {
       "out_of_memory": "サーバーのメモリが不足しました (OutOfMemoryError)",

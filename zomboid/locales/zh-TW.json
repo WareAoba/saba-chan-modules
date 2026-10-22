@@ -148,6 +148,7 @@
     "failed_to_kill": "終止程序失敗：{{error}}",
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
     "server_reset_partial": "部分項目無法刪除：{{errors}}",
+    "invalid_server_name": "無法使用此伺服器名稱：{{name}}。請使用不含資料夾分隔符號或「..」的名稱",
     "extension_not_enabled": "SteamCMD 擴充功能未啟用。請先在設定 → 擴充功能中啟用。",
     "detect": {
       "out_of_memory": "伺服器記憶體不足 (OutOfMemoryError)",

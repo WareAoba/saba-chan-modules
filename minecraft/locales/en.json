@@ -178,6 +178,7 @@
     "invalid_json_response": "Invalid JSON response from daemon: {{error}}",
     "daemon_error": "Daemon error: {{error}}",
     "no_working_dir": "Working directory not configured. Please set a working directory for this instance.",
+    "not_a_server_folder": "This folder does not look like a Minecraft server folder (no server.properties or eula.txt), so nothing was deleted: {{path}}",
     "no_settings": "No settings provided",
     "properties_write_failed": "Failed to write server.properties",
     "eula_write_failed": "Failed to write eula.txt",
@@ -269,7 +270,7 @@
   },
   "reset": {
     "label": "Reset server",
-    "description": "Deletes the world, settings and plugins, keeping only the server JAR and eula.txt."
+    "description": "Deletes the world, settings, plugins and logs the server made. The server JAR, eula.txt and other files in the folder are kept."
   },
   "agreements": {
     "eula": "Minecraft End User License Agreement (EULA)"

@@ -172,6 +172,7 @@
     "invalid_json_response": "来自守护程序的无效JSON响应：{{error}}",
     "daemon_error": "守护程序错误：{{error}}",
     "no_working_dir": "未配置工作目录。请为此实例设置工作目录。",
+    "not_a_server_folder": "此文件夹看起来不是 Minecraft 服务器文件夹(没有 server.properties 或 eula.txt),因此未删除任何内容:{{path}}",
     "no_settings": "未提供设置",
     "properties_write_failed": "写入server.properties失败",
     "eula_write_failed": "写入eula.txt失败",
@@ -263,7 +264,7 @@
   },
   "reset": {
     "label": "重置服务器",
-    "description": "删除世界、设置和插件，只保留服务器 JAR 和 eula.txt。"
+    "description": "删除服务器生成的世界、设置、插件和日志。服务器 JAR、eula.txt 以及文件夹中的其他文件会保留。"
   },
   "agreements": {
     "eula": "Minecraft 最终用户许可协议 (EULA)"

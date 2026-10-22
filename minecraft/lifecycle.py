@@ -1405,10 +1405,29 @@ def reset_properties(config):
     }
 
 
+# 서버 초기화가 지우는 것: 서버(바닐라·Bukkit 계열·모드 로더)가 서버 폴더에 만드는 월드 밖 항목
+_RESET_FILES = (
+    "server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json",
+    "usercache.json", "version_history.json", "permissions.yml", "commands.yml", "help.yml",
+    "bukkit.yml", "spigot.yml", "paper.yml", "purpur.yml", "wepif.yml", ".console_history",
+)
+_RESET_DIRS = ("logs", "crash-reports", "plugins", "mods", "config", "cache", "debug")
+
+
+def _reset_world_name(config, props):
+    """지울 월드 폴더 이름 (server.properties level-name). 서버 폴더 바로 아래를 가리키지 않으면 None"""
+    name = props.get("level-name") or config.get("level_name") or "world"
+    if name in (".", "..") or any(sep in name for sep in ("/", "\\", ":")) or name[-1] in " .":
+        return None
+    return name
+
+
 def reset_server(config):
-    """Full server reset: delete worlds and settings, keep what starts the server
+    """Full server reset: delete the worlds and settings the server made, keep what starts the server
     (jars, eula.txt, the bundled java/, loader files of Forge/NeoForge/Fabric/Quilt).
 
+    서버 폴더(server.properties나 eula.txt가 있는 폴더)에서 서버가 만든 항목만 지운다.
+    사용자가 둔 다른 파일과 데몬 파일(인스턴스 폴더에 서버를 둔 경우)은 남긴다.
     server.properties will be recreated from module defaults on next configure().
     """
     import shutil
@@ -1420,31 +1439,26 @@ def reset_server(config):
     working_path = Path(working_dir)
     if not working_path.is_dir():
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
+    if not any((working_path / name).is_file() for name in ("server.properties", "eula.txt")):
+        return {"success": False, "message": i18n.t("errors.not_a_server_folder", path=str(working_path))}
 
-    # 보존할 파일 패턴 (대소문자 무시)
-    KEEP_FILES = {"eula.txt", "user_jvm_args.txt", "run.bat", "run.sh",
-                  "fabric-server-launcher.properties", "quilt-server-launcher.properties"}
-    KEEP_EXTENSIONS = {".jar"}
-    # 받아 둔 번들 Java(크다)와 로더가 서버를 띄우는 데 쓰는 폴더 (1.17+ Forge는 libraries/의 인자 파일로 뜬다)
-    KEEP_DIRS = {"java", "libraries", "versions", ".fabric", ".quilt"}
+    targets = list(_RESET_FILES) + list(_RESET_DIRS)
+    world = _reset_world_name(config, ServerPropertiesManager(working_dir).read())
+    if world:
+        targets += [world, f"{world}_nether", f"{world}_the_end"]
+    # 인스턴스 폴더에 서버를 두면 logs/는 데몬 로그와 같은 폴더다
+    if (working_path / "instance.json").is_file():
+        targets.remove("logs")
 
     deleted = []
     errors = []
 
-    for item in list(working_path.iterdir()):
-        name_lower = item.name.lower()
-
-        # JAR 파일 보존 (server.jar 등)
-        if item.is_file() and any(name_lower.endswith(ext) for ext in KEEP_EXTENSIONS):
+    for name in targets:
+        item = working_path / name
+        if not os.path.lexists(item):
             continue
-        # eula.txt 보존
-        if item.is_file() and name_lower in KEEP_FILES:
-            continue
-        if item.is_dir() and name_lower in KEEP_DIRS:
-            continue
-
         try:
-            if item.is_dir():
+            if item.is_dir() and not item.is_symlink():
                 shutil.rmtree(item)
             else:
                 item.unlink()

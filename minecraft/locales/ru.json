@@ -172,6 +172,7 @@
     "invalid_json_response": "Недействительный JSON ответ от демона: {{error}}",
     "daemon_error": "Ошибка демона: {{error}}",
     "no_working_dir": "Рабочий каталог не настроен. Пожалуйста укажите рабочий каталог для этого экземпляра.",
+    "not_a_server_folder": "Эта папка не похожа на папку сервера Minecraft (нет server.properties или eula.txt), поэтому ничего не удалено: {{path}}",
     "no_settings": "Настройки не предоставлены",
     "properties_write_failed": "Не удалось записать server.properties",
     "eula_write_failed": "Не удалось записать eula.txt",
@@ -263,7 +264,7 @@
   },
   "reset": {
     "label": "Сброс сервера",
-    "description": "Удаляет мир, настройки и плагины, оставляя только JAR сервера и eula.txt."
+    "description": "Удаляет созданные сервером мир, настройки, плагины и журналы. JAR сервера, eula.txt и другие файлы в папке сохраняются."
   },
   "agreements": {
     "eula": "Лицензионное соглашение с конечным пользователем Minecraft (EULA)"

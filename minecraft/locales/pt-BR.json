@@ -172,6 +172,7 @@
     "invalid_json_response": "Resposta JSON inválida do daemon: {{error}}",
     "daemon_error": "Erro do daemon: {{error}}",
     "no_working_dir": "Diretório de trabalho não configurado. Por favor defina um diretório de trabalho para esta instância.",
+    "not_a_server_folder": "Esta pasta não parece ser uma pasta de servidor Minecraft (sem server.properties ou eula.txt), então nada foi excluído: {{path}}",
     "no_settings": "Nenhuma configuração fornecida",
     "properties_write_failed": "Falha ao gravar server.properties",
     "eula_write_failed": "Falha ao gravar eula.txt",
@@ -263,7 +264,7 @@
   },
   "reset": {
     "label": "Redefinir servidor",
-    "description": "Apaga o mundo, as configurações e os plugins, mantendo só o JAR do servidor e o eula.txt."
+    "description": "Exclui o mundo, as configurações, os plugins e os logs criados pelo servidor. O JAR do servidor, o eula.txt e os outros arquivos da pasta são mantidos."
   },
   "agreements": {
     "eula": "Contrato de Licença de Usuário Final do Minecraft (EULA)"

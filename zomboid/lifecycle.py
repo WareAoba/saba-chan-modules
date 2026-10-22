@@ -1600,42 +1600,13 @@ FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f
 # ╚═══════════════════════════════════════════════════════════╝
 
 def main():
-    """Entry point when invoked by the saba-chan daemon.
-    
-    Usage: python lifecycle.py <function_name>
-    Config is passed via stdin as JSON.
-    Result is printed to stdout as JSON.
-    Logs go to stderr.
+    """Entry point when invoked by the saba-chan daemon: `python lifecycle.py <function_name>`, config JSON on stdin.
+
+    공용 진입점: 깨진 stdin은 빈 설정으로 계속 실행하지 않고 거절한다(기본 세이브 이름으로 지우지 않게).
+    모르는 함수·함수 안의 예외도 JSON으로 답하고 종료 코드 0을 지킨다.
     """
-    if len(sys.argv) < 2:
-        print(json.dumps({"success": False, "message": "Usage: lifecycle.py <function_name>"}))
-        sys.exit(1)
-    
-    func_name = sys.argv[1]
-    
-    # Answered errors exit 0: the daemon discards stdout when the exit code is not 0.
-    if func_name not in FUNCTIONS:
-        print(json.dumps({
-            "success": False,
-            "message": f"Unknown function: {func_name}",
-            "available": list(FUNCTIONS.keys())
-        }))
-        return
-    
-    try:
-        config_str = sys.stdin.read()
-        config = json.loads(config_str) if config_str.strip() else {}
-    except json.JSONDecodeError:
-        config = {}
-    
-    try:
-        result = FUNCTIONS[func_name](config)
-        print(json.dumps(result, ensure_ascii=False))
-    except Exception as e:
-        print(json.dumps({
-            "success": False,
-            "message": f"Error in {func_name}: {str(e)}"
-        }))
+    from daemon_rcon import run_lifecycle
+    run_lifecycle(FUNCTIONS)
 
 
 if __name__ == "__main__":

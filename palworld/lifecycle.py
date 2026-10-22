@@ -1595,61 +1595,46 @@ def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
         }
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(json.dumps({"success": False, "message": "Usage: lifecycle.py <function>"}))
-        sys.exit(1)
-    
-    function_name = sys.argv[1]
-    print(f"[Palworld] function: {function_name}", file=sys.stderr)
-    
-    # Read config JSON from stdin (avoids command-line length limits
-    # and prevents sensitive data from appearing in process listings)
-    try:
-        config_str = sys.stdin.read()
-        config = json.loads(config_str) if config_str.strip() else {}
-        print(f"[Palworld] Parsed config keys: {list(config.keys())}", file=sys.stderr)
-    except json.JSONDecodeError as e:
-        print(json.dumps({"success": False, "message": f"Invalid JSON config on stdin: {str(e)}"}))
-        print(f"[Palworld] JSON parse error: {e}", file=sys.stderr)
-        sys.exit(1)
-    
-    # Function dispatch table (matches daemon's expected interface)
-    FUNCTIONS = {
-        "stop": stop,
-        "status": status,
-        "command": command,
-        "get_launch_command": get_launch_command,
-        "get_credentials": get_credentials,
-        "validate": validate,
-        "configure": configure,
-        "read_properties": read_properties,
-        "import_settings": import_settings,
-        "reset_properties": reset_properties,
-        "reset_server": reset_server,
-        "diagnose_log": diagnose_log,
-        "list_versions": list_versions,
-        "get_version_details": get_version_details,
-        "install_server": install_server,
-        "player_count": player_count,
-        "backup_paths": backup_paths,
-    }
-    # 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
-    FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
-    
-    fn = FUNCTIONS.get(function_name)
-    if fn:
+# Function dispatch table (matches daemon's expected interface)
+FUNCTIONS = {
+    "stop": stop,
+    "status": status,
+    "command": command,
+    "get_launch_command": get_launch_command,
+    "get_credentials": get_credentials,
+    "validate": validate,
+    "configure": configure,
+    "read_properties": read_properties,
+    "import_settings": import_settings,
+    "reset_properties": reset_properties,
+    "reset_server": reset_server,
+    "diagnose_log": diagnose_log,
+    "list_versions": list_versions,
+    "get_version_details": get_version_details,
+    "install_server": install_server,
+    "player_count": player_count,
+    "backup_paths": backup_paths,
+}
+# 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
+FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
+
+
+def _answering_missing_extension(fn):
+    """익스텐션이 꺼져 있으면 예외 대신 `extension_required`로 답한다 (데몬이 설치 안내를 띄운다)"""
+    def call(config):
         try:
-            result = fn(config)
+            return fn(config)
         except ExtensionMissing as e:
-            result = {
+            return {
                 "success": False,
                 "message": i18n.t("messages.extension_missing", extension=e.extension),
                 "error_code": "extension_required",
                 "missing_extensions": [e.extension],
             }
-    else:
-        result = {"success": False, "message": f"Unknown function: {function_name}"}
-    
-    # Output JSON only
-    print(json.dumps(result))
+    return call
+
+
+if __name__ == "__main__":
+    # 공용 진입점: 깨진 stdin·모르는 함수·함수 안의 예외도 JSON으로 답하고 종료 코드 0을 지킨다
+    from daemon_rcon import run_lifecycle
+    run_lifecycle({name: _answering_missing_extension(fn) for name, fn in FUNCTIONS.items()})

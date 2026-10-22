@@ -69,7 +69,7 @@ def call(module, shared_libs, function, config, tmp_path):
     try:
         proc = subprocess.run(
             [sys.executable, str(module.entry), function],
-            input=json.dumps(config),
+            input=config if isinstance(config, str) else json.dumps(config),
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -292,6 +292,23 @@ def test_unknown_function_is_answered(module, shared_libs, tmp_path):
     result = call(module, shared_libs, "__conformance_no_such_function__", sandbox_config(tmp_path), tmp_path)
     assert result.get("success") is False
     assert "Unknown function" in str(result.get("message", "")), f"모르는 함수 응답: {result}"
+
+
+def test_bad_stdin_is_answered_not_run(module, shared_libs, tmp_path):
+    """깨진 JSON을 빈 설정으로 읽어 계속 실행하면 기본값으로 엉뚱한 파일을 건드린다: JSON으로 거절하고 종료 코드 0"""
+    result = call(module, shared_libs, "validate", "{not json", tmp_path)
+    assert result.get("success") is False and result.get("message"), f"깨진 stdin 응답: {result}"
+
+
+@pytest.mark.parametrize("function", ["validate", "status", "read_properties"])
+def test_a_crashing_function_still_answers_json(module, shared_libs, tmp_path, function):
+    """함수 안의 예외도 JSON으로 답한다 (종료 코드 0). 형식이 틀린 설정으로 부른다"""
+    table, _ = functions_table(module)
+    if function not in (table or {}):
+        pytest.skip(f"{function} 미지원")
+    config = {**sandbox_config(tmp_path), "working_dir": {"not": "a path"}, "server_executable": ["x"], "port": "nope"}
+    result = call(module, shared_libs, function, config, tmp_path)
+    assert isinstance(result.get("success"), bool), f"success가 bool이 아니다: {result}"
 
 
 @pytest.mark.parametrize("function", SAFE_FUNCTIONS)

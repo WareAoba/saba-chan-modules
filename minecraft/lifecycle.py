@@ -2337,26 +2337,6 @@ FUNCTIONS = {
 FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(json.dumps({"success": False,
-                           "message": "Usage: lifecycle.py <function>"}))
-        sys.exit(1)
-
-    function_name = sys.argv[1]
-
-    # Read config JSON from stdin (avoids command-line length limits
-    # and prevents sensitive data from appearing in process listings)
-    try:
-        config_str = sys.stdin.read()
-        config = json.loads(config_str) if config_str.strip() else {}
-    except json.JSONDecodeError:
-        print(json.dumps({"success": False, "message": "Invalid JSON config on stdin"}))
-        sys.exit(1)
-
-    fn = FUNCTIONS.get(function_name)
-    if fn:
-        result = fn(config)
-    else:
-        result = {"success": False, "message": f"Unknown function: {function_name}"}
-
-    print(json.dumps(result))
+    # 공용 진입점: 깨진 stdin·모르는 함수·함수 안의 예외도 JSON으로 답하고 종료 코드 0을 지킨다
+    from daemon_rcon import run_lifecycle
+    run_lifecycle(FUNCTIONS)

@@ -125,7 +125,7 @@ group = "saba-chan"
 name = "use_aikar_flags"
 type = "boolean"
 label = "Aikar's Flags"
-description = "Use recommended JVM flags for better GC performance"
+description = "Use the recommended Java options for smoother performance"
 default = false
 arg = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1"
 group = "saba-chan"
@@ -134,7 +134,7 @@ group = "saba-chan"
 name = "managed_start"
 type = "boolean"
 label = "Managed Start (Console)"
-description = "Start through saba-runner with a stdin/stdout console (RCON stays off in every mode). Disable to leave the server unmanaged: then saba-chan cannot send it commands."
+description = "Start the server through saba-runner so saba-chan can use its console. RCON stays off in every mode. If you turn this off, saba-chan cannot send commands to the server."
 default = true
 group = "saba-chan"
 
@@ -142,7 +142,7 @@ group = "saba-chan"
 name = "graceful_stop"
 type = "boolean"
 label = "Graceful Stop"
-description = "Send 'stop' command and wait for server to shut down gracefully. Disable for immediate force-kill."
+description = "Send the 'stop' command and wait for the server to save and shut down. If you turn this off, saba-chan ends the server process at once."
 default = true
 group = "saba-chan"
 
@@ -252,7 +252,7 @@ default = false
 name = "entity_broadcast_range_percentage"
 type = "number"
 label = "Entity Broadcast Range %"
-description = "Entity broadcast range as percentage of default (10-1000)"
+description = "Distance at which mobs and other entities are sent to players, as a percentage of the default (10-1000)"
 default = 100
 min = 10
 max = 1000
@@ -288,7 +288,7 @@ default = "survival"
 name = "generate_structures"
 type = "boolean"
 label = "Generate Structures"
-description = "Generate structures like villages, mineshafts, etc."
+description = "Generate structures such as villages and mineshafts"
 default = true
 
 [[settings.fields]]
@@ -341,7 +341,7 @@ default = "world"
 name = "level_seed"
 type = "text"
 label = "World Seed"
-description = "Seed for world generation (leave empty for random)"
+description = "Seed for world generation (leave blank for random)"
 default = ""
 
 [[settings.fields]]
@@ -402,7 +402,7 @@ max = 29999984
 name = "motd"
 type = "text"
 label = "MOTD"
-description = "Message displayed in the server list"
+description = "Message shown under the server name in the server list"
 default = "A Minecraft Server"
 
 [[settings.fields]]
@@ -419,7 +419,7 @@ group = "advanced"
 name = "online_mode"
 type = "boolean"
 label = "Online Mode"
-description = "Require Mojang authentication (disable for cracked clients)"
+description = "Only players with an authenticated Minecraft account can join (Mojang authentication). Disable for cracked clients"
 default = true
 
 [[settings.fields]]
@@ -614,7 +614,7 @@ group = "advanced"
 name = "server_ip"
 type = "text"
 label = "Server IP"
-description = "Bind to specific IP address (leave blank for all)"
+description = "IP address the server listens on (leave blank for all)"
 default = ""
 group = "advanced"
 
@@ -622,7 +622,7 @@ group = "advanced"
 name = "simulation_distance"
 type = "number"
 label = "Simulation Distance"
-description = "Maximum simulation distance in chunks"
+description = "Maximum distance in which mobs and crops are active (chunks). Higher values put more load on the server"
 default = 10
 min = 2
 max = 32
@@ -655,7 +655,7 @@ group = "advanced"
 name = "spawn_protection"
 type = "number"
 label = "Spawn Protection"
-description = "Radius of spawn protection (0 to disable)"
+description = "Radius around spawn where non-op players cannot break or place blocks (0 to disable)"
 default = 16
 min = 0
 max = 256
@@ -674,7 +674,7 @@ group = "advanced"
 name = "sync_chunk_writes"
 type = "boolean"
 label = "Sync Chunk Writes"
-description = "Enable synchronous chunk I/O"
+description = "Write chunk data to disk synchronously (more reliable, can be slower)"
 default = true
 group = "advanced"
 
@@ -708,7 +708,7 @@ group = "advanced"
 name = "view_distance"
 type = "number"
 label = "View Distance"
-description = "Maximum view distance in chunks"
+description = "Maximum distance players can see (chunks). Higher values put more load on the server"
 default = 10
 min = 2
 max = 32
@@ -730,7 +730,7 @@ hook = true
 name = "say"
 risk = "safe"
 label = "Send Chat Message"
-description = "Broadcast a message to the server"
+description = "Send a message to all players"
 method = "console"
 console_template = "say {message}"
 inputs = [

@@ -318,6 +318,11 @@ DEFAULT_INI_PROPERTIES = {
 #                    INI File Manager
 # ═══════════════════════════════════════════════════════════
 
+def _server_name(config):
+    """서버 이름 (-servername). 칸을 비우면 PZ 기본값 servertest"""
+    return str(config.get("server_name") or "servertest")
+
+
 def _cache_dir(config):
     """인스턴스 데이터 폴더 설정 (자리표시자가 남아 있으면 없는 것으로 본다)"""
     cache_dir = str(config.get("cache_dir") or "")
@@ -378,7 +383,7 @@ class IniManager:
     @staticmethod
     def get_ini_path(config):
         """Determine the path to {servername}.ini."""
-        server_name = config.get("server_name", "servertest")
+        server_name = _server_name(config)
         # 예전 인스턴스: config_dir 바로 아래에 ini가 있다 (cache_dir이 있으면 그쪽이 우선)
         layout = _legacy_layout(config)
         if layout:
@@ -932,7 +937,7 @@ def validate(config):
 def _has_server_db(config):
     """이 서버 이름의 계정 DB(<데이터 폴더>/db/<이름>.db)에 계정이 있는가. 있으면 관리자 계정이 이미 만들어졌다.
     빈 파일·깨진 파일·계정 없는 DB(첫 실행이 비밀번호 전에 멈춘 경우)는 없는 것으로 본다"""
-    server_name = config.get("server_name", "servertest")
+    server_name = _server_name(config)
     path = os.path.join(_zomboid_home(config), "db", f"{server_name}.db")
     if not os.path.isfile(path) or os.path.getsize(path) == 0:
         return False
@@ -963,7 +968,7 @@ def get_launch_command(config):
         ram_gb = int(ram_gb)
     except (ValueError, TypeError):
         ram_gb = 4
-    server_name = config.get("server_name", "servertest")
+    server_name = _server_name(config)
     preview = bool(config.get("preview"))  # 미리보기는 파일·폴더를 만들거나 고치지 않는다
     if not preview:
         _enforce_rcon_policy(IniManager.get_ini_path(config))
@@ -1292,7 +1297,7 @@ def command(config):
 def diagnose_log(config):
     """Analyze server log for known error patterns."""
     working_dir = config.get("working_dir", "")
-    server_name = config.get("server_name", "servertest")
+    server_name = _server_name(config)
     
     # PZ console log locations
     log_paths = []
@@ -1496,9 +1501,12 @@ def reset_server(config):
     Deletes: <data folder>/Saves/Multiplayer/{servername}/
     Keeps: <data folder>/Server/{servername}.ini and .lua files
     """
-    server_name = config.get("server_name", "servertest")
-    
-    saves_dir = os.path.join(_zomboid_home(config), "Saves", "Multiplayer", server_name)
+    server_name = _server_name(config)
+    multiplayer = os.path.join(_zomboid_home(config), "Saves", "Multiplayer")
+    saves_dir = os.path.join(multiplayer, server_name)
+    # 이 서버의 월드 폴더 하나만 지운다 (이름에 구분자·'..'·드라이브(C:)가 있거나, Windows가 잘라 내는 끝 공백·점이 있으면 다른 서버의 월드까지 지울 수 있다)
+    if server_name in (".", "..") or any(sep in server_name for sep in ("/", "\\", ":")) or server_name[-1] in " ." or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
+        return {"success": False, "message": i18n.t("errors.invalid_server_name", name=server_name)}
     
     deleted = []
     errors = []
@@ -1556,7 +1564,7 @@ def _server_config_files(server_dir, server_name):
 def backup_paths(config):
     """백업할 세이브 위치 (데몬 `[backup] hook`): 이 서버 이름의 월드, 플레이어 DB, 서버 설정 파일.
     Server/ 폴더째 넣으면 다른 서버 이름의 설정까지 들어가므로 이 서버 것만 고른다"""
-    server_name = config.get("server_name") or "servertest"
+    server_name = _server_name(config)
     home = _zomboid_home(config)
     layout = _legacy_layout(config)
     server_dir = layout[1] if layout else os.path.join(home, "Server")

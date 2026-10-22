@@ -148,6 +148,7 @@
     "failed_to_kill": "终止进程失败：{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
     "server_reset_partial": "部分项目无法删除：{{errors}}",
+    "invalid_server_name": "无法使用此服务器名称：{{name}}。请使用不含文件夹分隔符（/ \\）、“:”或“..”且不以空格或句点结尾的名称",
     "extension_not_enabled": "SteamCMD 扩展未启用。请先在设置 → 扩展中启用。",
     "detect": {
       "out_of_memory": "服务器内存不足 (OutOfMemoryError)",

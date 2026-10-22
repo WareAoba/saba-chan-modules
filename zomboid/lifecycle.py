@@ -35,7 +35,7 @@ if _root_dir not in sys.path:
 
 from i18n import I18n
 
-from daemon_rcon import daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
+from daemon_rcon import atomic_write, daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
 
 i18n = I18n(MODULE_DIR)
 
@@ -471,13 +471,10 @@ class IniManager:
             except UnicodeEncodeError:
                 # 원래 인코딩에 없는 글자를 새로 넣었다: UTF-8로 바꿔 쓴다
                 data = text.encode("utf-8")
-            with open(ini_path, 'wb') as f:
-                f.write(data)
+            atomic_write(ini_path, data)
         else:
             # Create new file
-            with open(ini_path, 'w', encoding='utf-8') as f:
-                for key, value in properties.items():
-                    f.write(f"{key}={value}\n")
+            atomic_write(ini_path, "".join(f"{key}={value}\n" for key, value in properties.items()).encode("utf-8"))
 
     @staticmethod
     def update(ini_path, updates):

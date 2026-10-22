@@ -1414,12 +1414,41 @@ _RESET_FILES = (
 _RESET_DIRS = ("logs", "crash-reports", "plugins", "mods", "config", "cache", "debug")
 
 
-def _reset_world_name(config, props):
-    """지울 월드 폴더 이름 (server.properties level-name). 서버 폴더 바로 아래를 가리키지 않으면 None"""
-    name = props.get("level-name") or config.get("level_name") or "world"
-    if name in (".", "..") or any(sep in name for sep in ("/", "\\", ":")) or name[-1] in " .":
+# 초기화가 지우지 않는 것: 서버를 띄우는 파일·폴더(.jar도)와 인스턴스 폴더의 데몬 파일
+_RESET_KEEP = {
+    "eula.txt", "user_jvm_args.txt", "run.bat", "run.sh",
+    "fabric-server-launcher.properties", "quilt-server-launcher.properties",
+    "java", "libraries", "versions", ".fabric", ".quilt",
+    "instance.json", "settings.json", "settings.json.tmp", "managed.pid", "run", "backups", "rcon.json", "rcon.json.tmp",
+}
+
+
+def _unescape_property(value):
+    """Java .properties 값의 이스케이프를 푼다 (\\uXXXX, \\:, \\= 등)"""
+    def repl(m):
+        s = m.group(1)
+        if len(s) == 5:
+            return chr(int(s[1:], 16))
+        return {"t": "\t", "n": "\n", "r": "\r", "f": "\f"}.get(s, s)
+    return re.sub(r"\\(u[0-9a-fA-F]{4}|.)", repl, value)
+
+
+def _reset_world_paths(config, props, working_path, keep):
+    """지울 월드 폴더(서버 폴더 기준 상대 경로)와 다른 차원 폴더. level-name이 폴더 안을 가리키지 않거나
+    남길 항목과 겹치면 None"""
+    name = _unescape_property(props.get("level-name", "")) or str(config.get("level_name") or "") or "world"
+    parts = re.split(r"[\\/]", name)
+    if os.path.isabs(name) or any(p in ("", ".", "..") or ":" in p or p[-1] in " ." for p in parts):
         return None
-    return name
+    if parts[0].casefold() in keep or parts[0].casefold().endswith(".jar"):
+        return None
+    base = working_path.resolve()
+    world = "/".join(parts)
+    paths = [world, f"{world}_nether", f"{world}_the_end"]
+    for rel in paths:
+        if base not in (working_path / rel).resolve().parents:
+            return None
+    return paths
 
 
 def reset_server(config):
@@ -1442,13 +1471,19 @@ def reset_server(config):
     if not any((working_path / name).is_file() for name in ("server.properties", "eula.txt")):
         return {"success": False, "message": i18n.t("errors.not_a_server_folder", path=str(working_path))}
 
+    keep = set(_RESET_KEEP)
     targets = list(_RESET_FILES) + list(_RESET_DIRS)
-    world = _reset_world_name(config, ServerPropertiesManager(working_dir).read())
-    if world:
-        targets += [world, f"{world}_nether", f"{world}_the_end"]
     # 인스턴스 폴더에 서버를 두면 logs/는 데몬 로그와 같은 폴더다
     if (working_path / "instance.json").is_file():
+        keep.add("logs")
         targets.remove("logs")
+    # 월드를 못 찾았는데 나머지만 지우고 성공이라 하면 다음 시작에 옛 월드가 그대로 뜬다
+    props = ServerPropertiesManager(working_dir).read()
+    worlds = _reset_world_paths(config, props, working_path, keep)
+    if worlds is None:
+        name = props.get("level-name") or config.get("level_name") or ""
+        return {"success": False, "message": i18n.t("errors.unsafe_world_name", name=str(name))}
+    targets += worlds
 
     deleted = []
     errors = []
@@ -1462,9 +1497,9 @@ def reset_server(config):
                 shutil.rmtree(item)
             else:
                 item.unlink()
-            deleted.append(item.name)
+            deleted.append(name)
         except OSError as e:
-            errors.append(f"{item.name}: {e}")
+            errors.append(f"{name}: {e}")
 
     success = len(errors) == 0
     msg_parts = []

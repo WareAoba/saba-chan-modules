@@ -173,6 +173,7 @@
     "daemon_error": "守護程序錯誤：{{error}}",
     "no_working_dir": "未設定工作目錄。請為此實例設定工作目錄。",
     "not_a_server_folder": "此資料夾看起來不是 Minecraft 伺服器資料夾(沒有 server.properties 或 eula.txt),因此未刪除任何內容:{{path}}",
+    "unsafe_world_name": "世界名稱(level-name)「{{name}}」沒有指向伺服器資料夾內的世界資料夾,或與需要保留的項目同名,因此未刪除任何內容。請修正 server.properties 中的 level-name 後再試一次。",
     "no_settings": "未提供設定",
     "properties_write_failed": "寫入server.properties失敗",
     "eula_write_failed": "寫入eula.txt失敗",
@@ -264,7 +265,7 @@
   },
   "reset": {
     "label": "重設伺服器",
-    "description": "刪除伺服器產生的世界、設定、外掛和記錄。伺服器 JAR、eula.txt 以及資料夾中的其他檔案會保留。"
+    "description": "刪除伺服器產生的世界、設定、外掛、模組(含模組 JAR)、config 和記錄。伺服器 JAR、eula.txt、附帶的 Java 以及資料夾中的其他檔案會保留。伺服器位於實例資料夾時,記錄也會保留。"
   },
   "agreements": {
     "eula": "Minecraft 終端使用者授權合約 (EULA)"

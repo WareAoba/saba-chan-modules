@@ -148,7 +148,7 @@
     "properties_write_failed": "Failed to write configuration: {{error}}",
     "failed_to_kill": "Failed to kill process: {{error}}",
     "server_reset_partial": "Some items could not be deleted: {{errors}}",
-    "invalid_server_name": "Dieser Servername kann nicht verwendet werden: {{name}}. Verwende einen Namen ohne Ordnertrennzeichen oder '..'",
+    "invalid_server_name": "Dieser Servername kann nicht verwendet werden: {{name}}. Verwende einen Namen ohne Ordnertrennzeichen (/ \\), ':' oder '..', der nicht mit Leerzeichen oder Punkt endet",
     "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
     "detect": {
       "out_of_memory": "Server ran out of memory (OutOfMemoryError)",

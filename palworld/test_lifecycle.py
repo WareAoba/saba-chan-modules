@@ -450,30 +450,49 @@ def test_player_count_names_the_players_from_rest():
         assert lifecycle.player_count({"players_detail": True}) == {"success": True, "online": 0, "max": 32, "players": []}
     client.players.assert_not_called()
 
-def test_rest_client_uses_the_configured_host():
+def _daemon_rest_response(response, method, endpoint, body=None):
+    return {"success": True, "data": {
+        "status": 200, "url": f"http://127.0.0.1:8212{endpoint}",
+        "method": method, "body": body, "response": response,
+        "response_text": json.dumps(response),
+    }}
+
+
+def test_rest_client_leaves_host_and_credentials_to_the_daemon(monkeypatch):
     from palworld import lifecycle
-    with mock.patch.object(lifecycle, "_read_admin_password_from_ini", return_value="pw"):
-        client = lifecycle._rest_client({"rest_host": "10.0.0.5", "rest_port": 8300})
-    assert client.base_url == "http://10.0.0.5:8300/v1/api"
+    rest = mock.Mock(return_value=_daemon_rest_response({"name": "Pal"}, "GET", "/v1/api/info"))
+    monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
+    with mock.patch.object(lifecycle, "_read_admin_password_from_ini", side_effect=AssertionError("로컬 자격증명 조회")):
+        client = lifecycle._rest_client({"instance_id": "i1", "rest_host": "10.0.0.5", "rest_port": 8300})
+        assert client.info() == {"name": "Pal"}
+    rest.assert_called_once_with("i1", "GET", "/v1/api/info", body=None, timeout=5)
 
 
 def test_a_sandboxed_run_reaches_its_rest_api_through_the_daemon(monkeypatch, tmp_path):
-    """격리 실행(미확인 모듈)은 127.0.0.1에 닿지 못해 접속자 질의와 REST 정지가 늘 시간 초과였다.
-    SABA_LOOPBACK_DIR이 있으면 REST 요청을 데몬 중계(loopback_http)로 보낸다"""
+    """HOST 문맥에서는 로컬 비밀번호 없이 접속자 조회와 정지를 데몬에 맡긴다."""
     from palworld import lifecycle
+    import daemon_rcon
     calls = []
 
-    def relay(port, method, path, *, headers=None, body=None, timeout=5):
-        calls.append((port, method, path, headers.get("Authorization")))
-        if path.endswith("/players"):
-            return 200, b'{"players": [{"name": "Pal", "accountName": "acc", "ip": "10.0.0.5"}]}'
-        return 200, b'{"currentplayernum": 2, "maxplayernum": 32}'
-    monkeypatch.setenv("SABA_LOOPBACK_DIR", str(tmp_path))
-    monkeypatch.setattr(lifecycle, "loopback_http", relay)
-    monkeypatch.setattr(lifecycle.urllib.request, "urlopen", lambda *a, **k: pytest.fail("a direct connection was tried"))
-    with mock.patch.object(lifecycle, "_read_admin_password_from_ini", return_value="pw"):
-        assert lifecycle.player_count({"rest_port": 8242, "players_detail": True}) == {"success": True, "online": 2, "max": 32, "players": [{"name": "Pal"}]}
-    assert calls == [(8242, "GET", "/v1/api/metrics", "Basic YWRtaW46cHc="), (8242, "GET", "/v1/api/players", "Basic YWRtaW46cHc=")]
+    def host(op, args, timeout):
+        calls.append((op, args))
+        if args["path"].endswith("/players"):
+            data = {"players": [{"name": "Pal", "accountName": "acc", "ip": "10.0.0.5"}]}
+        else:
+            data = {"currentplayernum": 2, "maxplayernum": 32}
+        return _daemon_rest_response(data, args["method"], args["path"], args.get("body"))
+    monkeypatch.setenv("SABA_HOST_DIR", str(tmp_path))
+    monkeypatch.setattr(daemon_rcon, "_host_request", host)
+    with mock.patch.object(lifecycle, "_read_admin_password_from_ini", return_value=None):
+        assert lifecycle.player_count({"players_detail": True}) == {"success": True, "online": 2, "max": 32, "players": [{"name": "Pal"}]}
+        assert lifecycle.stop({"pid": 4321, "managed": True})["success"] is True
+    assert [(op, args["method"], args["path"]) for op, args in calls] == [
+        ("instance.rest", "GET", "/v1/api/metrics"),
+        ("instance.rest", "GET", "/v1/api/players"),
+        ("instance.rest", "POST", "/v1/api/save"),
+        ("instance.rest", "POST", "/v1/api/shutdown"),
+    ]
+    assert calls[2][1]["body"] == {}
 
 
 def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypatch):
@@ -610,3 +629,118 @@ def test_get_launch_command_refuses_to_start_when_the_rest_policy_cannot_be_save
     # 키가 locale에 없으면 i18n.t가 키를 그대로 돌려주므로 실제 문구인지도 본다
     assert result["message"] == lifecycle.i18n.t("errors.rest_policy_write_failed") != "errors.rest_policy_write_failed"
     assert "program" not in result
+
+
+@pytest.mark.parametrize("command,args,method,endpoint,body", [
+    ("info", {}, "GET", "/v1/api/info", None),
+    ("players", {}, "GET", "/v1/api/players", None),
+    ("metrics", {}, "GET", "/v1/api/metrics", None),
+    ("settings", {}, "GET", "/v1/api/settings", None),
+    ("save", {}, "POST", "/v1/api/save", {}),
+    ("announce", {"message": "공지"}, "POST", "/v1/api/announce", {"message": "공지"}),
+    ("shutdown", {"waittime": 1, "message": "종료"}, "POST", "/v1/api/shutdown", {"waittime": 1, "message": "종료"}),
+    ("kick", {"userid": "steam_1", "message": "추방"}, "POST", "/v1/api/kick", {"userid": "steam_1", "message": "추방"}),
+    ("ban", {"userid": "steam_1", "message": "차단"}, "POST", "/v1/api/ban", {"userid": "steam_1", "message": "차단"}),
+    ("unban", {"userid": "steam_1"}, "POST", "/v1/api/unban", {"userid": "steam_1"}),
+])
+def test_rest_commands_keep_method_and_endpoint_at_the_sdk_boundary(monkeypatch, command, args, method, endpoint, body):
+    from palworld import lifecycle
+    monkeypatch.setattr(lifecycle, "_urlopen", mock.Mock(side_effect=AssertionError("직접 REST 호출")), raising=False)
+    reply = _daemon_rest_response({"ok": True}, method, endpoint, body)
+    rest = mock.Mock(return_value=reply)
+    monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
+    result = lifecycle.command({"instance_id": "i1", "command": command, "args": args})
+    assert result["success"] is True, result
+    assert result["data"] == reply["data"]
+    rest.assert_called_once_with("i1", method, endpoint, body=body, timeout=5)
+
+
+def test_nickname_resolution_uses_the_sdk_player_list(monkeypatch):
+    from palworld import lifecycle
+    monkeypatch.setattr(lifecycle, "_urlopen", mock.Mock(side_effect=AssertionError("직접 REST 호출")), raising=False)
+    rest = mock.Mock(return_value=_daemon_rest_response({"players": [{"name": "Pal", "userId": "steam_1"}]}, "GET", "/v1/api/players"))
+    monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
+    assert lifecycle.resolve_player_id("i1", "Pal", {}) == (True, "steam_1")
+    rest.assert_called_once_with("i1", "GET", "/v1/api/players", body=None, timeout=5)
+
+
+def test_daemon_rest_http_fallback_keeps_endpoint_and_empty_post_body(monkeypatch):
+    from palworld import lifecycle
+    import daemon_rcon
+    monkeypatch.delenv("SABA_HOST_DIR", raising=False)
+    post = mock.Mock(return_value={"success": True, "data": {}})
+    monkeypatch.setattr(daemon_rcon, "daemon_post", post)
+    if hasattr(lifecycle, "daemon_post"):
+        monkeypatch.setattr(lifecycle, "daemon_post", post)
+    result = lifecycle.execute_rest_via_daemon("i1", "/v1/api/save", {}, "save")
+    assert result["success"] is True
+    post.assert_called_once_with("/api/instance/i1/rest", {"method": "POST", "endpoint": "/v1/api/save", "body": {}}, timeout=5)
+
+
+def test_rest_failure_keeps_the_daemon_error_code(monkeypatch):
+    from palworld import lifecycle
+    error = ConnectionError("요청 거부")
+    error.error_code = "no_instance"
+    monkeypatch.setattr(lifecycle, "daemon_rest", mock.Mock(side_effect=error), raising=False)
+    if hasattr(lifecycle, "daemon_post"):
+        monkeypatch.setattr(lifecycle, "daemon_post", mock.Mock(side_effect=AssertionError("옛 데몬 호출")))
+    result = lifecycle.execute_rest_via_daemon("i1", "/v1/api/save", {}, "save")
+    assert result["success"] is False
+    assert result["error_code"] == "no_instance"
+
+
+@pytest.mark.parametrize("failure", [False, OSError("쓰기 거부")])
+def test_first_install_fails_when_the_chosen_settings_cannot_be_written(tmp_path, monkeypatch, failure):
+    from palworld import lifecycle
+    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
+    with mock.patch("extensions.steamcmd.SteamCMD") as steam, \
+         mock.patch.object(lifecycle, "_write_option_settings", side_effect=failure if isinstance(failure, Exception) else None, return_value=failure):
+        steam.return_value.install.return_value = {"success": True}
+        result = lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": {"server_password": "private"}})
+    assert result["success"] is False, result
+    assert result["error_code"] == "settings_write_failed"
+    assert result["message"] == lifecycle.i18n.t("errors.settings_write_failed")
+    assert "executable_path" not in result
+
+
+@pytest.mark.parametrize("failure", [False, OSError("쓰기 거부")])
+def test_configure_reports_the_settings_write_failure_code(tmp_path, failure):
+    from palworld import lifecycle
+    with mock.patch.object(lifecycle, "_parse_option_settings", return_value={}), \
+         mock.patch.object(lifecycle, "_write_option_settings", side_effect=failure if isinstance(failure, Exception) else None, return_value=failure):
+        result = lifecycle.configure({"working_dir": str(tmp_path), "settings": {"server_name": "Pal"}})
+    assert result["success"] is False
+    assert result["error_code"] == "settings_write_failed"
+
+
+def test_backup_rejects_a_name_outside_the_save_root(tmp_path, monkeypatch):
+    from daemon_rcon import PathOutside
+    from palworld import lifecycle
+    monkeypatch.setattr(lifecycle, "_entries", lambda path: ["../outside"])
+    with pytest.raises(PathOutside):
+        lifecycle.backup_paths({"working_dir": str(tmp_path)})
+
+
+@pytest.mark.parametrize("function", ["get_credentials", "stop", "install_server", "command"])
+def test_path_boundary_errors_reach_the_shared_runner(tmp_path, monkeypatch, function):
+    from daemon_rcon import PathOutside
+    from palworld import lifecycle
+    if function == "install_server":
+        monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
+        with mock.patch("extensions.steamcmd.SteamCMD") as steam, \
+             mock.patch.object(lifecycle, "_write_option_settings", side_effect=PathOutside(tmp_path / "outside")):
+            steam.return_value.install.return_value = {"success": True}
+            with pytest.raises(PathOutside):
+                lifecycle.install_server({"install_dir": str(tmp_path)})
+    elif function == "command":
+        with mock.patch.object(lifecycle, "execute_command_via_rest", side_effect=PathOutside(tmp_path / "outside")):
+            with pytest.raises(PathOutside):
+                lifecycle.command({"command": "info", "instance_id": "i1"})
+    elif function == "stop":
+        with mock.patch.object(lifecycle, "_rest_shutdown", side_effect=PathOutside(tmp_path / "outside")):
+            with pytest.raises(PathOutside):
+                lifecycle.stop({"pid": 4321, "instance_id": "i1"})
+    else:
+        with mock.patch.object(lifecycle, "_get_settings_ini_path", side_effect=PathOutside(tmp_path / "outside")):
+            with pytest.raises(PathOutside):
+                getattr(lifecycle, function)({"pid": 4321, "instance_id": "i1"})

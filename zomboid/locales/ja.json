@@ -4,6 +4,7 @@
     "description": "Project Zomboid 専用サーバー管理モジュール（完全なライフサイクル制御）"
   },
   "settings": {
+    "data_home": { "label": "既存のデータフォルダー", "description": "既存のサーバー構成から検出したデータフォルダーです。現在のINIフォルダーを維持します。" },
     "cache_dir": { "label": "データフォルダー", "description": "このサーバーの設定・セーブ・ログを置くフォルダー (-cachedir)。空欄なら ~/Zomboid" },
     "ram": { "label": "メモリ (RAM)", "description": "最大メモリ割り当て量 (GB)" },
     "server_name": { "label": "サーバープロファイル名", "description": "サーバープロファイル名（INIファイル名を決定）" },
@@ -130,6 +131,7 @@
     "quit": { "label": "サーバーシャットダウン", "description": "保存して安全にシャットダウン" }
   },
   "errors": {
+    "settings_write_failed": "サーバーファイルはインストールされましたが、選択した設定を保存できませんでした: {{error}}",
     "player_not_found": "プレイヤーが見つかりません。ユーザー名を確認してください。",
     "connection_refused": "サーバーに接続できません。サーバーが起動しているか、ポートが正しいか確認してください。",
     "timeout": "サーバーの応答がタイムアウトしました。サーバーの状態を確認してください。",

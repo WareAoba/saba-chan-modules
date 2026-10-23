@@ -4,6 +4,7 @@
     "description": "Project Zomboid Dedicated-Server-Verwaltungsmodul mit vollständiger Lebenszyklussteuerung"
   },
   "settings": {
+    "data_home": { "label": "Bisheriger Datenordner", "description": "Aus der bestehenden Serverstruktur erkannter Datenordner. Der aktuelle INI-Ordner bleibt erhalten." },
     "cache_dir": { "label": "Datenordner", "description": "Ordner für Einstellungen, Spielstände und Logs dieses Servers (-cachedir). Leer = ~/Zomboid" },
     "ram": { "label": "Speicher (RAM)", "description": "Maximale Speicherzuweisung in GB" },
     "server_name": { "label": "Serverprofil-Name", "description": "Name des Serverprofils (bestimmt INI-Dateiname)" },
@@ -130,6 +131,7 @@
     }
   },
   "errors": {
+    "settings_write_failed": "Die Serverdateien wurden installiert, aber die gewählten Einstellungen konnten nicht gespeichert werden: {{error}}",
     "player_not_found": "Spieler nicht gefunden. Bitte prüfe den Benutzernamen.",
     "connection_refused": "Keine Verbindung zum Server. Bitte prüfe, ob der Server läuft und der Port stimmt.",
     "timeout": "Zeitüberschreitung bei der Serverantwort. Bitte prüfe den Serverstatus.",

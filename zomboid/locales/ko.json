@@ -4,6 +4,7 @@
     "description": "프로젝트 좀보이드 전용 서버 관리 모듈 (전체 수명주기 제어)"
   },
   "settings": {
+    "data_home": { "label": "기존 데이터 폴더", "description": "기존 서버 배치에서 찾은 데이터 폴더입니다. 현재 INI 폴더를 유지합니다." },
     "cache_dir": { "label": "데이터 폴더", "description": "이 서버의 설정, 세이브, 로그를 두는 폴더 (-cachedir). 비우면 ~/Zomboid" },
     "ram": { "label": "메모리 (RAM)", "description": "최대 메모리 할당량 (GB 단위)" },
     "server_name": { "label": "서버 프로필 이름", "description": "서버 프로필 이름 (INI 파일 이름 결정)" },
@@ -165,6 +166,7 @@
     "quit": { "label": "서버 종료", "description": "저장 후 서버를 안전하게 종료합니다" }
   },
   "errors": {
+    "settings_write_failed": "서버 파일을 설치했지만 선택한 설정을 저장하지 못했습니다: {{error}}",
     "backup_paths_failed": "백업할 세이브 폴더를 읽지 못했습니다: {{error}}",
     "graceful_stop_unavailable": "서버에 저장 후 종료를 요청할 방법이 없습니다(콘솔·REST 없음). 서버를 끄지 않았습니다. 저장하지 않은 진행이 사라져도 괜찮을 때만 강제 종료하세요.",
     "player_not_found": "플레이어를 찾을 수 없습니다. 사용자 이름을 확인해주세요.",

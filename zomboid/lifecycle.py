@@ -35,7 +35,7 @@ if _root_dir not in sys.path:
 
 from i18n import I18n
 
-from daemon_rcon import daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
+from daemon_rcon import PathOutside, safe_join, daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
 
 i18n = I18n(MODULE_DIR)
 
@@ -368,6 +368,9 @@ def _zomboid_home(config):
     layout = _legacy_layout(config)
     if layout:
         return layout[0]
+    data_home = str(config.get("data_home") or "")
+    if data_home and "{" not in data_home:
+        return data_home
     if sys.platform == "win32":
         return os.path.join(os.environ.get("USERPROFILE", ""), "Zomboid")
     return os.path.join(os.path.expanduser("~"), "Zomboid")
@@ -387,9 +390,10 @@ class IniManager:
         # 예전 인스턴스: config_dir 바로 아래에 ini가 있다 (cache_dir이 있으면 그쪽이 우선)
         layout = _legacy_layout(config)
         if layout:
-            return os.path.join(layout[1], f"{server_name}.ini")
-        zomboid_dir = os.path.join(_zomboid_home(config), "Server")
-        return os.path.join(zomboid_dir, f"{server_name}.ini")
+            if layout[0] != layout[1]:
+                return str(safe_join(layout[0], os.path.basename(layout[1]), f"{server_name}.ini"))
+            return str(safe_join(layout[0], f"{server_name}.ini"))
+        return str(safe_join(_zomboid_home(config), "Server", f"{server_name}.ini"))
 
     @staticmethod
     def encoding_of(ini_path):
@@ -625,6 +629,8 @@ def _parse_launch_script(script_path):
     try:
         with open(script_path, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
+    except PathOutside:
+        raise
     except Exception:
         return None
 
@@ -918,6 +924,8 @@ def validate(config):
         sock.settimeout(1)
         result = sock.connect_ex(("127.0.0.1", port))
         sock.close()
+    except PathOutside:
+        raise
     except Exception:
         pass  # UDP port check is unreliable; skip
     
@@ -938,7 +946,7 @@ def _has_server_db(config):
     """이 서버 이름의 계정 DB(<데이터 폴더>/db/<이름>.db)에 계정이 있는가. 있으면 관리자 계정이 이미 만들어졌다.
     빈 파일·깨진 파일·계정 없는 DB(첫 실행이 비밀번호 전에 멈춘 경우)는 없는 것으로 본다"""
     server_name = _server_name(config)
-    path = os.path.join(_zomboid_home(config), "db", f"{server_name}.db")
+    path = str(safe_join(_zomboid_home(config), "db", f"{server_name}.db"))
     if not os.path.isfile(path) or os.path.getsize(path) == 0:
         return False
     try:
@@ -1069,7 +1077,7 @@ def get_launch_command(config):
         args.extend(["-adminpassword", admin_password])
     
     # 인스턴스마다 따로 둔 데이터 폴더 (없으면 PZ 기본 ~/Zomboid)
-    if _cache_dir(config) or _legacy_config_dir(config):
+    if _cache_dir(config) or _legacy_config_dir(config) or config.get("data_home"):
         home = _zomboid_home(config)
         if not preview:
             os.makedirs(home, exist_ok=True)
@@ -1147,6 +1155,8 @@ def _console_quit(instance_id):
         time.sleep(5)
         daemon_stdin_command(instance_id, "quit")
         return True
+    except PathOutside:
+        raise
     except Exception as e:
         print(f"[Zomboid] console stop unavailable: {e}", file=sys.stderr)
         return False
@@ -1222,6 +1232,8 @@ def configure(config):
             "updated_keys": list(updates.keys()),
             "message": i18n.t("messages.properties_updated"),
         }
+    except PathOutside:
+        raise
     except Exception as e:
         return {
             "success": False,
@@ -1240,11 +1252,12 @@ def import_settings(config):
 
     raw_props = result.get("properties", {})
     if not raw_props:
-        return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
+        return {"success": True, "settings": {"data_home": _zomboid_home(config)}, "message": i18n.t("messages.no_properties_found")}
 
     from daemon_rcon import coerce_setting, load_setting_types
     types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
     settings = {key: coerce_setting(raw_value, types.get(key)) for key, raw_value in raw_props.items()}
+    settings["data_home"] = _zomboid_home(config)
 
     return {"success": True, "settings": settings}
 
@@ -1289,6 +1302,8 @@ def command(config):
         return {"success": False, "message": i18n.t("errors.server_not_running")}
     try:
         result = daemon_stdin_command(instance_id, actual_cmd)
+    except PathOutside:
+        raise
     except Exception as e:
         return {"success": False, "message": i18n.t("errors.command_send_failed", error=str(e))}
     return {"success": True, "message": i18n.t("messages.command_sent", command=actual_cmd), "data": result}
@@ -1380,12 +1395,16 @@ def install_server(config):
                 exe = os.path.join(install_dir, "start-server.sh")
             result["install_path"] = install_dir
             result["executable_path"] = exe if os.path.exists(exe) else ""
-            _write_initial_ini(config)
+            settings_error = _write_initial_ini(config)
+            if settings_error:
+                return settings_error
 
         return result
 
     except ImportError:
         print("[Zomboid] SteamCMD extension not available, trying raw SteamCMD", file=sys.stderr)
+    except PathOutside:
+        raise
     except Exception as e:
         print(f"[Zomboid] SteamCMD extension install failed: {e}", file=sys.stderr)
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
@@ -1425,7 +1444,9 @@ def install_server(config):
                 exe = os.path.join(install_dir, "StartServer64.bat")
             else:
                 exe = os.path.join(install_dir, "start-server.sh")
-            _write_initial_ini(config)
+            settings_error = _write_initial_ini(config)
+            if settings_error:
+                return settings_error
 
             return {
                 "success": True,
@@ -1440,6 +1461,8 @@ def install_server(config):
             }
     except subprocess.TimeoutExpired:
         return {"success": False, "message": i18n.t("errors.install_timeout")}
+    except PathOutside:
+        raise
     except Exception as e:
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
 
@@ -1456,8 +1479,10 @@ def _write_initial_ini(config):
         return
     try:
         IniManager.write(ini_path, updates)
+    except PathOutside:
+        raise
     except Exception as e:
-        print(f"[Zomboid] Provisioning: could not write {ini_path}: {e}", file=sys.stderr)
+        return {"success": False, "error_code": "settings_write_failed", "message": i18n.t("errors.settings_write_failed", error=str(e))}
 
 
 def _find_steamcmd():
@@ -1485,6 +1510,8 @@ def _find_steamcmd():
             )
             if result.returncode == 0:
                 return path
+        except PathOutside:
+            raise
         except Exception:
             pass
         
@@ -1507,6 +1534,7 @@ def reset_server(config):
     # 이 서버의 월드 폴더 하나만 지운다 (이름에 구분자·'..'·드라이브(C:)가 있거나, Windows가 잘라 내는 끝 공백·점이 있으면 다른 서버의 월드까지 지울 수 있다)
     if server_name in (".", "..") or any(sep in server_name for sep in ("/", "\\", ":")) or server_name[-1] in " ." or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
         return {"success": False, "message": i18n.t("errors.invalid_server_name", name=server_name)}
+    saves_dir = str(safe_join(_zomboid_home(config), "Saves", "Multiplayer", server_name))
     
     deleted = []
     errors = []
@@ -1524,6 +1552,8 @@ def reset_server(config):
         try:
             shutil.rmtree(saves_dir)
             deleted.append(saves_dir)
+        except PathOutside:
+            raise
         except Exception as e:
             errors.append(f"{saves_dir}: {e}")
     
@@ -1548,7 +1578,7 @@ def _server_config_files(server_dir, server_name):
     """Server/ 폴더에서 이 서버 이름의 파일: `<이름>.ini`와 `<이름>_<종류>.lua`(SandboxVars·spawnregions·spawnpoints).
     `<이름>_2.ini`나 `<이름>_2_SandboxVars.lua`는 다른 서버(`<이름>_2`) 것이다.
     정해진 파일은 지금 없어도 낸다: 데몬은 훅 경로 안만 복원하므로, 지워진 파일도 되살릴 수 있어야 한다"""
-    ini = os.path.join(server_dir, f"{server_name}.ini")
+    ini = str(safe_join(server_dir, f"{server_name}.ini"))
     prefix = f"{server_name}_"
     lua = {f"{prefix}{kind}.lua" for kind in _SERVER_LUA_KINDS}
     try:
@@ -1558,7 +1588,7 @@ def _server_config_files(server_dir, server_name):
     # 읽지 못하는 폴더(권한·I/O)는 OSError로 올린다: 설정 일부가 조용히 빠진 백업을 성공으로 남기지 않는다
     lua.update(n for n in names
                if n.startswith(prefix) and n.endswith(".lua") and "_" not in n[len(prefix):])
-    return [ini] + [os.path.join(server_dir, n) for n in sorted(lua)]
+    return [ini] + [str(safe_join(server_dir, n)) for n in sorted(lua)]
 
 
 def backup_paths(config):
@@ -1566,15 +1596,14 @@ def backup_paths(config):
     Server/ 폴더째 넣으면 다른 서버 이름의 설정까지 들어가므로 이 서버 것만 고른다"""
     server_name = _server_name(config)
     home = _zomboid_home(config)
-    layout = _legacy_layout(config)
-    server_dir = layout[1] if layout else os.path.join(home, "Server")
+    server_dir = os.path.dirname(IniManager.get_ini_path(config))
     try:
         config_files = _server_config_files(server_dir, server_name)
     except OSError as e:
         return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
     paths = [
-        os.path.join(home, "Saves", "Multiplayer", server_name),
-        os.path.join(home, "db", f"{server_name}.db"),
+        str(safe_join(home, "Saves", "Multiplayer", server_name)),
+        str(safe_join(home, "db", f"{server_name}.db")),
         *config_files,
     ]
     # 옛 백업은 Server/ 폴더를 통째로 담았다: 그 폴더를 복원 허용 범위로 알린다(백업 대상은 아니다, MA3)

@@ -4,6 +4,7 @@
     "description": "Project Zomboid 专用服务器管理模块，提供完整的生命周期管理"
   },
   "settings": {
+    "data_home": { "label": "现有数据文件夹", "description": "从现有服务器布局中检测到的数据文件夹。保留当前的INI文件夹。" },
     "cache_dir": { "label": "数据文件夹", "description": "此服务器存放设置、存档和日志的文件夹 (-cachedir)。留空则使用 ~/Zomboid" },
     "ram": { "label": "内存（RAM）", "description": "最大内存分配量（GB）" },
     "server_name": { "label": "配置文件名称", "description": "服务器配置文件名称（决定 INI 文件名）" },
@@ -130,6 +131,7 @@
     "quit": { "label": "关闭服务器", "description": "保存并安全关闭" }
   },
   "errors": {
+    "settings_write_failed": "服务器文件已安装，但无法保存所选设置：{{error}}",
     "player_not_found": "找不到玩家。请检查用户名。",
     "connection_refused": "无法连接到服务器。请确认服务器正在运行且端口正确。",
     "timeout": "服务器响应超时。请检查服务器状态。",

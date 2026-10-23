@@ -4,6 +4,7 @@
     "description": "Módulo de gerenciamento de servidor dedicado Project Zomboid com controle completo do ciclo de vida"
   },
   "settings": {
+    "data_home": { "label": "Pasta de dados existente", "description": "Pasta de dados detectada na estrutura existente do servidor. Mantém a pasta INI atual." },
     "cache_dir": { "label": "Pasta de dados", "description": "Pasta de configurações, saves e logs deste servidor (-cachedir). Vazio = ~/Zomboid" },
     "ram": { "label": "Memória (RAM)", "description": "Alocação máxima de memória em GB" },
     "server_name": { "label": "Nome do perfil", "description": "Nome do perfil do servidor" },
@@ -130,6 +131,7 @@
     }
   },
   "errors": {
+    "settings_write_failed": "Os arquivos do servidor foram instalados, mas não foi possível salvar as configurações escolhidas: {{error}}",
     "player_not_found": "Jogador não encontrado. Verifique o nome de usuário.",
     "connection_refused": "Não foi possível conectar ao servidor. Verifique se o servidor está em execução e se a porta está correta.",
     "timeout": "O servidor demorou demais para responder. Verifique o status do servidor.",

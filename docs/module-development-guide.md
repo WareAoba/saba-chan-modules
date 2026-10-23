@@ -1,6 +1,6 @@
 # 사바쨩 모듈 개발 가이드
 
-모듈은 게임 서버 하나를 사바쨩 데몬이 다룰 수 있게 해 주는 "설명서"다. 이 문서는 모듈을 **만드는 순서와 요령**을 다룬다. 키와 함수의 정확한 목록은 [module-spec.md](module-spec.md)가 기준이고, 여기서는 그 표를 되풀이하지 않는다.
+모듈은 게임 서버 하나를 사바쨩 데몬이 다룰 수 있게 해 주는 "설명서"다. 이 문서는 모듈을 **만드는 순서와 요령**을 다룬다. 키와 함수의 기준은 saba-chan의 [모듈 계약](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md)이다. 여기서는 그 표를 되풀이하지 않는다.
 
 참고할 실제 모듈:
 
@@ -31,7 +31,9 @@
 - 함수마다 새 Python 프로세스가 뜬다. 모듈은 상태를 메모리에 들고 있지 않는다. 필요한 값은 매번 config나 게임 설정 파일에서 읽는다.
 - 답은 늘 JSON 객체이고 `success: bool`을 넣는다. 실패해도 **종료 코드 0**으로 끝낸다(0이 아니면 데몬이 stdout을 버린다).
 - 로그는 `print(..., file=sys.stderr)`로만 쓴다. stdout에 찍으면 결과 JSON이 깨질 수 있다.
-- 데몬은 `PYTHONPATH`에 공용 폴더(`i18n.py`, `daemon_rcon.py`)와 익스텐션 폴더를 넣고, `SABA_IPC_URL`, `SABA_TOKEN_PATH`, `SABA_LANG`을 준다. 공용 파일을 모듈 폴더에 복사하지 않는다.
+- 데몬은 `PYTHONPATH`에 공용 폴더(`i18n.py`, `daemon_rcon.py`)와 익스텐션 폴더를 넣는다. `SABA_LANG`은 호출 언어다. 공용 파일을 모듈 폴더에 복사하지 않는다.
+- 0.1.10부터 모든 Python 호출에 `SABA_HOST_DIR`을 준다. SDK가 이 통로로 인스턴스의 stdin·REST 요청을 보낸다. 모듈은 HOST 파일이나 IPC 토큰을 직접 다루지 않는다. 기존 HTTP 연동용 `SABA_IPC_URL`·`SABA_TOKEN_PATH`는 호환용이며, 격리 실행에는 토큰 경로를 주지 않는다.
+- 결과 stdout의 상한은 4 MiB다. 일반 stderr는 마지막 200줄, 합계 64 KiB만 보존한다. 일반 호출은 최대 8개, `install_server`는 별도로 최대 2개가 동시에 실행된다. 기본 기한은 120초이고 설치는 1800초다. 자리 대기도 기한에 들지만 격리 실행 준비는 빠진다. 전체 규칙과 오류 필드는 [실행기 계약](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/01-daemon-core.md#71-srcpluginmodrs-python-모듈익스텐션-실행기-단발-프로세스)을 따른다.
 
 ### 서버 실행: managed가 기본
 
@@ -69,7 +71,7 @@
      locales/en.json   (선택, 화면 문구)
      icon.png          (선택)
    ```
-2. `__example/__example__module.toml`을 `module.toml`로, `__example/__example__lifecycle.py`를 `lifecycle.py`로 복사하고 필요 없는 부분을 지운다.
+2. `__example/__example__module.toml`을 `module.toml`로, `__example/__example__lifecycle.py`를 `lifecycle.py`로 복사한다. `__example/locales/`도 복사하고 필요 없는 부분을 지운다.
 3. 최소 `module.toml`:
    ```toml
    [module]
@@ -77,6 +79,9 @@
    name = "mygame"
    version = "0.1.0"
    entry = "lifecycle.py"
+
+   [module.dependencies]
+   saba-core = ">=0.1.2"
 
    [protocols]
    supported = ["stdin"]
@@ -111,7 +116,7 @@
    if __name__ == "__main__":
        run_lifecycle(FUNCTIONS)
    ```
-   `run_lifecycle()`이 stdin 읽기, 모르는 함수 답, 예외를 JSON으로 바꾸기, 종료 코드 0, 그리고 데몬이 지원 기능을 묻는 예약 함수 `functions`의 답을 처리한다. 진입점을 직접 쓰면 `functions`도 직접 답해야 한다(module-spec.md §3).
+   `run_lifecycle()`이 stdin 읽기, 모르는 함수 답, 예외를 JSON으로 바꾸기, 종료 코드 0, 그리고 데몬이 지원 기능을 묻는 예약 함수 `functions`의 답을 처리한다. 진입점을 직접 쓰면 `functions`도 직접 답해야 한다.
 5. 데몬 없이 돌려 본다.
    ```bash
    echo '{"server_executable": "C:/Games/MyGame/GameServer.exe", "port": 7777}' | python lifecycle.py get_launch_command
@@ -142,36 +147,59 @@ def validate(config):
 
 `severity: "critical"`이 하나라도 있으면 데몬이 서버를 켜지 않고 그 메시지를 보여 준다. `"warning"`은 표시만 한다.
 
-### stop: 정상 종료 → 기다림 → 강제 종료
+### stop: managed는 요청 뒤 반환
 
-콘솔이 있는 managed 서버는 데몬이 `stop_command`를 보내고 `[config] stop_timeout`(기본 30초)만큼 기다린 뒤 강제 종료한다. 모듈의 `stop`은 그 밖의 경우에 불리므로 이 순서를 지킨다.
+콘솔이 있는 managed 서버는 데몬이 `stop_command`를 보내고 기다린다. stdin이 없거나 REST로 정지하는 managed 서버는 모듈의 `stop`을 부른다. 이때 모듈은 저장·종료 요청을 보낸 뒤 바로 `success: true`로 답한다. 서버가 아직 살아 있어도 요청이 접수됐으면 성공이다. 종료 대기와 강제 종료는 데몬이 맡는다.
 
-1. `force`가 아니면 정상 종료를 요청한다: `daemon_stdin_command(instance_id, "stop")`로 콘솔에 종료 명령(REST 게임이면 REST 저장·종료), 콘솔이 없으면 POSIX에서 `SIGTERM`.
-2. 요청할 길이 하나도 없으면(콘솔도 REST도 없고 Windows라 SIGTERM도 없음) 서버를 끝내지 않고 `{"success": false, "error_code": "graceful_stop_unavailable", "message": <모듈 locales>}`로 답한다. 데몬은 서버를 그대로 두고 사용자에게 알리며, 사용자가 고르면 `force: true`로 다시 부른다. 저장 없이 죽이는 것은 사용자가 고른 강제 종료뿐이다.
-3. `wait_for_exit(pid, timeout=…)`으로 기다린다(실측한 저장 시간보다 넉넉히).
-4. 그래도 안 끝났거나 `force`면 `force_kill(pid)`.
+요청할 길이 없으면 서버를 끝내지 않고 `{"success": false, "error_code": "graceful_stop_unavailable", "message": <모듈 locales>}`로 답한다. 데몬은 기다리거나 강제 종료하지 않고 사용자에게 알린다. 사용자가 강제 종료를 고르면 데몬이 처리한다.
+
+`managed: false`일 때만 모듈이 정상 종료 요청, `wait_for_exit`, `force_kill` 순서를 맡는다. 콘솔·REST가 없으면 POSIX의 `SIGTERM`을 시도할 수 있다. 정상 종료를 요청할 길이 없으면 여기서도 `graceful_stop_unavailable`로 답한다. 대기 시간은 데몬이 준 `stop_timeout`을 쓴다. `stop_call_limit`은 함수 호출 전체의 제한이다. 이 키가 없는 옛 데몬에서는 호출이 120초 안에 끝나게 한다. `force: true`인 non-managed 정지는 바로 강제 종료한다.
 
 ```python
 from daemon_rcon import daemon_stdin_command, force_kill, wait_for_exit
 
 def stop(config):
     pid = config.get("pid")
+    managed = config.get("managed", False)
     if not pid:
         return {"success": False, "message": "No PID provided"}
-    if not config.get("force"):
+    if managed or not config.get("force"):
         try:
             daemon_stdin_command(config.get("instance_id"), "quit", timeout=5)
-        except Exception as e:  # 콘솔 없음, 데몬 없음 (POSIX면 여기서 SIGTERM을 시도한다)
+        except (ConnectionError, TimeoutError) as e:
             print(f"console stop unavailable: {e}", file=sys.stderr)
             return {"success": False, "error_code": "graceful_stop_unavailable",
                     "message": i18n.t("errors.graceful_stop_unavailable")}
-        if wait_for_exit(pid, timeout=30):
+        if managed:
+            return {"success": True, "message": i18n.t("messages.stop_requested")}
+        if wait_for_exit(pid, timeout=config.get("stop_timeout", 30)):
             return {"success": True, "message": "Stopped"}
     ok, error = force_kill(pid)
     return {"success": ok, "message": "Force killed" if ok else str(error)}
 ```
 
-프로세스 확인과 종료는 직접 만들지 말고 `is_process_alive`, `wait_for_exit`, `force_kill`을 쓴다. Windows에서 `os.kill(pid, 0)`은 프로세스를 끝내 버린다. 실행 파일 이름으로 프로세스를 찾아 죽이지 않는다: 같은 게임의 다른 인스턴스까지 끝난다. 데몬이 넘긴 `pid`만 다룬다. 실제 구현은 minecraft `stop()`(콘솔 `stop` → SIGTERM → 둘 다 없으면 `graceful_stop_unavailable` → 대기 → 강제 종료)을 본다.
+REST 게임은 예제의 콘솔 요청 대신 `daemon_rest(instance_id, method, path, body=...)`로 저장·종료를 요청한다. non-managed 프로세스 확인과 종료는 `is_process_alive`, `wait_for_exit`, `force_kill`을 쓴다. Windows에서 `os.kill(pid, 0)`은 프로세스를 끝내 버린다. 데몬이 넘긴 `pid`만 다루고 실행 파일 이름으로 프로세스를 찾아 죽이지 않는다.
+
+### 사용자 값으로 경로 만들기
+
+설정 이름이나 월드 이름을 경로에 붙일 때는 `safe_join`을 쓴다. 이름 조각마다 인자를 나눠 전달한다.
+
+```python
+from daemon_rcon import config_value, safe_join
+
+world_dir = safe_join(config["working_dir"], config_value(config, "world_name", "world"))
+```
+
+`safe_join(root, *parts)`는 루트 안의 실제 경로를 `Path`로 돌려준다. 절대 경로, 드라이브, `..`, 구분자가 든 이름 조각과 루트 밖으로 나가는 링크는 `PathOutside`다. 넓은 `except Exception`이 있으면 `PathOutside`도 import하고 그 앞에 `except PathOutside: raise`를 둔다. `run_lifecycle`이 이 예외를 `module_path_outside`와 `message`·`path`로 바꾼다. 결과를 JSON으로 바꿀 수 없으면 `module_bad_output`, 다른 함수 예외는 `module_exception`이다.
+
+서버 폴더 밖에 데이터를 두는 모듈은 데이터 루트를 선언한다. 경로 설정은 `type = "file"` 또는 `format = "path"`로 선언한다.
+
+```toml
+[extensions.saba-core]
+data_roots = ["{data_dir}", "{home}/MyGame"]
+```
+
+`{home}`은 데몬 사용자의 홈 폴더다. 설정 자리는 사용자가 직접 고른 값이나 마이그레이션에서 읽은 path형 값만 허용 루트가 된다. 모듈 기본값만으로 외부 폴더를 열지 않는다. 데이터 루트는 `{home}` 또는 path형 설정 자리로 시작해야 한다. `..`나 다른 절대 경로는 선언할 수 없다. 백업·복원·설치·마이그레이션의 반환 경로도 데몬이 실제 경로로 검사한다. `verified` 모듈도 같은 검사를 받는다. 세부 규칙은 [모듈 계약 §2.1](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md#21-실행-방식-dsrcpluginmodrs266-463)을 따른다.
 
 ### 설정 화면: configure / import_settings
 
@@ -213,6 +241,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
   - `install_server`는 config `install_dir`에 `server_executable`(받을 실행 파일 이름, 요청이 없으면 `[config] server_executable`)로 둔다. `get_installed_version`은 시작·점검과 같은 config(`server_executable` 전체 경로, `working_dir`)를 받는다.
 - `method = "steamcmd"` 같은 익스텐션 방식: 익스텐션이 설치를 맡고, 모듈은 `[install] requires_extensions`와 `[module.dependencies] ext-<id>`로 필요를 선언한다(zomboid, palworld).
 - 익스텐션은 `import extensions.<이름>`으로 쓰되 함수 안에서 import하고, 없으면 죽지 말고 `error_code: "extension_required"`, `missing_extensions: [...]`로 답한다(palworld `ExtensionMissing`).
+- 첫 설치에서 사용자가 고른 설정을 게임 파일에 쓰지 못하면 `success: false`, `error_code: "settings_write_failed"`, `message`로 답한다. 파일만 설치됐다고 성공으로 답하지 않는다.
 
 ### 크래시 판정, 백업, 공지
 
@@ -222,7 +251,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 
 ### 선택 기능: 조회, 접속자 수, 인스턴스별 명령, 약관, 프리셋, 권한
 
-키의 정확한 규칙은 module-spec.md에 있다. 여기서는 언제 쓰는지만 적는다.
+키의 정확한 규칙은 [모듈 계약](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md)에 있다. [module-spec.md](module-spec.md)는 저장소 안의 참조 안내다. 여기서는 언제 쓰는지만 적는다.
 
 - **설정 필드 선택 키**: 포트는 `port = true`(여러 인스턴스를 만들 때 데몬이 겹치지 않게 옮긴다). 서버를 만들 때 골라야 하는 값(서버 종류처럼 받을 파일이 달라지는 값)은 `install = true` + `type = "select"`. 실행 인자로 들어가는 값은 `arg`, 값 형식은 `format`/`pattern`(데몬이 저장 때 검사하므로 모듈이 다시 검사하지 않아도 된다). `type`은 `text` `number` `password` `boolean` `select` `file`만 쓴다.
 - **`[[queries]]`**: 접속자 목록처럼 읽기만 하는 조회. `function`이 `{"success": true, "data": ...}`를 돌려준다. 챗봇과 일반 사용자도 부르므로 아무것도 바꾸지 않는다.
@@ -236,14 +265,20 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 
 | 함수 | 용도 |
 |---|---|
-| `daemon_stdin_command(instance_id, line, timeout=10)` | 데몬이 관리하는 서버 콘솔에 한 줄 보내기 |
-| `daemon_post(path, payload, timeout=10)` | 그 밖의 데몬 API 호출 (토큰 자동) |
+| `daemon_stdin_command(instance_id, line, *, timeout=10)` | 데몬이 관리하는 서버 콘솔에 한 줄 보내기 |
+| `daemon_rest(instance_id, method, path, *, body=None, timeout=10)` | 데몬을 통해 게임 REST 요청 보내기 |
+| `daemon_post(path, payload, timeout=10)` | 기존 HTTP 연동용 데몬 API 호출 |
 | `is_process_alive(pid)`, `wait_for_exit(pid, timeout)`, `force_kill(pid, tree=True)` | PID 단위 프로세스 확인·대기·강제 종료 (Windows/POSIX 공용) |
 | `config_value(config, key, default)` | config 세 위치에서 설정 값 찾기 |
 | `load_setting_types(module_dir)`, `coerce_setting(value, type)` | 파일 값을 필드 타입으로 |
 | `run_lifecycle(FUNCTIONS)` | `python lifecycle.py <함수>` 진입점 |
+| `safe_join(root, *parts)`, `PathOutside` | 사용자 이름 조각을 루트 안 경로로 합치기·경로 위반 알리기 |
 
-콘솔 명령은 `daemon_stdin_command`, RCON만 받는 게임의 정지 명령은 `daemon_post(f"/api/instance/{instance_id}/rcon", {"command": ...})`를 쓴다(§1).
+콘솔 명령은 `daemon_stdin_command`, REST는 `daemon_rest`를 쓴다. `SABA_HOST_DIR`이 있으면 SDK가 HOST 통로를 쓰고, 없으면 HTTP API로 보낸다. HOST의 대상은 데몬이 정한 현재 인스턴스다. 모듈이 다른 `instance_id`를 넘겨도 대상을 바꾸지 못한다. 인스턴스 없는 호출은 `no_instance`로 실패한다. 요청 한도는 실행당 64건, 건당 30초, 보내기 64 KiB, 받기 1 MiB다. `LOOPBACK`과 요청 수를 함께 센다. HOST 실패는 `error_code` 속성이 있는 `ConnectionError`다.
+
+`daemon_rest`의 `path`는 게임 REST의 endpoint다. HTTP 호환 경로에서도 같은 endpoint로 전달된다. RCON만 받는 게임의 정지 명령은 기존 `daemon_post(f"/api/instance/{instance_id}/rcon", {"command": ...})`를 쓴다(§1).
+
+SDK를 import하면 `module.toml`의 `[module.dependencies]`에 최소 코어 버전을 선언한다. `daemon_rcon.py`의 `SINCE`에서 쓰는 이름 중 가장 높은 버전을 고른다. 예제의 기존 함수는 `>=0.1.2`다. `safe_join`, `PathOutside`, `daemon_rest`를 쓰면 `>=0.1.10`으로 올린다. 범위·상한은 지원하지 않는다. `saba-core module audit`과 적합성 키트는 누락·낮은 선언을 `sdk_version`으로 알린다.
 
 ## 6. 화면 문구 (i18n)
 
@@ -261,6 +296,9 @@ i18n.t("errors.failed_to_stop", error=str(e))   # 문구 안의 {{error}}가 바
 # 데몬과 같은 파서로 module.toml 검사 (실패하면 종료 코드 1)
 saba-core module validate mygame
 
+# 권한과 공용 SDK 최소 버전 선언 검사
+saba-core module audit mygame
+
 # 적합성 키트: 스키마, FUNCTIONS 표, 모르는 함수 답, 안전한 호출의 JSON 계약, 번역 키
 pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modules
 ```
@@ -268,6 +306,22 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 키트는 데몬과 익스텐션 없이 함수를 부른다. 데몬에 닿지 않아도, 서버 파일이 없어도 모듈은 JSON으로 답해야 한다. 자세한 검사 목록은 [conformance/README.md](../conformance/README.md).
 
 게임 동작은 모듈 폴더의 `test_lifecycle.py`(pytest)로 시험한다. 실제 게임 서버 없이 함수에 config를 넣고 답과 파일 변화를 본다(minecraft, palworld, zomboid의 `test_lifecycle.py` 참고).
+
+### Linux·macOS에서 개발 복사본 실행하기
+
+확인되지 않은 모듈은 격리를 요구한다. Linux·macOS에는 Python 격리가 없으므로 현재 파일 지문에 동의하지 않으면 `action_required: "sandbox_unavailable"`, `error_code: "isolation_unsupported"`로 실행을 거부한다. Windows는 AppContainer를 쓰므로 격리 시험에 비격리 동의를 자동으로 넣지 않는다.
+
+개발 복사본을 격리 없이 실행하려면 이 PC에서 코드를 확인한 뒤 다음 절차를 따른다.
+
+1. 데몬이 모듈을 발견하도록 `mygame` 폴더를 배치한다.
+2. 이 PC의 CLI에서 `saba-chan-cli sandbox allow module-mygame`을 실행하고 동의 질문에 답한다.
+3. `saba-chan-cli sandbox list`로 동의가 현재 파일에 맞는지 확인한다.
+4. 파일을 바꾸면 코드를 다시 확인하고 `sandbox allow module-mygame`을 다시 실행한다.
+5. 동의를 철회하려면 `saba-chan-cli sandbox revoke module-mygame`을 실행한다.
+
+데몬은 `config.json`의 `sandbox.unisolated`에 상대 경로와 sha256으로 만든 지문을 기록한다. `__pycache__` 안을 포함한 모든 실파일이 지문에 든다. Python 시험이 만든 캐시도 지문을 바꿀 수 있다. 데몬의 정상 Python 캐시는 구성요소 밖에 둔다. 설치·활성화만으로 동의가 생기지는 않는다.
+
+격리 없이 import할 익스텐션도 확인된 상태이거나 자기 지문에 동의가 있어야 한다. 예를 들어 SteamCMD 개발 복사본은 `saba-chan-cli sandbox allow ext-steamcmd`로 따로 동의한다. 모듈 동의는 익스텐션을 승인하지 않는다. 이 동의는 Python 실행에 관한 것이며 게임 서버 프로세스는 격리하지 않는다.
 
 ## 8. 체크리스트
 
@@ -277,10 +331,14 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 - [ ] `python lifecycle.py functions`가 FUNCTIONS 표의 이름을 돌려준다(`run_lifecycle`이면 자동)
 - [ ] 로그는 stderr로만
 - [ ] 콘솔·REST가 있으면 RCON은 끄고 `supported`에 `"rcon"`이 없다. RCON만 받는 게임이면 `supported = ["rcon"]`, `rcon_port`, 데몬이 준 `rcon_port`·`rcon_password`를 게임 설정에 쓰고 127.0.0.1에서만 받는다
-- [ ] 콘솔이 있으면 `stop_command`, `stop`은 정상 종료 → 대기 → 강제 종료 순서, 정상 종료를 요청할 길이 없으면 죽이지 않고 `graceful_stop_unavailable`, 데몬이 준 `pid`만 다룬다
+- [ ] 콘솔이 있으면 `stop_command`를 선언했다. `managed: true`의 `stop`은 저장·종료 요청 뒤 바로 반환한다. non-managed만 데몬이 준 시간만큼 기다린 뒤 필요하면 강제 종료한다
+- [ ] 정상 종료를 요청할 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 답한다. 프로세스는 데몬이 준 `pid`만 다룬다
+- [ ] 사용자 이름 조각은 `safe_join`으로 경로에 붙인다. 넓은 예외 처리에서도 `PathOutside`를 다시 던진다
+- [ ] 서버 폴더 밖 데이터는 `data_roots`에 선언했다. 첫 설치의 설정 기록 실패는 `settings_write_failed`로 답한다
 - [ ] 명령은 `console` / `rest` 선언으로 되는 것은 선언으로, `risk`와 `description`을 적었다
 - [ ] 크래시 흔적(`crash_artifacts`)과 정상 종료 문구(`graceful_exit_patterns`)를 적었다
 - [ ] 익스텐션이 없을 때 `extension_required`로 답한다
 - [ ] 훅(`[backup]`·`[commands]`)을 켰거나 `[[queries]]`·`[status]`가 가리킨 함수가 `FUNCTIONS`에 있다
 - [ ] 코드가 쓰는 능력을 `[permissions]`에 선언했다(`saba-core module audit`)
+- [ ] SDK import 중 가장 높은 `SINCE` 버전 이상을 `[module.dependencies] saba-core`에 선언했다
 - [ ] `pytest conformance --module ...` 통과

@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더�
 
 import plugins
 import server_types
-from daemon_rcon import force_kill, is_process_alive, wait_for_exit
+from daemon_rcon import PathOutside, force_kill, is_process_alive, safe_join, wait_for_exit
 
 # ─── Init ─────────────────────────────────────────────────────
 
@@ -861,7 +861,7 @@ class ErrorDetector:
                         issues.append({
                             "code": code,
                             "severity": pdef["severity"],
-                            "matched_line": line.strip(),
+                            "matched_line": line.strip()[:200],
                             "message": i18n.t(f"errors.detect.{code.lower()}"),
                             "solution": i18n.t(f"errors.solutions.{code.lower()}"),
                         })
@@ -1686,6 +1686,8 @@ def status(config):
             result["stable"] = ver_info.get("stable")
 
         return result
+    except PathOutside:
+        raise
     except Exception as e:
         return {"success": False, "message": i18n.t("errors.status_check_failed", error=str(e))}
 
@@ -1754,7 +1756,7 @@ def _read_jar_version(install_dir, jar_name="server.jar"):
     """
     if not install_dir:
         return None
-    jar_path = os.path.join(install_dir, jar_name)
+    jar_path = str(safe_join(install_dir, jar_name))
     if not os.path.isfile(jar_path):
         return None
     try:
@@ -1784,7 +1786,7 @@ def get_installed_version(config):
     """
     jar_path = _resolve_server_jar(config)
     if not jar_path and config.get("install_dir"):
-        jar_path = os.path.join(config["install_dir"], config.get("jar_name", "server.jar"))
+        jar_path = str(safe_join(config["install_dir"], config.get("jar_name", "server.jar")))
     install_dir = config.get("working_dir") or config.get("install_dir") or (os.path.dirname(jar_path) if jar_path else "")
 
     if not install_dir:
@@ -2062,7 +2064,7 @@ class ServerInstaller:
                 "message": i18n.t("errors.working_dir_error", path=str(e)),
             }
 
-        jar_path = os.path.join(install_path, jar_name)
+        jar_path = str(safe_join(install_path, jar_name))
         # 받는 동안과 검증이 끝날 때까지는 임시 파일에 쓴다: 실패해도 지금 쓰던 jar가 남는다
         # (데몬은 업데이트 전에 server.jar만 백업한다. fabric-server-launch.jar 같은 다른 이름은 여기서 지킨다).
         # 해시가 있으면 해시로, 없으면(Fabric 런처) 크기와 jar 구조로 확인한다. 이름은 요청마다 다르다
@@ -2317,6 +2319,8 @@ def install_server(config):
             initial_settings=initial_settings,
             server_type=server_type,
         )
+    except PathOutside:
+        raise
     except Exception as e:
         import traceback
         print(traceback.format_exc(), file=sys.stderr)

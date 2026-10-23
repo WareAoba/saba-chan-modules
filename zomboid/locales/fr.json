@@ -4,6 +4,7 @@
     "description": "Module de gestion de serveur dédié Project Zomboid avec contrôle complet du cycle de vie"
   },
   "settings": {
+    "data_home": { "label": "Dossier de données existant", "description": "Dossier de données détecté dans la structure existante du serveur. Le dossier INI actuel est conservé." },
     "cache_dir": { "label": "Dossier de données", "description": "Dossier des paramètres, sauvegardes et journaux de ce serveur (-cachedir). Vide = ~/Zomboid" },
     "ram": { "label": "Mémoire (RAM)", "description": "Allocation mémoire maximale en Go" },
     "server_name": { "label": "Nom du profil", "description": "Nom du profil serveur" },
@@ -130,6 +131,7 @@
     }
   },
   "errors": {
+    "settings_write_failed": "Les fichiers du serveur sont installés, mais les paramètres choisis n’ont pas pu être enregistrés : {{error}}",
     "player_not_found": "Joueur introuvable. Vérifiez le nom d'utilisateur.",
     "connection_refused": "Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et que le port est correct.",
     "timeout": "Le serveur n'a pas répondu à temps. Vérifiez l'état du serveur.",

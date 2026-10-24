@@ -1098,6 +1098,38 @@ def backup_paths(config):
         return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
 
 
+def backup_snapshots(config):
+    """게임이 스스로 만든 월드 자동 백업 (데몬 `[backup] snapshots`): `SaveGames/<번호>/<월드>/backup/world/<시각>/`.
+    새것부터. 스냅샷 안의 항목(Level.sav, Players/ …)은 월드 폴더의 같은 이름 자리로 돌아간다"""
+    saves = safe_join(config.get("working_dir") or "", "Pal", "Saved", "SaveGames")
+    try:
+        snapshots = []
+        for slot in _entries(saves):
+            slot_path = safe_join(saves, slot)
+            if not os.path.isdir(slot_path):
+                continue
+            for world in _entries(slot_path):
+                world_path = safe_join(slot_path, world)
+                kept = safe_join(world_path, "backup", "world")
+                if not os.path.isdir(kept):
+                    continue
+                for stamp in _entries(kept):
+                    snap = safe_join(kept, stamp)
+                    if not os.path.isdir(snap):
+                        continue
+                    snapshots.append({
+                        "id": f"{slot}/{world}/{stamp}",
+                        "created": int(os.path.getmtime(snap)),
+                        "paths": [{"from": str(safe_join(snap, name)), "to": str(safe_join(world_path, name))}
+                                  for name in _entries(snap)],
+                    })
+        # 폴더 이름(YYYY.MM.DD-HH.MM.SS)이 시각 순이다. 수정 시각은 복사·압축 해제로 바뀔 수 있다
+        snapshots.sort(key=lambda s: s["id"].rsplit("/", 1)[-1], reverse=True)
+        return {"success": True, "snapshots": snapshots}
+    except OSError as e:
+        return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
+
+
 def _save_entries(saves):
     paths = []
     for slot in _entries(saves):
@@ -1471,6 +1503,7 @@ FUNCTIONS = {
     "install_server": install_server,
     "player_count": player_count,
     "backup_paths": backup_paths,
+    "backup_snapshots": backup_snapshots,
 }
 # 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
 FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}

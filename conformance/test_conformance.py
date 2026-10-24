@@ -39,10 +39,12 @@ DAEMON_FUNCTIONS = {
     "validate", "configure", "read_properties", "reset_properties", "reset_server",
     "accept_agreements", "diagnose_log",
     "list_versions", "get_version_details", "install_server", "get_installed_version",
-    "import_settings", "backup_paths", "instance_commands",
+    "import_settings", "backup_paths", "backup_snapshots", "instance_commands",
 }
 # 켜면 데몬이 그 함수를 부르는 module.toml 훅
-HOOK_FUNCTIONS = {"backup": "backup_paths", "commands": "instance_commands"}
+# (섹션, 키, 함수): 키가 true면 데몬이 그 함수를 부른다
+HOOK_FUNCTIONS = [("backup", "hook", "backup_paths"), ("commands", "hook", "instance_commands"),
+                  ("backup", "snapshots", "backup_snapshots")]
 REQUIRED_FUNCTIONS = {"get_launch_command"}
 # 빈 작업 폴더에서 불러도 아무것도 바꾸지 않는 함수
 SAFE_FUNCTIONS = ["get_launch_command", "validate", "status", "read_properties", "diagnose_log", "get_installed_version"]
@@ -161,9 +163,9 @@ def functions_table(module):
 
 
 def hook_functions_missing(manifest, table):
-    """`hook = true`인 섹션인데 데몬이 부를 함수가 FUNCTIONS 표에 없는 것"""
-    return [f"[{section}] hook → {function}" for section, function in HOOK_FUNCTIONS.items()
-            if (manifest.get(section) or {}).get("hook") is True and function not in table]
+    """`hook = true`(·`[backup] snapshots = true`)인데 데몬이 부를 함수가 FUNCTIONS 표에 없는 것"""
+    return [f"[{section}] {key} → {function}" for section, key, function in HOOK_FUNCTIONS
+            if (manifest.get(section) or {}).get(key) is True and function not in table]
 
 
 def flat_keys(obj, prefix=""):
@@ -359,6 +361,7 @@ def test_kit_catches_hook_without_function():
     table = {"backup_paths": "backup_paths", "instance_commands": "instance_commands"}
     assert hook_functions_missing(manifest, table) == []
     assert hook_functions_missing({"backup": {"hook": False}}, {}) == []
+    assert hook_functions_missing({"backup": {"snapshots": True}}, {}) == ["[backup] snapshots → backup_snapshots"]
 
 
 # ── 3·4. 실행 계약 ──────────────────────────────────────

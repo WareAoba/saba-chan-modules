@@ -12,56 +12,12 @@ import socket
 import struct
 import time
 import random
-import base64
-import io
-import urllib.request
-import urllib.error
-import urllib.parse
 from i18n import I18n
 
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-# 명령은 데몬의 REST 경로로 보낸다 (RCON은 보안 정책으로 꺼 둔다)
-try:
-    from daemon_rcon import daemon_post
-except ImportError:
-    # 예전 코어의 daemon_rcon에는 daemon_post가 없다: 모듈은 불러지고, 그 경로를 쓰는 명령만 안내와 함께 실패한다
-    def daemon_post(path, payload, timeout=10):
-        raise ConnectionError("this saba-chan core is too old for this Palworld module; update saba-chan")
-# 격리 실행(미확인 모듈)은 127.0.0.1에 닿지 못한다: 데몬이 이 인스턴스 포트로 대신 보낸다 (SABA_LOOPBACK_DIR)
-try:
-    from daemon_rcon import loopback_http
-except ImportError:
-    loopback_http = None
-
-
-class _RelayedResponse(io.BytesIO):
-    """`urllib.request.urlopen` 응답처럼 쓰는 중계 응답"""
-
-    def __init__(self, status, body):
-        super().__init__(body)
-        self.status = status
-
-    def getcode(self):
-        return self.status
-
-
-def _urlopen(req, timeout):
-    """`urllib.request.urlopen`과 같다. 격리 실행이 루프백에 보내는 요청만 데몬 중계(`loopback_http`)로 보낸다.
-    실패는 urlopen과 같은 예외(HTTPError·URLError)로 낸다"""
-    url = urllib.parse.urlsplit(req.full_url)
-    if not (os.environ.get("SABA_LOOPBACK_DIR") and loopback_http and url.hostname in ("127.0.0.1", "localhost")):
-        return urllib.request.urlopen(req, timeout=timeout)
-    path = url.path + (f"?{url.query}" if url.query else "")
-    try:
-        status, body = loopback_http(url.port or 80, req.get_method(), path, headers=dict(req.header_items()),
-                                     body=req.data, timeout=timeout)
-    except OSError as e:
-        raise urllib.error.URLError(e) from e
-    if status >= 400:
-        raise urllib.error.HTTPError(req.full_url, status, "", None, io.BytesIO(body))
-    return _RelayedResponse(status, body)
+from daemon_rcon import PathOutside, daemon_rest, safe_join
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -77,45 +33,20 @@ i18n = I18n(MODULE_DIR)
 
 
 class PalworldRestClient:
-    """Minimal REST client for Palworld built-in REST API."""
+    """인스턴스의 REST 요청을 데몬에 맡긴다."""
 
-    def __init__(self, host='127.0.0.1', port=8212, username='', password='', timeout=5):
-        self.base_url = f"http://{host}:{port}/v1/api"
-        self.auth_header = self._build_auth(username, password) if username or password else None
+    def __init__(self, instance_id, timeout=5):
+        self.instance_id = instance_id
         self.timeout = timeout
 
-    def _build_auth(self, username, password):
-        token = base64.b64encode(f"{username}:{password}".encode('utf-8')).decode('utf-8')
-        return f"Basic {token}"
-
     def _request(self, method, path, payload=None):
-        url = f"{self.base_url}{path}"
-        headers = {"Accept": "application/json"}
-        if self.auth_header:
-            headers["Authorization"] = self.auth_header
-
-        data = None
-        if payload is not None:
-            data = json.dumps(payload).encode('utf-8')
-            headers["Content-Type"] = "application/json"
-
-        req = urllib.request.Request(url, data=data, headers=headers, method=method)
-        print(f"[REST] {method} {url} payload={payload}", file=sys.stderr)
-
         try:
-            with _urlopen(req, timeout=self.timeout) as resp:
-                body = resp.read().decode('utf-8', errors='ignore')
-                if not body:
-                    return None
-                try:
-                    return json.loads(body)
-                except json.JSONDecodeError:
-                    return body
-        except urllib.error.HTTPError as e:
-            error_body = e.read().decode('utf-8', errors='ignore') if hasattr(e, 'read') else ''
-            raise RuntimeError(f"HTTP {e.code} {e.reason}: {error_body}")
-        except Exception as e:
-            raise RuntimeError(str(e))
+            result = daemon_rest(self.instance_id, method, f"/v1/api{path}", body=payload, timeout=self.timeout)
+        except ConnectionError as e:
+            raise RuntimeError(str(e)) from e
+        if not result.get("success", True):
+            raise RuntimeError(result.get("message") or result.get("error") or i18n.t("errors.daemon_error", error="REST"))
+        return (result.get("data") or {}).get("response")
 
     def announce(self, message):
         return self._request("POST", "/announce", {"message": message})
@@ -163,71 +94,49 @@ def resolve_player_id(instance_id, player_input, config):
     print(f"[Palworld] Resolving nickname '{player_input}' to SteamID...", file=sys.stderr)
     
     try:
-        # config에서 REST 설정 가져오기
-        rest_host = config.get("rest_host", "127.0.0.1")
-        rest_port = config.get("rest_port", 8212)
-        rest_username = config.get("rest_username") or "admin"
-        rest_password = _read_admin_password_from_ini(config) or ""
-        
-        # 직접 Palworld 서버에 REST 요청 (Daemon을 거치지 않음 - 데드락 방지)
-        palworld_url = f"http://{rest_host}:{rest_port}/v1/api/players"
-        print(f"[Palworld] Fetching players from: {palworld_url}", file=sys.stderr)
-        
-        req = urllib.request.Request(palworld_url, method='GET')
-        
-        # Basic Auth 설정
-        if rest_username and rest_password:
-            credentials = f"{rest_username}:{rest_password}"
-            encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
-            req.add_header('Authorization', f'Basic {encoded_credentials}')
-        
-        with _urlopen(req, timeout=5) as response:
-            result = json.loads(response.read().decode('utf-8'))
+        result = PalworldRestClient(instance_id).players()
+        players = result.get("players", [])
             
-            # Palworld API 직접 응답 구조
-            players = result.get("players", [])
+        print(f"[Palworld] Found {len(players)} online players", file=sys.stderr)
             
-            print(f"[Palworld] Found {len(players)} online players", file=sys.stderr)
-            
-            # 닉네임으로 플레이어 검색 (대소문자 무시)
-            # name (캐릭터 이름)과 accountName (Steam 계정 이름) 둘 다 검색
-            player_input_lower = player_input.lower()
-            for player in players:
-                player_name = player.get("name", "")
-                account_name = player.get("accountName", "")
-                player_userid = player.get("userId") or player.get("playerId") or player.get("steamId")
+        # 닉네임으로 플레이어 검색 (대소문자 무시)
+        # name (캐릭터 이름)과 accountName (Steam 계정 이름) 둘 다 검색
+        player_input_lower = player_input.lower()
+        for player in players:
+            player_name = player.get("name", "")
+            account_name = player.get("accountName", "")
+            player_userid = player.get("userId") or player.get("playerId") or player.get("steamId")
                 
-                # 정확 일치 (캐릭터 이름 또는 Steam 계정 이름)
-                if player_name.lower() == player_input_lower or account_name.lower() == player_input_lower:
-                    matched_name = account_name if account_name.lower() == player_input_lower else player_name
-                    print(f"[Palworld] Found player: {matched_name} (char: {player_name}) -> {player_userid}", file=sys.stderr)
-                    return (True, player_userid)
+            # 정확 일치 (캐릭터 이름 또는 Steam 계정 이름)
+            if player_name.lower() == player_input_lower or account_name.lower() == player_input_lower:
+                matched_name = account_name if account_name.lower() == player_input_lower else player_name
+                print(f"[Palworld] Found player: {matched_name} (char: {player_name}) -> {player_userid}", file=sys.stderr)
+                return (True, player_userid)
             
-            # 부분 일치 검색
-            partial_matches = []
-            for player in players:
-                player_name = player.get("name", "")
-                account_name = player.get("accountName", "")
-                player_userid = player.get("userId") or player.get("playerId") or player.get("steamId")
+        # 부분 일치 검색
+        partial_matches = []
+        for player in players:
+            player_name = player.get("name", "")
+            account_name = player.get("accountName", "")
+            player_userid = player.get("userId") or player.get("playerId") or player.get("steamId")
                 
-                # 부분 일치 (캐릭터 이름 또는 Steam 계정 이름)
-                if player_input_lower in player_name.lower() or player_input_lower in account_name.lower():
-                    display_name = f"{account_name} ({player_name})" if account_name else player_name
-                    partial_matches.append((display_name, player_userid))
+            # 부분 일치 (캐릭터 이름 또는 Steam 계정 이름)
+            if player_input_lower in player_name.lower() or player_input_lower in account_name.lower():
+                display_name = f"{account_name} ({player_name})" if account_name else player_name
+                partial_matches.append((display_name, player_userid))
             
-            if len(partial_matches) == 1:
-                name, userid = partial_matches[0]
-                print(f"[Palworld] Found partial match: {name} -> {userid}", file=sys.stderr)
-                return (True, userid)
-            elif len(partial_matches) > 1:
-                names = [m[0] for m in partial_matches]
-                return (False, i18n.t("errors.player_ambiguous", player=player_input, names=", ".join(names)))
+        if len(partial_matches) == 1:
+            name, userid = partial_matches[0]
+            print(f"[Palworld] Found partial match: {name} -> {userid}", file=sys.stderr)
+            return (True, userid)
+        elif len(partial_matches) > 1:
+            names = [m[0] for m in partial_matches]
+            return (False, i18n.t("errors.player_ambiguous", player=player_input, names=", ".join(names)))
             
-            return (False, i18n.t("errors.player_not_found"))
+        return (False, i18n.t("errors.player_not_found"))
     
-    except urllib.error.URLError as e:
-        print(f"[Palworld] Failed to fetch player list: {e}", file=sys.stderr)
-        return (False, i18n.t("errors.connection_failed", error=str(e)))
+    except PathOutside:
+        raise
     except Exception as e:
         print(f"[Palworld] Error resolving player: {e}", file=sys.stderr)
         return (False, i18n.t("errors.player_list_failed", error=str(e)))
@@ -245,6 +154,8 @@ def _read_admin_password_from_ini(config):
             pw = props.get("AdminPassword", "").strip('"').strip("'")
             if pw:
                 return pw
+    except PathOutside:
+        raise
     except Exception as e:
         print(f"[Palworld] Warning: failed to read AdminPassword from INI: {e}", file=sys.stderr)
     return None
@@ -368,8 +279,8 @@ def get_launch_command(config):
     # 실제 서버의 PID·종료 코드를 쥐도록 런처가 하는 그대로 실제 서버를 직접 띄운다.
     # 실제 서버 exe가 없으면(다른 배포 형태) 예전처럼 런처를 띄운다.
     program = os.path.abspath(executable)
-    real_server = os.path.join(os.path.dirname(program), "Pal", "Binaries", "Win64",
-                               "PalServer-Win64-Shipping-Cmd.exe")
+    real_server = str(safe_join(os.path.dirname(program), "Pal", "Binaries", "Win64",
+                                "PalServer-Win64-Shipping-Cmd.exe"))
     if os.path.exists(real_server):
         program = real_server
         args = ["Pal"] + args  # 런처가 붙이는 프로젝트 이름
@@ -405,17 +316,11 @@ def _pid_running(pid):
 
 
 def _rest_client(config):
-    """설정의 rest_host와 INI의 AdminPassword·RESTAPIPort로 이 서버의 REST 클라이언트를 만든다. 비밀번호가 없으면 None"""
-    password = _read_admin_password_from_ini(config)
-    if not password:
+    """데몬의 인스턴스 문맥이 있으면 REST 클라이언트를 만든다."""
+    instance_id = config.get("instance_id")
+    if not instance_id and not os.environ.get("SABA_HOST_DIR"):
         return None
-    port = config.get("rest_port")
-    if not port:
-        try:
-            port = int(_parse_option_settings(_get_settings_ini_path(config)).get("RESTAPIPort", 8212))
-        except Exception:
-            port = 8212
-    return PalworldRestClient(host=config.get("rest_host") or "127.0.0.1", port=port, username="admin", password=password, timeout=5)
+    return PalworldRestClient(instance_id)
 
 
 def player_count(config):
@@ -535,6 +440,8 @@ def stop(config):
         if not _kill(pid):
             return {"success": False, "message": i18n.t("errors.failed_to_stop_process", error=f"PID {pid}")}
         return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
+    except PathOutside:
+        raise
     except Exception as e:
         error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
         print(error_msg, file=sys.stderr)
@@ -552,6 +459,8 @@ def get_credentials(config):
             "rest_password": pw or "",
             "rest_username": "admin",
         }
+    except PathOutside:
+        raise
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -564,6 +473,8 @@ def status(config):
         running = bool(pid) and _pid_running(pid)
         key = "messages.process_running" if running else "messages.process_not_running"
         return {"success": True, "status": "running" if running else "stopped", "message": i18n.t(key, name=exe_name)}
+    except PathOutside:
+        raise
     except Exception as e:
         return {
             "success": False,
@@ -851,7 +762,7 @@ def _get_settings_ini_path(config):
 
     platform_dir = "WindowsServer" if sys.platform == "win32" else "LinuxServer"
 
-    ini_path = os.path.join(working_dir, "Pal", "Saved", "Config", platform_dir, "PalWorldSettings.ini")
+    ini_path = str(safe_join(working_dir, "Pal", "Saved", "Config", platform_dir, "PalWorldSettings.ini"))
     return ini_path
 
 
@@ -1052,10 +963,16 @@ def configure(config):
 
     # RCON은 보안 정책으로 막는다: 손으로 켠 INI라도 저장할 때 끈다
     props["RCONEnabled"] = "False"
-    ok = _write_option_settings(ini_path, props)
+    try:
+        ok = _write_option_settings(ini_path, props)
+    except OSError:
+        ok = False
+    if not ok:
+        return {"success": False, "error_code": "settings_write_failed",
+                "message": i18n.t("errors.settings_write_failed")}
     return {
-        "success": ok,
-        "message": i18n.t("messages.settings_updated") if ok else i18n.t("errors.settings_write_failed"),
+        "success": True,
+        "message": i18n.t("messages.settings_updated"),
         "updated_keys": updated_keys,
     }
 
@@ -1116,7 +1033,7 @@ def read_properties(config):
             if exe:
                 working_dir = os.path.dirname(os.path.abspath(exe))
         if working_dir:
-            default_path = os.path.join(working_dir, "DefaultPalWorldSettings.ini")
+            default_path = str(safe_join(working_dir, "DefaultPalWorldSettings.ini"))
 
         if default_path and os.path.isfile(default_path):
             props = _parse_option_settings(default_path)
@@ -1174,7 +1091,7 @@ def backup_paths(config):
     """백업할 세이브 (데몬 `[backup] hook`): `Pal/Saved/SaveGames/<번호>/<월드>/` 안의 항목 전부.
     다만 게임이 월드 폴더 안에 쌓는 자동 백업 `backup/`(bIsUseBackupSaveData)은 뺀다.
     설정 폴더(`Pal/Saved/Config`)는 module.toml `paths`에 있다."""
-    saves = os.path.join(config.get("working_dir") or "", "Pal", "Saved", "SaveGames")
+    saves = safe_join(config.get("working_dir") or "", "Pal", "Saved", "SaveGames")
     try:
         return {"success": True, "paths": _save_entries(saves)}
     except OSError as e:
@@ -1184,16 +1101,16 @@ def backup_paths(config):
 def _save_entries(saves):
     paths = []
     for slot in _entries(saves):
-        slot_path = os.path.join(saves, slot)
+        slot_path = safe_join(saves, slot)
         if not os.path.isdir(slot_path):
-            paths.append(slot_path)
+            paths.append(str(slot_path))
             continue
         for world in _entries(slot_path):
-            world_path = os.path.join(slot_path, world)
+            world_path = safe_join(slot_path, world)
             if not os.path.isdir(world_path):
-                paths.append(world_path)
+                paths.append(str(world_path))
                 continue
-            paths.extend(os.path.join(world_path, name) for name in _entries(world_path)
+            paths.extend(str(safe_join(world_path, name)) for name in _entries(world_path)
                          if name.lower() != "backup")
     return paths
 
@@ -1211,7 +1128,7 @@ def diagnose_log(config):
 
     # If no lines provided, try to read from Palworld log file
     if not log_lines and working_dir:
-        log_path = os.path.join(working_dir, "Pal", "Saved", "Logs", "Pal.log")
+        log_path = safe_join(working_dir, "Pal", "Saved", "Logs", "Pal.log")
         if os.path.isfile(log_path):
             try:
                 with open(log_path, "r", encoding="utf-8", errors="replace") as f:
@@ -1277,7 +1194,7 @@ def install_server(config):
     if not install_dir:
         working_dir = config.get("working_dir", "")
         if working_dir:
-            install_dir = os.path.join(working_dir, "server")
+            install_dir = str(safe_join(working_dir, "server"))
         else:
             return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
@@ -1308,7 +1225,7 @@ def install_server(config):
 
         if result.get("success"):
             exe_name = "PalServer.exe" if sys.platform == "win32" else "PalServer.sh"
-            exe_path = os.path.join(install_dir, exe_name)
+            exe_path = str(safe_join(install_dir, exe_name))
             result["install_path"] = install_dir
             result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
 
@@ -1320,11 +1237,11 @@ def install_server(config):
                     platform_dir = "WindowsServer"
                 else:
                     platform_dir = "LinuxServer"
-                ini_dir = os.path.join(
+                ini_dir = safe_join(
                     install_dir, "Pal", "Saved", "Config", platform_dir
                 )
                 os.makedirs(ini_dir, exist_ok=True)
-                ini_path = os.path.join(ini_dir, "PalWorldSettings.ini")
+                ini_path = safe_join(ini_dir, "PalWorldSettings.ini")
 
                 # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
                 if os.path.isfile(ini_path) and _parse_option_settings(ini_path):
@@ -1342,16 +1259,24 @@ def install_server(config):
                         )
                     else:
                         print("[Palworld] Provisioning: failed to write default INI", file=sys.stderr)
+                        return {"success": False, "error_code": "settings_write_failed",
+                                "message": i18n.t("errors.settings_write_failed")}
+            except PathOutside:
+                raise
             except Exception as e:
                 print(
                     f"[Palworld] Provisioning: failed to write default INI: {e}",
                     file=sys.stderr,
                 )
+                return {"success": False, "error_code": "settings_write_failed",
+                        "message": i18n.t("errors.settings_write_failed")}
 
         return result
 
     except ImportError:
         print("[Palworld] SteamCMD extension not available, returning instructions", file=sys.stderr)
+    except PathOutside:
+        raise
     except Exception as e:
         print(f"[Palworld] SteamCMD install failed: {e}", file=sys.stderr)
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
@@ -1386,7 +1311,7 @@ def command(config):
         if not command_text:
             return {"success": False, "message": i18n.t("errors.no_command")}
         
-        if not instance_id:
+        if not instance_id and not os.environ.get("SABA_HOST_DIR"):
             return {"success": False, "message": i18n.t("errors.no_instance_id")}
         
         print(f"[Palworld] Executing command '{command_text}' with args: {args}", file=sys.stderr)
@@ -1410,6 +1335,8 @@ def command(config):
         
         return execute_command_via_rest(instance_id, command_lower, args, config)
     
+    except PathOutside:
+        raise
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
@@ -1421,7 +1348,7 @@ def command(config):
 
 
 def execute_command_via_rest(instance_id, command_lower, args, config):
-    """Execute command via REST API - 직접 Palworld 서버에 요청 (Daemon 데드락 방지)"""
+    """명령의 HTTP 메서드와 endpoint를 보존해 데몬에 보낸다."""
     endpoint = None
     body = None
     method = "POST"
@@ -1485,108 +1412,38 @@ def execute_command_via_rest(instance_id, command_lower, args, config):
     else:
         return {"success": False, "message": i18n.t("errors.unknown_command", command=command_lower)}
     
-    # 직접 Palworld 서버에 요청 (Daemon을 거치지 않음 - 데드락 방지)
-    return execute_rest_direct(endpoint, body, method, command_lower, config)
+    return execute_rest_via_daemon(instance_id, endpoint, body, command_lower, method=method)
 
 
-def execute_rest_direct(endpoint, body, method, command_text, config):
-    """직접 Palworld 서버에 REST API 요청 (Daemon을 거치지 않음)"""
-    rest_host = config.get("rest_host", "127.0.0.1")
-    rest_port = config.get("rest_port", 8212)
-    rest_username = config.get("rest_username") or "admin"
-    rest_password = _read_admin_password_from_ini(config) or ""
-    
-    url = f"http://{rest_host}:{rest_port}{endpoint}"
-    print(f"[Palworld] Direct REST request: {method} {url}", file=sys.stderr)
-    if body:
-        print(f"[Palworld] Request body: {body}", file=sys.stderr)
-    
+def execute_rest_via_daemon(instance_id, endpoint, body, command_text, method="POST"):
+    """SDK가 HOST 통로와 데몬 HTTP 호환 경로를 고른다."""
     try:
-        if method == "GET":
-            req = urllib.request.Request(url, method='GET')
+        result = daemon_rest(instance_id, method, endpoint, body=body, timeout=5)
+        result.setdefault("success", True)
+        result["protocol"] = "rest"
+        if result["success"]:
+            result["message"] = i18n.t("messages.command_executed", command=command_text)
         else:
-            data = json.dumps(body).encode('utf-8') if body else None
-            req = urllib.request.Request(url, data=data, method=method)
-            req.add_header('Content-Type', 'application/json')
-        
-        # Basic Auth 설정
-        if rest_username and rest_password:
-            credentials = f"{rest_username}:{rest_password}"
-            encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
-            req.add_header('Authorization', f'Basic {encoded_credentials}')
-        
-        with _urlopen(req, timeout=10) as response:
-            response_text = response.read().decode('utf-8')
-            status_code = response.getcode()
-            
-            print(f"[Palworld] Response status: {status_code}", file=sys.stderr)
-            print(f"[Palworld] Response: {response_text[:200]}", file=sys.stderr)
-            
-            # 응답 파싱 시도
-            try:
-                result = json.loads(response_text) if response_text else {}
-            except json.JSONDecodeError:
-                result = {"raw": response_text}
-            
-            return {
-                "success": True,
-                "message": i18n.t("messages.command_executed", command=command_text),
-                "data": result,
-                "protocol": "rest"
-            }
-    
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode('utf-8') if e.fp else str(e)
-        print(f"[Palworld] HTTP Error {e.code}: {error_body}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t("errors.http_error", code=e.code, body=error_body)
-        }
-    except urllib.error.URLError as e:
-        print(f"[Palworld] Connection error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t("errors.connection_failed", error=str(e))
-        }
-    except Exception as e:
-        print(f"[Palworld] Error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t("errors.command_failed", error=str(e))
-        }
-
-
-def execute_rest_via_daemon(instance_id, endpoint, body, command_text):
-    """Execute REST API command via daemon"""
-    payload = {
-        "endpoint": endpoint,
-        "method": "POST" if body else "GET",
-        "body": body
-    }
-    
-    try:
-        result = daemon_post(f"/api/instance/{instance_id}/rest", payload, timeout=5)
-        print(f"[Palworld] Daemon REST response: {result}", file=sys.stderr)
-        
-        return {
-            "success": result.get("success", True),
-            "message": i18n.t("messages.command_executed", command=command_text),
-            "data": result.get("data"),
-            "protocol": "rest"
-        }
+            result.setdefault("message", result.get("error") or i18n.t("errors.daemon_error", error="REST"))
+        return result
     
     except ConnectionError as e:
         print(f"[Palworld] Daemon connection error: {e}", file=sys.stderr)
-        return {
+        result = {
             "success": False,
             "message": i18n.t("errors.daemon_connection_error", error=str(e))
         }
+        if getattr(e, "error_code", None):
+            result["error_code"] = e.error_code
+        return result
     except json.JSONDecodeError as e:
         print(f"[Palworld] Invalid JSON response from daemon: {e}", file=sys.stderr)
         return {
             "success": False,
             "message": i18n.t("errors.invalid_json_response", error=str(e))
         }
+    except PathOutside:
+        raise
     except Exception as e:
         print(f"[Palworld] Daemon error: {e}", file=sys.stderr)
         return {

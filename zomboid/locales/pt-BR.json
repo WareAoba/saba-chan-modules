@@ -4,211 +4,717 @@
     "description": "Módulo de gerenciamento de servidor dedicado Project Zomboid com controle completo do ciclo de vida"
   },
   "settings": {
-    "cache_dir": { "label": "Pasta de dados", "description": "Pasta de configurações, saves e logs deste servidor (-cachedir). Vazio = ~/Zomboid" },
-    "ram": { "label": "Memória (RAM)", "description": "Alocação máxima de memória em GB" },
-    "server_name": { "label": "Nome do perfil", "description": "Nome do perfil do servidor" },
-    "rcon_port": { "label": "Porta RCON", "description": "Porta para console remoto RCON" },
-    "rcon_password": { "label": "Senha RCON", "description": "Senha para autenticação RCON" },
-    "admin_password": { "label": "Senha do admin", "description": "Senha da conta de administrador" },
-    "public_name": { "label": "Nome do servidor", "description": "Nome exibido no navegador de servidores" },
-    "public_description": { "label": "Descrição", "description": "Descrição visível no navegador" },
-    "password": { "label": "Senha do servidor", "description": "Senha para entrar no servidor (deixe vazio para não usar)" },
-    "max_players": { "label": "Máx. jogadores", "description": "Número máximo de jogadores" },
-    "port": { "label": "Porta do jogo", "description": "Porta UDP do servidor" },
-    "udp_port": { "label": "Segunda porta UDP", "description": "Segunda porta UDP em que o servidor escuta (UDPPort, geralmente porta do jogo + 1)" },
-    "pvp": { "label": "PVP", "description": "Permitir combate entre jogadores" },
-    "open": { "label": "Servidor aberto", "description": "Aberto a todos (sem lista branca)" },
-    "pause_empty": { "label": "Pausar quando vazio", "description": "Pausar o mundo sem jogadores" },
-    "global_chat": { "label": "Chat global", "description": "Ativar chat global" },
-    "map": { "label": "Mapa", "description": "Mapa para jogar" },
-    "mods": { "label": "Mods", "description": "IDs de mods separados por ponto e vírgula" },
-    "workshop_items": { "label": "Itens da Workshop", "description": "IDs da Workshop separados por ponto e vírgula" },
-    "no_steam": { "label": "No Steam Mode", "description": "Run server without Steam (allows GoG players)" },
-    "public": { "label": "Public Visibility", "description": "Show server in the Steam server browser" },
-    "announce_death": { "label": "Announce Death", "description": "Announce when a character dies" },
-    "safety_system": { "label": "Sistema de segurança", "description": "Cada jogador pode ativar ou desativar o PvP (requer PVP ativado)" },
-    "sleep_allowed": { "label": "Sleep Allowed", "description": "Allow players to sleep" },
-    "sleep_needed": { "label": "Sleep Needed", "description": "Players need to sleep when exhausted" },
-    "save_world_every_minutes": { "label": "Auto-Save Interval", "description": "Auto-save interval in minutes" },
-    "ping_limit": { "label": "Limite de ping", "description": "Jogadores com ping acima deste valor (ms) são expulsos (100 = desativado)" },
-    "hours_for_loot_respawn": { "label": "Loot Respawn Hours", "description": "In-game hours before loot respawn" },
-    "max_items_for_loot_respawn": { "label": "Loot Respawn Threshold", "description": "Max items for loot respawn trigger" },
-    "no_fire": { "label": "Disable Fire", "description": "Disable all fire except campfires" },
-    "player_safehouse": { "label": "Player Safehouses", "description": "Allow safehouse claiming" },
-    "safehouse_allow_trespass": { "label": "Invasão de safehouse", "description": "Permite que jogadores que não são membros da safehouse entrem" },
-    "safehouse_allow_loot": { "label": "Saque de safehouse", "description": "Permite que jogadores que não são membros da safehouse a saqueiem" },
-    "safehouse_allow_respawn": { "label": "Safehouse Respawn", "description": "Respawn in safehouse after death" },
-    "faction": { "label": "Factions", "description": "Allow factions" },
-    "allow_destruction_by_sledgehammer": { "label": "Destruição com marreta", "description": "Permite que jogadores destruam estruturas com uma marreta" },
-    "speed_limit": { "label": "Speed Limit", "description": "Vehicle speed limit" },
-    "do_lua_checksum": { "label": "Checksum do Lua", "description": "Verifica se os arquivos Lua dos jogadores conectados são iguais aos do servidor (desative se usar mods do lado do cliente)" },
-    "steam_vac": { "label": "Steam VAC", "description": "Enable Valve Anti-Cheat" },
-    "voice_enable": { "label": "Voice Chat", "description": "Enable in-game voice chat" },
-    "minutes_per_page": { "label": "Minutos por página", "description": "Minutos de jogo necessários para ler uma página de um livro" },
-    "spawn_point": { "label": "Spawn Point", "description": "Custom spawn coordinates" },
-    "max_accounts_per_user": { "label": "Max Accounts Per User", "description": "Account limit per Steam user" },
-    "managed_start": { "label": "Início gerenciado (console)", "description": "Inicia o servidor pelo saba-runner para que o saba-chan possa usar o console. O RCON fica desativado em todos os modos. Se você desativar esta opção, o saba-chan não poderá enviar comandos ao servidor." },
-    "graceful_stop": { "label": "Parada segura", "description": "Envia os comandos 'save' e 'quit' e espera o servidor desligar. Se você desativar esta opção, o saba-chan encerra o processo do servidor imediatamente." },
-    "server_welcome_message": { "label": "Mensagem de boas-vindas", "description": "Mensagem mostrada aos jogadores depois que eles se conectam (use <LINE> para quebra de linha)" },
-    "auto_create_user_in_whitelist": { "label": "Adicionar à lista branca automaticamente", "description": "Adiciona novos jogadores à lista branca quando eles entram" },
-    "display_user_name": { "label": "Mostrar nome de usuário", "description": "Mostra o nome de usuário acima da cabeça dos jogadores e no chat local" },
-    "show_first_and_last_name": { "label": "Mostrar nome do personagem", "description": "Mostra o nome e o sobrenome do personagem no lugar do nome de usuário" },
-    "show_safety": { "label": "Mostrar ícone de segurança", "description": "Mostra uma caveira quando um jogador desativa a proteção de PvP" },
-    "safety_toggle_timer": { "label": "Tempo de troca de segurança", "description": "Minutos necessários para ativar ou desativar o PvP" },
-    "safety_cooldown_timer": { "label": "Espera da troca de segurança", "description": "Minutos de espera antes de poder alternar a segurança de PvP de novo" },
-    "pvp_melee_while_hit_reaction": { "label": "Corpo a corpo PvP durante reação a golpe", "description": "Permite ataques corpo a corpo no PvP durante a reação a um golpe" },
-    "pvp_melee_damage_modifier": { "label": "Dano corpo a corpo PvP (%)", "description": "Modificador de dano corpo a corpo no PvP, em porcentagem" },
-    "pvp_firearm_damage_modifier": { "label": "Dano de armas de fogo PvP (%)", "description": "Modificador de dano de armas de fogo no PvP, em porcentagem" },
-    "mouse_over_to_see_display_name": { "label": "Passar o mouse para ver o nome", "description": "Os nomes dos jogadores só aparecem ao passar o mouse sobre eles" },
-    "hide_players_behind_you": { "label": "Ocultar jogadores atrás de você", "description": "Oculta os jogadores que estão atrás do seu personagem" },
-    "player_bump_player": { "label": "Colisão entre jogadores", "description": "Ativa a colisão física entre jogadores" },
-    "player_respawn_with_self": { "label": "Renascer onde morreu", "description": "Permite que os jogadores renasçam no local onde morreram" },
-    "player_respawn_with_other": { "label": "Renascer junto ao parceiro", "description": "Permite renascer na posição de um parceiro de tela dividida" },
-    "drop_off_whitelist_after_death": { "label": "Remover da lista branca ao morrer", "description": "Remove um jogador da lista branca quando o personagem dele morre" },
-    "allow_non_ascii_username": { "label": "Permitir nomes de usuário não ASCII", "description": "Permite nomes de usuário com caracteres não ASCII" },
-    "chat_streams": { "label": "Canais de chat", "description": "Canais de chat ativos, separados por vírgulas: s,r,a,w,y,sh,f,all" },
-    "player_save_on_damage": { "label": "Salvar ao sofrer dano", "description": "Salva automaticamente quando um jogador sofre dano" },
-    "admin_safehouse": { "label": "Safehouses de admin", "description": "Permite que administradores reivindiquem safehouses" },
-    "safehouse_allow_fire": { "label": "Dano de fogo em safehouses", "description": "Permite que o fogo danifique as safehouses" },
-    "safehouse_day_survived_to_claim": { "label": "Dias para reivindicar uma safehouse", "description": "Dias do mundo do jogo que um jogador precisa sobreviver antes de reivindicar uma safehouse" },
-    "safehouse_removal_time": { "label": "Horas para remover da safehouse", "description": "Horas reais até que membros inativos sejam removidos da safehouse" },
-    "disable_safehouse_when_player_connected": { "label": "Desativar safehouse com membro online", "description": "Desativa a proteção da safehouse enquanto algum membro estiver conectado" },
-    "faction_day_survived_to_create": { "label": "Dias para criar uma facção", "description": "Dias do mundo do jogo que um jogador precisa sobreviver antes de criar uma facção" },
-    "faction_players_required_for_tag": { "label": "Jogadores para a tag da facção", "description": "Número de membros necessários para mostrar a tag da facção" },
-    "allow_trade_ui": { "label": "Permitir troca", "description": "Permite a troca direta entre jogadores" },
-    "construction_prevents_loot_respawn": { "label": "Construções bloqueiam respawn de itens", "description": "Construções de jogadores perto de contêineres impedem o respawn de itens" },
-    "hours_for_world_item_removal": { "label": "Horas para remover itens do chão", "description": "Horas de jogo até que itens largados e cadáveres desapareçam (0 = nunca)" },
-    "world_item_removal_list": { "label": "Lista de itens a remover", "description": "Itens removidos automaticamente quando largados no chão, separados por vírgulas" },
-    "blood_splat_lifespan_days": { "label": "Duração das manchas de sangue", "description": "Dias até as manchas de sangue desaparecerem (0 = nunca)" },
-    "item_numbers_limit_per_container": { "label": "Limite de itens por contêiner", "description": "Número máximo de itens por contêiner (0 = ilimitado)" },
-    "trash_delete_all": { "label": "Apagar todo o lixo", "description": "Apaga imediatamente todos os itens de lixo" },
-    "remove_player_corpses_on_corpse_removal": { "label": "Remover cadáveres de jogadores", "description": "Remove também os cadáveres de jogadores quando os cadáveres são limpos" },
-    "ping_frequency": { "label": "Frequência de ping", "description": "A cada quantos segundos o servidor verifica a conexão com os jogadores" },
-    "deny_login_on_overloaded_server": { "label": "Negar login com servidor sobrecarregado", "description": "Bloqueia novas conexões quando o servidor está sobrecarregado" },
-    "kick_fast_players": { "label": "Expulsar jogadores rápidos demais", "description": "Expulsa jogadores que se movem mais rápido do que o possível (pode errar)" },
-    "steam_port1": { "label": "Porta Steam 1", "description": "Primeira porta de rede da Steam" },
-    "steam_port2": { "label": "Porta Steam 2", "description": "Segunda porta de rede da Steam" },
-    "steam_scoreboard": { "label": "Placar da Steam", "description": "Mostra nomes e avatares da Steam na lista de jogadores (true/false/admin)" },
-    "upnp": { "label": "UPnP", "description": "Ativa o UPnP para o redirecionamento automático de portas" },
-    "upnp_lease_time": { "label": "Tempo de concessão UPnP", "description": "Tempo de concessão do mapeamento de portas UPnP, em segundos" },
-    "upnp_zero_lease_time_fallback": { "label": "Alternativa UPnP com concessão zero", "description": "Tenta de novo com tempo de concessão zero se o tempo indicado falhar" },
-    "upnp_force": { "label": "Forçar UPnP", "description": "Usa o UPnP mesmo que o roteador não o suporte bem" },
-    "server_browser_announced_ip": { "label": "IP anunciado", "description": "IP exibido no navegador de servidores (vazio = automático)" },
-    "use_tcp_for_map_downloads": { "label": "TCP para baixar o mapa", "description": "Baixa os dados do mapa por TCP em vez de UDP" },
-    "physics_delay": { "label": "Atraso da física", "description": "Atraso da simulação de física, em milissegundos" },
-    "fast_forward_multiplier": { "label": "Multiplicador de avanço rápido", "description": "Multiplicador de velocidade ao avançar o tempo rapidamente" },
-    "car_engine_attraction_modifier": { "label": "Atração de motores de carro", "description": "O quanto os motores de carro atraem zumbis (multiplicador)" },
-    "coop_server_launch_timeout": { "label": "Limite de início cooperativo", "description": "Tempo máximo, em segundos, para iniciar o servidor cooperativo" },
-    "coop_master_ping_timeout": { "label": "Limite de ping cooperativo", "description": "Tempo máximo, em segundos, para o ping do host cooperativo" },
-    "voice_complexity": { "label": "Complexidade da voz", "description": "Complexidade do codec de voz Opus (1-10, maior = melhor qualidade)" },
-    "voice_period": { "label": "Período de voz", "description": "Período dos quadros de voz, em milissegundos" },
-    "voice_sample_rate": { "label": "Taxa de amostragem de voz", "description": "Taxa de amostragem da voz, em Hz" },
-    "voice_buffering": { "label": "Buffer de voz", "description": "Buffer de voz, em milissegundos" },
-    "voice_min_distance": { "label": "Distância mínima de voz", "description": "Distância mínima a partir da qual a voz é atenuada" },
-    "voice_max_distance": { "label": "Distância máxima de voz", "description": "Distância máxima em que o chat de voz pode ser ouvido" },
-    "voice_3d": { "label": "Voz 3D", "description": "Ativa o chat de voz posicional em 3D" },
-    "discord_enable": { "label": "Integração com o Discord", "description": "Ativa a integração com o bot do Discord incluído" },
-    "discord_token": { "label": "Token do Discord", "description": "Token do bot do Discord para a integração" },
-    "discord_channel": { "label": "Canal do Discord", "description": "Nome do canal do Discord para as mensagens do servidor" },
-    "discord_channel_id": { "label": "ID do canal do Discord", "description": "ID do canal do Discord para as mensagens do servidor" },
-    "disable_radio_staff": { "label": "Desativar rádio (equipe)", "description": "Oculta a frequência de rádio para equipe" },
-    "disable_radio_admin": { "label": "Desativar rádio (administradores)", "description": "Oculta a frequência de rádio para administradores" },
-    "disable_radio_gm": { "label": "Desativar rádio (game masters)", "description": "Oculta a frequência de rádio para game masters" },
-    "disable_radio_overseer": { "label": "Desativar rádio (supervisores)", "description": "Oculta a frequência de rádio para supervisores" },
-    "disable_radio_moderator": { "label": "Desativar rádio (moderadores)", "description": "Oculta a frequência de rádio para moderadores" },
-    "disable_radio_invisible": { "label": "Desativar rádio (jogadores invisíveis)", "description": "Oculta a frequência de rádio para jogadores invisíveis" },
-    "client_command_filter": { "label": "Filtro de comandos do cliente", "description": "Regras de filtro para comandos do cliente (prefixo + permite, - nega)" },
-    "zombie_update_max_high_priority": { "label": "Máx. de atualizações de zumbis (prioridade alta)", "description": "Número máximo de atualizações de zumbis de prioridade alta por tick" },
-    "zombie_update_delta": { "label": "Intervalo de atualização de zumbis", "description": "Intervalo de tempo entre as atualizações de zumbis" },
-    "zombie_update_radius_low_priority": { "label": "Raio de prioridade baixa (zumbis)", "description": "Raio das atualizações de zumbis de prioridade baixa" },
-    "zombie_update_radius_high_priority": { "label": "Raio de prioridade alta (zumbis)", "description": "Raio das atualizações de zumbis de prioridade alta" },
-    "ban_kick_global_sound": { "label": "Som de banimento/expulsão", "description": "Toca um som global quando um jogador é banido ou expulso" },
-    "save_transaction_id": { "label": "ID de transação de salvamento", "description": "Salva o ID da transação para depuração" }
+    "data_home": {
+      "label": "Pasta de dados existente",
+      "description": "Pasta de dados detectada na estrutura existente do servidor. Mantém a pasta INI atual."
+    },
+    "cache_dir": {
+      "label": "Pasta de dados",
+      "description": "Pasta de configurações, saves e logs deste servidor (-cachedir). Vazio = ~/Zomboid"
+    },
+    "ram": {
+      "label": "Memória (RAM)",
+      "description": "Alocação máxima de memória em GB"
+    },
+    "server_name": {
+      "label": "Nome do perfil",
+      "description": "Nome do perfil do servidor"
+    },
+    "rcon_port": {
+      "label": "Porta RCON",
+      "description": "Porta para console remoto RCON"
+    },
+    "rcon_password": {
+      "label": "Senha RCON",
+      "description": "Senha para autenticação RCON"
+    },
+    "admin_password": {
+      "label": "Senha do admin",
+      "description": "Senha da conta de administrador"
+    },
+    "public_name": {
+      "label": "Nome do servidor",
+      "description": "Nome exibido no navegador de servidores"
+    },
+    "public_description": {
+      "label": "Descrição",
+      "description": "Descrição visível no navegador"
+    },
+    "password": {
+      "label": "Senha do servidor",
+      "description": "Senha para entrar no servidor (deixe vazio para não usar)"
+    },
+    "max_players": {
+      "label": "Máx. jogadores",
+      "description": "Número máximo de jogadores"
+    },
+    "port": {
+      "label": "Porta do jogo",
+      "description": "Porta UDP do servidor"
+    },
+    "udp_port": {
+      "label": "Segunda porta UDP",
+      "description": "Segunda porta UDP em que o servidor escuta (UDPPort, geralmente porta do jogo + 1)"
+    },
+    "pvp": {
+      "label": "PVP",
+      "description": "Permitir combate entre jogadores"
+    },
+    "open": {
+      "label": "Servidor aberto",
+      "description": "Aberto a todos (sem lista branca)"
+    },
+    "pause_empty": {
+      "label": "Pausar quando vazio",
+      "description": "Pausar o mundo sem jogadores"
+    },
+    "global_chat": {
+      "label": "Chat global",
+      "description": "Ativar chat global"
+    },
+    "map": {
+      "label": "Mapa",
+      "description": "Mapa para jogar"
+    },
+    "mods": {
+      "label": "Mods",
+      "description": "IDs de mods separados por ponto e vírgula"
+    },
+    "workshop_items": {
+      "label": "Itens da Workshop",
+      "description": "IDs da Workshop separados por ponto e vírgula"
+    },
+    "no_steam": {
+      "label": "No Steam Mode",
+      "description": "Run server without Steam (allows GoG players)"
+    },
+    "public": {
+      "label": "Public Visibility",
+      "description": "Show server in the Steam server browser"
+    },
+    "announce_death": {
+      "label": "Announce Death",
+      "description": "Announce when a character dies"
+    },
+    "safety_system": {
+      "label": "Sistema de segurança",
+      "description": "Cada jogador pode ativar ou desativar o PvP (requer PVP ativado)"
+    },
+    "sleep_allowed": {
+      "label": "Sleep Allowed",
+      "description": "Allow players to sleep"
+    },
+    "sleep_needed": {
+      "label": "Sleep Needed",
+      "description": "Players need to sleep when exhausted"
+    },
+    "save_world_every_minutes": {
+      "label": "Auto-Save Interval",
+      "description": "Auto-save interval in minutes"
+    },
+    "ping_limit": {
+      "label": "Limite de ping",
+      "description": "Jogadores com ping acima deste valor (ms) são expulsos (100 = desativado)"
+    },
+    "hours_for_loot_respawn": {
+      "label": "Loot Respawn Hours",
+      "description": "In-game hours before loot respawn"
+    },
+    "max_items_for_loot_respawn": {
+      "label": "Loot Respawn Threshold",
+      "description": "Max items for loot respawn trigger"
+    },
+    "no_fire": {
+      "label": "Disable Fire",
+      "description": "Disable all fire except campfires"
+    },
+    "player_safehouse": {
+      "label": "Player Safehouses",
+      "description": "Allow safehouse claiming"
+    },
+    "safehouse_allow_trespass": {
+      "label": "Invasão de safehouse",
+      "description": "Permite que jogadores que não são membros da safehouse entrem"
+    },
+    "safehouse_allow_loot": {
+      "label": "Saque de safehouse",
+      "description": "Permite que jogadores que não são membros da safehouse a saqueiem"
+    },
+    "safehouse_allow_respawn": {
+      "label": "Safehouse Respawn",
+      "description": "Respawn in safehouse after death"
+    },
+    "faction": {
+      "label": "Factions",
+      "description": "Allow factions"
+    },
+    "allow_destruction_by_sledgehammer": {
+      "label": "Destruição com marreta",
+      "description": "Permite que jogadores destruam estruturas com uma marreta"
+    },
+    "speed_limit": {
+      "label": "Speed Limit",
+      "description": "Vehicle speed limit"
+    },
+    "do_lua_checksum": {
+      "label": "Checksum do Lua",
+      "description": "Verifica se os arquivos Lua dos jogadores conectados são iguais aos do servidor (desative se usar mods do lado do cliente)"
+    },
+    "steam_vac": {
+      "label": "Steam VAC",
+      "description": "Enable Valve Anti-Cheat"
+    },
+    "voice_enable": {
+      "label": "Voice Chat",
+      "description": "Enable in-game voice chat"
+    },
+    "minutes_per_page": {
+      "label": "Minutos por página",
+      "description": "Minutos de jogo necessários para ler uma página de um livro"
+    },
+    "spawn_point": {
+      "label": "Spawn Point",
+      "description": "Custom spawn coordinates"
+    },
+    "max_accounts_per_user": {
+      "label": "Max Accounts Per User",
+      "description": "Account limit per Steam user"
+    },
+    "managed_start": {
+      "label": "Início gerenciado (console)",
+      "description": "Inicia o servidor pelo saba-runner para que o saba-chan possa usar o console. O RCON fica desativado em todos os modos. Se você desativar esta opção, o saba-chan não poderá enviar comandos ao servidor."
+    },
+    "graceful_stop": {
+      "label": "Parada segura",
+      "description": "Envia os comandos 'save' e 'quit' e espera o servidor desligar. Se você desativar esta opção, o saba-chan encerra o processo do servidor imediatamente."
+    },
+    "server_welcome_message": {
+      "label": "Mensagem de boas-vindas",
+      "description": "Mensagem mostrada aos jogadores depois que eles se conectam (use <LINE> para quebra de linha)"
+    },
+    "auto_create_user_in_whitelist": {
+      "label": "Adicionar à lista branca automaticamente",
+      "description": "Adiciona novos jogadores à lista branca quando eles entram"
+    },
+    "display_user_name": {
+      "label": "Mostrar nome de usuário",
+      "description": "Mostra o nome de usuário acima da cabeça dos jogadores e no chat local"
+    },
+    "show_first_and_last_name": {
+      "label": "Mostrar nome do personagem",
+      "description": "Mostra o nome e o sobrenome do personagem no lugar do nome de usuário"
+    },
+    "show_safety": {
+      "label": "Mostrar ícone de segurança",
+      "description": "Mostra uma caveira quando um jogador desativa a proteção de PvP"
+    },
+    "safety_toggle_timer": {
+      "label": "Tempo de troca de segurança",
+      "description": "Minutos necessários para ativar ou desativar o PvP"
+    },
+    "safety_cooldown_timer": {
+      "label": "Espera da troca de segurança",
+      "description": "Minutos de espera antes de poder alternar a segurança de PvP de novo"
+    },
+    "pvp_melee_while_hit_reaction": {
+      "label": "Corpo a corpo PvP durante reação a golpe",
+      "description": "Permite ataques corpo a corpo no PvP durante a reação a um golpe"
+    },
+    "pvp_melee_damage_modifier": {
+      "label": "Dano corpo a corpo PvP (%)",
+      "description": "Modificador de dano corpo a corpo no PvP, em porcentagem"
+    },
+    "pvp_firearm_damage_modifier": {
+      "label": "Dano de armas de fogo PvP (%)",
+      "description": "Modificador de dano de armas de fogo no PvP, em porcentagem"
+    },
+    "mouse_over_to_see_display_name": {
+      "label": "Passar o mouse para ver o nome",
+      "description": "Os nomes dos jogadores só aparecem ao passar o mouse sobre eles"
+    },
+    "hide_players_behind_you": {
+      "label": "Ocultar jogadores atrás de você",
+      "description": "Oculta os jogadores que estão atrás do seu personagem"
+    },
+    "player_bump_player": {
+      "label": "Colisão entre jogadores",
+      "description": "Ativa a colisão física entre jogadores"
+    },
+    "player_respawn_with_self": {
+      "label": "Renascer onde morreu",
+      "description": "Permite que os jogadores renasçam no local onde morreram"
+    },
+    "player_respawn_with_other": {
+      "label": "Renascer junto ao parceiro",
+      "description": "Permite renascer na posição de um parceiro de tela dividida"
+    },
+    "drop_off_whitelist_after_death": {
+      "label": "Remover da lista branca ao morrer",
+      "description": "Remove um jogador da lista branca quando o personagem dele morre"
+    },
+    "allow_non_ascii_username": {
+      "label": "Permitir nomes de usuário não ASCII",
+      "description": "Permite nomes de usuário com caracteres não ASCII"
+    },
+    "chat_streams": {
+      "label": "Canais de chat",
+      "description": "Canais de chat ativos, separados por vírgulas: s,r,a,w,y,sh,f,all"
+    },
+    "player_save_on_damage": {
+      "label": "Salvar ao sofrer dano",
+      "description": "Salva automaticamente quando um jogador sofre dano"
+    },
+    "admin_safehouse": {
+      "label": "Safehouses de admin",
+      "description": "Permite que administradores reivindiquem safehouses"
+    },
+    "safehouse_allow_fire": {
+      "label": "Dano de fogo em safehouses",
+      "description": "Permite que o fogo danifique as safehouses"
+    },
+    "safehouse_day_survived_to_claim": {
+      "label": "Dias para reivindicar uma safehouse",
+      "description": "Dias do mundo do jogo que um jogador precisa sobreviver antes de reivindicar uma safehouse"
+    },
+    "safehouse_removal_time": {
+      "label": "Horas para remover da safehouse",
+      "description": "Horas reais até que membros inativos sejam removidos da safehouse"
+    },
+    "disable_safehouse_when_player_connected": {
+      "label": "Desativar safehouse com membro online",
+      "description": "Desativa a proteção da safehouse enquanto algum membro estiver conectado"
+    },
+    "faction_day_survived_to_create": {
+      "label": "Dias para criar uma facção",
+      "description": "Dias do mundo do jogo que um jogador precisa sobreviver antes de criar uma facção"
+    },
+    "faction_players_required_for_tag": {
+      "label": "Jogadores para a tag da facção",
+      "description": "Número de membros necessários para mostrar a tag da facção"
+    },
+    "allow_trade_ui": {
+      "label": "Permitir troca",
+      "description": "Permite a troca direta entre jogadores"
+    },
+    "construction_prevents_loot_respawn": {
+      "label": "Construções bloqueiam respawn de itens",
+      "description": "Construções de jogadores perto de contêineres impedem o respawn de itens"
+    },
+    "hours_for_world_item_removal": {
+      "label": "Horas para remover itens do chão",
+      "description": "Horas de jogo até que itens largados e cadáveres desapareçam (0 = nunca)"
+    },
+    "world_item_removal_list": {
+      "label": "Lista de itens a remover",
+      "description": "Itens removidos automaticamente quando largados no chão, separados por vírgulas"
+    },
+    "blood_splat_lifespan_days": {
+      "label": "Duração das manchas de sangue",
+      "description": "Dias até as manchas de sangue desaparecerem (0 = nunca)"
+    },
+    "item_numbers_limit_per_container": {
+      "label": "Limite de itens por contêiner",
+      "description": "Número máximo de itens por contêiner (0 = ilimitado)"
+    },
+    "trash_delete_all": {
+      "label": "Apagar todo o lixo",
+      "description": "Apaga imediatamente todos os itens de lixo"
+    },
+    "remove_player_corpses_on_corpse_removal": {
+      "label": "Remover cadáveres de jogadores",
+      "description": "Remove também os cadáveres de jogadores quando os cadáveres são limpos"
+    },
+    "ping_frequency": {
+      "label": "Frequência de ping",
+      "description": "A cada quantos segundos o servidor verifica a conexão com os jogadores"
+    },
+    "deny_login_on_overloaded_server": {
+      "label": "Negar login com servidor sobrecarregado",
+      "description": "Bloqueia novas conexões quando o servidor está sobrecarregado"
+    },
+    "kick_fast_players": {
+      "label": "Expulsar jogadores rápidos demais",
+      "description": "Expulsa jogadores que se movem mais rápido do que o possível (pode errar)"
+    },
+    "steam_port1": {
+      "label": "Porta Steam 1",
+      "description": "Primeira porta de rede da Steam"
+    },
+    "steam_port2": {
+      "label": "Porta Steam 2",
+      "description": "Segunda porta de rede da Steam"
+    },
+    "steam_scoreboard": {
+      "label": "Placar da Steam",
+      "description": "Mostra nomes e avatares da Steam na lista de jogadores (true/false/admin)"
+    },
+    "upnp": {
+      "label": "UPnP",
+      "description": "Ativa o UPnP para o redirecionamento automático de portas"
+    },
+    "upnp_lease_time": {
+      "label": "Tempo de concessão UPnP",
+      "description": "Tempo de concessão do mapeamento de portas UPnP, em segundos"
+    },
+    "upnp_zero_lease_time_fallback": {
+      "label": "Alternativa UPnP com concessão zero",
+      "description": "Tenta de novo com tempo de concessão zero se o tempo indicado falhar"
+    },
+    "upnp_force": {
+      "label": "Forçar UPnP",
+      "description": "Usa o UPnP mesmo que o roteador não o suporte bem"
+    },
+    "server_browser_announced_ip": {
+      "label": "IP anunciado",
+      "description": "IP exibido no navegador de servidores (vazio = automático)"
+    },
+    "use_tcp_for_map_downloads": {
+      "label": "TCP para baixar o mapa",
+      "description": "Baixa os dados do mapa por TCP em vez de UDP"
+    },
+    "physics_delay": {
+      "label": "Atraso da física",
+      "description": "Atraso da simulação de física, em milissegundos"
+    },
+    "fast_forward_multiplier": {
+      "label": "Multiplicador de avanço rápido",
+      "description": "Multiplicador de velocidade ao avançar o tempo rapidamente"
+    },
+    "car_engine_attraction_modifier": {
+      "label": "Atração de motores de carro",
+      "description": "O quanto os motores de carro atraem zumbis (multiplicador)"
+    },
+    "coop_server_launch_timeout": {
+      "label": "Limite de início cooperativo",
+      "description": "Tempo máximo, em segundos, para iniciar o servidor cooperativo"
+    },
+    "coop_master_ping_timeout": {
+      "label": "Limite de ping cooperativo",
+      "description": "Tempo máximo, em segundos, para o ping do host cooperativo"
+    },
+    "voice_complexity": {
+      "label": "Complexidade da voz",
+      "description": "Complexidade do codec de voz Opus (1-10, maior = melhor qualidade)"
+    },
+    "voice_period": {
+      "label": "Período de voz",
+      "description": "Período dos quadros de voz, em milissegundos"
+    },
+    "voice_sample_rate": {
+      "label": "Taxa de amostragem de voz",
+      "description": "Taxa de amostragem da voz, em Hz"
+    },
+    "voice_buffering": {
+      "label": "Buffer de voz",
+      "description": "Buffer de voz, em milissegundos"
+    },
+    "voice_min_distance": {
+      "label": "Distância mínima de voz",
+      "description": "Distância mínima a partir da qual a voz é atenuada"
+    },
+    "voice_max_distance": {
+      "label": "Distância máxima de voz",
+      "description": "Distância máxima em que o chat de voz pode ser ouvido"
+    },
+    "voice_3d": {
+      "label": "Voz 3D",
+      "description": "Ativa o chat de voz posicional em 3D"
+    },
+    "discord_enable": {
+      "label": "Integração com o Discord",
+      "description": "Ativa a integração com o bot do Discord incluído"
+    },
+    "discord_token": {
+      "label": "Token do Discord",
+      "description": "Token do bot do Discord para a integração"
+    },
+    "discord_channel": {
+      "label": "Canal do Discord",
+      "description": "Nome do canal do Discord para as mensagens do servidor"
+    },
+    "discord_channel_id": {
+      "label": "ID do canal do Discord",
+      "description": "ID do canal do Discord para as mensagens do servidor"
+    },
+    "disable_radio_staff": {
+      "label": "Desativar rádio (equipe)",
+      "description": "Oculta a frequência de rádio para equipe"
+    },
+    "disable_radio_admin": {
+      "label": "Desativar rádio (administradores)",
+      "description": "Oculta a frequência de rádio para administradores"
+    },
+    "disable_radio_gm": {
+      "label": "Desativar rádio (game masters)",
+      "description": "Oculta a frequência de rádio para game masters"
+    },
+    "disable_radio_overseer": {
+      "label": "Desativar rádio (supervisores)",
+      "description": "Oculta a frequência de rádio para supervisores"
+    },
+    "disable_radio_moderator": {
+      "label": "Desativar rádio (moderadores)",
+      "description": "Oculta a frequência de rádio para moderadores"
+    },
+    "disable_radio_invisible": {
+      "label": "Desativar rádio (jogadores invisíveis)",
+      "description": "Oculta a frequência de rádio para jogadores invisíveis"
+    },
+    "client_command_filter": {
+      "label": "Filtro de comandos do cliente",
+      "description": "Regras de filtro para comandos do cliente (prefixo + permite, - nega)"
+    },
+    "zombie_update_max_high_priority": {
+      "label": "Máx. de atualizações de zumbis (prioridade alta)",
+      "description": "Número máximo de atualizações de zumbis de prioridade alta por tick"
+    },
+    "zombie_update_delta": {
+      "label": "Intervalo de atualização de zumbis",
+      "description": "Intervalo de tempo entre as atualizações de zumbis"
+    },
+    "zombie_update_radius_low_priority": {
+      "label": "Raio de prioridade baixa (zumbis)",
+      "description": "Raio das atualizações de zumbis de prioridade baixa"
+    },
+    "zombie_update_radius_high_priority": {
+      "label": "Raio de prioridade alta (zumbis)",
+      "description": "Raio das atualizações de zumbis de prioridade alta"
+    },
+    "ban_kick_global_sound": {
+      "label": "Som de banimento/expulsão",
+      "description": "Toca um som global quando um jogador é banido ou expulso"
+    },
+    "save_transaction_id": {
+      "label": "ID de transação de salvamento",
+      "description": "Salva o ID da transação para depuração"
+    }
   },
   "commands": {
     "servermsg": {
       "label": "Mensagem global",
       "description": "Enviar mensagem para todos",
-      "inputs": { "message": { "label": "Mensagem", "placeholder": "Digite a mensagem" } }
+      "inputs": {
+        "message": {
+          "label": "Mensagem",
+          "placeholder": "Digite a mensagem"
+        }
+      }
     },
-    "players": { "label": "Lista de jogadores", "description": "Ver jogadores conectados" },
-    "save": { "label": "Salvar mundo", "description": "Salvar o mundo atual" },
+    "players": {
+      "label": "Lista de jogadores",
+      "description": "Ver jogadores conectados"
+    },
+    "save": {
+      "label": "Salvar mundo",
+      "description": "Salvar o mundo atual"
+    },
     "kick": {
       "label": "Expulsar jogador",
       "description": "Expulsar um jogador",
-      "inputs": { "player": { "label": "Jogador", "placeholder": "Player username" }, "reason": { "label": "Motivo", "placeholder": "Optional reason" } }
+      "inputs": {
+        "player": {
+          "label": "Jogador",
+          "placeholder": "Player username"
+        },
+        "reason": {
+          "label": "Motivo",
+          "placeholder": "Optional reason"
+        }
+      }
     },
     "banuser": {
       "label": "Banir jogador",
       "description": "Banir um jogador",
-      "inputs": { "player": { "label": "Jogador", "placeholder": "Player username" }, "reason": { "label": "Motivo", "placeholder": "Optional reason" } }
+      "inputs": {
+        "player": {
+          "label": "Jogador",
+          "placeholder": "Player username"
+        },
+        "reason": {
+          "label": "Motivo",
+          "placeholder": "Optional reason"
+        }
+      }
     },
     "unbanuser": {
       "label": "Desbanir",
       "description": "Remover banimento",
-      "inputs": { "player": { "label": "Jogador", "placeholder": "Player username" } }
+      "inputs": {
+        "player": {
+          "label": "Jogador",
+          "placeholder": "Player username"
+        }
+      }
     },
-    "quit": { "label": "Desligar servidor", "description": "Salvar e desligar o servidor" },
+    "quit": {
+      "label": "Desligar servidor",
+      "description": "Salvar e desligar o servidor"
+    },
     "adduser": {
       "label": "Add User",
       "description": "Add a new user to the server",
-      "inputs": { "username": { "label": "Username", "placeholder": "Account username" }, "password": { "label": "Password", "placeholder": "Account password" } }
+      "inputs": {
+        "username": {
+          "label": "Username",
+          "placeholder": "Account username"
+        },
+        "password": {
+          "label": "Password",
+          "placeholder": "Account password"
+        }
+      }
     },
     "setaccesslevel": {
       "label": "Set Access Level",
       "description": "Set a player's access level",
-      "inputs": { "player": { "label": "Player Name", "placeholder": "Player username" }, "level": { "label": "Access Level" } }
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "level": {
+          "label": "Access Level"
+        }
+      }
     },
     "teleport": {
       "label": "Teleport",
       "description": "Teletransporta um jogador até outro jogador",
-      "inputs": { "player": { "label": "Player", "placeholder": "Player to teleport" }, "target": { "label": "Target", "placeholder": "Destination player" } }
+      "inputs": {
+        "player": {
+          "label": "Player",
+          "placeholder": "Player to teleport"
+        },
+        "target": {
+          "label": "Target",
+          "placeholder": "Destination player"
+        }
+      }
     },
     "teleportto": {
       "label": "Teleport To Coords",
       "description": "Teleport to specific coordinates",
-      "inputs": { "coords": { "label": "Coordinates", "placeholder": "x,y,z" } }
+      "inputs": {
+        "coords": {
+          "label": "Coordinates",
+          "placeholder": "x,y,z"
+        }
+      }
     },
     "createhorde": {
       "label": "Create Horde",
       "description": "Spawn a zombie horde near a player",
-      "inputs": { "count": { "label": "Zombie Count" }, "player": { "label": "Player (optional)", "placeholder": "Target player" } }
+      "inputs": {
+        "count": {
+          "label": "Zombie Count"
+        },
+        "player": {
+          "label": "Player (optional)",
+          "placeholder": "Target player"
+        }
+      }
     },
     "godmod": {
       "label": "God Mode",
       "description": "Make a player invincible",
-      "inputs": { "player": { "label": "Player Name", "placeholder": "Player username" }, "value": { "label": "Enabled" } }
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "value": {
+          "label": "Enabled"
+        }
+      }
     },
     "invisible": {
       "label": "Invisible",
       "description": "Make a player invisible to zombies",
-      "inputs": { "player": { "label": "Player Name", "placeholder": "Player username" }, "value": { "label": "Enabled" } }
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "value": {
+          "label": "Enabled"
+        }
+      }
     },
-    "startrain": { "label": "Start Rain", "description": "Start raining on the server" },
-    "stoprain": { "label": "Stop Rain", "description": "Stop raining on the server" },
-    "chopper": { "label": "Helicopter Event", "description": "Trigger a helicopter event" },
-    "gunshot": { "label": "Gunshot Sound", "description": "Place a gunshot sound" },
+    "startrain": {
+      "label": "Start Rain",
+      "description": "Start raining on the server"
+    },
+    "stoprain": {
+      "label": "Stop Rain",
+      "description": "Stop raining on the server"
+    },
+    "chopper": {
+      "label": "Helicopter Event",
+      "description": "Trigger a helicopter event"
+    },
+    "gunshot": {
+      "label": "Gunshot Sound",
+      "description": "Place a gunshot sound"
+    },
     "additem": {
       "label": "Give Item",
       "description": "Give an item to a player",
-      "inputs": { "player": { "label": "Player Name", "placeholder": "Player username" }, "item": { "label": "Item ID", "placeholder": "e.g. Base.Axe" }, "count": { "label": "Count" } }
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "item": {
+          "label": "Item ID",
+          "placeholder": "e.g. Base.Axe"
+        },
+        "count": {
+          "label": "Count"
+        }
+      }
     },
     "addxp": {
       "label": "Give XP",
       "description": "Give experience to a player",
-      "inputs": { "player": { "label": "Player Name", "placeholder": "Player username" }, "perk": { "label": "Perk Name", "placeholder": "e.g. Woodwork" }, "amount": { "label": "XP Amount" } }
+      "inputs": {
+        "player": {
+          "label": "Player Name",
+          "placeholder": "Player username"
+        },
+        "perk": {
+          "label": "Perk Name",
+          "placeholder": "e.g. Woodwork"
+        },
+        "amount": {
+          "label": "XP Amount"
+        }
+      }
     },
-    "showoptions": { "label": "Show Server Options", "description": "Display current server settings" },
-    "reloadoptions": { "label": "Reload Options", "description": "Reload server options from INI" },
+    "showoptions": {
+      "label": "Show Server Options",
+      "description": "Display current server settings"
+    },
+    "reloadoptions": {
+      "label": "Reload Options",
+      "description": "Reload server options from INI"
+    },
     "changeoption": {
       "label": "Change Option",
       "description": "Change a server option at runtime",
-      "inputs": { "option": { "label": "Option Name", "placeholder": "e.g. MaxPlayers" }, "value": { "label": "New Value", "placeholder": "New value" } }
+      "inputs": {
+        "option": {
+          "label": "Option Name",
+          "placeholder": "e.g. MaxPlayers"
+        },
+        "value": {
+          "label": "New Value",
+          "placeholder": "New value"
+        }
+      }
     }
   },
   "errors": {
-    "backup_paths_failed": "Não foi possível ler a pasta de salvamento para o backup: {{error}}",
-    "graceful_stop_unavailable": "Não há como pedir ao servidor que salve e feche (sem console nem REST). Ele não foi parado. Force a parada apenas se aceitar perder o progresso não salvo.",
+    "settings_write_failed": "Os arquivos do servidor foram instalados, mas não foi possível salvar as configurações escolhidas: {{error}}",
     "player_not_found": "Jogador não encontrado. Verifique o nome de usuário.",
     "connection_refused": "Não foi possível conectar ao servidor. Verifique se o servidor está em execução e se a porta está correta.",
     "timeout": "O servidor demorou demais para responder. Verifique o status do servidor.",
@@ -255,7 +761,9 @@
     },
     "no_command": "Nenhum comando especificado",
     "command_send_failed": "Falha ao enviar o comando: {{error}}",
-    "unknown_error": "Erro desconhecido"
+    "unknown_error": "Erro desconhecido",
+    "backup_paths_failed": "Não foi possível ler a pasta de salvamento para o backup: {{error}}",
+    "graceful_stop_unavailable": "Não há como pedir ao servidor que salve e feche (sem console nem REST). Ele não foi parado. Force a parada apenas se aceitar perder o progresso não salvo."
   },
   "messages": {
     "server_online": "O servidor está online e respondendo",

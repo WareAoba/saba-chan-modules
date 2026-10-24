@@ -1203,6 +1203,36 @@ def test_install_server_names_the_jar_from_server_executable(tmp_path):
     assert (tmp_path / "my-server.jar").is_file() and not (tmp_path / "server.jar").exists()
 
 
+@pytest.mark.parametrize("jar_name", ["../escape.jar", "sub/server.jar", "C:\\escape.jar"])
+def test_installer_rejects_a_jar_name_outside_the_install_root(tmp_path, jar_name):
+    from daemon_rcon import PathOutside
+    from minecraft import lifecycle
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar"}
+    with mock.patch.object(lifecycle.ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch("tempfile.mkstemp", side_effect=AssertionError("path must be checked before download staging")), \
+            mock.patch("urllib.request.urlopen", side_effect=OSError("download should not start")) as download:
+        with pytest.raises(PathOutside):
+            lifecycle.ServerInstaller.install_server("1.21.1", str(tmp_path), jar_name=jar_name)
+    download.assert_not_called()
+
+
+def test_install_keeps_the_sdk_path_error(tmp_path):
+    from daemon_rcon import PathOutside
+    from minecraft import lifecycle
+    with mock.patch.object(lifecycle.ServerInstaller, "install_server", side_effect=PathOutside(tmp_path / "outside")):
+        with pytest.raises(PathOutside):
+            lifecycle.install_server({"version": "1.21.1", "install_dir": str(tmp_path),
+                                      "settings": {"server_type": "vanilla"}})
+
+
+def test_diagnose_log_summarizes_an_oversized_matched_line():
+    from minecraft import lifecycle
+    result = lifecycle.diagnose_log({"log_lines": ["java.lang.OutOfMemoryError: " + "x" * (4 * 1024 * 1024)]})
+    assert result["success"] and result["issues"]
+    assert len(json.dumps(result).encode("utf-8")) < 64 * 1024
+    assert result["issues"][0]["matched_line"].startswith("java.lang.OutOfMemoryError")
+
+
 def test_backup_keeps_permissions_and_settings():
     """복원하면 권한·밴·화이트리스트·서버 설정도 돌아와야 한다 (PaperMC 문서: 서버 루트의 데이터 파일)"""
     import tomllib

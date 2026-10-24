@@ -42,6 +42,10 @@ entry = "lifecycle.py"                  # 진입점 스크립트 (모듈 폴더 
 icon = "icon.png"                       # 아이콘 파일 (모듈 폴더 내)
 log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 정규식
 
+# 공용 SDK import 중 가장 새 SINCE 버전 이상을 선언합니다.
+[module.dependencies]
+saba-core = ">=0.1.2"
+
 # ── [protocols] 통신 프로토콜 ────────────────────────────────────
 #
 #  supported: 이 모듈이 지원하는 프로토콜 목록

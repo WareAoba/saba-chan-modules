@@ -613,3 +613,117 @@ def test_reset_refuses_a_server_name_outside_its_own_world(tmp_path, name):
     assert reset_server(config)["success"] is False
 
     assert (home / "Saves" / "Multiplayer" / "other" / "map.bin").exists()
+
+
+@pytest.mark.parametrize("key", ["cache_dir", "config_dir"])
+@pytest.mark.parametrize("name", ["../other", "a/b", "a\\b", "C:other"])
+def test_ini_path_rejects_a_profile_name_outside_its_folder(tmp_path, key, name):
+    from daemon_rcon import PathOutside
+    from zomboid.lifecycle import IniManager
+
+    with pytest.raises(PathOutside):
+        IniManager.get_ini_path({key: str(tmp_path), "server_name": name})
+
+
+@pytest.mark.parametrize("layout", ["server", "home", "flat"])
+def test_import_records_the_existing_data_root_without_moving_the_ini(tmp_path, layout):
+    from zomboid import lifecycle
+
+    home = tmp_path / "data"
+    ini_dir = home if layout == "flat" else home / "Server"
+    ini_dir.mkdir(parents=True)
+    ini = ini_dir / "srv.ini"
+    lifecycle.IniManager.write(str(ini), {"PublicName": "Existing", "MaxPlayers": "7"})
+    config = {"config_dir": str(ini_dir if layout == "server" else home), "server_name": "srv"}
+
+    imported = lifecycle.import_settings(config)
+
+    assert imported["settings"]["data_home"] == str(home)
+    assert imported["settings"]["public_name"] == "Existing"
+    assert lifecycle.IniManager.get_ini_path({**config, **imported["settings"]}) == str(ini)
+    assert str(home / "Saves" / "Multiplayer" / "srv") in lifecycle.backup_paths({**config, **imported["settings"]})["paths"]
+
+
+def test_the_compatibility_data_root_can_be_loaded_without_legacy_config(tmp_path):
+    from zomboid import lifecycle
+
+    config = {"data_home": str(tmp_path), "server_name": "srv"}
+    assert lifecycle.IniManager.get_ini_path(config) == str(tmp_path / "Server" / "srv.ini")
+    assert str(tmp_path / "db" / "srv.db") in lifecycle.backup_paths(config)["paths"]
+
+
+@pytest.mark.parametrize("fallback", [False, True])
+def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_path, monkeypatch, fallback):
+    from types import SimpleNamespace
+    from zomboid import lifecycle
+    import extensions.steamcmd
+
+    class FakeSteam:
+        def ensure_available(self):
+            pass
+
+        def install(self, **kwargs):
+            return {"success": True}
+
+    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
+    monkeypatch.setattr(extensions.steamcmd, "SteamCMD", FakeSteam)
+    if fallback:
+        monkeypatch.delattr(extensions.steamcmd, "SteamCMD")
+        monkeypatch.setattr(lifecycle, "_find_steamcmd", lambda: "steamcmd")
+        monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="Success", stderr=""))
+
+    def denied(*args, **kwargs):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(lifecycle.IniManager, "write", denied)
+    result = lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": {"cache_dir": str(tmp_path / "data"), "password": "private"}})
+
+    assert result["success"] is False
+    assert result["error_code"] == "settings_write_failed"
+    assert result["message"] and not result["message"].startswith("errors.")
+
+
+def test_install_does_not_hide_a_profile_path_escape(tmp_path, monkeypatch):
+    from daemon_rcon import PathOutside
+    from zomboid import lifecycle
+    import extensions.steamcmd
+
+    class FakeSteam:
+        def ensure_available(self):
+            pass
+
+        def install(self, **kwargs):
+            return {"success": True}
+
+    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
+    monkeypatch.setattr(extensions.steamcmd, "SteamCMD", FakeSteam)
+    with pytest.raises(PathOutside):
+        lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": {"cache_dir": str(tmp_path / "data"), "server_name": "../other", "password": "private"}})
+
+
+def test_manifest_declares_the_external_data_roots_and_the_sdk_boundary():
+    cfg = _load_module_toml()
+    assert cfg["extensions"]["saba-core"]["data_roots"] == ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
+    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.10"
+    field = next(field for field in cfg["settings"]["fields"] if field["name"] == "data_home")
+    assert field["format"] == "path"
+
+
+@pytest.mark.parametrize("folder", ["Server", "db", "Saves"])
+def test_backup_rejects_a_linked_subfolder_outside_the_data_root(tmp_path, folder):
+    import subprocess
+    from daemon_rcon import PathOutside
+    from zomboid.lifecycle import backup_paths
+
+    home = tmp_path / "data"
+    outside = tmp_path / "outside"
+    home.mkdir()
+    outside.mkdir()
+    link = home / folder
+    if sys.platform == "win32":
+        subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(outside)], check=True, capture_output=True)
+    else:
+        link.symlink_to(outside, target_is_directory=True)
+
+    with pytest.raises(PathOutside):
+        backup_paths({"cache_dir": str(home), "server_name": "srv"})

@@ -4,211 +4,717 @@
     "description": "Project Zomboid 専用サーバー管理モジュール（完全なライフサイクル制御）"
   },
   "settings": {
-    "cache_dir": { "label": "データフォルダー", "description": "このサーバーの設定・セーブ・ログを置くフォルダー (-cachedir)。空欄なら ~/Zomboid" },
-    "ram": { "label": "メモリ (RAM)", "description": "最大メモリ割り当て量 (GB)" },
-    "server_name": { "label": "サーバープロファイル名", "description": "サーバープロファイル名（INIファイル名を決定）" },
-    "rcon_port": { "label": "RCONポート", "description": "RCONリモートコンソールのポート" },
-    "rcon_password": { "label": "RCONパスワード", "description": "RCON認証パスワード" },
-    "admin_password": { "label": "管理者パスワード", "description": "デフォルト管理者アカウントのパスワード（初回起動時に設定）" },
-    "no_steam": { "label": "非Steamモード", "description": "Steam無しでサーバーを実行（GoGプレイヤー接続可能）" },
-    "public_name": { "label": "サーバー名", "description": "サーバーブラウザに表示される名前" },
-    "public_description": { "label": "サーバー説明", "description": "ブラウザに表示されるサーバー説明" },
-    "password": { "label": "サーバーパスワード", "description": "サーバー接続に必要なパスワード（空欄ならパスワードなし）" },
-    "max_players": { "label": "最大プレイヤー数", "description": "最大許容プレイヤー数" },
-    "port": { "label": "ゲームポート", "description": "ゲームサーバーが待ち受けるUDPポート" },
-    "udp_port": { "label": "2番目のUDPポート", "description": "ゲームサーバーが待ち受ける2番目のUDPポート (UDPPort、通常はゲームポート + 1)" },
-    "pvp": { "label": "PVP", "description": "プレイヤー間戦闘を許可" },
-    "open": { "label": "オープンサーバー", "description": "全プレイヤーに公開（ホワイトリスト不要）" },
-    "public": { "label": "公開表示", "description": "Steamサーバーブラウザに表示" },
-    "pause_empty": { "label": "空のとき一時停止", "description": "プレイヤーがいない時にワールドを一時停止" },
-    "global_chat": { "label": "グローバルチャット", "description": "グローバルチャットを有効化（/allコマンド）" },
-    "map": { "label": "マップ", "description": "プレイするマップ" },
-    "mods": { "label": "Mod", "description": "セミコロンで区切られたMod IDリスト" },
-    "workshop_items": { "label": "ワークショップアイテム", "description": "セミコロンで区切られたワークショップアイテムIDリスト" },
-    "announce_death": { "label": "死亡通知", "description": "キャラクターの死亡を通知" },
-    "safety_system": { "label": "セーフティシステム", "description": "各プレイヤーがPvPのオン・オフを切り替えられる（PVPが有効である必要あり）" },
-    "sleep_allowed": { "label": "睡眠許可", "description": "プレイヤーの睡眠を許可" },
-    "sleep_needed": { "label": "睡眠必要", "description": "疲労時に睡眠が必要" },
-    "save_world_every_minutes": { "label": "自動セーブ間隔", "description": "自動セーブ間隔（分）" },
-    "ping_limit": { "label": "Ping制限", "description": "Pingがこの値（ms）を超えたプレイヤーをキック（100 = 無効）" },
-    "hours_for_loot_respawn": { "label": "ルートリスポーン時間", "description": "ルートリスポーンまでのゲーム内時間" },
-    "max_items_for_loot_respawn": { "label": "ルートリスポーン閾値", "description": "ルートリスポーン用の最大アイテム数" },
-    "no_fire": { "label": "火災無効化", "description": "キャンプファイアを除く火災を無効化" },
-    "player_safehouse": { "label": "プレイヤーセーフハウス", "description": "セーフハウスの獲得を許可" },
-    "safehouse_allow_trespass": { "label": "セーフハウス侵入", "description": "非メンバーの立入を許可" },
-    "safehouse_allow_loot": { "label": "セーフハウスルート", "description": "非メンバーのアイテム取得を許可" },
-    "safehouse_allow_respawn": { "label": "セーフハウスリスポーン", "description": "死亡後セーフハウスでリスポーン" },
-    "faction": { "label": "ファクション", "description": "ファクションを許可" },
-    "allow_destruction_by_sledgehammer": { "label": "スレッジハンマー破壊", "description": "ハンマーで建物を破壊することをプレイヤーに許可" },
-    "speed_limit": { "label": "速度制限", "description": "車両速度制限" },
-    "do_lua_checksum": { "label": "Luaチェックサム", "description": "接続したプレイヤーのLuaファイルがサーバーと一致するか検査（クライアント側Modを使う場合はオフ）" },
-    "steam_vac": { "label": "Steam VAC", "description": "Valve Anti-Cheatを有効化" },
-    "voice_enable": { "label": "ボイスチャット", "description": "ゲーム内ボイスチャットを有効化" },
-    "minutes_per_page": { "label": "ページ当たり時間", "description": "本の1ページを読むのに必要なゲーム内の時間（分）" },
-    "spawn_point": { "label": "スポーンポイント", "description": "カスタムスポーン座標" },
-    "max_accounts_per_user": { "label": "ユーザー当たり最大アカウント", "description": "Steamユーザー当たりのアカウント制限" },
-    "managed_start": { "label": "管理起動（コンソール）", "description": "saba-runner経由でサーバーを起動し、saba-chanがコンソールを使えるようにします。RCONはどのモードでも無効です。オフにすると、saba-chanはサーバーにコマンドを送れません。" },
-    "graceful_stop": { "label": "安全停止", "description": "「save」と「quit」コマンドを送り、サーバーが終了するまで待ちます。オフにすると、saba-chanはサーバープロセスをすぐに終了します。" },
-    "server_welcome_message": { "label": "ウェルカムメッセージ", "description": "接続したプレイヤーに表示するメッセージ（改行は<LINE>）" },
-    "auto_create_user_in_whitelist": { "label": "ホワイトリスト自動追加", "description": "新しいプレイヤーが参加したら自動でホワイトリストに追加" },
-    "display_user_name": { "label": "ユーザー名を表示", "description": "プレイヤーの頭上とローカルチャットにユーザー名を表示" },
-    "show_first_and_last_name": { "label": "キャラクター名を表示", "description": "ユーザー名の代わりにキャラクターの姓名を表示" },
-    "show_safety": { "label": "セーフティアイコンを表示", "description": "PvPセーフティをオフにしているプレイヤーにドクロアイコンを表示" },
-    "safety_toggle_timer": { "label": "セーフティ切替時間", "description": "PvPのオン・オフが切り替わるまでの時間（分）" },
-    "safety_cooldown_timer": { "label": "セーフティ再切替待ち時間", "description": "PvPセーフティをもう一度切り替えられるまでの時間（分）" },
-    "pvp_melee_while_hit_reaction": { "label": "被弾中のPvP近接攻撃", "description": "PvPで被弾リアクション中も近接攻撃を許可" },
-    "pvp_melee_damage_modifier": { "label": "PvP近接ダメージ（%）", "description": "PvPでの近接攻撃ダメージ倍率（%）" },
-    "pvp_firearm_damage_modifier": { "label": "PvP銃器ダメージ（%）", "description": "PvPでの銃器ダメージ倍率（%）" },
-    "mouse_over_to_see_display_name": { "label": "マウスオーバーで名前表示", "description": "マウスを重ねたときだけプレイヤーの表示名を表示" },
-    "hide_players_behind_you": { "label": "背後のプレイヤーを隠す", "description": "キャラクターの背後にいるプレイヤーを隠す" },
-    "player_bump_player": { "label": "プレイヤー同士の衝突", "description": "プレイヤー同士が体でぶつかるようにする" },
-    "player_respawn_with_self": { "label": "死亡地点でリスポーン", "description": "プレイヤーが死亡した場所でリスポーンできるようにする" },
-    "player_respawn_with_other": { "label": "パートナーの位置でリスポーン", "description": "分割画面のパートナーがいる場所でリスポーンできるようにする" },
-    "drop_off_whitelist_after_death": { "label": "死亡時にホワイトリストから削除", "description": "キャラクターが死亡したプレイヤーをホワイトリストから削除" },
-    "allow_non_ascii_username": { "label": "非ASCIIユーザー名を許可", "description": "ASCII以外の文字を含むユーザー名を許可" },
-    "chat_streams": { "label": "チャットチャンネル", "description": "有効にするチャットチャンネルをカンマ区切りで指定: s,r,a,w,y,sh,f,all" },
-    "player_save_on_damage": { "label": "ダメージ時にセーブ", "description": "プレイヤーがダメージを受けたときに自動セーブ" },
-    "admin_safehouse": { "label": "管理者のセーフハウス", "description": "管理者がセーフハウスを獲得できるようにする" },
-    "safehouse_allow_fire": { "label": "セーフハウスの火災ダメージ", "description": "火がセーフハウスにダメージを与えるのを許可" },
-    "safehouse_day_survived_to_claim": { "label": "セーフハウス獲得に必要な生存日数", "description": "セーフハウスを獲得するためにプレイヤーがゲーム内で生き延びる必要がある日数" },
-    "safehouse_removal_time": { "label": "セーフハウス削除までの時間", "description": "非アクティブなメンバーがセーフハウスから外されるまでの実時間（時間）" },
-    "disable_safehouse_when_player_connected": { "label": "オンライン中はセーフハウスを無効化", "description": "メンバーが1人でも接続している間はセーフハウスの保護を無効にする" },
-    "faction_day_survived_to_create": { "label": "ファクション作成に必要な生存日数", "description": "ファクションを作るためにプレイヤーがゲーム内で生き延びる必要がある日数" },
-    "faction_players_required_for_tag": { "label": "ファクションタグに必要な人数", "description": "ファクションタグを表示するために必要なメンバー数" },
-    "allow_trade_ui": { "label": "取引を許可", "description": "プレイヤー同士の直接取引を許可" },
-    "construction_prevents_loot_respawn": { "label": "建築物がルートのリスポーンを阻止", "description": "コンテナの近くにプレイヤーの建築物があると、ルートがリスポーンしない" },
-    "hours_for_world_item_removal": { "label": "地面アイテム消滅時間", "description": "落としたアイテムや死体が消えるまでのゲーム内時間（0 = 消えない）" },
-    "world_item_removal_list": { "label": "自動削除アイテムリスト", "description": "地面に置くと自動で消えるアイテムをカンマ区切りで指定" },
-    "blood_splat_lifespan_days": { "label": "血痕の持続日数", "description": "血痕が消えるまでの日数（0 = 消えない）" },
-    "item_numbers_limit_per_container": { "label": "コンテナごとのアイテム上限", "description": "1つのコンテナに入れられる最大アイテム数（0 = 無制限）" },
-    "trash_delete_all": { "label": "ゴミをすべて削除", "description": "ゴミアイテムをすぐにすべて削除" },
-    "remove_player_corpses_on_corpse_removal": { "label": "プレイヤーの死体を削除", "description": "死体の掃除時にプレイヤーの死体も削除" },
-    "ping_frequency": { "label": "Ping確認間隔", "description": "サーバーがプレイヤーとの接続を確認する間隔（秒）" },
-    "deny_login_on_overloaded_server": { "label": "過負荷時はログイン拒否", "description": "サーバーが過負荷のとき、新しい接続を拒否" },
-    "kick_fast_players": { "label": "高速移動プレイヤーをキック", "description": "ありえない速さで動くプレイヤーをキック（誤判定の可能性あり）" },
-    "steam_port1": { "label": "Steamポート1", "description": "1つ目のSteamネットワークポート" },
-    "steam_port2": { "label": "Steamポート2", "description": "2つ目のSteamネットワークポート" },
-    "steam_scoreboard": { "label": "Steamスコアボード", "description": "プレイヤー一覧にSteam名とアバターを表示（true/false/admin）" },
-    "upnp": { "label": "UPnP", "description": "ポート開放を自動で行うためにUPnPを有効化" },
-    "upnp_lease_time": { "label": "UPnPリース時間", "description": "UPnPポートマッピングのリース時間（秒）" },
-    "upnp_zero_lease_time_fallback": { "label": "UPnPリース0へのフォールバック", "description": "指定したリース時間が失敗した場合、リース時間0で再試行" },
-    "upnp_force": { "label": "UPnPを強制", "description": "ルーターがUPnPに十分対応していなくてもUPnPを使う" },
-    "server_browser_announced_ip": { "label": "通知するIP", "description": "サーバーブラウザに表示するIP（空欄なら自動）" },
-    "use_tcp_for_map_downloads": { "label": "マップのダウンロードにTCPを使用", "description": "マップデータをUDPではなくTCPでダウンロード" },
-    "physics_delay": { "label": "物理演算の遅延", "description": "物理シミュレーションの遅延時間（ミリ秒）" },
-    "fast_forward_multiplier": { "label": "早送り倍率", "description": "時間を早送りするときの速度倍率" },
-    "car_engine_attraction_modifier": { "label": "車のエンジン音の誘引度", "description": "車のエンジンがゾンビを引き寄せる強さ（倍率）" },
-    "coop_server_launch_timeout": { "label": "協力サーバー起動のタイムアウト", "description": "協力サーバーの起動を待つ最大時間（秒）" },
-    "coop_master_ping_timeout": { "label": "協力ホストのPingタイムアウト", "description": "協力ホストのPing応答を待つ最大時間（秒）" },
-    "voice_complexity": { "label": "音声の複雑度", "description": "Opus音声コーデックの複雑度（1-10、高いほど高音質）" },
-    "voice_period": { "label": "音声フレーム周期", "description": "音声フレームの周期（ミリ秒）" },
-    "voice_sample_rate": { "label": "音声サンプルレート", "description": "音声のサンプルレート（Hz）" },
-    "voice_buffering": { "label": "音声バッファリング", "description": "音声のバッファリング時間（ミリ秒）" },
-    "voice_min_distance": { "label": "音声の最小距離", "description": "音声の減衰が始まる最小距離" },
-    "voice_max_distance": { "label": "音声の最大距離", "description": "ボイスチャットが聞こえる最大距離" },
-    "voice_3d": { "label": "3Dボイス", "description": "位置に応じて音が変わる3Dボイスチャットを有効化" },
-    "discord_enable": { "label": "Discord連携", "description": "内蔵のDiscord Bot連携を有効化" },
-    "discord_token": { "label": "Discordトークン", "description": "連携に使うDiscord Botのトークン" },
-    "discord_channel": { "label": "Discordチャンネル", "description": "サーバーメッセージを送るDiscordチャンネル名" },
-    "discord_channel_id": { "label": "DiscordチャンネルID", "description": "サーバーメッセージを送るDiscordチャンネルのID" },
-    "disable_radio_staff": { "label": "ラジオを無効化（スタッフ）", "description": "スタッフのラジオ周波数を非表示にする" },
-    "disable_radio_admin": { "label": "ラジオを無効化（管理者）", "description": "管理者のラジオ周波数を非表示にする" },
-    "disable_radio_gm": { "label": "ラジオを無効化（ゲームマスター）", "description": "ゲームマスターのラジオ周波数を非表示にする" },
-    "disable_radio_overseer": { "label": "ラジオを無効化（監督官）", "description": "監督官のラジオ周波数を非表示にする" },
-    "disable_radio_moderator": { "label": "ラジオを無効化（モデレーター）", "description": "モデレーターのラジオ周波数を非表示にする" },
-    "disable_radio_invisible": { "label": "ラジオを無効化（透明なプレイヤー）", "description": "透明なプレイヤーのラジオ周波数を非表示にする" },
-    "client_command_filter": { "label": "クライアントコマンドフィルター", "description": "クライアントコマンドのフィルタールール（先頭に+で許可、-で拒否）" },
-    "zombie_update_max_high_priority": { "label": "ゾンビ高優先更新の最大数", "description": "1ティックで処理する高優先度ゾンビ更新の最大数" },
-    "zombie_update_delta": { "label": "ゾンビ更新間隔", "description": "ゾンビの更新と更新の間の時間間隔" },
-    "zombie_update_radius_low_priority": { "label": "ゾンビ低優先の半径", "description": "低優先度のゾンビ更新が適用される半径" },
-    "zombie_update_radius_high_priority": { "label": "ゾンビ高優先の半径", "description": "高優先度のゾンビ更新が適用される半径" },
-    "ban_kick_global_sound": { "label": "BAN・キック時の効果音", "description": "プレイヤーがBANまたはキックされたとき、全員に効果音を再生" },
-    "save_transaction_id": { "label": "セーブトランザクションID", "description": "デバッグ用にセーブのトランザクションIDを記録" }
+    "data_home": {
+      "label": "既存のデータフォルダー",
+      "description": "既存のサーバー構成から検出したデータフォルダーです。現在のINIフォルダーを維持します。"
+    },
+    "cache_dir": {
+      "label": "データフォルダー",
+      "description": "このサーバーの設定・セーブ・ログを置くフォルダー (-cachedir)。空欄なら ~/Zomboid"
+    },
+    "ram": {
+      "label": "メモリ (RAM)",
+      "description": "最大メモリ割り当て量 (GB)"
+    },
+    "server_name": {
+      "label": "サーバープロファイル名",
+      "description": "サーバープロファイル名（INIファイル名を決定）"
+    },
+    "rcon_port": {
+      "label": "RCONポート",
+      "description": "RCONリモートコンソールのポート"
+    },
+    "rcon_password": {
+      "label": "RCONパスワード",
+      "description": "RCON認証パスワード"
+    },
+    "admin_password": {
+      "label": "管理者パスワード",
+      "description": "デフォルト管理者アカウントのパスワード（初回起動時に設定）"
+    },
+    "no_steam": {
+      "label": "非Steamモード",
+      "description": "Steam無しでサーバーを実行（GoGプレイヤー接続可能）"
+    },
+    "public_name": {
+      "label": "サーバー名",
+      "description": "サーバーブラウザに表示される名前"
+    },
+    "public_description": {
+      "label": "サーバー説明",
+      "description": "ブラウザに表示されるサーバー説明"
+    },
+    "password": {
+      "label": "サーバーパスワード",
+      "description": "サーバー接続に必要なパスワード（空欄ならパスワードなし）"
+    },
+    "max_players": {
+      "label": "最大プレイヤー数",
+      "description": "最大許容プレイヤー数"
+    },
+    "port": {
+      "label": "ゲームポート",
+      "description": "ゲームサーバーが待ち受けるUDPポート"
+    },
+    "udp_port": {
+      "label": "2番目のUDPポート",
+      "description": "ゲームサーバーが待ち受ける2番目のUDPポート (UDPPort、通常はゲームポート + 1)"
+    },
+    "pvp": {
+      "label": "PVP",
+      "description": "プレイヤー間戦闘を許可"
+    },
+    "open": {
+      "label": "オープンサーバー",
+      "description": "全プレイヤーに公開（ホワイトリスト不要）"
+    },
+    "public": {
+      "label": "公開表示",
+      "description": "Steamサーバーブラウザに表示"
+    },
+    "pause_empty": {
+      "label": "空のとき一時停止",
+      "description": "プレイヤーがいない時にワールドを一時停止"
+    },
+    "global_chat": {
+      "label": "グローバルチャット",
+      "description": "グローバルチャットを有効化（/allコマンド）"
+    },
+    "map": {
+      "label": "マップ",
+      "description": "プレイするマップ"
+    },
+    "mods": {
+      "label": "Mod",
+      "description": "セミコロンで区切られたMod IDリスト"
+    },
+    "workshop_items": {
+      "label": "ワークショップアイテム",
+      "description": "セミコロンで区切られたワークショップアイテムIDリスト"
+    },
+    "announce_death": {
+      "label": "死亡通知",
+      "description": "キャラクターの死亡を通知"
+    },
+    "safety_system": {
+      "label": "セーフティシステム",
+      "description": "各プレイヤーがPvPのオン・オフを切り替えられる（PVPが有効である必要あり）"
+    },
+    "sleep_allowed": {
+      "label": "睡眠許可",
+      "description": "プレイヤーの睡眠を許可"
+    },
+    "sleep_needed": {
+      "label": "睡眠必要",
+      "description": "疲労時に睡眠が必要"
+    },
+    "save_world_every_minutes": {
+      "label": "自動セーブ間隔",
+      "description": "自動セーブ間隔（分）"
+    },
+    "ping_limit": {
+      "label": "Ping制限",
+      "description": "Pingがこの値（ms）を超えたプレイヤーをキック（100 = 無効）"
+    },
+    "hours_for_loot_respawn": {
+      "label": "ルートリスポーン時間",
+      "description": "ルートリスポーンまでのゲーム内時間"
+    },
+    "max_items_for_loot_respawn": {
+      "label": "ルートリスポーン閾値",
+      "description": "ルートリスポーン用の最大アイテム数"
+    },
+    "no_fire": {
+      "label": "火災無効化",
+      "description": "キャンプファイアを除く火災を無効化"
+    },
+    "player_safehouse": {
+      "label": "プレイヤーセーフハウス",
+      "description": "セーフハウスの獲得を許可"
+    },
+    "safehouse_allow_trespass": {
+      "label": "セーフハウス侵入",
+      "description": "非メンバーの立入を許可"
+    },
+    "safehouse_allow_loot": {
+      "label": "セーフハウスルート",
+      "description": "非メンバーのアイテム取得を許可"
+    },
+    "safehouse_allow_respawn": {
+      "label": "セーフハウスリスポーン",
+      "description": "死亡後セーフハウスでリスポーン"
+    },
+    "faction": {
+      "label": "ファクション",
+      "description": "ファクションを許可"
+    },
+    "allow_destruction_by_sledgehammer": {
+      "label": "スレッジハンマー破壊",
+      "description": "ハンマーで建物を破壊することをプレイヤーに許可"
+    },
+    "speed_limit": {
+      "label": "速度制限",
+      "description": "車両速度制限"
+    },
+    "do_lua_checksum": {
+      "label": "Luaチェックサム",
+      "description": "接続したプレイヤーのLuaファイルがサーバーと一致するか検査（クライアント側Modを使う場合はオフ）"
+    },
+    "steam_vac": {
+      "label": "Steam VAC",
+      "description": "Valve Anti-Cheatを有効化"
+    },
+    "voice_enable": {
+      "label": "ボイスチャット",
+      "description": "ゲーム内ボイスチャットを有効化"
+    },
+    "minutes_per_page": {
+      "label": "ページ当たり時間",
+      "description": "本の1ページを読むのに必要なゲーム内の時間（分）"
+    },
+    "spawn_point": {
+      "label": "スポーンポイント",
+      "description": "カスタムスポーン座標"
+    },
+    "max_accounts_per_user": {
+      "label": "ユーザー当たり最大アカウント",
+      "description": "Steamユーザー当たりのアカウント制限"
+    },
+    "managed_start": {
+      "label": "管理起動（コンソール）",
+      "description": "saba-runner経由でサーバーを起動し、saba-chanがコンソールを使えるようにします。RCONはどのモードでも無効です。オフにすると、saba-chanはサーバーにコマンドを送れません。"
+    },
+    "graceful_stop": {
+      "label": "安全停止",
+      "description": "「save」と「quit」コマンドを送り、サーバーが終了するまで待ちます。オフにすると、saba-chanはサーバープロセスをすぐに終了します。"
+    },
+    "server_welcome_message": {
+      "label": "ウェルカムメッセージ",
+      "description": "接続したプレイヤーに表示するメッセージ（改行は<LINE>）"
+    },
+    "auto_create_user_in_whitelist": {
+      "label": "ホワイトリスト自動追加",
+      "description": "新しいプレイヤーが参加したら自動でホワイトリストに追加"
+    },
+    "display_user_name": {
+      "label": "ユーザー名を表示",
+      "description": "プレイヤーの頭上とローカルチャットにユーザー名を表示"
+    },
+    "show_first_and_last_name": {
+      "label": "キャラクター名を表示",
+      "description": "ユーザー名の代わりにキャラクターの姓名を表示"
+    },
+    "show_safety": {
+      "label": "セーフティアイコンを表示",
+      "description": "PvPセーフティをオフにしているプレイヤーにドクロアイコンを表示"
+    },
+    "safety_toggle_timer": {
+      "label": "セーフティ切替時間",
+      "description": "PvPのオン・オフが切り替わるまでの時間（分）"
+    },
+    "safety_cooldown_timer": {
+      "label": "セーフティ再切替待ち時間",
+      "description": "PvPセーフティをもう一度切り替えられるまでの時間（分）"
+    },
+    "pvp_melee_while_hit_reaction": {
+      "label": "被弾中のPvP近接攻撃",
+      "description": "PvPで被弾リアクション中も近接攻撃を許可"
+    },
+    "pvp_melee_damage_modifier": {
+      "label": "PvP近接ダメージ（%）",
+      "description": "PvPでの近接攻撃ダメージ倍率（%）"
+    },
+    "pvp_firearm_damage_modifier": {
+      "label": "PvP銃器ダメージ（%）",
+      "description": "PvPでの銃器ダメージ倍率（%）"
+    },
+    "mouse_over_to_see_display_name": {
+      "label": "マウスオーバーで名前表示",
+      "description": "マウスを重ねたときだけプレイヤーの表示名を表示"
+    },
+    "hide_players_behind_you": {
+      "label": "背後のプレイヤーを隠す",
+      "description": "キャラクターの背後にいるプレイヤーを隠す"
+    },
+    "player_bump_player": {
+      "label": "プレイヤー同士の衝突",
+      "description": "プレイヤー同士が体でぶつかるようにする"
+    },
+    "player_respawn_with_self": {
+      "label": "死亡地点でリスポーン",
+      "description": "プレイヤーが死亡した場所でリスポーンできるようにする"
+    },
+    "player_respawn_with_other": {
+      "label": "パートナーの位置でリスポーン",
+      "description": "分割画面のパートナーがいる場所でリスポーンできるようにする"
+    },
+    "drop_off_whitelist_after_death": {
+      "label": "死亡時にホワイトリストから削除",
+      "description": "キャラクターが死亡したプレイヤーをホワイトリストから削除"
+    },
+    "allow_non_ascii_username": {
+      "label": "非ASCIIユーザー名を許可",
+      "description": "ASCII以外の文字を含むユーザー名を許可"
+    },
+    "chat_streams": {
+      "label": "チャットチャンネル",
+      "description": "有効にするチャットチャンネルをカンマ区切りで指定: s,r,a,w,y,sh,f,all"
+    },
+    "player_save_on_damage": {
+      "label": "ダメージ時にセーブ",
+      "description": "プレイヤーがダメージを受けたときに自動セーブ"
+    },
+    "admin_safehouse": {
+      "label": "管理者のセーフハウス",
+      "description": "管理者がセーフハウスを獲得できるようにする"
+    },
+    "safehouse_allow_fire": {
+      "label": "セーフハウスの火災ダメージ",
+      "description": "火がセーフハウスにダメージを与えるのを許可"
+    },
+    "safehouse_day_survived_to_claim": {
+      "label": "セーフハウス獲得に必要な生存日数",
+      "description": "セーフハウスを獲得するためにプレイヤーがゲーム内で生き延びる必要がある日数"
+    },
+    "safehouse_removal_time": {
+      "label": "セーフハウス削除までの時間",
+      "description": "非アクティブなメンバーがセーフハウスから外されるまでの実時間（時間）"
+    },
+    "disable_safehouse_when_player_connected": {
+      "label": "オンライン中はセーフハウスを無効化",
+      "description": "メンバーが1人でも接続している間はセーフハウスの保護を無効にする"
+    },
+    "faction_day_survived_to_create": {
+      "label": "ファクション作成に必要な生存日数",
+      "description": "ファクションを作るためにプレイヤーがゲーム内で生き延びる必要がある日数"
+    },
+    "faction_players_required_for_tag": {
+      "label": "ファクションタグに必要な人数",
+      "description": "ファクションタグを表示するために必要なメンバー数"
+    },
+    "allow_trade_ui": {
+      "label": "取引を許可",
+      "description": "プレイヤー同士の直接取引を許可"
+    },
+    "construction_prevents_loot_respawn": {
+      "label": "建築物がルートのリスポーンを阻止",
+      "description": "コンテナの近くにプレイヤーの建築物があると、ルートがリスポーンしない"
+    },
+    "hours_for_world_item_removal": {
+      "label": "地面アイテム消滅時間",
+      "description": "落としたアイテムや死体が消えるまでのゲーム内時間（0 = 消えない）"
+    },
+    "world_item_removal_list": {
+      "label": "自動削除アイテムリスト",
+      "description": "地面に置くと自動で消えるアイテムをカンマ区切りで指定"
+    },
+    "blood_splat_lifespan_days": {
+      "label": "血痕の持続日数",
+      "description": "血痕が消えるまでの日数（0 = 消えない）"
+    },
+    "item_numbers_limit_per_container": {
+      "label": "コンテナごとのアイテム上限",
+      "description": "1つのコンテナに入れられる最大アイテム数（0 = 無制限）"
+    },
+    "trash_delete_all": {
+      "label": "ゴミをすべて削除",
+      "description": "ゴミアイテムをすぐにすべて削除"
+    },
+    "remove_player_corpses_on_corpse_removal": {
+      "label": "プレイヤーの死体を削除",
+      "description": "死体の掃除時にプレイヤーの死体も削除"
+    },
+    "ping_frequency": {
+      "label": "Ping確認間隔",
+      "description": "サーバーがプレイヤーとの接続を確認する間隔（秒）"
+    },
+    "deny_login_on_overloaded_server": {
+      "label": "過負荷時はログイン拒否",
+      "description": "サーバーが過負荷のとき、新しい接続を拒否"
+    },
+    "kick_fast_players": {
+      "label": "高速移動プレイヤーをキック",
+      "description": "ありえない速さで動くプレイヤーをキック（誤判定の可能性あり）"
+    },
+    "steam_port1": {
+      "label": "Steamポート1",
+      "description": "1つ目のSteamネットワークポート"
+    },
+    "steam_port2": {
+      "label": "Steamポート2",
+      "description": "2つ目のSteamネットワークポート"
+    },
+    "steam_scoreboard": {
+      "label": "Steamスコアボード",
+      "description": "プレイヤー一覧にSteam名とアバターを表示（true/false/admin）"
+    },
+    "upnp": {
+      "label": "UPnP",
+      "description": "ポート開放を自動で行うためにUPnPを有効化"
+    },
+    "upnp_lease_time": {
+      "label": "UPnPリース時間",
+      "description": "UPnPポートマッピングのリース時間（秒）"
+    },
+    "upnp_zero_lease_time_fallback": {
+      "label": "UPnPリース0へのフォールバック",
+      "description": "指定したリース時間が失敗した場合、リース時間0で再試行"
+    },
+    "upnp_force": {
+      "label": "UPnPを強制",
+      "description": "ルーターがUPnPに十分対応していなくてもUPnPを使う"
+    },
+    "server_browser_announced_ip": {
+      "label": "通知するIP",
+      "description": "サーバーブラウザに表示するIP（空欄なら自動）"
+    },
+    "use_tcp_for_map_downloads": {
+      "label": "マップのダウンロードにTCPを使用",
+      "description": "マップデータをUDPではなくTCPでダウンロード"
+    },
+    "physics_delay": {
+      "label": "物理演算の遅延",
+      "description": "物理シミュレーションの遅延時間（ミリ秒）"
+    },
+    "fast_forward_multiplier": {
+      "label": "早送り倍率",
+      "description": "時間を早送りするときの速度倍率"
+    },
+    "car_engine_attraction_modifier": {
+      "label": "車のエンジン音の誘引度",
+      "description": "車のエンジンがゾンビを引き寄せる強さ（倍率）"
+    },
+    "coop_server_launch_timeout": {
+      "label": "協力サーバー起動のタイムアウト",
+      "description": "協力サーバーの起動を待つ最大時間（秒）"
+    },
+    "coop_master_ping_timeout": {
+      "label": "協力ホストのPingタイムアウト",
+      "description": "協力ホストのPing応答を待つ最大時間（秒）"
+    },
+    "voice_complexity": {
+      "label": "音声の複雑度",
+      "description": "Opus音声コーデックの複雑度（1-10、高いほど高音質）"
+    },
+    "voice_period": {
+      "label": "音声フレーム周期",
+      "description": "音声フレームの周期（ミリ秒）"
+    },
+    "voice_sample_rate": {
+      "label": "音声サンプルレート",
+      "description": "音声のサンプルレート（Hz）"
+    },
+    "voice_buffering": {
+      "label": "音声バッファリング",
+      "description": "音声のバッファリング時間（ミリ秒）"
+    },
+    "voice_min_distance": {
+      "label": "音声の最小距離",
+      "description": "音声の減衰が始まる最小距離"
+    },
+    "voice_max_distance": {
+      "label": "音声の最大距離",
+      "description": "ボイスチャットが聞こえる最大距離"
+    },
+    "voice_3d": {
+      "label": "3Dボイス",
+      "description": "位置に応じて音が変わる3Dボイスチャットを有効化"
+    },
+    "discord_enable": {
+      "label": "Discord連携",
+      "description": "内蔵のDiscord Bot連携を有効化"
+    },
+    "discord_token": {
+      "label": "Discordトークン",
+      "description": "連携に使うDiscord Botのトークン"
+    },
+    "discord_channel": {
+      "label": "Discordチャンネル",
+      "description": "サーバーメッセージを送るDiscordチャンネル名"
+    },
+    "discord_channel_id": {
+      "label": "DiscordチャンネルID",
+      "description": "サーバーメッセージを送るDiscordチャンネルのID"
+    },
+    "disable_radio_staff": {
+      "label": "ラジオを無効化（スタッフ）",
+      "description": "スタッフのラジオ周波数を非表示にする"
+    },
+    "disable_radio_admin": {
+      "label": "ラジオを無効化（管理者）",
+      "description": "管理者のラジオ周波数を非表示にする"
+    },
+    "disable_radio_gm": {
+      "label": "ラジオを無効化（ゲームマスター）",
+      "description": "ゲームマスターのラジオ周波数を非表示にする"
+    },
+    "disable_radio_overseer": {
+      "label": "ラジオを無効化（監督官）",
+      "description": "監督官のラジオ周波数を非表示にする"
+    },
+    "disable_radio_moderator": {
+      "label": "ラジオを無効化（モデレーター）",
+      "description": "モデレーターのラジオ周波数を非表示にする"
+    },
+    "disable_radio_invisible": {
+      "label": "ラジオを無効化（透明なプレイヤー）",
+      "description": "透明なプレイヤーのラジオ周波数を非表示にする"
+    },
+    "client_command_filter": {
+      "label": "クライアントコマンドフィルター",
+      "description": "クライアントコマンドのフィルタールール（先頭に+で許可、-で拒否）"
+    },
+    "zombie_update_max_high_priority": {
+      "label": "ゾンビ高優先更新の最大数",
+      "description": "1ティックで処理する高優先度ゾンビ更新の最大数"
+    },
+    "zombie_update_delta": {
+      "label": "ゾンビ更新間隔",
+      "description": "ゾンビの更新と更新の間の時間間隔"
+    },
+    "zombie_update_radius_low_priority": {
+      "label": "ゾンビ低優先の半径",
+      "description": "低優先度のゾンビ更新が適用される半径"
+    },
+    "zombie_update_radius_high_priority": {
+      "label": "ゾンビ高優先の半径",
+      "description": "高優先度のゾンビ更新が適用される半径"
+    },
+    "ban_kick_global_sound": {
+      "label": "BAN・キック時の効果音",
+      "description": "プレイヤーがBANまたはキックされたとき、全員に効果音を再生"
+    },
+    "save_transaction_id": {
+      "label": "セーブトランザクションID",
+      "description": "デバッグ用にセーブのトランザクションIDを記録"
+    }
   },
   "commands": {
     "servermsg": {
       "label": "全体メッセージ送信",
       "description": "全プレイヤーにメッセージを送信",
-      "inputs": { "message": { "label": "メッセージ", "placeholder": "送信するメッセージを入力" } }
+      "inputs": {
+        "message": {
+          "label": "メッセージ",
+          "placeholder": "送信するメッセージを入力"
+        }
+      }
     },
-    "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤーを表示" },
-    "save": { "label": "ワールド保存", "description": "現在のゲームワールドを保存" },
+    "players": {
+      "label": "プレイヤー一覧",
+      "description": "接続中のプレイヤーを表示"
+    },
+    "save": {
+      "label": "ワールド保存",
+      "description": "現在のゲームワールドを保存"
+    },
     "kick": {
       "label": "プレイヤーキック",
       "description": "プレイヤーをサーバーからキック",
-      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "Player username" }, "reason": { "label": "理由", "placeholder": "Optional reason" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名",
+          "placeholder": "Player username"
+        },
+        "reason": {
+          "label": "理由",
+          "placeholder": "Optional reason"
+        }
+      }
     },
     "banuser": {
       "label": "プレイヤーBAN",
       "description": "プレイヤーをBANする",
-      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "Player username" }, "reason": { "label": "理由", "placeholder": "Optional reason" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名",
+          "placeholder": "Player username"
+        },
+        "reason": {
+          "label": "理由",
+          "placeholder": "Optional reason"
+        }
+      }
     },
     "unbanuser": {
       "label": "BAN解除",
       "description": "プレイヤーのBANを解除",
-      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "Player username" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名",
+          "placeholder": "Player username"
+        }
+      }
     },
     "adduser": {
       "label": "ユーザー追加",
       "description": "サーバーに新しいユーザーを追加",
-      "inputs": { "username": { "label": "ユーザー名", "placeholder": "アカウントのユーザー名" }, "password": { "label": "パスワード", "placeholder": "アカウントのパスワード" } }
+      "inputs": {
+        "username": {
+          "label": "ユーザー名",
+          "placeholder": "アカウントのユーザー名"
+        },
+        "password": {
+          "label": "パスワード",
+          "placeholder": "アカウントのパスワード"
+        }
+      }
     },
     "setaccesslevel": {
       "label": "アクセスレベル設定",
       "description": "プレイヤーのアクセスレベルを設定",
-      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "level": { "label": "アクセスレベル" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名",
+          "placeholder": "プレイヤーのユーザー名"
+        },
+        "level": {
+          "label": "アクセスレベル"
+        }
+      }
     },
     "teleport": {
       "label": "テレポート",
       "description": "プレイヤーを別のプレイヤーの位置へテレポート",
-      "inputs": { "player": { "label": "プレイヤー", "placeholder": "移動するプレイヤー" }, "target": { "label": "対象", "placeholder": "移動先のプレイヤー" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー",
+          "placeholder": "移動するプレイヤー"
+        },
+        "target": {
+          "label": "対象",
+          "placeholder": "移動先のプレイヤー"
+        }
+      }
     },
     "teleportto": {
       "label": "座標テレポート",
       "description": "指定した座標にテレポート",
-      "inputs": { "coords": { "label": "座標", "placeholder": "x,y,z" } }
+      "inputs": {
+        "coords": {
+          "label": "座標",
+          "placeholder": "x,y,z"
+        }
+      }
     },
     "createhorde": {
       "label": "ゾンビ群生成",
       "description": "プレイヤー付近にゾンビ群を生成",
-      "inputs": { "count": { "label": "ゾンビ数" }, "player": { "label": "プレイヤー (任意)", "placeholder": "対象プレイヤー" } }
+      "inputs": {
+        "count": {
+          "label": "ゾンビ数"
+        },
+        "player": {
+          "label": "プレイヤー (任意)",
+          "placeholder": "対象プレイヤー"
+        }
+      }
     },
     "godmod": {
       "label": "ゴッドモード",
       "description": "プレイヤーを無敵にする",
-      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "value": { "label": "有効化" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名",
+          "placeholder": "プレイヤーのユーザー名"
+        },
+        "value": {
+          "label": "有効化"
+        }
+      }
     },
     "invisible": {
       "label": "透明化",
       "description": "ゾンビから見えなくする",
-      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "value": { "label": "有効化" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名",
+          "placeholder": "プレイヤーのユーザー名"
+        },
+        "value": {
+          "label": "有効化"
+        }
+      }
     },
-    "startrain": { "label": "雨開始", "description": "サーバーで雨を開始" },
-    "stoprain": { "label": "雨停止", "description": "サーバーの雨を停止" },
-    "chopper": { "label": "ヘリコプターイベント", "description": "ヘリコプターイベントを発生" },
-    "gunshot": { "label": "銃声", "description": "銃声を発生" },
+    "startrain": {
+      "label": "雨開始",
+      "description": "サーバーで雨を開始"
+    },
+    "stoprain": {
+      "label": "雨停止",
+      "description": "サーバーの雨を停止"
+    },
+    "chopper": {
+      "label": "ヘリコプターイベント",
+      "description": "ヘリコプターイベントを発生"
+    },
+    "gunshot": {
+      "label": "銃声",
+      "description": "銃声を発生"
+    },
     "additem": {
       "label": "アイテム付与",
       "description": "プレイヤーにアイテムを付与",
-      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "item": { "label": "アイテムID", "placeholder": "例: Base.Axe" }, "count": { "label": "個数" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名",
+          "placeholder": "プレイヤーのユーザー名"
+        },
+        "item": {
+          "label": "アイテムID",
+          "placeholder": "例: Base.Axe"
+        },
+        "count": {
+          "label": "個数"
+        }
+      }
     },
     "addxp": {
       "label": "経験値付与",
       "description": "プレイヤーに経験値を付与",
-      "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのユーザー名" }, "perk": { "label": "パーク名", "placeholder": "例: Woodwork" }, "amount": { "label": "XP量" } }
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名",
+          "placeholder": "プレイヤーのユーザー名"
+        },
+        "perk": {
+          "label": "パーク名",
+          "placeholder": "例: Woodwork"
+        },
+        "amount": {
+          "label": "XP量"
+        }
+      }
     },
-    "showoptions": { "label": "サーバーオプション表示", "description": "現在のサーバー設定を表示" },
-    "reloadoptions": { "label": "オプション再読み込み", "description": "INIからサーバーオプションを再読み込み" },
+    "showoptions": {
+      "label": "サーバーオプション表示",
+      "description": "現在のサーバー設定を表示"
+    },
+    "reloadoptions": {
+      "label": "オプション再読み込み",
+      "description": "INIからサーバーオプションを再読み込み"
+    },
     "changeoption": {
       "label": "オプション変更",
       "description": "サーバーオプションをリアルタイムで変更",
-      "inputs": { "option": { "label": "オプション名", "placeholder": "例: MaxPlayers" }, "value": { "label": "新しい値", "placeholder": "新しい値" } }
+      "inputs": {
+        "option": {
+          "label": "オプション名",
+          "placeholder": "例: MaxPlayers"
+        },
+        "value": {
+          "label": "新しい値",
+          "placeholder": "新しい値"
+        }
+      }
     },
-    "quit": { "label": "サーバーシャットダウン", "description": "保存して安全にシャットダウン" }
+    "quit": {
+      "label": "サーバーシャットダウン",
+      "description": "保存して安全にシャットダウン"
+    }
   },
   "errors": {
-    "backup_paths_failed": "バックアップ用のセーブフォルダーを読み取れませんでした: {{error}}",
-    "graceful_stop_unavailable": "サーバーに保存と終了を要求する手段がありません（コンソールもRESTもなし）。サーバーは停止していません。未保存の進行状況が失われてもよい場合のみ、強制終了してください。",
+    "settings_write_failed": "サーバーファイルはインストールされましたが、選択した設定を保存できませんでした: {{error}}",
     "player_not_found": "プレイヤーが見つかりません。ユーザー名を確認してください。",
     "connection_refused": "サーバーに接続できません。サーバーが起動しているか、ポートが正しいか確認してください。",
     "timeout": "サーバーの応答がタイムアウトしました。サーバーの状態を確認してください。",
@@ -255,7 +761,9 @@
     },
     "no_command": "コマンドが指定されていません",
     "command_send_failed": "コマンドの送信に失敗しました: {{error}}",
-    "unknown_error": "不明なエラー"
+    "unknown_error": "不明なエラー",
+    "backup_paths_failed": "バックアップ用のセーブフォルダーを読み取れませんでした: {{error}}",
+    "graceful_stop_unavailable": "サーバーに保存と終了を要求する手段がありません（コンソールもRESTもなし）。サーバーは停止していません。未保存の進行状況が失われてもよい場合のみ、強制終了してください。"
   },
   "messages": {
     "server_online": "サーバーはオンラインで応答しています",

@@ -4,6 +4,7 @@
     "description": "Project Zomboid dedicated server management module with full lifecycle control"
   },
   "settings": {
+    "data_home": { "label": "Legacy Data Folder", "description": "Data folder detected from the existing server layout. Keeps the current INI folder." },
     "cache_dir": { "label": "Data Folder", "description": "Where this server keeps its settings, saves and logs (-cachedir). Empty uses ~/Zomboid" },
     "ram": { "label": "Memory (RAM)", "description": "Maximum memory allocation in GB" },
     "server_name": { "label": "Server Profile Name", "description": "Name of the server profile (determines INI file name)" },
@@ -242,6 +243,7 @@
     "quit": { "label": "Shutdown Server", "description": "Save and gracefully shut down" }
   },
   "errors": {
+    "settings_write_failed": "The server files were installed, but the selected settings could not be saved: {{error}}",
     "backup_paths_failed": "Could not read the save folder for backup: {{error}}",
     "graceful_stop_unavailable": "There is no way to ask the server to save and exit (no console or REST). It was not stopped. Force stop it only if you accept losing unsaved progress.",
     "player_not_found": "Player not found. Please check the username.",

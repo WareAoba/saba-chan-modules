@@ -20,6 +20,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import threading
 import time
 import warnings
 
@@ -48,7 +49,48 @@ SAFE_FUNCTIONS = ["get_launch_command", "validate", "status", "read_properties",
 CALL_TIMEOUT = 30
 
 
-def call(module, shared_libs, function, config, tmp_path):
+def _host_call(argv, config, env, tmp_path, accepted_requests):
+    """SDK의 실제 HOST 요청을 받아 성공 응답을 쓰고 요청 접수를 관찰한다."""
+    host_dir = tmp_path / "host"
+    host_dir.mkdir()
+    env["SABA_HOST_DIR"] = str(host_dir)
+    stdout, stderr = [], []
+    with subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          text=True, encoding="utf-8", env=env, cwd=tmp_path) as proc:
+        def respond():
+            for line in proc.stderr:
+                stderr.append(line)
+                if not line.startswith("HOST:"):
+                    continue
+                request = json.loads(line.removeprefix("HOST:"))
+                if request["op"] in ("instance.stdin", "instance.rest"):
+                    accepted_requests.append(request)
+                    data = {"success": True, "data": {"response": {}}}
+                    reply = {"ok": True, "data": data}
+                else:
+                    reply = {"ok": False, "error_code": "op_not_allowed", "error": "unsupported operation"}
+                pending = host_dir / f"{request['id']}.tmp"
+                pending.write_text(json.dumps(reply), encoding="utf-8")
+                pending.replace(host_dir / f"{request['id']}.json")
+
+        reader = threading.Thread(target=respond, daemon=True)
+        output = threading.Thread(target=lambda: stdout.append(proc.stdout.read()), daemon=True)
+        reader.start()
+        output.start()
+        proc.stdin.write(config)
+        proc.stdin.close()
+        try:
+            proc.wait(timeout=CALL_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            raise
+        reader.join(timeout=5)
+        output.join(timeout=5)
+        return subprocess.CompletedProcess(argv, proc.returncode, "".join(stdout), "".join(stderr))
+
+
+def call(module, shared_libs, function, config, tmp_path, accepted_requests=None):
     """데몬과 같은 방식으로 모듈 함수를 부른다."""
     env = {
         **os.environ,
@@ -66,17 +108,16 @@ def call(module, shared_libs, function, config, tmp_path):
         "HOME": str(tmp_path),
         "USERPROFILE": str(tmp_path),
     }
+    for key in ("SABA_HOST_DIR", "SABA_LOOPBACK_DIR", "DAEMON_API_URL"):
+        env.pop(key, None)
+    argv = [sys.executable, str(module.entry), function]
+    stdin = config if isinstance(config, str) else json.dumps(config)
     try:
-        proc = subprocess.run(
-            [sys.executable, str(module.entry), function],
-            input=config if isinstance(config, str) else json.dumps(config),
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            env=env,
-            cwd=tmp_path,
-            timeout=CALL_TIMEOUT,
-        )
+        if accepted_requests is None:
+            proc = subprocess.run(argv, input=stdin, capture_output=True, text=True, encoding="utf-8",
+                                  env=env, cwd=tmp_path, timeout=CALL_TIMEOUT)
+        else:
+            proc = _host_call(argv, stdin, env, tmp_path, accepted_requests)
     except subprocess.TimeoutExpired:
         pytest.fail(f"{function}: {CALL_TIMEOUT}초 안에 끝나지 않았다")
     where = f"{module.name}.{function}"
@@ -404,9 +445,24 @@ def test_kit_changes_every_kind_it_can():
     assert changed == {"b": True, "n": 9, "s": "b"}
     assert settings["t"] == "W/x" and "ram" not in settings
 
-def stop_answer_problems(result, still_alive):
-    """일반 정지(force=false)의 답: 끝냈으면 성공, 저장 후 종료를 요청할 길이 없으면 서버를 그대로 두고
-    `graceful_stop_unavailable`(데몬이 사용자에게 강제 종료를 고르게 한다, 02 §3.4)"""
+def stop_request_accepted(manifest, requests):
+    """설정의 정지 명령 또는 그 명령이 선언한 REST endpoint 접수를 확인한다."""
+    stop = str(manifest.get("config", {}).get("stop_command") or "stop").casefold()
+    commands = manifest.get("commands", {}).get("fields", [])
+    endpoints = {(str(field.get("http_method") or "GET").upper(), field.get("endpoint_template"))
+                 for field in commands if field.get("method") == "rest" and str(field.get("name") or "").casefold() == stop}
+    for request in requests:
+        args = request.get("args", {})
+        command = str(args.get("command") or "").strip().casefold()
+        if request.get("op") == "instance.stdin" and (command == stop or command.startswith(stop + " ")):
+            return True
+        if request.get("op") == "instance.rest" and (args.get("method"), args.get("path")) in endpoints:
+            return True
+    return False
+
+
+def stop_answer_problems(result, still_alive, managed=False, request_accepted=False):
+    """managed는 종료 요청 수락이 성공이다. 일반 정지에서 요청할 길이 없으면 서버를 그대로 둔다."""
     if result.get("error_code") == "graceful_stop_unavailable":
         problems = []
         if result.get("success") is not False:
@@ -416,8 +472,11 @@ def stop_answer_problems(result, still_alive):
         if not still_alive:
             problems.append("graceful_stop_unavailable라면서 서버를 끝냈다 (저장 없이 죽였다)")
         return problems
-    if result.get("success") is True and still_alive:
-        return ["성공이라면서 서버가 아직 살아 있다"]
+    if result.get("success") is True:
+        if managed and not request_accepted:
+            return ["종료 요청 접수 없이 성공으로 답했다"]
+        if still_alive and not managed:
+            return ["성공이라면서 서버가 아직 살아 있다"]
     return []
 
 
@@ -447,7 +506,7 @@ def test_plain_stop_never_kills_without_saving(module, shared_libs, tmp_path):
         pytest.skip("stop 미지원")
     pid = _spawn_server_stand_in()
     try:
-        result = call(module, shared_libs, "stop", {**sandbox_config(tmp_path), "pid": pid, "force": False}, tmp_path)
+        result = call(module, shared_libs, "stop", {**sandbox_config(tmp_path), "managed": False, "pid": pid, "force": False}, tmp_path)
         for _ in range(20):  # 끝낸 프로세스가 목록에서 사라지기까지 잠깐 걸린다
             if not _alive(pid):
                 break
@@ -470,6 +529,258 @@ def test_kit_catches_a_stop_that_kills_without_saving():
         "graceful_stop_unavailable인데 success가 false가 아니다"]
     assert stop_answer_problems({"success": True}, still_alive=False) == []
     assert stop_answer_problems({"success": True}, still_alive=True) == ["성공이라면서 서버가 아직 살아 있다"]
+
+
+def test_kit_accepts_a_managed_stop_request_while_the_server_exits():
+    assert stop_answer_problems({"success": True}, still_alive=True, managed=True, request_accepted=True) == []
+    assert stop_answer_problems({"success": True}, still_alive=True, managed=True) == ["종료 요청 접수 없이 성공으로 답했다"]
+    unavailable = {"success": False, "error_code": "graceful_stop_unavailable", "message": "콘솔이 없어요"}
+    assert stop_answer_problems(unavailable, still_alive=False, managed=True)
+
+
+def test_managed_stop_returns_after_an_accepted_request(module, shared_libs, tmp_path):
+    table, _ = functions_table(module)
+    if "stop" not in (table or {}):
+        pytest.skip("stop 미지원")
+    requests = []
+    with subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"]) as server:
+        try:
+            result = call(module, shared_libs, "stop", {**sandbox_config(tmp_path), "pid": server.pid, "force": False},
+                          tmp_path, accepted_requests=requests)
+            problems = stop_answer_problems(result, server.poll() is None, managed=True,
+                                           request_accepted=stop_request_accepted(module.manifest, requests))
+            assert result.get("success") is True and not problems, f"{result}\n{problems}"
+            assert server.poll() is None, "managed 모듈이 요청 뒤 직접 프로세스를 끝냈다"
+        finally:
+            if server.poll() is None:
+                server.terminate()
+
+
+def test_host_call_drains_stdout_while_the_module_runs(tmp_path, monkeypatch):
+    monkeypatch.setitem(globals(), "CALL_TIMEOUT", 1)
+    result = _host_call([sys.executable, "-c", "import sys; sys.stdout.write('x' * 262144)"], "{}",
+                        {**os.environ}, tmp_path, [])
+    assert result.returncode == 0 and len(result.stdout) == 262144
+
+
+def test_kit_requires_the_stop_request_instead_of_a_status_or_save_request():
+    manifest = {"config": {"stop_command": "shutdown"}, "commands": {"fields": [
+        {"name": "shutdown", "method": "rest", "http_method": "POST", "endpoint_template": "/shutdown"}]}}
+    assert not stop_request_accepted(manifest, [{"op": "instance.rest", "args": {"method": "GET", "path": "/metrics"}}])
+    assert not stop_request_accepted(manifest, [{"op": "instance.rest", "args": {"method": "POST", "path": "/save"}}])
+    assert stop_request_accepted(manifest, [{"op": "instance.rest", "args": {"method": "POST", "path": "/shutdown"}}])
+    assert not stop_request_accepted({}, [{"op": "instance.stdin", "args": {"command": "save"}}])
+    assert stop_request_accepted({}, [{"op": "instance.stdin", "args": {"command": "stop"}}])
+
+
+@pytest.mark.parametrize("catch", ["Exception", "ValueError", "(OSError, ValueError)"])
+def test_kit_catches_a_swallowed_path_error(catch):
+    source = f'''from daemon_rcon import safe_join, PathOutside
+def get_path(config):
+    return safe_join(config["root"], config["name"])
+def install(config):
+    try:
+        get_path(config)
+    except {catch}:
+        return {{"success": True}}
+'''
+    assert swallowed_path_errors(source) == [7]
+    guarded = source.replace(f"    except {catch}:", "    except PathOutside:\n        raise\n" + f"    except {catch}:")
+    assert swallowed_path_errors(guarded) == []
+
+
+def test_kit_allows_unrelated_error_handlers():
+    source = '''from daemon_rcon import safe_join
+def get_path(root, name):
+    try:
+        int(name)
+    except ValueError:
+        pass
+    return safe_join(root, name)
+'''
+    assert swallowed_path_errors(source) == []
+
+
+@pytest.mark.parametrize("call", ["Settings.get('port')", "settings.get('port')", "other.get('port')"])
+def test_kit_distinguishes_path_method_owners(call):
+    source = f'''from daemon_rcon import safe_join
+import other
+class Paths:
+    @staticmethod
+    def get(root, name):
+        return safe_join(root, name)
+class Settings:
+    @staticmethod
+    def get(key):
+        return 7777
+settings = Settings()
+def install(config):
+    try:
+        return {call}
+    except Exception:
+        return {{"success": False}}
+'''
+    assert swallowed_path_errors(source) == []
+    guarded_path = source.replace(call, "Paths.get(config['root'], config['name'])")
+    assert swallowed_path_errors(guarded_path) == [15]
+
+
+@pytest.mark.parametrize(("import_line", "call"), [
+    ("from paths import get_path as resolve_path", "resolve_path(config)"),
+    ("import paths as helper", "helper.get_path(config)"),
+])
+def test_kit_tracks_path_errors_through_local_imports(import_line, call):
+    source = f'''{import_line}
+def install(config):
+    try:
+        return {call}
+    except Exception:
+        return {{"success": True}}
+'''
+    helpers = {"paths": '''from daemon_rcon import safe_join as join
+def get_path(config):
+    return join(config["root"], config["name"])
+'''}
+    assert swallowed_path_errors(source, local_sources=helpers) == [5]
+    guarded = "from daemon_rcon import PathOutside\n" + source.replace(
+        "    except Exception:", "    except PathOutside:\n        raise\n    except Exception:")
+    assert swallowed_path_errors(guarded, local_sources=helpers) == []
+
+
+@pytest.mark.parametrize(("call", "expected"), [("get(config)", []), ("self.get(config)", [10])])
+def test_kit_keeps_method_lookup_separate_from_global_functions(call, expected):
+    source = f'''from daemon_rcon import safe_join
+def get(config):
+    return 7777
+class Paths:
+    def get(self, config):
+        return safe_join(config["root"], config["name"])
+    def install(self, config):
+        try:
+            return {call}
+        except Exception:
+            return {{"success": True}}
+'''
+    assert swallowed_path_errors(source) == expected
+
+
+def swallowed_path_errors(source, *, local_sources=None, module_name="lifecycle"):
+    """safe_join을 부르는 경로의 넓은 예외 처리는 PathOutside를 그대로 올려야 한다."""
+    sources = {**(local_sources or {}), module_name: source}
+    trees = {key: ast.parse(text) for key, text in sources.items()}
+    bindings, parents, contexts, functions, classes, assignments = {}, {}, {}, {}, set(), []
+    definitions = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+
+    def collect(node, scope):
+        contexts[node] = scope
+        if isinstance(node, ast.Import):
+            for item in node.names:
+                bindings[scope][item.asname or item.name.split(".")[0]] = item.name if item.asname else item.name.split(".")[0]
+        elif isinstance(node, ast.ImportFrom) and node.level <= 1:
+            for item in node.names:
+                bindings[scope][item.asname or item.name] = f"{node.module}.{item.name}"
+        elif isinstance(node, (ast.Assign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            assignments.extend((scope, target.id, node.value) for target in targets if isinstance(target, ast.Name))
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, definitions):
+                owner = f"{scope}.{child.name}"
+                bindings[scope][child.name] = owner
+                bindings[owner], parents[owner] = {}, scope
+                if isinstance(child, ast.ClassDef):
+                    classes.add(owner)
+                else:
+                    functions[owner] = child
+                    if scope in classes:
+                        parents[owner] = parents[scope]
+                    args = child.args.posonlyargs + child.args.args + child.args.kwonlyargs
+                    for arg in args:
+                        bindings[owner][arg.arg] = None
+                    if scope in classes and args and args[0].arg in ("self", "cls"):
+                        bindings[owner][args[0].arg] = scope
+                collect(child, owner)
+            else:
+                collect(child, scope)
+
+    for key, tree in trees.items():
+        bindings[key], parents[key] = {}, None
+        collect(tree, key)
+
+    def canonical(value):
+        seen = set()
+        while value and value not in seen:
+            seen.add(value)
+            owner, _, member = value.rpartition(".")
+            target = bindings.get(owner, {}).get(member)
+            if not target or target == value:
+                return value
+            value = target
+        return None
+
+    def resolve(node, scope):
+        if isinstance(node, ast.Name):
+            while scope is not None:
+                if node.id in bindings[scope]:
+                    return canonical(bindings[scope][node.id])
+                scope = parents[scope]
+            if node.id in ("Exception", "BaseException", "ValueError"):
+                return f"builtins.{node.id}"
+        elif isinstance(node, ast.Attribute):
+            owner = resolve(node.value, scope)
+            return canonical(f"{owner}.{node.attr}") if owner else None
+        elif isinstance(node, ast.Call):
+            owner = resolve(node.func, scope)
+            return owner if owner in classes else None
+        return None
+
+    for scope, target, value in assignments:
+        bindings[scope][target] = resolve(value, scope)
+
+    paths = {"daemon_rcon.safe_join"}
+
+    def calls_path(nodes, scope):
+        pending = list(nodes)
+        while pending:
+            node = pending.pop()
+            if isinstance(node, ast.Call) and resolve(node.func, scope) in paths:
+                return True
+            if not isinstance(node, definitions + (ast.Lambda,)):
+                pending.extend(ast.iter_child_nodes(node))
+        return False
+
+    while True:
+        found = {key for key, node in functions.items() if calls_path(node.body, key)}
+        if found <= paths:
+            break
+        paths |= found
+
+    problems = []
+    catches_path = {"daemon_rcon.PathOutside", "builtins.Exception", "builtins.BaseException", "builtins.ValueError"}
+    for node in ast.walk(trees[module_name]):
+        scope = contexts[node]
+        if not isinstance(node, ast.Try) or not calls_path(node.body, scope):
+            continue
+        for handler in node.handlers:
+            caught = {resolve(part, scope) for part in ast.walk(handler.type)} if handler.type else {"builtins.BaseException"}
+            if not caught & catches_path:
+                continue
+            reraises = any(isinstance(statement, ast.Raise) and
+                           (statement.exc is None or isinstance(statement.exc, ast.Name) and statement.exc.id == handler.name)
+                           for statement in handler.body)
+            if not reraises:
+                problems.append(handler.lineno)
+            break
+    return problems
+
+
+def test_path_errors_are_not_swallowed(module):
+    problems = []
+    sources = {path.stem: path.read_text(encoding="utf-8-sig") for path in sorted(module.dir.glob("*.py"))
+               if not path.name.startswith("test_") and path.name != "conftest.py"}
+    for name, source in sources.items():
+        problems.extend(f"{name}.py:{line}" for line in swallowed_path_errors(
+            source, local_sources=sources, module_name=name))
+    assert not problems, "PathOutside를 다시 던지지 않는 예외 처리: " + ", ".join(problems)
 
 # ── 5. 번역 ─────────────────────────────────────────────
 
@@ -507,8 +818,8 @@ def test_translation_keys(module):
 
 # ── 코드 검사 (M12) ─────────────────────────────────────
 
-def test_code_uses_only_declared_permissions(module, shared_libs):
-    """lifecycle 코드가 쓰는 능력(네트워크, 프로세스 실행, 동적 코드 등)은 [permissions]에 선언한다"""
+@pytest.fixture
+def audit_findings(module, shared_libs):
     audit = shared_libs / "saba_audit.py"
     if not audit.is_file():
         pytest.skip("이 saba-chan에는 코드 검사기(saba_audit.py)가 없다")
@@ -516,7 +827,17 @@ def test_code_uses_only_declared_permissions(module, shared_libs):
                          encoding="utf-8", timeout=CALL_TIMEOUT)
     result = json.loads(out.stdout)
     assert result["success"], result
+    return result["findings"]
+
+
+def test_sdk_minimum_covers_imports(audit_findings):
+    missing = [f"{f['file']}:{f['line']} {f['detail']}" for f in audit_findings if f["permission"] == "sdk_version"]
+    assert not missing, "SDK 최소 버전 선언이 사용한 이름보다 낮다:\n" + "\n".join(missing)
+
+
+def test_code_uses_only_declared_permissions(module, audit_findings):
+    """lifecycle 코드가 쓰는 능력(네트워크, 프로세스 실행, 동적 코드 등)은 [permissions]에 선언한다"""
     declared = module.manifest.get("permissions", {})
     missing = [f"{f['permission']} {f['file']}:{f['line']} {f['detail']}"
-               for f in result["findings"] if declared.get(f["permission"]) is not True]
+               for f in audit_findings if f["permission"] != "sdk_version" and declared.get(f["permission"]) is not True]
     assert not missing, "[permissions]에 선언하지 않은 능력을 쓴다:\n" + "\n".join(missing)

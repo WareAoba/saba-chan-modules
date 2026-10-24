@@ -1,0 +1,328 @@
+{
+  "module": {
+    "display_name": "泰拉瑞亞",
+    "description": "泰拉瑞亞專用伺服器"
+  },
+  "settings": {
+    "managed_start": {
+      "label": "託管啟動（主控台）",
+      "description": "連接 saba-chan 主控台啟動"
+    },
+    "ip": {
+      "label": "監聽 IP",
+      "description": "伺服器監聽的 IP 位址（-ip）。留空 = 所有位址"
+    },
+    "steam": {
+      "label": "Steam 支援",
+      "description": "啟用 Steam 支援（-steam）"
+    },
+    "lobby": {
+      "label": "Steam 大廳",
+      "description": "誰可以透過 Steam 加入（-lobby，需要 Steam 支援）"
+    },
+    "disable_announcement_box": {
+      "label": "停用公告箱",
+      "description": "停用公告箱訊息"
+    },
+    "announcement_box_range": {
+      "label": "公告箱範圍",
+      "description": "訊息範圍（像素），-1 = 整個伺服器"
+    },
+    "world_name": {
+      "label": "世界名稱",
+      "description": "世界檔名（<名稱>.wld）及新世界名稱"
+    },
+    "world_dir": {
+      "label": "世界資料夾",
+      "description": "存放世界檔案的資料夾（worldpath）"
+    },
+    "autocreate": {
+      "label": "新世界大小",
+      "description": "沒有世界時建立的大小：1 小，2 中，3 大"
+    },
+    "difficulty": {
+      "label": "新世界難度",
+      "description": "0 經典，1 專家，2 大師，3 旅程"
+    },
+    "seed": {
+      "label": "新世界種子",
+      "description": "新建世界使用的種子"
+    },
+    "port": {
+      "label": "連接埠",
+      "description": "伺服器監聽的 TCP 連接埠"
+    },
+    "max_players": {
+      "label": "最大玩家數",
+      "description": "最大玩家數（1-255）"
+    },
+    "password": {
+      "label": "伺服器密碼",
+      "description": "加入密碼（留空 = 無）"
+    },
+    "motd": {
+      "label": "每日訊息",
+      "description": "向加入的玩家顯示的訊息"
+    },
+    "secure": {
+      "label": "防作弊",
+      "description": "額外的防作弊（secure）"
+    },
+    "language": {
+      "label": "伺服器語言",
+      "description": "伺服器訊息的語言"
+    },
+    "upnp": {
+      "label": "UPnP 連接埠轉發",
+      "description": "透過 UPnP 自動轉發連接埠"
+    },
+    "banlist": {
+      "label": "封鎖清單檔案",
+      "description": "伺服器資料夾中的封鎖清單檔名"
+    },
+    "npcstream": {
+      "label": "NPC 同步",
+      "description": "敵人同步：越低跳格越少但頻寬越大。0 = 關閉"
+    },
+    "priority": {
+      "label": "處理程序優先順序",
+      "description": "0 即時，1 高，2 高於正常，3 正常，4 低於正常，5 低"
+    },
+    "journeypermission_time_setfrozen": {
+      "label": "旅程：凍結時間",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_time_setdawn": {
+      "label": "旅程：設為黎明",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_time_setnoon": {
+      "label": "旅程：設為正午",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_time_setdusk": {
+      "label": "旅程：設為黃昏",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_time_setmidnight": {
+      "label": "旅程：設為午夜",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_godmode": {
+      "label": "旅程：上帝模式",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_wind_setstrength": {
+      "label": "旅程：風力",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_rain_setstrength": {
+      "label": "旅程：雨量",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_time_setspeed": {
+      "label": "旅程：時間速度",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_rain_setfrozen": {
+      "label": "旅程：凍結降雨",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_wind_setfrozen": {
+      "label": "旅程：凍結風",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_increaseplacementrange": {
+      "label": "旅程：放置範圍",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_setdifficulty": {
+      "label": "旅程：難度",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_biomespread_setfrozen": {
+      "label": "旅程：凍結生態蔓延",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "journeypermission_setspawnrate": {
+      "label": "旅程：生成率",
+      "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "seed_celebration": {
+      "label": "慶典種子",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_notthebees": {
+      "label": "不是蜜蜂！",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_notraps": {
+      "label": "無陷阱",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_fortheworthy": {
+      "label": "For the Worthy",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_remix": {
+      "label": "混搭",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_drunk": {
+      "label": "醉酒世界",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_zenith": {
+      "label": "天頂",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "worldrollbackstokeep": {
+      "label": "保留的世界回溯備份數",
+      "description": "保留的世界回溯備份數量"
+    },
+    "slowliquids": {
+      "label": "緩慢液體更新",
+      "description": "啟用緩慢液體更新"
+    }
+  },
+  "commands": {
+    "help": {
+      "label": "說明",
+      "description": "列出伺服器指令"
+    },
+    "playing": {
+      "label": "玩家",
+      "description": "列出線上玩家"
+    },
+    "clear": {
+      "label": "清除主控台",
+      "description": "清除伺服器主控台"
+    },
+    "save": {
+      "label": "儲存世界",
+      "description": "儲存世界"
+    },
+    "say": {
+      "label": "發言",
+      "description": "向所有玩家傳送訊息",
+      "inputs": {
+        "message": {
+          "label": "訊息"
+        }
+      }
+    },
+    "version": {
+      "label": "版本",
+      "description": "顯示伺服器版本"
+    },
+    "time": {
+      "label": "遊戲時間",
+      "description": "顯示遊戲時間"
+    },
+    "port": {
+      "label": "連接埠",
+      "description": "顯示監聽連接埠"
+    },
+    "maxplayers": {
+      "label": "最大玩家數",
+      "description": "顯示玩家上限"
+    },
+    "motd": {
+      "label": "每日訊息",
+      "description": "顯示每日訊息"
+    },
+    "password": {
+      "label": "顯示密碼",
+      "description": "在伺服器主控台顯示密碼"
+    },
+    "dawn": {
+      "label": "黎明",
+      "description": "將時間設為黎明"
+    },
+    "noon": {
+      "label": "正午",
+      "description": "將時間設為正午"
+    },
+    "dusk": {
+      "label": "黃昏",
+      "description": "將時間設為黃昏"
+    },
+    "midnight": {
+      "label": "午夜",
+      "description": "將時間設為午夜"
+    },
+    "settle": {
+      "label": "穩定液體",
+      "description": "讓世界中的水全部穩定"
+    },
+    "kick": {
+      "label": "踢出玩家",
+      "description": "將玩家踢出伺服器",
+      "inputs": {
+        "player": {
+          "label": "玩家名稱"
+        }
+      }
+    },
+    "ban": {
+      "label": "封鎖玩家",
+      "description": "封鎖玩家（寫入封鎖清單）",
+      "inputs": {
+        "player": {
+          "label": "玩家名稱"
+        }
+      }
+    },
+    "exit-nosave": {
+      "label": "不儲存關閉",
+      "description": "不儲存世界直接關閉伺服器"
+    },
+    "seed": {
+      "label": "世界種子",
+      "description": "顯示目前世界種子"
+    }
+  },
+  "errors": {
+    "archive_corrupt": "伺服器壓縮檔已損壞（{{file}}）",
+    "backup_paths_failed": "無法確定要備份的檔案：{{error}}",
+    "download_failed": "下載失敗：{{error}}",
+    "executable_not_found": "找不到泰拉瑞亞伺服器程式，請先安裝伺服器",
+    "failed_to_kill": "無法結束伺服器處理程序：{{error}}",
+    "graceful_stop_unavailable": "伺服器主控台未連接，無法儲存後停止。只有在可以接受遺失未儲存進度時才強制停止",
+    "install_failed": "安裝失敗：{{error}}",
+    "invalid_banlist": "封鎖清單名「{{name}}」不是單純的檔名",
+    "invalid_world_name": "世界名稱「{{name}}」不能包含 / \\ : * ? \" < > |，也不能以空格或點結尾",
+    "line_break": "{{setting}} 的值不能包含換行",
+    "no_install_dir": "未指定安裝資料夾",
+    "no_version": "請選擇伺服器版本（例如 1.4.5.8）",
+    "not_server_folder": "此資料夾中沒有泰拉瑞亞伺服器，未刪除任何內容",
+    "properties_read_failed": "無法讀取 serverconfig.txt：{{error}}",
+    "properties_write_failed": "無法儲存 serverconfig.txt：{{error}}",
+    "server_not_in_archive": "下載的檔案中沒有適用於本系統的 {{file}}",
+    "server_reset_partial": "部分世界檔案無法刪除：{{errors}}",
+    "settings_write_failed": "伺服器已安裝，但無法寫入設定：{{error}}",
+    "version_list_failed": "無法從 terraria.org 取得伺服器版本：{{error}}",
+    "xna_framework_missing": "Terraria 在 Windows 上需要 Microsoft XNA Framework Redistributable 4.0 Refresh。下載：https://www.microsoft.com/en-us/download/details.aspx?id=27598"
+  },
+  "messages": {
+    "downloading": "正在下載泰拉瑞亞伺服器",
+    "extracting": "正在解壓縮伺服器檔案",
+    "force_killed": "已強制結束伺服器處理程序 {{pid}}",
+    "graceful_stop": "伺服器已儲存世界並停止",
+    "graceful_stop_timeout": "伺服器未及時停止，正在強制停止",
+    "install_complete": "泰拉瑞亞伺服器已安裝",
+    "no_mappable_settings": "沒有要寫入 serverconfig.txt 的內容",
+    "no_process_running": "伺服器未執行",
+    "properties_updated": "已儲存至 serverconfig.txt，重新啟動伺服器後生效",
+    "server_reset_complete": "世界已刪除，下次啟動時會建立新世界",
+    "stop_requested": "已要求伺服器儲存並停止"
+  },
+  "reset": {
+    "label": "重設世界",
+    "description": "刪除此伺服器的世界檔案，以及 .wld.bak 和 .wld.bak<數字> 備份。保留 serverconfig.txt、封鎖清單、其他世界和伺服器檔案。下次啟動時會建立新世界。"
+  }
+}

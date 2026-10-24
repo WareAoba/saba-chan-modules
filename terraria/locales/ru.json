@@ -1,0 +1,328 @@
+{
+  "module": {
+    "display_name": "Terraria",
+    "description": "Выделенный сервер Terraria"
+  },
+  "settings": {
+    "managed_start": {
+      "label": "Управляемый запуск (консоль)",
+      "description": "Запуск с подключённой консолью saba-chan"
+    },
+    "ip": {
+      "label": "IP для прослушивания",
+      "description": "IP-адрес сервера (-ip). Пусто = все адреса"
+    },
+    "steam": {
+      "label": "Поддержка Steam",
+      "description": "Включить поддержку Steam (-steam)"
+    },
+    "lobby": {
+      "label": "Лобби Steam",
+      "description": "Кто может войти через Steam (-lobby, нужна поддержка Steam)"
+    },
+    "disable_announcement_box": {
+      "label": "Отключить доску объявлений",
+      "description": "Отключить сообщения доски объявлений"
+    },
+    "announcement_box_range": {
+      "label": "Радиус доски объявлений",
+      "description": "Радиус в пикселях, -1 = весь сервер"
+    },
+    "world_name": {
+      "label": "Имя мира",
+      "description": "Имя файла мира (<имя>.wld) и нового мира"
+    },
+    "world_dir": {
+      "label": "Папка миров",
+      "description": "Папка файлов мира (worldpath)"
+    },
+    "autocreate": {
+      "label": "Размер нового мира",
+      "description": "Размер, если мира нет: 1 малый, 2 средний, 3 большой"
+    },
+    "difficulty": {
+      "label": "Сложность нового мира",
+      "description": "0 Классика, 1 Эксперт, 2 Мастер, 3 Путешествие"
+    },
+    "seed": {
+      "label": "Сид нового мира",
+      "description": "Сид для создаваемого мира"
+    },
+    "port": {
+      "label": "Порт",
+      "description": "TCP-порт сервера"
+    },
+    "max_players": {
+      "label": "Макс. игроков",
+      "description": "Максимум игроков (1-255)"
+    },
+    "password": {
+      "label": "Пароль сервера",
+      "description": "Пароль для входа (пусто = нет)"
+    },
+    "motd": {
+      "label": "Сообщение дня",
+      "description": "Сообщение для входящих игроков"
+    },
+    "secure": {
+      "label": "Защита от читов",
+      "description": "Дополнительная защита от читов (secure)"
+    },
+    "language": {
+      "label": "Язык сервера",
+      "description": "Язык сообщений сервера"
+    },
+    "upnp": {
+      "label": "Проброс порта UPnP",
+      "description": "Автоматически пробросить порт через UPnP"
+    },
+    "banlist": {
+      "label": "Файл банов",
+      "description": "Имя файла банов в папке сервера"
+    },
+    "npcstream": {
+      "label": "Поток NPC",
+      "description": "Синхронизация врагов: меньше = меньше рывков, больше трафика. 0 = выкл."
+    },
+    "priority": {
+      "label": "Приоритет процесса",
+      "description": "0 Реальное время, 1 Высокий, 2 Выше среднего, 3 Обычный, 4 Ниже среднего, 5 Низкий"
+    },
+    "journeypermission_time_setfrozen": {
+      "label": "Путешествие: Заморозка времени",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_time_setdawn": {
+      "label": "Путешествие: Рассвет",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_time_setnoon": {
+      "label": "Путешествие: Полдень",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_time_setdusk": {
+      "label": "Путешествие: Закат",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_time_setmidnight": {
+      "label": "Путешествие: Полночь",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_godmode": {
+      "label": "Путешествие: Режим бога",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_wind_setstrength": {
+      "label": "Путешествие: Сила ветра",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_rain_setstrength": {
+      "label": "Путешествие: Сила дождя",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_time_setspeed": {
+      "label": "Путешествие: Скорость времени",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_rain_setfrozen": {
+      "label": "Путешествие: Заморозка дождя",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_wind_setfrozen": {
+      "label": "Путешествие: Заморозка ветра",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_increaseplacementrange": {
+      "label": "Путешествие: Дальность размещения",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_setdifficulty": {
+      "label": "Путешествие: Сложность",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_biomespread_setfrozen": {
+      "label": "Путешествие: Заморозка распространения биомов",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "journeypermission_setspawnrate": {
+      "label": "Путешествие: Частота появления",
+      "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "seed_celebration": {
+      "label": "Праздничный сид",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_notthebees": {
+      "label": "Это не пчёлы!",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_notraps": {
+      "label": "Без ловушек",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_fortheworthy": {
+      "label": "Для достойных",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_remix": {
+      "label": "Ремикс",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_drunk": {
+      "label": "Пьяный мир",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_zenith": {
+      "label": "Зенит",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "worldrollbackstokeep": {
+      "label": "Хранимые откаты мира",
+      "description": "Количество сохраняемых резервных копий отката мира"
+    },
+    "slowliquids": {
+      "label": "Медленные жидкости",
+      "description": "Включает медленное обновление жидкостей"
+    }
+  },
+  "commands": {
+    "help": {
+      "label": "Справка",
+      "description": "Список команд сервера"
+    },
+    "playing": {
+      "label": "Игроки",
+      "description": "Список подключённых игроков"
+    },
+    "clear": {
+      "label": "Очистить консоль",
+      "description": "Очистить консоль сервера"
+    },
+    "save": {
+      "label": "Сохранить мир",
+      "description": "Сохранить мир"
+    },
+    "say": {
+      "label": "Сказать",
+      "description": "Сообщение всем игрокам",
+      "inputs": {
+        "message": {
+          "label": "Сообщение"
+        }
+      }
+    },
+    "version": {
+      "label": "Версия",
+      "description": "Версия сервера"
+    },
+    "time": {
+      "label": "Игровое время",
+      "description": "Показать игровое время"
+    },
+    "port": {
+      "label": "Порт",
+      "description": "Показать порт"
+    },
+    "maxplayers": {
+      "label": "Макс. игроков",
+      "description": "Показать лимит игроков"
+    },
+    "motd": {
+      "label": "Сообщение дня",
+      "description": "Показать сообщение дня"
+    },
+    "password": {
+      "label": "Показать пароль",
+      "description": "Показать пароль в консоли"
+    },
+    "dawn": {
+      "label": "Рассвет",
+      "description": "Установить рассвет"
+    },
+    "noon": {
+      "label": "Полдень",
+      "description": "Установить полдень"
+    },
+    "dusk": {
+      "label": "Закат",
+      "description": "Установить закат"
+    },
+    "midnight": {
+      "label": "Полночь",
+      "description": "Установить полночь"
+    },
+    "settle": {
+      "label": "Успокоить жидкости",
+      "description": "Успокоить всю воду в мире"
+    },
+    "kick": {
+      "label": "Выгнать игрока",
+      "description": "Выгнать игрока с сервера",
+      "inputs": {
+        "player": {
+          "label": "Имя игрока"
+        }
+      }
+    },
+    "ban": {
+      "label": "Забанить игрока",
+      "description": "Забанить игрока (в файл банов)",
+      "inputs": {
+        "player": {
+          "label": "Имя игрока"
+        }
+      }
+    },
+    "exit-nosave": {
+      "label": "Выключить без сохранения",
+      "description": "Выключить сервер без сохранения мира"
+    },
+    "seed": {
+      "label": "Сид мира",
+      "description": "Показывает текущий сид мира"
+    }
+  },
+  "errors": {
+    "archive_corrupt": "Архив сервера повреждён ({{file}})",
+    "backup_paths_failed": "Не удалось определить файлы для копии: {{error}}",
+    "download_failed": "Ошибка загрузки: {{error}}",
+    "executable_not_found": "Исполняемый файл сервера не найден. Сначала установите сервер",
+    "failed_to_kill": "Не удалось завершить процесс: {{error}}",
+    "graceful_stop_unavailable": "Консоль сервера не подключена, сохранить мир перед остановкой нельзя. Принудительно останавливайте, только если готовы потерять несохранённое",
+    "install_failed": "Ошибка установки: {{error}}",
+    "invalid_banlist": "Имя «{{name}}» не является простым именем файла",
+    "invalid_world_name": "Имя мира «{{name}}» не может содержать / \\ : * ? \" < > | и заканчиваться пробелом или точкой",
+    "line_break": "Значение {{setting}} не может содержать перенос строки",
+    "no_install_dir": "Не указана папка установки",
+    "no_version": "Выберите версию сервера (например 1.4.5.8)",
+    "not_server_folder": "В этой папке нет сервера Terraria, ничего не удалено",
+    "properties_read_failed": "Не удалось прочитать serverconfig.txt: {{error}}",
+    "properties_write_failed": "Не удалось сохранить serverconfig.txt: {{error}}",
+    "server_not_in_archive": "В файле нет {{file}} для этой системы",
+    "server_reset_partial": "Не удалось удалить некоторые файлы мира: {{errors}}",
+    "settings_write_failed": "Сервер установлен, но настройки записать не удалось: {{error}}",
+    "version_list_failed": "Не удалось получить список версий с terraria.org: {{error}}",
+    "xna_framework_missing": "Для Terraria в Windows требуется Microsoft XNA Framework Redistributable 4.0 Refresh. Скачать: https://www.microsoft.com/en-us/download/details.aspx?id=27598"
+  },
+  "messages": {
+    "downloading": "Загрузка сервера Terraria",
+    "extracting": "Распаковка файлов сервера",
+    "force_killed": "Процесс {{pid}} принудительно остановлен",
+    "graceful_stop": "Сервер сохранил мир и остановился",
+    "graceful_stop_timeout": "Сервер не остановился вовремя; принудительная остановка",
+    "install_complete": "Сервер Terraria установлен",
+    "no_mappable_settings": "Нечего записывать в serverconfig.txt",
+    "no_process_running": "Сервер не запущен",
+    "properties_updated": "Сохранено в serverconfig.txt. Перезапустите сервер",
+    "server_reset_complete": "Мир удалён. Новый будет создан при следующем запуске",
+    "stop_requested": "Серверу отправлен запрос на сохранение и остановку"
+  },
+  "reset": {
+    "label": "Сброс мира",
+    "description": "Удаляет файл этого мира и его резервные копии .wld.bak и .wld.bak<число>. serverconfig.txt, список блокировок, другие миры и файлы сервера остаются. При следующем запуске будет создан новый мир."
+  }
+}

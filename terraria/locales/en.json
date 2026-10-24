@@ -1,0 +1,328 @@
+{
+  "module": {
+    "display_name": "Terraria",
+    "description": "Terraria dedicated server"
+  },
+  "settings": {
+    "managed_start": {
+      "label": "Managed Start (Console)",
+      "description": "Start with the saba-chan console attached"
+    },
+    "ip": {
+      "label": "Listen IP",
+      "description": "IP address the server listens on (-ip). Empty = all addresses"
+    },
+    "steam": {
+      "label": "Steam Support",
+      "description": "Enable Steam support (-steam)"
+    },
+    "lobby": {
+      "label": "Steam Lobby",
+      "description": "Who can join through Steam (-lobby, needs Steam Support)"
+    },
+    "disable_announcement_box": {
+      "label": "Disable Announcement Box",
+      "description": "Disable Announcement Box messages (-disableannouncementbox)"
+    },
+    "announcement_box_range": {
+      "label": "Announcement Box Range",
+      "description": "Message range in pixels, -1 = whole server"
+    },
+    "world_name": {
+      "label": "World Name",
+      "description": "World file name (<name>.wld) and the name of a new world"
+    },
+    "world_dir": {
+      "label": "World Folder",
+      "description": "Folder where world files are kept (worldpath)"
+    },
+    "autocreate": {
+      "label": "New World Size",
+      "description": "Size of the world created when none exists: 1 small, 2 medium, 3 large"
+    },
+    "difficulty": {
+      "label": "New World Difficulty",
+      "description": "0 Classic, 1 Expert, 2 Master, 3 Journey"
+    },
+    "seed": {
+      "label": "New World Seed",
+      "description": "Seed for a newly created world"
+    },
+    "port": {
+      "label": "Port",
+      "description": "TCP port the server listens on"
+    },
+    "max_players": {
+      "label": "Max Players",
+      "description": "Maximum number of players (1-255)"
+    },
+    "password": {
+      "label": "Server Password",
+      "description": "Password to join (empty = none)"
+    },
+    "motd": {
+      "label": "Message of the Day",
+      "description": "Message shown to joining players"
+    },
+    "secure": {
+      "label": "Cheat Protection",
+      "description": "Additional cheat protection (secure)"
+    },
+    "language": {
+      "label": "Server Language",
+      "description": "Language of server messages"
+    },
+    "upnp": {
+      "label": "UPnP Port Forwarding",
+      "description": "Forward the port automatically with UPnP"
+    },
+    "banlist": {
+      "label": "Ban List File",
+      "description": "Ban list file name in the server folder"
+    },
+    "npcstream": {
+      "label": "NPC Stream",
+      "description": "Enemy sync: lower skips less but uses more bandwidth. 0 = off"
+    },
+    "priority": {
+      "label": "Process Priority",
+      "description": "0 Realtime, 1 High, 2 AboveNormal, 3 Normal, 4 BelowNormal, 5 Idle"
+    },
+    "journeypermission_time_setfrozen": {
+      "label": "Journey: Freeze Time",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_time_setdawn": {
+      "label": "Journey: Set Dawn",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_time_setnoon": {
+      "label": "Journey: Set Noon",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_time_setdusk": {
+      "label": "Journey: Set Dusk",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_time_setmidnight": {
+      "label": "Journey: Set Midnight",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_godmode": {
+      "label": "Journey: God Mode",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_wind_setstrength": {
+      "label": "Journey: Wind Strength",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_rain_setstrength": {
+      "label": "Journey: Rain Strength",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_time_setspeed": {
+      "label": "Journey: Time Speed",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_rain_setfrozen": {
+      "label": "Journey: Freeze Rain",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_wind_setfrozen": {
+      "label": "Journey: Freeze Wind",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_increaseplacementrange": {
+      "label": "Journey: Placement Range",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_setdifficulty": {
+      "label": "Journey: Difficulty",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_biomespread_setfrozen": {
+      "label": "Journey: Freeze Biome Spread",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "journeypermission_setspawnrate": {
+      "label": "Journey: Spawn Rate",
+      "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "seed_celebration": {
+      "label": "Celebration Seed",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_notthebees": {
+      "label": "Not the Bees!",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_notraps": {
+      "label": "No Traps",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_fortheworthy": {
+      "label": "For the Worthy",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_remix": {
+      "label": "Remix",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_drunk": {
+      "label": "Drunk",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_zenith": {
+      "label": "Zenith",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "worldrollbackstokeep": {
+      "label": "World Rollbacks to Keep",
+      "description": "Number of world rollback backups to keep"
+    },
+    "slowliquids": {
+      "label": "Slow Liquids",
+      "description": "Enable slow liquid updates"
+    }
+  },
+  "commands": {
+    "help": {
+      "label": "Help",
+      "description": "List the server commands"
+    },
+    "playing": {
+      "label": "Players",
+      "description": "List the connected players"
+    },
+    "clear": {
+      "label": "Clear Console",
+      "description": "Clear the server console"
+    },
+    "save": {
+      "label": "Save World",
+      "description": "Save the world"
+    },
+    "say": {
+      "label": "Say",
+      "description": "Send a message to all players",
+      "inputs": {
+        "message": {
+          "label": "Message"
+        }
+      }
+    },
+    "version": {
+      "label": "Version",
+      "description": "Print the server version"
+    },
+    "time": {
+      "label": "Game Time",
+      "description": "Show the game time"
+    },
+    "port": {
+      "label": "Port",
+      "description": "Print the listening port"
+    },
+    "maxplayers": {
+      "label": "Max Players",
+      "description": "Print the player limit"
+    },
+    "motd": {
+      "label": "Message of the Day",
+      "description": "Show the message of the day"
+    },
+    "password": {
+      "label": "Show Password",
+      "description": "Print the server password on the server console"
+    },
+    "dawn": {
+      "label": "Dawn",
+      "description": "Set the time to dawn"
+    },
+    "noon": {
+      "label": "Noon",
+      "description": "Set the time to noon"
+    },
+    "dusk": {
+      "label": "Dusk",
+      "description": "Set the time to dusk"
+    },
+    "midnight": {
+      "label": "Midnight",
+      "description": "Set the time to midnight"
+    },
+    "settle": {
+      "label": "Settle Liquids",
+      "description": "Settle all water in the world"
+    },
+    "kick": {
+      "label": "Kick Player",
+      "description": "Kick a player from the server",
+      "inputs": {
+        "player": {
+          "label": "Player Name"
+        }
+      }
+    },
+    "ban": {
+      "label": "Ban Player",
+      "description": "Ban a player (written to the ban list)",
+      "inputs": {
+        "player": {
+          "label": "Player Name"
+        }
+      }
+    },
+    "exit-nosave": {
+      "label": "Shut Down Without Saving",
+      "description": "Shut down the server without saving the world"
+    },
+    "seed": {
+      "label": "World Seed",
+      "description": "Print the current world seed"
+    }
+  },
+  "errors": {
+    "archive_corrupt": "The server archive is damaged ({{file}})",
+    "backup_paths_failed": "Could not work out the backup files: {{error}}",
+    "download_failed": "Download failed: {{error}}",
+    "executable_not_found": "Terraria server executable not found. Install the server first",
+    "failed_to_kill": "Could not end the server process: {{error}}",
+    "graceful_stop_unavailable": "The server console is not connected, so the world cannot be saved before stopping. Force stop only if you accept losing unsaved progress",
+    "install_failed": "Installation failed: {{error}}",
+    "invalid_banlist": "Ban list name \"{{name}}\" is not a plain file name",
+    "invalid_world_name": "World name \"{{name}}\" cannot contain / \\ : * ? \" < > | or end with a space or dot",
+    "line_break": "The value of {{setting}} cannot contain a line break",
+    "no_install_dir": "No install folder was given",
+    "no_version": "Choose a server version (for example 1.4.5.8)",
+    "not_server_folder": "This folder has no Terraria server, so nothing was deleted",
+    "properties_read_failed": "Could not read serverconfig.txt: {{error}}",
+    "properties_write_failed": "Could not save serverconfig.txt: {{error}}",
+    "server_not_in_archive": "The downloaded file has no {{file}} for this system",
+    "server_reset_partial": "Some world files could not be deleted: {{errors}}",
+    "settings_write_failed": "The server was installed, but the settings could not be written: {{error}}",
+    "version_list_failed": "Could not get the server versions from terraria.org: {{error}}",
+    "xna_framework_missing": "Terraria requires Microsoft XNA Framework Redistributable 4.0 Refresh on Windows. Download it from https://www.microsoft.com/en-us/download/details.aspx?id=27598"
+  },
+  "messages": {
+    "downloading": "Downloading the Terraria server",
+    "extracting": "Extracting server files",
+    "force_killed": "Server process {{pid}} was force stopped",
+    "graceful_stop": "The server saved the world and stopped",
+    "graceful_stop_timeout": "The server did not stop in time; force stopping",
+    "install_complete": "Terraria server installed",
+    "no_mappable_settings": "Nothing to write to serverconfig.txt",
+    "no_process_running": "The server is not running",
+    "properties_updated": "Saved to serverconfig.txt. Restart the server to apply",
+    "server_reset_complete": "The world was deleted. A new world is created on the next start",
+    "stop_requested": "Asked the server to save and stop"
+  },
+  "reset": {
+    "label": "Reset World",
+    "description": "Deletes this server world file and its .wld.bak and .wld.bak<number> backups. serverconfig.txt, the ban list, other worlds and server files stay. A new world is created on the next start."
+  }
+}

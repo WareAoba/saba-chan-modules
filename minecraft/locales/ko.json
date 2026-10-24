@@ -104,6 +104,8 @@
       }
     },
     "save-all": { "label": "월드 저장", "description": "게임 월드를 저장합니다" },
+    "save-off": { "label": "자동 저장 끄기", "description": "서버가 월드를 자동으로 저장하지 않게 합니다" },
+    "save-on": { "label": "자동 저장 켜기", "description": "서버가 월드를 다시 자동으로 저장합니다" },
     "list": { "label": "플레이어 목록", "description": "접속 중인 플레이어 목록을 조회합니다" },
     "weather": {
       "label": "날씨 변경",
@@ -160,7 +162,7 @@
       "description": "서버 화이트리스트를 관리합니다",
       "inputs": { "action": { "label": "작업" }, "player": { "label": "플레이어 이름" } }
     },
-    "seed": { "label": "시드 확인", "description": "월드 시드를 표시합니다" },
+    "seed": { "label": "시드 확인", "description": "월드 시드를 표시합니다", "done": "월드 시드: {{seed}}" },
     "stop": { "label": "서버 중지", "description": "서버를 안전하게 종료합니다" }
   },
   "errors": {

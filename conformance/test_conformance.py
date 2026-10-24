@@ -255,6 +255,40 @@ def test_commands_declare_risk_and_description(module):
     assert not missing, "명령에 빠진 선언:\n" + "\n".join(missing)
 
 
+def reply_problems(manifest, locales):
+    """`reply_pattern`이 있는 명령: 모든 언어 파일에 `commands.<이름>.done`이 있고, 그 `{{자리}}`가 패턴의 이름 있는 그룹이다"""
+    import re
+    problems = []
+    for c in (manifest.get("commands") or {}).get("fields", []):
+        pattern = c.get("reply_pattern")
+        if not pattern:
+            continue
+        groups = set(re.compile(pattern).groupindex)
+        for lang, data in locales.items():
+            done = ((data.get("commands") or {}).get(c["name"]) or {}).get("done")
+            if not done:
+                problems.append(f"{lang}: commands.{c['name']}.done 없음")
+                continue
+            unknown = set(re.findall(r"\{\{(\w+)\}\}", done)) - groups
+            if unknown:
+                problems.append(f"{lang}: commands.{c['name']}.done의 {sorted(unknown)}는 reply_pattern 그룹이 아니다")
+    return problems
+
+
+def test_command_replies_have_text_in_every_language(module):
+    """모듈이 정한 명령 답(reply_pattern)은 데몬이 응답 언어의 `commands.<이름>.done`으로 쓴다"""
+    locales = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in (module.dir / "locales").glob("*.json")}
+    problems = reply_problems(module.manifest, locales)
+    assert not problems, "\n".join(problems)
+
+
+def test_kit_catches_a_reply_without_text():
+    manifest = {"commands": {"fields": [{"name": "seed", "reply_pattern": r"Seed: \[(?P<seed>-?\d+)\]"}]}}
+    assert reply_problems(manifest, {"en": {"commands": {"seed": {"done": "Seed {{seed}}"}}}}) == []
+    assert reply_problems(manifest, {"ko": {}}) == ["ko: commands.seed.done 없음"]
+    assert reply_problems(manifest, {"ko": {"commands": {"seed": {"done": "{{x}}"}}}}) == ["ko: commands.seed.done의 ['x']는 reply_pattern 그룹이 아니다"]
+
+
 def test_kit_catches_command_without_risk():
     manifest = {"commands": {"fields": [{"name": "kick", "description": "추방"}, {"name": "say", "risk": "safe"}]}}
     assert commands_missing_risk(manifest) == ["kick: risk", "say: description"]

@@ -100,6 +100,8 @@
       "inputs": { "player": { "label": "Spielername", "placeholder": "Spieler-Nickname" }, "item": { "label": "Gegenstands-ID", "placeholder": "z.B. diamond, iron_ore" }, "amount": { "label": "Anzahl" } }
     },
     "save-all": { "label": "Welt speichern", "description": "Spielwelt speichern" },
+    "save-off": { "label": "Autospeichern pausieren", "description": "Der Server speichert die Welt nicht mehr automatisch" },
+    "save-on": { "label": "Autospeichern fortsetzen", "description": "Der Server speichert die Welt wieder automatisch" },
     "list": { "label": "Spielerliste", "description": "Liste der verbundenen Spieler anzeigen" },
     "weather": {
       "label": "Wetter ändern",
@@ -156,7 +158,7 @@
       "description": "Server-Whitelist verwalten",
       "inputs": { "action": { "label": "Aktion" }, "player": { "label": "Spielername" } }
     },
-    "seed": { "label": "Seed anzeigen", "description": "Welt-Seed anzeigen" },
+    "seed": { "label": "Seed anzeigen", "description": "Welt-Seed anzeigen", "done": "Welt-Seed: {{seed}}" },
     "stop": { "label": "Server stoppen", "description": "Server ordnungsgemäß stoppen" }
   },
   "errors": {

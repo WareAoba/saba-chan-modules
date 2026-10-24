@@ -98,6 +98,22 @@
         "name": {
           "type": "string"
         },
+        "remote": {
+          "default": null,
+          "description": "false면 디스코드·챗봇에 내보내지 않는다 (기본 true)",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "reply_pattern": {
+          "default": null,
+          "description": "콘솔 답에서 값을 뽑는 정규식 (이름 있는 그룹 → locales `commands.<이름>.done`의 자리)",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "risk": {
           "default": null,
           "description": "\"safe\" | \"caution\" | \"danger\" (없으면 caution)",
@@ -186,6 +202,14 @@
     "CommandsSection": {
       "additionalProperties": false,
       "properties": {
+        "failure_patterns": {
+          "default": [],
+          "description": "콘솔 답이 맞으면 실패로 보는 정규식 (`reason` 그룹이 이유)",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/CommandFieldToml"
@@ -480,6 +504,13 @@
       "additionalProperties": false,
       "description": "`[backup]` — 무엇을 백업할지",
       "properties": {
+        "exclude": {
+          "description": "백업할 폴더 안에서 담지 않을 파일 이름 패턴 (`*` 가능). 서버가 켜져 있는 동안 잠가 두는 파일용 (예: \"session.lock\")",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "hook": {
           "default": false,
           "description": "true면 lifecycle `backup_paths(config)`가 `{\"success\": true, \"paths\": [...]}`로 경로를 준다 (세이브 위치를 모듈 코드가 계산하는 게임용). `paths`에 더해진다",
@@ -492,6 +523,20 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "pause_command": {
+          "description": "서버가 켜져 있을 때 `save_command` 전에 실행해 백업하는 동안 서버의 자동 저장을 멈추는 `[commands.fields]` 이름 (예: \"save-off\"). 있으면 `resume_command`도 있어야 한다",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resume_command": {
+          "description": "백업이 끝나면(실패해도) 실행해 자동 저장을 되돌리는 `[commands.fields]` 이름 (예: \"save-on\")",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "save_command": {
           "description": "서버가 켜져 있을 때 묶기 전에 실행할 `[commands.fields]` 이름 (예: \"save-all\")",
@@ -638,6 +683,7 @@
           "description": "이 파일이 따르는 스키마 버전. 지금은 1",
           "enum": [
             1,
+            2,
             null
           ]
         },
@@ -806,11 +852,40 @@
             "null"
           ]
         },
+        "max_items": {
+          "default": null,
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "max_length": {
+          "default": null,
+          "description": "스키마 2: `multiline` 글자 수 상한",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "min": {
           "default": null,
           "format": "double",
           "type": [
             "number",
+            "null"
+          ]
+        },
+        "min_items": {
+          "default": null,
+          "description": "스키마 2: `list` 항목 수 범위",
+          "format": "uint32",
+          "minimum": 0.0,
+          "type": [
+            "integer",
             "null"
           ]
         },
@@ -846,6 +921,14 @@
             "null"
           ]
         },
+        "restart_required": {
+          "default": null,
+          "description": "스키마 2: 켜져 있을 때 바꾸면 다시 켜야 적용된다",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
         "step": {
           "default": null,
           "format": "double",
@@ -858,6 +941,17 @@
           "default": "text",
           "description": "\"text\" | \"number\" | \"password\" | \"boolean\" | \"select\" | \"file\" 등",
           "type": "string"
+        },
+        "visible_when": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VisibleWhen"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "스키마 2: 다른 설정 값에 따라 보일지"
         }
       },
       "required": [
@@ -901,6 +995,27 @@
           "type": "array"
         }
       },
+      "type": "object"
+    },
+    "VisibleWhen": {
+      "additionalProperties": false,
+      "description": "`visible_when = { field, equals }` 또는 `{ field, in = [...] }` (06 §8.2)",
+      "properties": {
+        "equals": true,
+        "field": {
+          "type": "string"
+        },
+        "in": {
+          "items": true,
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "field"
+      ],
       "type": "object"
     }
   },
@@ -1095,6 +1210,6 @@
   "required": [
     "module"
   ],
-  "title": "saba-chan module.toml (schema v1)",
+  "title": "saba-chan module.toml (schema v1, v2)",
   "type": "object"
 }

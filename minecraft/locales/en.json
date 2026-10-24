@@ -104,6 +104,8 @@
       }
     },
     "save-all": { "label": "Save World", "description": "Save the game world" },
+    "save-off": { "label": "Pause Autosave", "description": "Stop the server from saving the world automatically" },
+    "save-on": { "label": "Resume Autosave", "description": "Let the server save the world automatically again" },
     "list": { "label": "Player List", "description": "View list of connected players" },
     "weather": {
       "label": "Change Weather",
@@ -160,7 +162,7 @@
       "description": "Manage the server whitelist",
       "inputs": { "action": { "label": "Action" }, "player": { "label": "Player Name" } }
     },
-    "seed": { "label": "Show Seed", "description": "Display the world seed" },
+    "seed": { "label": "Show Seed", "description": "Display the world seed", "done": "World seed: {{seed}}" },
     "stop": { "label": "Stop Server", "description": "Gracefully stop the server" }
   },
   "errors": {

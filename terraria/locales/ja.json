@@ -147,6 +147,46 @@
     "journeypermission_setspawnrate": {
       "label": "ジャーニー: 敵の出現率",
       "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "seed_celebration": {
+      "label": "お祝いシード",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_notthebees": {
+      "label": "蜂ではない！",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_notraps": {
+      "label": "罠なし",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_fortheworthy": {
+      "label": "For the Worthy",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_remix": {
+      "label": "リミックス",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_drunk": {
+      "label": "酔っ払い",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_zenith": {
+      "label": "ゼニス",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "worldrollbackstokeep": {
+      "label": "保持するワールド巻き戻し数",
+      "description": "保持するワールド巻き戻しバックアップ数"
+    },
+    "slowliquids": {
+      "label": "液体の低速更新",
+      "description": "液体の低速更新を有効にします"
     }
   },
   "commands": {
@@ -199,22 +239,6 @@
       "label": "パスワード表示",
       "description": "サーバーコンソールにパスワードを表示"
     },
-    "death": {
-      "label": "死亡数",
-      "description": "プレイヤーの死亡数"
-    },
-    "pvpdeath": {
-      "label": "PvP死亡数",
-      "description": "プレイヤーのPvP死亡数"
-    },
-    "alldeath": {
-      "label": "全員の死亡数",
-      "description": "全プレイヤーの死亡数"
-    },
-    "allpvpdeath": {
-      "label": "全員のPvP死亡数",
-      "description": "全プレイヤーのPvP死亡数"
-    },
     "dawn": {
       "label": "夜明け",
       "description": "時刻を夜明けにする"
@@ -256,6 +280,10 @@
     "exit-nosave": {
       "label": "保存せず終了",
       "description": "ワールドを保存せずにサーバーを終了"
+    },
+    "seed": {
+      "label": "ワールドシード",
+      "description": "現在のワールドシードを表示します"
     }
   },
   "errors": {
@@ -277,7 +305,8 @@
     "server_not_in_archive": "ダウンロードしたファイルにこのシステム用の {{file}} がありません",
     "server_reset_partial": "一部のワールドファイルを削除できませんでした: {{errors}}",
     "settings_write_failed": "サーバーはインストールしましたが、設定を書き込めませんでした: {{error}}",
-    "version_list_failed": "terraria.org からサーバーバージョン一覧を取得できませんでした: {{error}}"
+    "version_list_failed": "terraria.org からサーバーバージョン一覧を取得できませんでした: {{error}}",
+    "xna_framework_missing": "WindowsでTerrariaを実行するには Microsoft XNA Framework Redistributable 4.0 Refresh が必要です。https://www.microsoft.com/en-us/download/details.aspx?id=27598"
   },
   "messages": {
     "downloading": "テラリアサーバーをダウンロード中",
@@ -294,6 +323,6 @@
   },
   "reset": {
     "label": "ワールドの初期化",
-    "description": "このサーバーのワールドファイル(<ワールド名>.wld とゲームが作った .wld.bak)だけを削除します。serverconfig.txt、BANリスト、他のワールド、サーバーファイルは残ります。次回起動時に新しいワールドを作ります。"
+    "description": "このサーバーのワールドファイルと .wld.bak および .wld.bak<数字> のバックアップを削除します。serverconfig.txt、BANリスト、他のワールド、サーバーファイルは残ります。次回起動時に新しいワールドを作成します。"
   }
 }

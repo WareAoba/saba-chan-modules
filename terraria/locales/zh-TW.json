@@ -147,6 +147,46 @@
     "journeypermission_setspawnrate": {
       "label": "旅程：生成率",
       "description": "0 全部鎖定，1 僅主機，2 所有人"
+    },
+    "seed_celebration": {
+      "label": "慶典種子",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_notthebees": {
+      "label": "不是蜜蜂！",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_notraps": {
+      "label": "無陷阱",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_fortheworthy": {
+      "label": "For the Worthy",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_remix": {
+      "label": "混搭",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_drunk": {
+      "label": "醉酒世界",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "seed_zenith": {
+      "label": "天頂",
+      "description": "啟用特殊世界種子：0 停用，1 啟用"
+    },
+    "worldrollbackstokeep": {
+      "label": "保留的世界回溯備份數",
+      "description": "保留的世界回溯備份數量"
+    },
+    "slowliquids": {
+      "label": "緩慢液體更新",
+      "description": "啟用緩慢液體更新"
     }
   },
   "commands": {
@@ -199,22 +239,6 @@
       "label": "顯示密碼",
       "description": "在伺服器主控台顯示密碼"
     },
-    "death": {
-      "label": "死亡次數",
-      "description": "顯示玩家死亡次數"
-    },
-    "pvpdeath": {
-      "label": "PvP 死亡次數",
-      "description": "顯示 PvP 死亡次數"
-    },
-    "alldeath": {
-      "label": "全部死亡次數",
-      "description": "所有玩家的死亡次數"
-    },
-    "allpvpdeath": {
-      "label": "全部 PvP 死亡次數",
-      "description": "所有玩家的 PvP 死亡次數"
-    },
     "dawn": {
       "label": "黎明",
       "description": "將時間設為黎明"
@@ -256,6 +280,10 @@
     "exit-nosave": {
       "label": "不儲存關閉",
       "description": "不儲存世界直接關閉伺服器"
+    },
+    "seed": {
+      "label": "世界種子",
+      "description": "顯示目前世界種子"
     }
   },
   "errors": {
@@ -277,7 +305,8 @@
     "server_not_in_archive": "下載的檔案中沒有適用於本系統的 {{file}}",
     "server_reset_partial": "部分世界檔案無法刪除：{{errors}}",
     "settings_write_failed": "伺服器已安裝，但無法寫入設定：{{error}}",
-    "version_list_failed": "無法從 terraria.org 取得伺服器版本：{{error}}"
+    "version_list_failed": "無法從 terraria.org 取得伺服器版本：{{error}}",
+    "xna_framework_missing": "Terraria 在 Windows 上需要 Microsoft XNA Framework Redistributable 4.0 Refresh。下載：https://www.microsoft.com/en-us/download/details.aspx?id=27598"
   },
   "messages": {
     "downloading": "正在下載泰拉瑞亞伺服器",
@@ -294,6 +323,6 @@
   },
   "reset": {
     "label": "重設世界",
-    "description": "只刪除此伺服器的世界檔案（<世界名稱>.wld 與遊戲產生的 .wld.bak）。serverconfig.txt、封鎖清單、其他世界與伺服器檔案都會保留。下次啟動時建立新世界。"
+    "description": "刪除此伺服器的世界檔案，以及 .wld.bak 和 .wld.bak<數字> 備份。保留 serverconfig.txt、封鎖清單、其他世界和伺服器檔案。下次啟動時會建立新世界。"
   }
 }

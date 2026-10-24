@@ -73,12 +73,23 @@ _KEY_MAP = {
     "language": "language",
     "upnp": "upnp",
     "npcstream": "npcstream",
+    "worldrollbackstokeep": "worldrollbackstokeep",
+    "slowliquids": "slowliquids",
+    "seed_celebration": "seed_celebration",
+    "seed_theconstant": "seed_theconstant",
+    "seed_notthebees": "seed_notthebees",
+    "seed_notraps": "seed_notraps",
+    "seed_fortheworthy": "seed_fortheworthy",
+    "seed_remix": "seed_remix",
+    "seed_drunk": "seed_drunk",
+    "seed_zenith": "seed_zenith",
     "priority": "priority",
     **{key: key for key in _JOURNEY_KEYS},
 }
 _KEY_MAP_REV = {v: k for k, v in _KEY_MAP.items()}
 # 위키: secure·upnp는 "1 to enable"
-_BOOL_KEYS = {"secure", "upnp"}
+_BOOL_KEYS = {"secure", "upnp", "slowliquids", "seed_celebration", "seed_theconstant", "seed_notthebees",
+              "seed_notraps", "seed_fortheworthy", "seed_remix", "seed_drunk", "seed_zenith"}
 
 # 실행 인자로만 들어가는 설정(group = "saba-chan"): (설정 이름, 인자 모양)
 _LAUNCH_ARGS = [
@@ -104,6 +115,10 @@ def _progress(percent, message):
 def _server_exe_name():
     """이 OS의 공식 서버 실행 파일 이름 (zip의 Windows/Linux 폴더)"""
     return "TerrariaServer.exe" if os.name == "nt" else "TerrariaServer.bin.x86_64"
+
+
+def _is_windows():
+    return os.name == "nt"
 
 
 def _working_dir(config):
@@ -168,16 +183,21 @@ def _format_value(key, value):
 # ─── serverconfig.txt ────────────────────────────────────
 
 def _read_lines(path):
-    """파일의 줄과 줄바꿈 표기. 없으면 ([], "\\n"). 읽거나 해석하지 못하면 OSError/UnicodeDecodeError를 그대로 올린다
+    """파일의 줄, 줄바꿈, 인코딩. 없으면 빈 UTF-8 파일로 취급한다.
     (못 읽은 파일을 빈 설정으로 보고 덮어쓰지 않는다)"""
     try:
         with open(path, "rb") as f:
             raw = f.read()
     except FileNotFoundError:
-        return [], "\n"
-    text = raw.decode("utf-8-sig")
+        return [], "\n", "utf-8"
+    encoding = "utf-8-sig" if raw.startswith(b"\xef\xbb\xbf") else "utf-8"
+    try:
+        text = raw.decode(encoding)
+    except UnicodeDecodeError:
+        encoding = "cp1252"
+        text = raw.decode(encoding)
     newline = "\r\n" if "\r\n" in text else "\n"
-    return text.splitlines(), newline
+    return text.splitlines(), newline, encoding
 
 
 def _parse_line(line):
@@ -191,7 +211,7 @@ def _parse_line(line):
 
 def _read_config_file(path):
     """serverconfig.txt → {키: 값}. 같은 키가 여러 번이면 첫 줄 (쓰기도 첫 줄만 남긴다)"""
-    lines, _ = _read_lines(path)
+    lines, _, _ = _read_lines(path)
     props = {}
     for line in lines:
         parsed = _parse_line(line)
@@ -203,7 +223,7 @@ def _read_config_file(path):
 def _update_config_file(path, updates):
     """바뀐 키만 고친다. 주석·다른 키·순서·줄바꿈 표기는 그대로. 값이 None·""이면 그 키 줄을 지운다(게임 기본값).
     같은 키의 둘째 줄부터는 지운다(어느 줄을 읽을지 애매하지 않게)"""
-    lines, newline = _read_lines(path)
+    lines, newline, encoding = _read_lines(path)
     pending = {key: (None if value in (None, "") else _format_value(key, value)) for key, value in updates.items()}
     out, seen = [], set()
     for line in lines:
@@ -222,7 +242,7 @@ def _update_config_file(path, updates):
             out.append(f"{key}={value}")
     data = (newline.join(out) + newline) if out else ""
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    atomic_write(path, data.encode("utf-8"))
+    atomic_write(path, data.encode(encoding))
 
 
 def _file_updates(settings):
@@ -261,6 +281,11 @@ def validate(config):
     if not _executable(config):
         issues.append({"severity": "critical", "code": "executable_not_found",
                        "message": i18n.t("errors.executable_not_found")})
+    if _is_windows() and not os.path.isdir(os.path.join(
+            os.environ.get("WINDIR", r"C:\Windows"), "Microsoft.NET", "assembly", "GAC_32",
+            "Microsoft.Xna.Framework")):
+        issues.append({"severity": "critical", "code": "xna_framework_missing",
+                       "message": i18n.t("errors.xna_framework_missing")})
     try:
         _world(config)
     except PathOutside:
@@ -434,7 +459,7 @@ def import_settings(config):
 
 
 def backup_paths(config):
-    """이 월드 파일, serverconfig.txt, 밴 목록만. 게임이 만든 .wld.bak, 다른 월드, 실행 파일은 뺀다"""
+    """이 월드 파일, serverconfig.txt, 밴 목록만. 게임이 만든 굴림 백업, 다른 월드, 실행 파일은 뺀다"""
     try:
         _, _, world_file = _world(config)
         banlist = _banlist_path(config)
@@ -446,7 +471,7 @@ def backup_paths(config):
 
 
 def reset_server(config):
-    """월드 초기화: 이 월드의 `<이름>.wld`와 게임이 만든 `<이름>.wld.bak`만 지운다.
+    """월드 초기화: 이 월드의 `<이름>.wld`와 게임이 만든 `<이름>.wld.bak[숫자]`를 지운다.
     설정·밴 목록·다른 월드·사용자 파일은 남는다. 다음 시작 때 autocreate로 새 월드가 생긴다."""
     try:
         world_dir, name, world_file = _world(config)
@@ -457,7 +482,16 @@ def reset_server(config):
     # 서버 폴더가 아니면(실행 파일이 없으면) 지우지 않는다
     if not _executable(config):
         return {"success": False, "message": i18n.t("errors.not_server_folder")}
-    targets = [world_file, str(safe_join(world_dir, f"{name}.wld.bak"))]
+    backup_re = re.compile(re.escape(name) + r"\.wld\.bak\d*$")
+    try:
+        backups = [filename for filename in os.listdir(world_dir) if backup_re.fullmatch(filename)
+                   and os.path.isfile(os.path.join(world_dir, filename))]
+    except FileNotFoundError:
+        backups = []
+    except OSError as e:
+        return {"success": False, "message": i18n.t(
+            "errors.server_reset_partial", errors=f"{name}.wld.bak*: {e}")}
+    targets = [world_file] + [str(safe_join(world_dir, filename)) for filename in backups]
     deleted, errors = [], []
     for target in targets:
         if os.path.dirname(os.path.abspath(target)) != os.path.abspath(world_dir):
@@ -536,15 +570,17 @@ def _extract_server(archive, install_dir):
     """zip에서 이 OS 서버 실행 파일이 든 폴더만 install_dir에 푼다. 기존 serverconfig.txt는 덮지 않는다.
     zip에 체크섬이 없으므로(공식 제공 없음) CRC 검사와 실행 파일 존재로 확인한다"""
     exe_name = _server_exe_name()
+    platform_dir = "Windows" if exe_name.endswith(".exe") else "Linux"
     with zipfile.ZipFile(archive) as z:
         bad = z.testzip()
         if bad is not None:
             raise ValueError(i18n.t("errors.archive_corrupt", file=bad))
         entries = [i for i in z.infolist() if not i.is_dir()]
-        exes = [i.filename for i in entries if i.filename.rsplit("/", 1)[-1] == exe_name]
-        if not exes:
+        exes = [i.filename for i in entries if i.filename.rsplit("/", 1)[-1] == exe_name
+                and i.filename.rsplit("/", 1)[0].rsplit("/", 1)[-1] == platform_dir]
+        if len(exes) != 1:
             raise ValueError(i18n.t("errors.server_not_in_archive", file=exe_name))
-        prefix = min(exes, key=len).rsplit("/", 1)[0] + "/" if "/" in min(exes, key=len) else ""
+        prefix = exes[0].rsplit("/", 1)[0] + "/"
         members = [i for i in entries if i.filename.startswith(prefix)]
         # 먼저 모두 검사하고 나서 쓴다: 바깥으로 나가는 항목이 하나라도 있으면 아무것도 풀지 않는다
         planned = [(i, safe_join(install_dir, *i.filename[len(prefix):].split("/"))) for i in members]

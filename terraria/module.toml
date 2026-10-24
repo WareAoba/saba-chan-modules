@@ -34,11 +34,13 @@ announce_command = "say"
 method = "download"
 
 [detection]
+graceful_exit_patterns = ["^(?:: )?(?:Saving before exit\\.\\.\\.|Vor dem Verlassen speichern \\.\\.\\.|Salvataggio prima dell'uscita\\.\\.\\.|Enregistrement avant de quitter…|Guardando antes de salir\\.\\.\\.|Сохранение перед выходом\\.\\.\\.|正在进行退出前的保存……|Salvando antes de sair\\.\\.\\.|Zapisywanie przed wyjściem\\.\\.\\.|セーブ中…|종료 전에 저장하는 중\\.\\.\\.|離開前儲存中……)\\s*$"]
 dir_signatures = ["TerrariaServer.exe|TerrariaServer.bin.x86_64"]
 
 # 월드 폴더는 사용자가 서버 폴더 밖으로 고를 수 있다(가져온 서버의 Documents\My Games\Terraria\Worlds 등)
 [extensions.saba-core]
 data_roots = ["{world_dir}"]
+ready_patterns = ["^(?:: )?(?:Server started|Server gestartet|Server avviato|Serveur démarré|Servidor iniciado|Сервер запущен|服务器已启动|Servidor inicializado\\.|Serwer uruchomiony|サーバーが開始しました|서버 시작|伺服器已啟動)\\s*$"]
 
 [backup]
 hook = true
@@ -145,6 +147,62 @@ type = "text"
 label = "New World Seed"
 description = "Seed for a newly created world"
 
+[[settings.fields]]
+name = "seed_celebration"
+type = "boolean"
+label = "Celebration Seed"
+description = "Enable special world seed: 0 disabled, 1 enabled"
+install = true
+
+[[settings.fields]]
+name = "seed_theconstant"
+type = "boolean"
+label = "The Constant"
+description = "Enable special world seed: 0 disabled, 1 enabled"
+install = true
+
+[[settings.fields]]
+name = "seed_notthebees"
+type = "boolean"
+label = "Not the Bees!"
+description = "Enable special world seed: 0 disabled, 1 enabled"
+install = true
+
+[[settings.fields]]
+name = "seed_notraps"
+type = "boolean"
+label = "No Traps"
+description = "Enable special world seed: 0 disabled, 1 enabled"
+install = true
+
+[[settings.fields]]
+name = "seed_fortheworthy"
+type = "boolean"
+label = "For the Worthy"
+description = "Enable special world seed: 0 disabled, 1 enabled"
+install = true
+
+[[settings.fields]]
+name = "seed_remix"
+type = "boolean"
+label = "Remix"
+description = "Enable special world seed: 0 disabled, 1 enabled"
+install = true
+
+[[settings.fields]]
+name = "seed_drunk"
+type = "boolean"
+label = "Drunk"
+description = "Enable special world seed: 0 disabled, 1 enabled"
+install = true
+
+[[settings.fields]]
+name = "seed_zenith"
+type = "boolean"
+label = "Zenith"
+description = "Enable special world seed: 0 disabled, 1 enabled"
+install = true
+
 # ── 서버 ──
 
 [[settings.fields]]
@@ -190,7 +248,7 @@ name = "language"
 type = "select"
 label = "Server Language"
 description = "Language of server messages"
-options = ["en-US", "de-DE", "it-IT", "fr-FR", "es-ES", "ru-RU", "zh-Hans", "pt-BR", "pl-PL"]
+options = ["en-US", "de-DE", "it-IT", "fr-FR", "es-ES", "ru-RU", "zh-Hans", "pt-BR", "pl-PL", "ja-JP", "ko-KR", "zh-Hant"]
 
 [[settings.fields]]
 name = "upnp"
@@ -216,11 +274,27 @@ min = 0
 group = "advanced"
 
 [[settings.fields]]
+name = "worldrollbackstokeep"
+type = "number"
+label = "World Rollbacks to Keep"
+description = "Number of world rollback backups to keep"
+min = 0
+group = "advanced"
+
+[[settings.fields]]
+name = "slowliquids"
+type = "boolean"
+label = "Slow Liquids"
+description = "Enable slow liquid updates"
+group = "advanced"
+
+[[settings.fields]]
 name = "priority"
 type = "select"
 label = "Process Priority"
 description = "0 Realtime, 1 High, 2 AboveNormal, 3 Normal, 4 BelowNormal, 5 Idle"
 options = ["0", "1", "2", "3", "4", "5"]
+default = "1"
 group = "advanced"
 
 # ── Journey 모드 권한: 0 모두 잠금, 1 호스트만, 2 모두 ──
@@ -452,42 +526,6 @@ inputs = []
 remote = false
 
 [[commands.fields]]
-name = "death"
-risk = "safe"
-label = "Deaths"
-description = "Show player death counts"
-method = "console"
-console_template = "death"
-inputs = []
-
-[[commands.fields]]
-name = "pvpdeath"
-risk = "safe"
-label = "PvP Deaths"
-description = "Show player PvP death counts"
-method = "console"
-console_template = "pvpdeath"
-inputs = []
-
-[[commands.fields]]
-name = "alldeath"
-risk = "safe"
-label = "All Deaths"
-description = "Show death counts of all players"
-method = "console"
-console_template = "alldeath"
-inputs = []
-
-[[commands.fields]]
-name = "allpvpdeath"
-risk = "safe"
-label = "All PvP Deaths"
-description = "Show PvP death counts of all players"
-method = "console"
-console_template = "allpvpdeath"
-inputs = []
-
-[[commands.fields]]
 name = "dawn"
 risk = "caution"
 label = "Dawn"
@@ -530,6 +568,15 @@ label = "Settle Liquids"
 description = "Settle all water in the world"
 method = "console"
 console_template = "settle"
+inputs = []
+
+[[commands.fields]]
+name = "seed"
+risk = "safe"
+label = "World Seed"
+description = "Print the current world seed"
+method = "console"
+console_template = "seed"
 inputs = []
 
 [[commands.fields]]

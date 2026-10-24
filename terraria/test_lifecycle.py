@@ -11,6 +11,7 @@
 import importlib.util
 import io
 import os
+import re
 import zipfile
 from pathlib import Path
 
@@ -83,6 +84,30 @@ def test_every_command_declares_risk_and_description(toml):
         assert cmd.get("description"), cmd["name"]
 
 
+def test_measured_commands_and_settings_are_declared(toml):
+    commands = {item["name"]: item for item in toml["commands"]["fields"]}
+    assert not {"death", "pvpdeath", "alldeath", "allpvpdeath"} & commands.keys()
+    assert commands["seed"]["risk"] == "safe"
+    assert commands["seed"]["console_template"] == "seed"
+    settings = {item["name"]: item for item in toml["settings"]["fields"]}
+    for name in ("seed_celebration", "seed_theconstant", "seed_notthebees", "seed_notraps",
+                 "seed_fortheworthy", "seed_remix", "seed_drunk", "seed_zenith"):
+        assert settings[name]["type"] == "boolean" and settings[name]["install"] is True
+    assert settings["worldrollbackstokeep"]["type"] == "number"
+    assert settings["worldrollbackstokeep"]["min"] == 0
+    assert settings["priority"]["default"] == "1"
+    assert {"ja-JP", "ko-KR", "zh-Hant"} <= set(settings["language"]["options"])
+
+
+def test_measured_boolean_settings_roundtrip(lc):
+    names = ("seed_celebration", "seed_theconstant", "seed_notthebees", "seed_notraps",
+             "seed_fortheworthy", "seed_remix", "seed_drunk", "seed_zenith", "slowliquids")
+    values = {name: True for name in names}
+    assert lc._file_updates(values) == values
+    assert lc._settings_from_file({name: "1" for name in names}) == values
+    assert lc._settings_from_file({"worldrollbackstokeep": "0"})["worldrollbackstokeep"] == 0
+
+
 def test_setting_types_are_supported(toml):
     for field in toml["settings"]["fields"]:
         assert field.get("type", "text") in ("text", "number", "password", "boolean", "select", "file"), field["name"]
@@ -149,11 +174,25 @@ def test_configure_clearing_a_value_removes_the_key(lc, tmp_path):
 
 def test_configure_does_not_write_when_the_file_cannot_be_read(lc, tmp_path):
     server = _server(tmp_path, lc)
-    broken = b"motd=\xff\xfe broken\nmaxplayers=4\n"
+    # UTF-8로도 cp1252로도 풀리지 않는 바이트 (0x81은 cp1252에 없다)
+    broken = b"motd=\x81\x8d broken\nmaxplayers=4\n"
     (server / "serverconfig.txt").write_bytes(broken)
     result = lc.configure(_config(server, settings={"motd": "new"}))
     assert result["success"] is False
     assert (server / "serverconfig.txt").read_bytes() == broken
+
+
+def test_cp1252_configure_and_import_preserve_bytes_comments_and_crlf(lc, tmp_path):
+    server = _server(tmp_path, lc)
+    path = server / "serverconfig.txt"
+    original = b"#motd=Please don\x92t cut the purple trees!\r\nport=7777\r\n"
+    path.write_bytes(original)
+
+    result = lc.configure(_config(server, settings={"port": 7788}))
+
+    assert result["success"]
+    assert path.read_bytes() == original.replace(b"port=7777", b"port=7788")
+    assert lc.import_settings({"working_dir": str(server)})["settings"]["port"] == 7788
 
 
 def test_configure_rejects_line_breaks(lc, tmp_path):
@@ -353,11 +392,17 @@ def test_backup_refuses_bad_banlist(lc, tmp_path):
 
 def test_reset_deletes_only_this_world(lc, tmp_path):
     server = _populated_server(tmp_path, lc)
+    worlds = server / "Worlds"
+    (worlds / "Island.wld.bak2").write_bytes(b"backup")
+    (worlds / "Island.wld.bak12").write_bytes(b"backup")
+    (worlds / "Other.wld.bak2").write_bytes(b"other backup")
     result = lc.reset_server(_config(server))
     assert result["success"], result
-    worlds = server / "Worlds"
     assert not (worlds / "Island.wld").exists()
     assert not (worlds / "Island.wld.bak").exists()
+    assert not (worlds / "Island.wld.bak2").exists()
+    assert not (worlds / "Island.wld.bak12").exists()
+    assert (worlds / "Other.wld.bak2").exists()
     for kept in (worlds / "Other.wld", server / "serverconfig.txt", server / "banlist.txt",
                  server / "notes.txt", server / "instance.json", server / lc._server_exe_name()):
         assert kept.exists(), kept
@@ -420,7 +465,7 @@ def test_install_extracts_only_this_platform(lc, tmp_path, monkeypatch):
     other = "Linux/TerrariaServer.bin.x86_64" if folder == "Windows" else "Windows/TerrariaServer.exe"
     data = _zip_bytes({
         f"1458/{folder}/{exe}": b"server",
-        f"1458/{folder}/serverconfig.txt": b"#sample\n",
+        f"1458/{folder}/serverconfig.txt": b"#motd=Please don\x92t cut the purple trees!\r\npriority=1\r\n",
         f"1458/{folder}/lib/a.dll": b"lib",
         f"1458/{other}": b"other",
     })
@@ -438,6 +483,8 @@ def test_install_extracts_only_this_platform(lc, tmp_path, monkeypatch):
     props = lc._read_config_file(str(install / "serverconfig.txt"))
     assert props["maxplayers"] == "12"
     assert props["port"] == "7781"
+    assert (install / "serverconfig.txt").read_bytes().startswith(
+        b"#motd=Please don\x92t cut the purple trees!\r\npriority=1\r\n")
     assert not [p for p in install.iterdir() if p.name.endswith(".download")]
 
 
@@ -456,6 +503,59 @@ def test_install_keeps_existing_config(lc, tmp_path, monkeypatch):
     assert lc.install_server({"version": "1.4.5.8", "install_dir": str(install)})["success"]
     assert _read(install / "serverconfig.txt") == "motd=mine\nworld=keep.wld\n"
     assert (install / "Worlds" / "Island.wld").read_bytes() == b"save"
+
+
+def test_install_picks_platform_named_folder_only_and_refuses_ambiguous(lc, tmp_path, monkeypatch):
+    entries = {
+        "1458/Linux/TerrariaServer.bin.x86_64": b"linux",
+        "1458/Linux/mscorlib.dll": b"mono",
+        "1458/Windows/TerrariaServer.exe": b"windows",
+        "1458/Windows/serverconfig.txt": b"priority=1\r\n",
+        "1458/Mac/Terraria Server.app/Contents/Resources/TerrariaServer.exe": b"mac",
+    }
+    archive = io.BytesIO(_zip_bytes(entries))
+    for os_name, exe, expected in (("nt", "TerrariaServer.exe", b"windows"),
+                                   ("posix", "TerrariaServer.bin.x86_64", b"linux")):
+        install = tmp_path / os_name
+        monkeypatch.setattr(lc, "_server_exe_name", lambda exe=exe: exe)
+        lc._extract_server(archive, str(install))
+        assert (install / exe).read_bytes() == expected
+        assert sorted(p.name for p in install.iterdir()) == sorted(
+            ["TerrariaServer.exe", "serverconfig.txt"] if os_name == "nt"
+            else ["TerrariaServer.bin.x86_64", "mscorlib.dll"])
+    ambiguous = _zip_bytes({**entries, "1458/Other/Linux/TerrariaServer.bin.x86_64": b"other"})
+    with pytest.raises(ValueError):
+        lc._extract_server(io.BytesIO(ambiguous), str(tmp_path / "ambiguous"))
+
+
+def test_validate_reports_missing_xna_framework(lc, tmp_path, monkeypatch):
+    server = _server(tmp_path, lc)
+    windir = tmp_path / "Windows"
+    framework = windir / "Microsoft.NET/assembly/GAC_32/Microsoft.Xna.Framework"
+    monkeypatch.setenv("WINDIR", str(windir))
+    monkeypatch.setattr(lc, "_is_windows", lambda: True)
+    issue = next(i for i in lc.validate(_config(server))["issues"] if i["code"] == "xna_framework_missing")
+    assert issue["severity"] == "critical"
+    assert "https://www.microsoft.com/en-us/download/details.aspx?id=27598" in issue["message"]
+    framework.mkdir(parents=True)
+    assert "xna_framework_missing" not in [i["code"] for i in lc.validate(_config(server))["issues"]]
+
+
+def test_server_patterns_accept_only_measured_full_lines(toml):
+    patterns = toml["extensions"]["saba-core"]
+    ready = re.compile(patterns["ready_patterns"][0])
+    graceful = re.compile(toml["detection"]["graceful_exit_patterns"][0])
+    ready_lines = ("Server started", "Server gestartet", "Server avviato", "Serveur démarré",
+                   "Servidor iniciado", "Сервер запущен", "服务器已启动", "Servidor inicializado.",
+                   "Serwer uruchomiony", "サーバーが開始しました", "서버 시작", "伺服器已啟動")
+    exit_lines = ("Saving before exit...", "Vor dem Verlassen speichern\u00a0...",
+                  "Salvataggio prima dell'uscita...", "Enregistrement avant de quitter…",
+                  "Guardando antes de salir...", "Сохранение перед выходом...", "正在进行退出前的保存……",
+                  "Salvando antes de sair...", "Zapisywanie przed wyjściem...", "セーブ中…",
+                  "종료 전에 저장하는 중...", "離開前儲存中……")
+    assert all(ready.fullmatch(line) and ready.fullmatch(": " + line) for line in ready_lines)
+    assert all(graceful.fullmatch(line) and graceful.fullmatch(": " + line) for line in exit_lines)
+    assert not ready.fullmatch("<Server> Server started")
 
 
 def test_install_refuses_zip_without_server(lc, tmp_path, monkeypatch):
@@ -497,7 +597,7 @@ def test_install_reports_settings_write_failure(lc, tmp_path, monkeypatch):
     _fake_download(monkeypatch, lc, _zip_bytes({f"1458/{folder}/{exe}": b"x"}))
     install = tmp_path / "inst"
     install.mkdir()
-    (install / "serverconfig.txt").write_bytes(b"motd=\xff\n")
+    (install / "serverconfig.txt").write_bytes(b"motd=\x81\n")
     result = lc.install_server({"version": "1.4.5.8", "install_dir": str(install),
                                 "settings": {"max_players": 4}})
     assert result["success"] is False

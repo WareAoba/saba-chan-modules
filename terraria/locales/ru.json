@@ -147,6 +147,46 @@
     "journeypermission_setspawnrate": {
       "label": "Путешествие: Частота появления",
       "description": "0 закрыто, 1 только хост, 2 все"
+    },
+    "seed_celebration": {
+      "label": "Праздничный сид",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_notthebees": {
+      "label": "Это не пчёлы!",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_notraps": {
+      "label": "Без ловушек",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_fortheworthy": {
+      "label": "Для достойных",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_remix": {
+      "label": "Ремикс",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_drunk": {
+      "label": "Пьяный мир",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "seed_zenith": {
+      "label": "Зенит",
+      "description": "Включает особый сид мира: 0 выкл., 1 вкл."
+    },
+    "worldrollbackstokeep": {
+      "label": "Хранимые откаты мира",
+      "description": "Количество сохраняемых резервных копий отката мира"
+    },
+    "slowliquids": {
+      "label": "Медленные жидкости",
+      "description": "Включает медленное обновление жидкостей"
     }
   },
   "commands": {
@@ -199,22 +239,6 @@
       "label": "Показать пароль",
       "description": "Показать пароль в консоли"
     },
-    "death": {
-      "label": "Смерти",
-      "description": "Число смертей"
-    },
-    "pvpdeath": {
-      "label": "Смерти в PvP",
-      "description": "Число смертей в PvP"
-    },
-    "alldeath": {
-      "label": "Все смерти",
-      "description": "Смерти всех игроков"
-    },
-    "allpvpdeath": {
-      "label": "Все смерти в PvP",
-      "description": "Смерти в PvP всех игроков"
-    },
     "dawn": {
       "label": "Рассвет",
       "description": "Установить рассвет"
@@ -256,6 +280,10 @@
     "exit-nosave": {
       "label": "Выключить без сохранения",
       "description": "Выключить сервер без сохранения мира"
+    },
+    "seed": {
+      "label": "Сид мира",
+      "description": "Показывает текущий сид мира"
     }
   },
   "errors": {
@@ -277,7 +305,8 @@
     "server_not_in_archive": "В файле нет {{file}} для этой системы",
     "server_reset_partial": "Не удалось удалить некоторые файлы мира: {{errors}}",
     "settings_write_failed": "Сервер установлен, но настройки записать не удалось: {{error}}",
-    "version_list_failed": "Не удалось получить список версий с terraria.org: {{error}}"
+    "version_list_failed": "Не удалось получить список версий с terraria.org: {{error}}",
+    "xna_framework_missing": "Для Terraria в Windows требуется Microsoft XNA Framework Redistributable 4.0 Refresh. Скачать: https://www.microsoft.com/en-us/download/details.aspx?id=27598"
   },
   "messages": {
     "downloading": "Загрузка сервера Terraria",
@@ -294,6 +323,6 @@
   },
   "reset": {
     "label": "Сброс мира",
-    "description": "Удаляет только файл мира этого сервера (<имя>.wld и .wld.bak игры). serverconfig.txt, файл банов, другие миры и файлы сервера остаются. Новый мир создаётся при следующем запуске."
+    "description": "Удаляет файл этого мира и его резервные копии .wld.bak и .wld.bak<число>. serverconfig.txt, список блокировок, другие миры и файлы сервера остаются. При следующем запуске будет создан новый мир."
   }
 }

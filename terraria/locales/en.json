@@ -147,6 +147,46 @@
     "journeypermission_setspawnrate": {
       "label": "Journey: Spawn Rate",
       "description": "0 locked, 1 host only, 2 everyone"
+    },
+    "seed_celebration": {
+      "label": "Celebration Seed",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_notthebees": {
+      "label": "Not the Bees!",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_notraps": {
+      "label": "No Traps",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_fortheworthy": {
+      "label": "For the Worthy",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_remix": {
+      "label": "Remix",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_drunk": {
+      "label": "Drunk",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "seed_zenith": {
+      "label": "Zenith",
+      "description": "Enable the special world seed: 0 disabled, 1 enabled"
+    },
+    "worldrollbackstokeep": {
+      "label": "World Rollbacks to Keep",
+      "description": "Number of world rollback backups to keep"
+    },
+    "slowliquids": {
+      "label": "Slow Liquids",
+      "description": "Enable slow liquid updates"
     }
   },
   "commands": {
@@ -199,22 +239,6 @@
       "label": "Show Password",
       "description": "Print the server password on the server console"
     },
-    "death": {
-      "label": "Deaths",
-      "description": "Show player death counts"
-    },
-    "pvpdeath": {
-      "label": "PvP Deaths",
-      "description": "Show player PvP death counts"
-    },
-    "alldeath": {
-      "label": "All Deaths",
-      "description": "Show death counts of all players"
-    },
-    "allpvpdeath": {
-      "label": "All PvP Deaths",
-      "description": "Show PvP death counts of all players"
-    },
     "dawn": {
       "label": "Dawn",
       "description": "Set the time to dawn"
@@ -256,6 +280,10 @@
     "exit-nosave": {
       "label": "Shut Down Without Saving",
       "description": "Shut down the server without saving the world"
+    },
+    "seed": {
+      "label": "World Seed",
+      "description": "Print the current world seed"
     }
   },
   "errors": {
@@ -277,7 +305,8 @@
     "server_not_in_archive": "The downloaded file has no {{file}} for this system",
     "server_reset_partial": "Some world files could not be deleted: {{errors}}",
     "settings_write_failed": "The server was installed, but the settings could not be written: {{error}}",
-    "version_list_failed": "Could not get the server versions from terraria.org: {{error}}"
+    "version_list_failed": "Could not get the server versions from terraria.org: {{error}}",
+    "xna_framework_missing": "Terraria requires Microsoft XNA Framework Redistributable 4.0 Refresh on Windows. Download it from https://www.microsoft.com/en-us/download/details.aspx?id=27598"
   },
   "messages": {
     "downloading": "Downloading the Terraria server",
@@ -294,6 +323,6 @@
   },
   "reset": {
     "label": "Reset World",
-    "description": "Deletes this server's world file (<world name>.wld and the game's .wld.bak). serverconfig.txt, the ban list, other worlds and the server files stay. A new world is created on the next start."
+    "description": "Deletes this server world file and its .wld.bak and .wld.bak<number> backups. serverconfig.txt, the ban list, other worlds and server files stay. A new world is created on the next start."
   }
 }

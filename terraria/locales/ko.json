@@ -147,6 +147,46 @@
     "journeypermission_setspawnrate": {
       "label": "저니: 몬스터 생성률",
       "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "seed_celebration": {
+      "label": "축하 시드",
+      "description": "특수 월드 시드를 켭니다. 0은 끔, 1은 켬"
+    },
+    "seed_theconstant": {
+      "label": "더 컨스턴트",
+      "description": "특수 월드 시드를 켭니다. 0은 끔, 1은 켬"
+    },
+    "seed_notthebees": {
+      "label": "벌이 아니야!",
+      "description": "특수 월드 시드를 켭니다. 0은 끔, 1은 켬"
+    },
+    "seed_notraps": {
+      "label": "함정 없음",
+      "description": "특수 월드 시드를 켭니다. 0은 끔, 1은 켬"
+    },
+    "seed_fortheworthy": {
+      "label": "가치 있는 자",
+      "description": "특수 월드 시드를 켭니다. 0은 끔, 1은 켬"
+    },
+    "seed_remix": {
+      "label": "리믹스",
+      "description": "특수 월드 시드를 켭니다. 0은 끔, 1은 켬"
+    },
+    "seed_drunk": {
+      "label": "취한 세계",
+      "description": "특수 월드 시드를 켭니다. 0은 끔, 1은 켬"
+    },
+    "seed_zenith": {
+      "label": "제니스",
+      "description": "특수 월드 시드를 켭니다. 0은 끔, 1은 켬"
+    },
+    "worldrollbackstokeep": {
+      "label": "월드 롤백 보관 수",
+      "description": "보관할 월드 롤백 백업 수"
+    },
+    "slowliquids": {
+      "label": "느린 액체",
+      "description": "액체 느린 업데이트를 켭니다"
     }
   },
   "commands": {
@@ -199,22 +239,6 @@
       "label": "비밀번호 보기",
       "description": "서버 콘솔에 서버 비밀번호를 찍습니다"
     },
-    "death": {
-      "label": "사망 수",
-      "description": "플레이어 사망 수를 봅니다"
-    },
-    "pvpdeath": {
-      "label": "PvP 사망 수",
-      "description": "플레이어 PvP 사망 수를 봅니다"
-    },
-    "alldeath": {
-      "label": "전체 사망 수",
-      "description": "모든 플레이어의 사망 수를 봅니다"
-    },
-    "allpvpdeath": {
-      "label": "전체 PvP 사망 수",
-      "description": "모든 플레이어의 PvP 사망 수를 봅니다"
-    },
     "dawn": {
       "label": "새벽",
       "description": "시간을 새벽으로 바꿉니다"
@@ -256,6 +280,10 @@
     "exit-nosave": {
       "label": "저장 없이 종료",
       "description": "월드를 저장하지 않고 서버를 끕니다"
+    },
+    "seed": {
+      "label": "월드 시드",
+      "description": "현재 월드 시드를 출력합니다"
     }
   },
   "errors": {
@@ -277,7 +305,8 @@
     "server_not_in_archive": "내려받은 파일에 이 시스템용 {{file}}이 없습니다",
     "server_reset_partial": "월드 파일 일부를 지우지 못했습니다: {{errors}}",
     "settings_write_failed": "서버는 설치했지만 설정을 쓰지 못했습니다: {{error}}",
-    "version_list_failed": "terraria.org에서 서버 버전 목록을 받지 못했습니다: {{error}}"
+    "version_list_failed": "terraria.org에서 서버 버전 목록을 받지 못했습니다: {{error}}",
+    "xna_framework_missing": "Windows에서 테라리아를 실행하려면 Microsoft XNA Framework Redistributable 4.0 Refresh가 필요합니다. https://www.microsoft.com/en-us/download/details.aspx?id=27598 에서 내려받으세요"
   },
   "messages": {
     "downloading": "테라리아 서버를 내려받는 중",
@@ -294,6 +323,6 @@
   },
   "reset": {
     "label": "월드 초기화",
-    "description": "이 서버의 월드 파일(<월드 이름>.wld와 게임이 만든 .wld.bak)만 지웁니다. serverconfig.txt, 밴 목록, 다른 월드, 서버 파일은 남습니다. 다음에 켤 때 새 월드를 만듭니다."
+    "description": "이 서버의 월드 파일과 .wld.bak 및 .wld.bak숫자 백업을 지웁니다. serverconfig.txt, 밴 목록, 다른 월드, 서버 파일은 남습니다. 다음에 켤 때 새 월드를 만듭니다."
   }
 }

@@ -147,6 +147,46 @@
     "journeypermission_setspawnrate": {
       "label": "Voyage : Taux d'apparition",
       "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "seed_celebration": {
+      "label": "Graine de célébration",
+      "description": "Active la graine spéciale : 0 désactivée, 1 activée"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "Active la graine spéciale : 0 désactivée, 1 activée"
+    },
+    "seed_notthebees": {
+      "label": "Pas des abeilles !",
+      "description": "Active la graine spéciale : 0 désactivée, 1 activée"
+    },
+    "seed_notraps": {
+      "label": "Sans pièges",
+      "description": "Active la graine spéciale : 0 désactivée, 1 activée"
+    },
+    "seed_fortheworthy": {
+      "label": "Pour les dignes",
+      "description": "Active la graine spéciale : 0 désactivée, 1 activée"
+    },
+    "seed_remix": {
+      "label": "Remix",
+      "description": "Active la graine spéciale : 0 désactivée, 1 activée"
+    },
+    "seed_drunk": {
+      "label": "Ivre",
+      "description": "Active la graine spéciale : 0 désactivée, 1 activée"
+    },
+    "seed_zenith": {
+      "label": "Zenith",
+      "description": "Active la graine spéciale : 0 désactivée, 1 activée"
+    },
+    "worldrollbackstokeep": {
+      "label": "Sauvegardes de retour arrière du monde",
+      "description": "Nombre de sauvegardes de retour arrière à conserver"
+    },
+    "slowliquids": {
+      "label": "Liquides lents",
+      "description": "Active les mises à jour lentes des liquides"
     }
   },
   "commands": {
@@ -199,22 +239,6 @@
       "label": "Afficher le mot de passe",
       "description": "Affiche le mot de passe dans la console"
     },
-    "death": {
-      "label": "Morts",
-      "description": "Affiche les morts"
-    },
-    "pvpdeath": {
-      "label": "Morts JcJ",
-      "description": "Affiche les morts JcJ"
-    },
-    "alldeath": {
-      "label": "Toutes les morts",
-      "description": "Morts de tous les joueurs"
-    },
-    "allpvpdeath": {
-      "label": "Toutes les morts JcJ",
-      "description": "Morts JcJ de tous"
-    },
     "dawn": {
       "label": "Aube",
       "description": "Règle l'heure à l'aube"
@@ -256,6 +280,10 @@
     "exit-nosave": {
       "label": "Arrêter sans sauvegarder",
       "description": "Arrête le serveur sans sauvegarder"
+    },
+    "seed": {
+      "label": "Graine du monde",
+      "description": "Affiche la graine actuelle du monde"
     }
   },
   "errors": {
@@ -277,7 +305,8 @@
     "server_not_in_archive": "Le fichier ne contient pas {{file}} pour ce système",
     "server_reset_partial": "Certains fichiers du monde n'ont pas pu être supprimés : {{errors}}",
     "settings_write_failed": "Le serveur est installé, mais les paramètres n'ont pas pu être écrits : {{error}}",
-    "version_list_failed": "Impossible d'obtenir les versions depuis terraria.org : {{error}}"
+    "version_list_failed": "Impossible d'obtenir les versions depuis terraria.org : {{error}}",
+    "xna_framework_missing": "Terraria requiert Microsoft XNA Framework Redistributable 4.0 Refresh sous Windows. Téléchargement : https://www.microsoft.com/en-us/download/details.aspx?id=27598"
   },
   "messages": {
     "downloading": "Téléchargement du serveur Terraria",
@@ -294,6 +323,6 @@
   },
   "reset": {
     "label": "Réinitialiser le monde",
-    "description": "Supprime seulement le fichier du monde de ce serveur (<nom>.wld et le .wld.bak du jeu). serverconfig.txt, la liste de bannissement, les autres mondes et les fichiers du serveur restent. Un nouveau monde est créé au prochain démarrage."
+    "description": "Supprime le fichier de ce monde ainsi que ses sauvegardes .wld.bak et .wld.bak<nombre>. serverconfig.txt, la liste de bannissement, les autres mondes et les fichiers du serveur sont conservés. Un nouveau monde sera créé au prochain démarrage."
   }
 }

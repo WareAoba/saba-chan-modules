@@ -147,6 +147,46 @@
     "journeypermission_setspawnrate": {
       "label": "Reise: Spawnrate",
       "description": "0 gesperrt, 1 nur Host, 2 alle"
+    },
+    "seed_celebration": {
+      "label": "Feier-Samen",
+      "description": "Spezial-Seed aktivieren: 0 aus, 1 an"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "Spezial-Seed aktivieren: 0 aus, 1 an"
+    },
+    "seed_notthebees": {
+      "label": "Keine Bienen!",
+      "description": "Spezial-Seed aktivieren: 0 aus, 1 an"
+    },
+    "seed_notraps": {
+      "label": "Keine Fallen",
+      "description": "Spezial-Seed aktivieren: 0 aus, 1 an"
+    },
+    "seed_fortheworthy": {
+      "label": "Für die Würdigen",
+      "description": "Spezial-Seed aktivieren: 0 aus, 1 an"
+    },
+    "seed_remix": {
+      "label": "Remix",
+      "description": "Spezial-Seed aktivieren: 0 aus, 1 an"
+    },
+    "seed_drunk": {
+      "label": "Betrunken",
+      "description": "Spezial-Seed aktivieren: 0 aus, 1 an"
+    },
+    "seed_zenith": {
+      "label": "Zenith",
+      "description": "Spezial-Seed aktivieren: 0 aus, 1 an"
+    },
+    "worldrollbackstokeep": {
+      "label": "Aufzubewahrende Welt-Rollbacks",
+      "description": "Anzahl aufzubewahrender Welt-Rollback-Sicherungen"
+    },
+    "slowliquids": {
+      "label": "Langsame Flüssigkeiten",
+      "description": "Langsame Flüssigkeitsaktualisierung aktivieren"
     }
   },
   "commands": {
@@ -199,22 +239,6 @@
       "label": "Passwort anzeigen",
       "description": "Server-Passwort in der Konsole anzeigen"
     },
-    "death": {
-      "label": "Tode",
-      "description": "Todeszahlen anzeigen"
-    },
-    "pvpdeath": {
-      "label": "PvP-Tode",
-      "description": "PvP-Todeszahlen anzeigen"
-    },
-    "alldeath": {
-      "label": "Alle Tode",
-      "description": "Todeszahlen aller Spieler"
-    },
-    "allpvpdeath": {
-      "label": "Alle PvP-Tode",
-      "description": "PvP-Tode aller Spieler"
-    },
     "dawn": {
       "label": "Morgengrauen",
       "description": "Zeit auf Morgengrauen"
@@ -256,6 +280,10 @@
     "exit-nosave": {
       "label": "Ohne Speichern beenden",
       "description": "Server ohne Speichern beenden"
+    },
+    "seed": {
+      "label": "Welt-Seed",
+      "description": "Aktuellen Welt-Seed anzeigen"
     }
   },
   "errors": {
@@ -277,7 +305,8 @@
     "server_not_in_archive": "Die Datei enthält kein {{file}} für dieses System",
     "server_reset_partial": "Einige Weltdateien konnten nicht gelöscht werden: {{errors}}",
     "settings_write_failed": "Der Server ist installiert, aber die Einstellungen konnten nicht geschrieben werden: {{error}}",
-    "version_list_failed": "Serverversionen von terraria.org konnten nicht geladen werden: {{error}}"
+    "version_list_failed": "Serverversionen von terraria.org konnten nicht geladen werden: {{error}}",
+    "xna_framework_missing": "Terraria benötigt unter Windows Microsoft XNA Framework Redistributable 4.0 Refresh. Download: https://www.microsoft.com/en-us/download/details.aspx?id=27598"
   },
   "messages": {
     "downloading": "Terraria-Server wird heruntergeladen",
@@ -294,6 +323,6 @@
   },
   "reset": {
     "label": "Welt zurücksetzen",
-    "description": "Löscht nur die Weltdatei dieses Servers (<Weltname>.wld und die .wld.bak des Spiels). serverconfig.txt, Bannliste, andere Welten und Serverdateien bleiben. Beim nächsten Start wird eine neue Welt erstellt."
+    "description": "Löscht die Weltdatei dieses Servers sowie die Sicherungen .wld.bak und .wld.bak<Zahl>. serverconfig.txt, die Bannliste, andere Welten und Serverdateien bleiben erhalten. Beim nächsten Start wird eine neue Welt erstellt."
   }
 }

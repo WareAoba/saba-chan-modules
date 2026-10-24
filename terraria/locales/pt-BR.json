@@ -147,6 +147,46 @@
     "journeypermission_setspawnrate": {
       "label": "Jornada: Taxa de surgimento",
       "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "seed_celebration": {
+      "label": "Semente de celebração",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_notthebees": {
+      "label": "Não são abelhas!",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_notraps": {
+      "label": "Sem armadilhas",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_fortheworthy": {
+      "label": "Para os dignos",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_remix": {
+      "label": "Remix",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_drunk": {
+      "label": "Bêbado",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_zenith": {
+      "label": "Zenith",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "worldrollbackstokeep": {
+      "label": "Reversões do mundo a manter",
+      "description": "Número de cópias de reversão do mundo a manter"
+    },
+    "slowliquids": {
+      "label": "Líquidos lentos",
+      "description": "Ativa atualizações lentas de líquidos"
     }
   },
   "commands": {
@@ -199,22 +239,6 @@
       "label": "Mostrar senha",
       "description": "Mostra a senha no console"
     },
-    "death": {
-      "label": "Mortes",
-      "description": "Mostra as mortes"
-    },
-    "pvpdeath": {
-      "label": "Mortes PvP",
-      "description": "Mostra as mortes PvP"
-    },
-    "alldeath": {
-      "label": "Todas as mortes",
-      "description": "Mortes de todos"
-    },
-    "allpvpdeath": {
-      "label": "Todas as mortes PvP",
-      "description": "Mortes PvP de todos"
-    },
     "dawn": {
       "label": "Amanhecer",
       "description": "Define a hora para o amanhecer"
@@ -256,6 +280,10 @@
     "exit-nosave": {
       "label": "Desligar sem salvar",
       "description": "Desliga o servidor sem salvar"
+    },
+    "seed": {
+      "label": "Semente do mundo",
+      "description": "Exibe a semente atual do mundo"
     }
   },
   "errors": {
@@ -277,7 +305,8 @@
     "server_not_in_archive": "O arquivo não tem {{file}} para este sistema",
     "server_reset_partial": "Alguns arquivos não puderam ser apagados: {{errors}}",
     "settings_write_failed": "O servidor foi instalado, mas as configurações não foram gravadas: {{error}}",
-    "version_list_failed": "Não foi possível obter as versões em terraria.org: {{error}}"
+    "version_list_failed": "Não foi possível obter as versões em terraria.org: {{error}}",
+    "xna_framework_missing": "Terraria requer Microsoft XNA Framework Redistributable 4.0 Refresh no Windows. Baixe em https://www.microsoft.com/en-us/download/details.aspx?id=27598"
   },
   "messages": {
     "downloading": "Baixando o servidor do Terraria",
@@ -294,6 +323,6 @@
   },
   "reset": {
     "label": "Redefinir mundo",
-    "description": "Apaga só o arquivo do mundo deste servidor (<nome>.wld e o .wld.bak do jogo). serverconfig.txt, a lista de banimentos, outros mundos e os arquivos do servidor ficam. Um novo mundo é criado no próximo início."
+    "description": "Exclui o arquivo deste mundo e as cópias .wld.bak e .wld.bak<número>. serverconfig.txt, a lista de banimentos, outros mundos e arquivos do servidor são mantidos. Um novo mundo será criado na próxima inicialização."
   }
 }

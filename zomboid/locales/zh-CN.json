@@ -4,131 +4,714 @@
     "description": "Project Zomboid 专用服务器管理模块，提供完整的生命周期管理"
   },
   "settings": {
-    "data_home": { "label": "现有数据文件夹", "description": "从现有服务器布局中检测到的数据文件夹。保留当前的INI文件夹。" },
-    "cache_dir": { "label": "数据文件夹", "description": "此服务器存放设置、存档和日志的文件夹 (-cachedir)。留空则使用 ~/Zomboid" },
-    "ram": { "label": "内存（RAM）", "description": "最大内存分配量（GB）" },
-    "server_name": { "label": "配置文件名称", "description": "服务器配置文件名称（决定 INI 文件名）" },
-    "rcon_port": { "label": "RCON 端口", "description": "远程控制台 RCON 端口" },
-    "rcon_password": { "label": "RCON 密码", "description": "RCON 认证密码" },
-    "admin_password": { "label": "管理员密码", "description": "默认管理员帐户密码（首次启动时设置）" },
-    "no_steam": { "label": "非 Steam 模式", "description": "不使用 Steam 运行服务器（允许 GoG 玩家连接）" },
-    "public_name": { "label": "服务器名称", "description": "在浏览器中显示的名称" },
-    "public_description": { "label": "描述", "description": "在服务器浏览器中可见的描述" },
-    "password": { "label": "服务器密码", "description": "连接服务器所需的密码" },
-    "max_players": { "label": "最大玩家数", "description": "最大玩家连接数" },
-    "port": { "label": "游戏端口", "description": "主 UDP 游戏端口" },
-    "udp_port": { "label": "第二个 UDP 端口", "description": "游戏服务器监听的第二个 UDP 端口 (UDPPort，通常为游戏端口 + 1)" },
-    "pvp": { "label": "PVP", "description": "启用玩家对战" },
-    "open": { "label": "开放服务器", "description": "对所有人开放（无白名单）" },
-    "public": { "label": "公开显示", "description": "在 Steam 服务器浏览器中显示" },
-    "pause_empty": { "label": "空服暂停", "description": "无玩家时暂停世界" },
-    "global_chat": { "label": "全局聊天", "description": "启用全局聊天（/all 命令）" },
-    "map": { "label": "地图", "description": "游戏地图" },
-    "mods": { "label": "模组", "description": "分号分隔的模组 ID 列表" },
-    "workshop_items": { "label": "创意工坊物品", "description": "分号分隔的创意工坊 ID 列表" },
-    "announce_death": { "label": "死亡通知", "description": "角色死亡时通知全服" },
-    "safety_system": { "label": "安全系统", "description": "允许每个玩家切换 PvP" },
-    "sleep_allowed": { "label": "允许睡眠", "description": "允许玩家睡眠" },
-    "sleep_needed": { "label": "需要睡眠", "description": "疲劳时需要睡眠" },
-    "save_world_every_minutes": { "label": "自动存档间隔", "description": "自动存档间隔（分钟）" },
-    "ping_limit": { "label": "延迟限制", "description": "踢出阈值（ms）" },
-    "hours_for_loot_respawn": { "label": "物资刷新时间", "description": "物资刷新的游戏内小时数" },
-    "max_items_for_loot_respawn": { "label": "物资刷新阈值", "description": "触发物资刷新的最大物品数" },
-    "no_fire": { "label": "禁用火灾", "description": "禁用除篝火以外的所有火灾" },
-    "player_safehouse": { "label": "玩家安全屋", "description": "允许占领安全屋" },
-    "safehouse_allow_trespass": { "label": "安全屋闯入", "description": "允许非成员进入" },
-    "safehouse_allow_loot": { "label": "安全屋拾取", "description": "允许非成员拾取物品" },
-    "safehouse_allow_respawn": { "label": "安全屋重生", "description": "死亡后在安全屋重生" },
-    "faction": { "label": "阵营", "description": "允许创建阵营" },
-    "allow_destruction_by_sledgehammer": { "label": "大锤破坏", "description": "允许破坏建筑" },
-    "speed_limit": { "label": "速度限制", "description": "车辆速度限制" },
-    "do_lua_checksum": { "label": "Lua 校验", "description": "验证客户端 Lua 文件" },
-    "steam_vac": { "label": "Steam VAC", "description": "启用 Valve 反作弊" },
-    "voice_enable": { "label": "语音聊天", "description": "启用游戏内语音聊天" },
-    "minutes_per_page": { "label": "每页时间", "description": "阅读速度" },
-    "spawn_point": { "label": "出生点", "description": "自定义出生坐标" },
-    "max_accounts_per_user": { "label": "每用户最大账号数", "description": "每个 Steam 用户的账号限制" }
+    "data_home": {
+      "label": "现有数据文件夹",
+      "description": "从现有服务器布局中检测到的数据文件夹。保留当前的INI文件夹。"
+    },
+    "cache_dir": {
+      "label": "数据文件夹",
+      "description": "此服务器存放设置、存档和日志的文件夹 (-cachedir)。留空则使用 ~/Zomboid"
+    },
+    "ram": {
+      "label": "内存（RAM）",
+      "description": "最大内存分配量（GB）"
+    },
+    "server_name": {
+      "label": "配置文件名称",
+      "description": "服务器配置文件名称（决定 INI 文件名）"
+    },
+    "rcon_port": {
+      "label": "RCON 端口",
+      "description": "远程控制台 RCON 端口"
+    },
+    "rcon_password": {
+      "label": "RCON 密码",
+      "description": "RCON 认证密码"
+    },
+    "admin_password": {
+      "label": "管理员密码",
+      "description": "默认管理员帐户密码（首次启动时设置）"
+    },
+    "no_steam": {
+      "label": "非 Steam 模式",
+      "description": "不使用 Steam 运行服务器（允许 GoG 玩家连接）"
+    },
+    "public_name": {
+      "label": "服务器名称",
+      "description": "在浏览器中显示的名称"
+    },
+    "public_description": {
+      "label": "描述",
+      "description": "在服务器浏览器中可见的描述"
+    },
+    "password": {
+      "label": "服务器密码",
+      "description": "连接服务器所需的密码（留空表示不设密码）"
+    },
+    "max_players": {
+      "label": "最大玩家数",
+      "description": "最大玩家连接数"
+    },
+    "port": {
+      "label": "游戏端口",
+      "description": "主 UDP 游戏端口"
+    },
+    "udp_port": {
+      "label": "第二个 UDP 端口",
+      "description": "游戏服务器监听的第二个 UDP 端口 (UDPPort，通常为游戏端口 + 1)"
+    },
+    "pvp": {
+      "label": "PVP",
+      "description": "启用玩家对战"
+    },
+    "open": {
+      "label": "开放服务器",
+      "description": "对所有人开放（无白名单）"
+    },
+    "public": {
+      "label": "公开显示",
+      "description": "在 Steam 服务器浏览器中显示"
+    },
+    "pause_empty": {
+      "label": "空服暂停",
+      "description": "无玩家时暂停世界"
+    },
+    "global_chat": {
+      "label": "全局聊天",
+      "description": "启用全局聊天（/all 命令）"
+    },
+    "map": {
+      "label": "地图",
+      "description": "游戏地图"
+    },
+    "mods": {
+      "label": "模组",
+      "description": "分号分隔的模组 ID 列表"
+    },
+    "workshop_items": {
+      "label": "创意工坊物品",
+      "description": "分号分隔的创意工坊 ID 列表"
+    },
+    "announce_death": {
+      "label": "死亡通知",
+      "description": "角色死亡时通知全服"
+    },
+    "safety_system": {
+      "label": "安全系统",
+      "description": "每位玩家可以自行开启或关闭 PvP（需要启用 PVP）"
+    },
+    "sleep_allowed": {
+      "label": "允许睡眠",
+      "description": "允许玩家睡眠"
+    },
+    "sleep_needed": {
+      "label": "需要睡眠",
+      "description": "疲劳时需要睡眠"
+    },
+    "save_world_every_minutes": {
+      "label": "自动存档间隔",
+      "description": "自动存档间隔（分钟）"
+    },
+    "ping_limit": {
+      "label": "延迟限制",
+      "description": "延迟超过此值（毫秒）的玩家会被踢出（100 = 禁用）"
+    },
+    "hours_for_loot_respawn": {
+      "label": "物资刷新时间",
+      "description": "物资刷新的游戏内小时数"
+    },
+    "max_items_for_loot_respawn": {
+      "label": "物资刷新阈值",
+      "description": "触发物资刷新的最大物品数"
+    },
+    "no_fire": {
+      "label": "禁用火灾",
+      "description": "禁用除篝火以外的所有火灾"
+    },
+    "player_safehouse": {
+      "label": "玩家安全屋",
+      "description": "允许占领安全屋"
+    },
+    "safehouse_allow_trespass": {
+      "label": "安全屋闯入",
+      "description": "允许非成员进入"
+    },
+    "safehouse_allow_loot": {
+      "label": "安全屋拾取",
+      "description": "允许非成员拾取物品"
+    },
+    "safehouse_allow_respawn": {
+      "label": "安全屋重生",
+      "description": "死亡后在安全屋重生"
+    },
+    "faction": {
+      "label": "阵营",
+      "description": "允许创建阵营"
+    },
+    "allow_destruction_by_sledgehammer": {
+      "label": "大锤破坏",
+      "description": "允许玩家用大锤破坏建筑"
+    },
+    "speed_limit": {
+      "label": "速度限制",
+      "description": "车辆速度限制"
+    },
+    "do_lua_checksum": {
+      "label": "Lua 校验",
+      "description": "检查已连接玩家的 Lua 文件是否与服务器一致（使用客户端模组时请关闭）"
+    },
+    "steam_vac": {
+      "label": "Steam VAC",
+      "description": "启用 Valve 反作弊"
+    },
+    "voice_enable": {
+      "label": "语音聊天",
+      "description": "启用游戏内语音聊天"
+    },
+    "minutes_per_page": {
+      "label": "每页时间",
+      "description": "阅读书籍一页所需的游戏内分钟数"
+    },
+    "spawn_point": {
+      "label": "出生点",
+      "description": "自定义出生坐标"
+    },
+    "max_accounts_per_user": {
+      "label": "每用户最大账号数",
+      "description": "每个 Steam 用户的账号限制"
+    },
+    "managed_start": {
+      "label": "托管启动（控制台）",
+      "description": "通过 saba-runner 启动服务器，让 saba-chan 可以使用其控制台。RCON 在所有模式下都保持关闭。关闭此选项后，saba-chan 无法向服务器发送命令。"
+    },
+    "graceful_stop": {
+      "label": "安全停止",
+      "description": "发送 'save' 和 'quit' 命令，并等待服务器关闭。关闭此选项后，saba-chan 会立即结束服务器进程。"
+    },
+    "server_welcome_message": {
+      "label": "欢迎消息",
+      "description": "玩家连接后显示的消息（换行用 <LINE>）"
+    },
+    "auto_create_user_in_whitelist": {
+      "label": "自动加入白名单",
+      "description": "新玩家加入时自动加入白名单"
+    },
+    "display_user_name": {
+      "label": "显示用户名",
+      "description": "在玩家头顶和本地聊天中显示用户名"
+    },
+    "show_first_and_last_name": {
+      "label": "显示角色名",
+      "description": "显示角色的姓名，而不是用户名"
+    },
+    "show_safety": {
+      "label": "显示安全图标",
+      "description": "玩家关闭 PvP 安全开关时显示骷髅图标"
+    },
+    "safety_toggle_timer": {
+      "label": "安全切换时间",
+      "description": "PvP 开启或关闭所需的时间（分钟）"
+    },
+    "safety_cooldown_timer": {
+      "label": "安全切换冷却时间",
+      "description": "再次切换 PvP 安全开关前需要等待的时间（分钟）"
+    },
+    "pvp_melee_while_hit_reaction": {
+      "label": "受击硬直时 PvP 近战",
+      "description": "允许在 PvP 中受击硬直期间进行近战攻击"
+    },
+    "pvp_melee_damage_modifier": {
+      "label": "PvP 近战伤害（%）",
+      "description": "PvP 近战伤害的修正百分比"
+    },
+    "pvp_firearm_damage_modifier": {
+      "label": "PvP 枪械伤害（%）",
+      "description": "PvP 枪械伤害的修正百分比"
+    },
+    "mouse_over_to_see_display_name": {
+      "label": "鼠标悬停显示名称",
+      "description": "只有鼠标悬停时才显示玩家名称"
+    },
+    "hide_players_behind_you": {
+      "label": "隐藏身后的玩家",
+      "description": "隐藏位于你的角色身后的玩家"
+    },
+    "player_bump_player": {
+      "label": "玩家碰撞",
+      "description": "启用玩家之间的物理碰撞"
+    },
+    "player_respawn_with_self": {
+      "label": "在死亡地点重生",
+      "description": "允许玩家在死亡的地点重生"
+    },
+    "player_respawn_with_other": {
+      "label": "在队友处重生",
+      "description": "允许在分屏队友所在的位置重生"
+    },
+    "drop_off_whitelist_after_death": {
+      "label": "死亡后移出白名单",
+      "description": "玩家的角色死亡后，将其移出白名单"
+    },
+    "allow_non_ascii_username": {
+      "label": "允许非 ASCII 用户名",
+      "description": "允许用户名包含非 ASCII 字符"
+    },
+    "chat_streams": {
+      "label": "聊天频道",
+      "description": "启用的聊天频道，用逗号分隔：s,r,a,w,y,sh,f,all"
+    },
+    "player_save_on_damage": {
+      "label": "受伤时存档",
+      "description": "玩家受到伤害时自动存档"
+    },
+    "admin_safehouse": {
+      "label": "管理员安全屋",
+      "description": "允许管理员占领安全屋"
+    },
+    "safehouse_allow_fire": {
+      "label": "安全屋火灾伤害",
+      "description": "允许火灾损坏安全屋"
+    },
+    "safehouse_day_survived_to_claim": {
+      "label": "占领安全屋所需生存天数",
+      "description": "玩家需要在游戏世界中生存多少天才能占领安全屋"
+    },
+    "safehouse_removal_time": {
+      "label": "安全屋移除时间",
+      "description": "不活跃成员被移出安全屋之前的现实时间（小时）"
+    },
+    "disable_safehouse_when_player_connected": {
+      "label": "成员在线时停用安全屋",
+      "description": "只要有任何成员在线，就停用安全屋的保护"
+    },
+    "faction_day_survived_to_create": {
+      "label": "创建阵营所需生存天数",
+      "description": "玩家需要在游戏世界中生存多少天才能创建阵营"
+    },
+    "faction_players_required_for_tag": {
+      "label": "阵营标签所需人数",
+      "description": "显示阵营标签所需的成员数量"
+    },
+    "allow_trade_ui": {
+      "label": "允许交易",
+      "description": "允许玩家之间直接交易"
+    },
+    "construction_prevents_loot_respawn": {
+      "label": "建筑阻止物资刷新",
+      "description": "容器附近有玩家建筑时，物资不再刷新"
+    },
+    "hours_for_world_item_removal": {
+      "label": "地面物品清除时间",
+      "description": "掉落物品和尸体消失前的游戏内小时数（0 = 永不）"
+    },
+    "world_item_removal_list": {
+      "label": "自动清除物品列表",
+      "description": "放在地面上会自动消失的物品，用逗号分隔"
+    },
+    "blood_splat_lifespan_days": {
+      "label": "血迹持续天数",
+      "description": "血迹消失前的天数（0 = 永不消失）"
+    },
+    "item_numbers_limit_per_container": {
+      "label": "每个容器的物品上限",
+      "description": "每个容器最多可放入的物品数量（0 = 不限）"
+    },
+    "trash_delete_all": {
+      "label": "删除所有垃圾",
+      "description": "立即删除所有垃圾物品"
+    },
+    "remove_player_corpses_on_corpse_removal": {
+      "label": "清除玩家尸体",
+      "description": "清理尸体时一并清除玩家的尸体"
+    },
+    "ping_frequency": {
+      "label": "延迟检测间隔",
+      "description": "服务器检查与玩家连接的间隔（秒）"
+    },
+    "deny_login_on_overloaded_server": {
+      "label": "过载时拒绝登录",
+      "description": "服务器过载时，阻止新的连接"
+    },
+    "kick_fast_players": {
+      "label": "踢出超速玩家",
+      "description": "踢出移动速度超出正常范围的玩家（可能误判）"
+    },
+    "steam_port1": {
+      "label": "Steam 端口 1",
+      "description": "第一个 Steam 网络端口"
+    },
+    "steam_port2": {
+      "label": "Steam 端口 2",
+      "description": "第二个 Steam 网络端口"
+    },
+    "steam_scoreboard": {
+      "label": "Steam 计分板",
+      "description": "在玩家列表中显示 Steam 名称和头像（true/false/admin）"
+    },
+    "upnp": {
+      "label": "UPnP",
+      "description": "启用 UPnP 以自动转发端口"
+    },
+    "upnp_lease_time": {
+      "label": "UPnP 租约时间",
+      "description": "UPnP 端口映射的租约时间（秒）"
+    },
+    "upnp_zero_lease_time_fallback": {
+      "label": "UPnP 零租约回退",
+      "description": "指定的租约时间失败时，改用租约时间 0 重试"
+    },
+    "upnp_force": {
+      "label": "强制 UPnP",
+      "description": "即使路由器对 UPnP 支持不佳，也强制使用"
+    },
+    "server_browser_announced_ip": {
+      "label": "公布的 IP",
+      "description": "在服务器列表中显示的 IP（留空则自动）"
+    },
+    "use_tcp_for_map_downloads": {
+      "label": "地图下载使用 TCP",
+      "description": "使用 TCP 而不是 UDP 下载地图数据"
+    },
+    "physics_delay": {
+      "label": "物理延迟",
+      "description": "物理模拟的延迟时间（毫秒）"
+    },
+    "fast_forward_multiplier": {
+      "label": "快进倍率",
+      "description": "时间快进时的速度倍率"
+    },
+    "car_engine_attraction_modifier": {
+      "label": "汽车引擎吸引力",
+      "description": "汽车引擎吸引丧尸的程度（倍率）"
+    },
+    "coop_server_launch_timeout": {
+      "label": "合作服务器启动超时",
+      "description": "启动合作服务器时等待的最长时间（秒）"
+    },
+    "coop_master_ping_timeout": {
+      "label": "合作主机 Ping 超时",
+      "description": "等待合作主机 Ping 响应的最长时间（秒）"
+    },
+    "voice_complexity": {
+      "label": "语音复杂度",
+      "description": "Opus 语音编解码器的复杂度（1-10，越高音质越好）"
+    },
+    "voice_period": {
+      "label": "语音帧周期",
+      "description": "语音帧的周期（毫秒）"
+    },
+    "voice_sample_rate": {
+      "label": "语音采样率",
+      "description": "语音的采样率（Hz）"
+    },
+    "voice_buffering": {
+      "label": "语音缓冲",
+      "description": "语音的缓冲时间（毫秒）"
+    },
+    "voice_min_distance": {
+      "label": "语音最小距离",
+      "description": "语音开始衰减的最小距离"
+    },
+    "voice_max_distance": {
+      "label": "语音最大距离",
+      "description": "能听到语音聊天的最大距离"
+    },
+    "voice_3d": {
+      "label": "3D 语音",
+      "description": "启用按位置变化的 3D 语音聊天"
+    },
+    "discord_enable": {
+      "label": "Discord 集成",
+      "description": "启用内置的 Discord 机器人集成"
+    },
+    "discord_token": {
+      "label": "Discord 令牌",
+      "description": "用于集成的 Discord 机器人令牌"
+    },
+    "discord_channel": {
+      "label": "Discord 频道",
+      "description": "接收服务器消息的 Discord 频道名称"
+    },
+    "discord_channel_id": {
+      "label": "Discord 频道 ID",
+      "description": "接收服务器消息的 Discord 频道 ID"
+    },
+    "disable_radio_staff": {
+      "label": "禁用电台（工作人员）",
+      "description": "对工作人员隐藏电台频率"
+    },
+    "disable_radio_admin": {
+      "label": "禁用电台（管理员）",
+      "description": "对管理员隐藏电台频率"
+    },
+    "disable_radio_gm": {
+      "label": "禁用电台（游戏管理员）",
+      "description": "对游戏管理员隐藏电台频率"
+    },
+    "disable_radio_overseer": {
+      "label": "禁用电台（监督者）",
+      "description": "对监督者隐藏电台频率"
+    },
+    "disable_radio_moderator": {
+      "label": "禁用电台（版主）",
+      "description": "对版主隐藏电台频率"
+    },
+    "disable_radio_invisible": {
+      "label": "禁用电台（隐身玩家）",
+      "description": "对隐身玩家隐藏电台频率"
+    },
+    "client_command_filter": {
+      "label": "客户端命令过滤",
+      "description": "客户端命令的过滤规则（前缀 + 表示允许，- 表示拒绝）"
+    },
+    "zombie_update_max_high_priority": {
+      "label": "丧尸高优先级最大更新数",
+      "description": "每个 tick 处理的高优先级丧尸更新的最大数量"
+    },
+    "zombie_update_delta": {
+      "label": "丧尸更新间隔",
+      "description": "两次丧尸更新之间的时间间隔"
+    },
+    "zombie_update_radius_low_priority": {
+      "label": "丧尸低优先级半径",
+      "description": "低优先级丧尸更新的作用半径"
+    },
+    "zombie_update_radius_high_priority": {
+      "label": "丧尸高优先级半径",
+      "description": "高优先级丧尸更新的作用半径"
+    },
+    "ban_kick_global_sound": {
+      "label": "封禁/踢出音效",
+      "description": "玩家被封禁或踢出时播放全局音效"
+    },
+    "save_transaction_id": {
+      "label": "存档事务 ID",
+      "description": "保存存档事务 ID，用于调试"
+    }
   },
   "commands": {
     "servermsg": {
       "label": "发送消息",
       "description": "发送全体消息",
-      "inputs": { "message": { "label": "消息", "placeholder": "输入消息" } }
+      "inputs": {
+        "message": {
+          "label": "消息",
+          "placeholder": "输入消息"
+        }
+      }
     },
-    "players": { "label": "玩家列表", "description": "显示在线玩家" },
-    "save": { "label": "保存世界", "description": "保存当前世界" },
+    "players": {
+      "label": "玩家列表",
+      "description": "显示在线玩家"
+    },
+    "save": {
+      "label": "保存世界",
+      "description": "保存当前世界"
+    },
     "kick": {
       "label": "踢出玩家",
       "description": "将玩家踢出服务器",
-      "inputs": { "player": { "label": "玩家", "placeholder": "Player username" }, "reason": { "label": "原因", "placeholder": "Optional reason" } }
+      "inputs": {
+        "player": {
+          "label": "玩家",
+          "placeholder": "Player username"
+        },
+        "reason": {
+          "label": "原因",
+          "placeholder": "Optional reason"
+        }
+      }
     },
     "banuser": {
       "label": "封禁玩家",
       "description": "封禁玩家",
-      "inputs": { "player": { "label": "玩家", "placeholder": "Player username" }, "reason": { "label": "原因", "placeholder": "Optional reason" } }
+      "inputs": {
+        "player": {
+          "label": "玩家",
+          "placeholder": "Player username"
+        },
+        "reason": {
+          "label": "原因",
+          "placeholder": "Optional reason"
+        }
+      }
     },
     "unbanuser": {
       "label": "解封",
       "description": "解除玩家封禁",
-      "inputs": { "player": { "label": "玩家", "placeholder": "Player username" } }
+      "inputs": {
+        "player": {
+          "label": "玩家",
+          "placeholder": "Player username"
+        }
+      }
     },
     "adduser": {
       "label": "添加用户",
       "description": "向服务器添加新用户",
-      "inputs": { "username": { "label": "用户名", "placeholder": "账号用户名" }, "password": { "label": "密码", "placeholder": "账号密码" } }
+      "inputs": {
+        "username": {
+          "label": "用户名",
+          "placeholder": "账号用户名"
+        },
+        "password": {
+          "label": "密码",
+          "placeholder": "账号密码"
+        }
+      }
     },
     "setaccesslevel": {
       "label": "设置权限等级",
       "description": "设置玩家的权限等级",
-      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "level": { "label": "权限等级" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名",
+          "placeholder": "玩家用户名"
+        },
+        "level": {
+          "label": "权限等级"
+        }
+      }
     },
     "teleport": {
       "label": "传送",
-      "description": "传送至玩家身边",
-      "inputs": { "player": { "label": "玩家", "placeholder": "要传送的玩家" }, "target": { "label": "目标", "placeholder": "目的地玩家" } }
+      "description": "将一名玩家传送到另一名玩家身边",
+      "inputs": {
+        "player": {
+          "label": "玩家",
+          "placeholder": "要传送的玩家"
+        },
+        "target": {
+          "label": "目标",
+          "placeholder": "目的地玩家"
+        }
+      }
     },
     "teleportto": {
       "label": "坐标传送",
       "description": "传送至指定坐标",
-      "inputs": { "coords": { "label": "坐标", "placeholder": "x,y,z" } }
+      "inputs": {
+        "coords": {
+          "label": "坐标",
+          "placeholder": "x,y,z"
+        }
+      }
     },
     "createhorde": {
       "label": "生成尸潮",
       "description": "在玩家附近生成僵尸群",
-      "inputs": { "count": { "label": "僵尸数量" }, "player": { "label": "玩家（可选）", "placeholder": "目标玩家" } }
+      "inputs": {
+        "count": {
+          "label": "僵尸数量"
+        },
+        "player": {
+          "label": "玩家（可选）",
+          "placeholder": "目标玩家"
+        }
+      }
     },
     "godmod": {
       "label": "上帝模式",
       "description": "使玩家无敌",
-      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "value": { "label": "启用" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名",
+          "placeholder": "玩家用户名"
+        },
+        "value": {
+          "label": "启用"
+        }
+      }
     },
     "invisible": {
       "label": "隐身",
       "description": "使玩家对僵尸不可见",
-      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "value": { "label": "启用" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名",
+          "placeholder": "玩家用户名"
+        },
+        "value": {
+          "label": "启用"
+        }
+      }
     },
-    "startrain": { "label": "开始下雨", "description": "在服务器中开始下雨" },
-    "stoprain": { "label": "停止下雨", "description": "停止服务器中的雨" },
-    "chopper": { "label": "直升机事件", "description": "触发直升机事件" },
-    "gunshot": { "label": "枪声", "description": "产生枪声" },
+    "startrain": {
+      "label": "开始下雨",
+      "description": "在服务器中开始下雨"
+    },
+    "stoprain": {
+      "label": "停止下雨",
+      "description": "停止服务器中的雨"
+    },
+    "chopper": {
+      "label": "直升机事件",
+      "description": "触发直升机事件"
+    },
+    "gunshot": {
+      "label": "枪声",
+      "description": "产生枪声"
+    },
     "additem": {
       "label": "给予物品",
       "description": "给予玩家物品",
-      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "item": { "label": "物品 ID", "placeholder": "例如 Base.Axe" }, "count": { "label": "数量" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名",
+          "placeholder": "玩家用户名"
+        },
+        "item": {
+          "label": "物品 ID",
+          "placeholder": "例如 Base.Axe"
+        },
+        "count": {
+          "label": "数量"
+        }
+      }
     },
     "addxp": {
       "label": "给予经验",
       "description": "给予玩家经验值",
-      "inputs": { "player": { "label": "玩家名", "placeholder": "玩家用户名" }, "perk": { "label": "技能名称", "placeholder": "例如 Woodwork" }, "amount": { "label": "经验值" } }
+      "inputs": {
+        "player": {
+          "label": "玩家名",
+          "placeholder": "玩家用户名"
+        },
+        "perk": {
+          "label": "技能名称",
+          "placeholder": "例如 Woodwork"
+        },
+        "amount": {
+          "label": "经验值"
+        }
+      }
     },
-    "showoptions": { "label": "查看服务器选项", "description": "显示当前服务器设置" },
-    "reloadoptions": { "label": "重新加载选项", "description": "从 INI 文件重新加载服务器选项" },
+    "showoptions": {
+      "label": "查看服务器选项",
+      "description": "显示当前服务器设置"
+    },
+    "reloadoptions": {
+      "label": "重新加载选项",
+      "description": "从 INI 文件重新加载服务器选项"
+    },
     "changeoption": {
       "label": "更改选项",
       "description": "实时更改服务器选项",
-      "inputs": { "option": { "label": "选项名称", "placeholder": "例如 MaxPlayers" }, "value": { "label": "新值", "placeholder": "新值" } }
+      "inputs": {
+        "option": {
+          "label": "选项名称",
+          "placeholder": "例如 MaxPlayers"
+        },
+        "value": {
+          "label": "新值",
+          "placeholder": "新值"
+        }
+      }
     },
-    "quit": { "label": "关闭服务器", "description": "保存并安全关闭" }
+    "quit": {
+      "label": "关闭服务器",
+      "description": "保存并安全关闭"
+    }
   },
   "errors": {
     "settings_write_failed": "服务器文件已安装，但无法保存所选设置：{{error}}",
@@ -144,7 +727,7 @@
     "steamcmd_not_found": "找不到 SteamCMD。请安装 SteamCMD 以下载服务器。",
     "install_failed": "服务器安装失败：{{error}}",
     "failed_to_start": "服务器启动失败：{{error}}",
-    "install_timeout": "服务器安装在 10 分钟后超时。",
+    "install_timeout": "服务器安装未能在 10 分钟内完成。",
     "no_settings": "未提供设置",
     "properties_write_failed": "写入配置文件失败：{{error}}",
     "failed_to_kill": "终止进程失败：{{error}}",
@@ -155,8 +738,8 @@
     "detect": {
       "out_of_memory": "服务器内存不足 (OutOfMemoryError)",
       "port_in_use": "端口 {{port}} 已被其他应用程序使用",
-      "illegal_termination": "工作线程非法终止 — 可能是 Build 41/42 冲突",
-      "permission_denied": "权限被拒绝 — 无法访问所需文件",
+      "illegal_termination": "工作线程异常终止（可能是 Build 41/42 冲突）",
+      "permission_denied": "权限不足，无法访问所需文件",
       "server_crash": "服务器崩溃",
       "mod_error": "服务器日志中检测到模组错误",
       "save_status": "检测到存档操作状态"
@@ -178,7 +761,9 @@
     },
     "no_command": "未指定命令",
     "command_send_failed": "发送命令失败：{{error}}",
-    "unknown_error": "未知错误"
+    "unknown_error": "未知错误",
+    "backup_paths_failed": "无法读取要备份的存档文件夹：{{error}}",
+    "graceful_stop_unavailable": "无法要求服务器保存并退出（没有控制台，也没有 REST）。服务器未被停止。只有在接受丢失未保存进度的情况下，才强制停止。"
   },
   "messages": {
     "server_online": "服务器在线并正在响应",
@@ -189,10 +774,10 @@
     "graceful_stop": "服务器已正常停止（PID {{pid}}）",
     "graceful_stop_timeout": "安全关闭超时，将强制停止",
     "save_before_quit": "关闭前正在保存世界...",
-    "properties_updated": "服务器配置更新成功",
-    "properties_using_defaults": "配置文件不存在 — 显示默认值",
-    "no_mappable_settings": "没有可映射到服务器配置键的设置",
-    "install_complete": "Project Zomboid 服务器安装成功",
+    "properties_updated": "服务器配置已更新",
+    "properties_using_defaults": "配置文件不存在，显示默认值",
+    "no_mappable_settings": "给定的设置中没有与服务器设置对应的项",
+    "install_complete": "Project Zomboid 服务器已安装",
     "server_reset_complete": "服务器世界数据已重置",
     "rcon_password_generated": "已自动生成 RCON 密码（之前未设置密码）",
     "server_starting": "Server starting with PID {{pid}}",

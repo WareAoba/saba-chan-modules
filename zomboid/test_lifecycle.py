@@ -139,6 +139,25 @@ def test_ini_manager_write_and_read_roundtrip(tmp_path):
     assert result["PVP"] == "false"
 
 
+def test_a_failed_ini_save_keeps_the_old_file(tmp_path, monkeypatch):
+    """저장이 중간에 실패해도 서버 ini가 비거나 잘리지 않는다"""
+    from zomboid.lifecycle import IniManager
+    ini_path = str(tmp_path / "servertest.ini")
+    IniManager.write(ini_path, {"PublicName": "Original", "Password": "pw"})
+    before = open(ini_path, "rb").read()
+
+    def broken_replace(*_):
+        raise OSError("disk full")
+    # 바꾸는 단계에서 실패시킨다 (Windows는 기존 파일을 os.replace가 아니라 ReplaceFileW로 바꾼다)
+    import daemon_rcon
+    monkeypatch.setattr(daemon_rcon, "_replace_keeping_access", broken_replace)
+
+    with pytest.raises(OSError):
+        IniManager.write(ini_path, {"PublicName": "Changed"})
+    assert open(ini_path, "rb").read() == before
+    assert [n for n in os.listdir(tmp_path) if n.endswith(".tmp")] == []
+
+
 def test_ini_manager_update_preserves_existing(tmp_path):
     from zomboid.lifecycle import IniManager
     ini_path = str(tmp_path / "servertest.ini")

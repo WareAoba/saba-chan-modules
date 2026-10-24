@@ -98,7 +98,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
 #   daemon_stdin_command(instance_id, line): 데몬이 관리하는 서버 콘솔(stdin)에 한 줄 보내기
 #   is_process_alive / wait_for_exit / force_kill: OS별 프로세스 처리 (직접 만들지 마세요)
-from daemon_rcon import daemon_stdin_command, force_kill, is_process_alive, run_lifecycle, wait_for_exit
+from daemon_rcon import atomic_write, daemon_stdin_command, force_kill, is_process_alive, run_lifecycle, wait_for_exit
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
@@ -470,11 +470,8 @@ def _read_config_file(path):
 
 
 def _write_config_file(path, config):
-    """게임 설정 파일 쓰기 (게임별로 구현)"""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, 'w', encoding='utf-8') as f:
-        for key, value in config.items():
-            f.write(f"{key}={value}\n")
+    """게임 설정 파일 쓰기 (게임별로 구현). 늘 atomic_write로 통째로 바꾼다: 쓰다 끊겨도 파일이 비지 않고 원래 권한이 남는다"""
+    atomic_write(path, "".join(f"{key}={value}\n" for key, value in config.items()).encode("utf-8"))
 
 
 def _do_backup(config):

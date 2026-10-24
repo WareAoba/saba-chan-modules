@@ -13,7 +13,7 @@
       "name": "placeholderapi-parse",
       "label": "Parse text",
       "description": "Parses the placeholders in a given text and shows the result.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "placeholderapi parse {player} {text}",
       "inputs": [
         {
@@ -82,7 +82,7 @@
       "name": "placeholderapi-parserel",
       "label": "Parse relational",
       "description": "Parses a relational placeholder.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "placeholderapi parserel {player_one} {player_two} {text}",
       "inputs": [
         {
@@ -120,7 +120,7 @@
       "name": "placeholderapi-ecloud-download",
       "label": "Download expansion",
       "description": "Allows you to download an expansion from the eCloud.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "placeholderapi ecloud download {expansion} {version}",
       "inputs": [
         {
@@ -221,7 +221,7 @@
       "name": "placeholderapi-ecloud-update",
       "label": "Update expansions",
       "description": "Downloads and registers updates for an installed expansion, or for all installed expansions.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "placeholderapi ecloud update {expansion}",
       "inputs": [
         {
@@ -261,7 +261,7 @@
       "name": "placeholderapi-register",
       "label": "Register expansion",
       "description": "Registers an expansion from a specified filename.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "placeholderapi register {file}",
       "inputs": [
         {
@@ -293,7 +293,7 @@
       "name": "placeholderapi-dump",
       "label": "Dump info",
       "description": "Pastes useful information from PlaceholderAPI such as plugin version, server version and installed expansions.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "placeholderapi dump",
       "inputs": []
     },

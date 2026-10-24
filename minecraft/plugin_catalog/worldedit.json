@@ -138,7 +138,7 @@
       "name": "undo",
       "label": "Undo",
       "description": "Undoes the last action (from history).",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "undo {times} {player}",
       "inputs": [
         {
@@ -162,7 +162,7 @@
       "name": "redo",
       "label": "Redo",
       "description": "Redoes the last action (from history).",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "redo {times} {player}",
       "inputs": [
         {
@@ -279,7 +279,7 @@
       "name": "we-world",
       "label": "World override",
       "description": "Sets the world override.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/world {world}",
       "inputs": [
         {
@@ -330,7 +330,7 @@
       "name": "toggleplace",
       "label": "Toggle placement",
       "description": "Switch between your position and pos1 for placement.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "toggleplace",
       "inputs": []
     },
@@ -338,7 +338,7 @@
       "name": "placement",
       "label": "Placement",
       "description": "Select which placement to use.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "placement {placementType} {args}",
       "inputs": [
         {
@@ -406,7 +406,7 @@
       "name": "we-pos",
       "label": "Set positions",
       "description": "Set positions.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/pos {pos1} {args}",
       "inputs": [
         {
@@ -429,7 +429,7 @@
       "name": "we-pos1",
       "label": "Set position 1",
       "description": "Set position 1.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/pos1 {coordinates}",
       "inputs": [
         {
@@ -445,7 +445,7 @@
       "name": "we-pos2",
       "label": "Set position 2",
       "description": "Set position 2.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/pos2 {coordinates}",
       "inputs": [
         {
@@ -461,7 +461,7 @@
       "name": "we-chunk",
       "label": "Select chunk",
       "description": "Set the selection to the chunk at the given coordinates.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/chunk {args}",
       "inputs": [
         {
@@ -477,7 +477,7 @@
       "name": "we-contract",
       "label": "Contract selection",
       "description": "Contract the selection area.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/contract {amount} {args}",
       "inputs": [
         {
@@ -499,7 +499,7 @@
       "name": "we-shift",
       "label": "Shift selection",
       "description": "Shift the selection area.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/shift {amount} {direction}",
       "inputs": [
         {
@@ -521,7 +521,7 @@
       "name": "we-outset",
       "label": "Outset selection",
       "description": "Outset the selection area.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/outset {amount} {flags}",
       "inputs": [
         {
@@ -546,7 +546,7 @@
       "name": "we-inset",
       "label": "Inset selection",
       "description": "Inset the selection area.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/inset {amount} {flags}",
       "inputs": [
         {
@@ -571,7 +571,7 @@
       "name": "we-trim",
       "label": "Trim selection",
       "description": "Minimize the selection to encompass matching blocks.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/trim {mask}",
       "inputs": [
         {
@@ -637,7 +637,7 @@
       "name": "we-sel",
       "label": "Choose selector",
       "description": "Choose a region selector.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/sel {selector}",
       "inputs": [
         {
@@ -653,7 +653,7 @@
       "name": "we-expand",
       "label": "Expand selection",
       "description": "Expand the selection area.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/expand {amount} {args}",
       "inputs": [
         {
@@ -675,7 +675,7 @@
       "name": "we-expand-vert",
       "label": "Expand vertically",
       "description": "Vertically expand the selection to world limits.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/expand vert",
       "inputs": []
     },
@@ -683,7 +683,7 @@
       "name": "we-set",
       "label": "Set blocks",
       "description": "Sets all the blocks in the region.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/set {pattern}",
       "inputs": [
         {
@@ -699,7 +699,7 @@
       "name": "we-line",
       "label": "Draw lines",
       "description": "Draws line segments between cuboid selection corners or convex polyhedral selection vertices.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/line {pattern} {args}",
       "inputs": [
         {
@@ -722,7 +722,7 @@
       "name": "we-curve",
       "label": "Draw curve",
       "description": "Draws a spline through selected points.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/curve {pattern} {args}",
       "inputs": [
         {
@@ -745,7 +745,7 @@
       "name": "we-replace",
       "label": "Replace blocks",
       "description": "Replace all blocks in the selection with another.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/replace {from} {to}",
       "inputs": [
         {
@@ -768,7 +768,7 @@
       "name": "we-overlay",
       "label": "Overlay",
       "description": "Set a block on top of blocks in the region.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/overlay {pattern}",
       "inputs": [
         {
@@ -784,7 +784,7 @@
       "name": "we-center",
       "label": "Set center",
       "description": "Set the center block(s).",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/center {pattern}",
       "inputs": [
         {
@@ -800,7 +800,7 @@
       "name": "we-naturalize",
       "label": "Naturalize",
       "description": "3 layers of dirt on top then rock below.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/naturalize",
       "inputs": []
     },
@@ -808,7 +808,7 @@
       "name": "we-walls",
       "label": "Build walls",
       "description": "Build the four sides of the selection.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/walls {pattern}",
       "inputs": [
         {
@@ -824,7 +824,7 @@
       "name": "we-faces",
       "label": "Build faces",
       "description": "Build the walls, ceiling, and floor of a selection.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/faces {pattern}",
       "inputs": [
         {
@@ -840,7 +840,7 @@
       "name": "we-smooth",
       "label": "Smooth",
       "description": "Smooth the elevation in the selection.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/smooth {args}",
       "inputs": [
         {
@@ -856,7 +856,7 @@
       "name": "we-snowsmooth",
       "label": "Snow smooth",
       "description": "Smooth the elevation in the selection with snow layers.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/snowsmooth {args}",
       "inputs": [
         {
@@ -872,7 +872,7 @@
       "name": "we-move",
       "label": "Move",
       "description": "Move the contents of the selection.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/move {multiplier} {offset} {args}",
       "inputs": [
         {
@@ -902,7 +902,7 @@
       "name": "we-stack",
       "label": "Stack",
       "description": "Repeat the contents of the selection.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/stack {count} {offset} {flags}",
       "inputs": [
         {
@@ -949,7 +949,7 @@
       "name": "we-deform",
       "label": "Deform",
       "description": "Deforms a selected region with an expression.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/deform {expression}",
       "inputs": [
         {
@@ -965,7 +965,7 @@
       "name": "we-hollow",
       "label": "Hollow",
       "description": "Hollows out the object contained in this selection.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/hollow {args}",
       "inputs": [
         {
@@ -981,7 +981,7 @@
       "name": "we-forest",
       "label": "Forest",
       "description": "Make a forest within the region.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/forest {args}",
       "inputs": [
         {
@@ -997,7 +997,7 @@
       "name": "we-flora",
       "label": "Flora",
       "description": "Make flora within the region.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/flora {density}",
       "inputs": [
         {
@@ -1012,7 +1012,7 @@
       "name": "we-update",
       "label": "Apply side effects",
       "description": "Apply side effects to your selection.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/update {sideEffectSet}",
       "inputs": [
         {
@@ -1028,7 +1028,7 @@
       "name": "we-hcyl",
       "label": "Hollow cylinder",
       "description": "Generates a hollow cylinder.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/hcyl {pattern} {radii} {height}",
       "inputs": [
         {
@@ -1057,7 +1057,7 @@
       "name": "we-cyl",
       "label": "Cylinder",
       "description": "Generates a cylinder.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/cyl {pattern} {radii} {args}",
       "inputs": [
         {
@@ -1087,7 +1087,7 @@
       "name": "we-cone",
       "label": "Cone",
       "description": "Generates a cone.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/cone {pattern} {radii} {args}",
       "inputs": [
         {
@@ -1117,7 +1117,7 @@
       "name": "we-hsphere",
       "label": "Hollow sphere",
       "description": "Generates a hollow sphere.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/hsphere {pattern} {radii} {flags}",
       "inputs": [
         {
@@ -1149,7 +1149,7 @@
       "name": "we-sphere",
       "label": "Sphere",
       "description": "Generates a filled sphere.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/sphere {pattern} {radii} {flags}",
       "inputs": [
         {
@@ -1179,7 +1179,7 @@
       "name": "forestgen",
       "label": "Generate forest",
       "description": "Generate a forest.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "forestgen {args}",
       "inputs": [
         {
@@ -1195,7 +1195,7 @@
       "name": "pumpkins",
       "label": "Pumpkin patches",
       "description": "Generate pumpkin patches.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "pumpkins {size}",
       "inputs": [
         {
@@ -1210,7 +1210,7 @@
       "name": "we-feature",
       "label": "Generate feature",
       "description": "Generate Minecraft features.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/feature {feature}",
       "inputs": [
         {
@@ -1226,7 +1226,7 @@
       "name": "we-structure",
       "label": "Generate structure",
       "description": "Generate Minecraft structures.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/structure {feature}",
       "inputs": [
         {
@@ -1242,7 +1242,7 @@
       "name": "we-hpyramid",
       "label": "Hollow pyramid",
       "description": "Generate a hollow pyramid.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/hpyramid {pattern} {size}",
       "inputs": [
         {
@@ -1264,7 +1264,7 @@
       "name": "we-pyramid",
       "label": "Pyramid",
       "description": "Generate a filled pyramid.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/pyramid {pattern} {size} {flags}",
       "inputs": [
         {
@@ -1295,7 +1295,7 @@
       "name": "we-generate",
       "label": "Generate shape",
       "description": "Generates a shape according to a formula.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/generate {pattern} {expression}",
       "inputs": [
         {
@@ -1318,7 +1318,7 @@
       "name": "we-generatebiome",
       "label": "Generate biome",
       "description": "Sets biome according to a formula.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/generatebiome {target} {expression}",
       "inputs": [
         {
@@ -1454,7 +1454,7 @@
       "name": "we-copy",
       "label": "Copy",
       "description": "Copy the selection to the clipboard.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/copy {flags}",
       "inputs": [
         {
@@ -1470,7 +1470,7 @@
       "name": "we-cut",
       "label": "Cut",
       "description": "Cut the selection to the clipboard.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/cut {args}",
       "inputs": [
         {
@@ -1486,7 +1486,7 @@
       "name": "we-paste",
       "label": "Paste",
       "description": "Paste the clipboard's contents.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/paste {flags}",
       "inputs": [
         {
@@ -1502,7 +1502,7 @@
       "name": "we-rotate",
       "label": "Rotate clipboard",
       "description": "Rotate the contents of the clipboard.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/rotate {rotateY} {args}",
       "inputs": [
         {
@@ -1525,7 +1525,7 @@
       "name": "we-flip",
       "label": "Flip clipboard",
       "description": "Flip the contents of the clipboard across the origin.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/flip {direction}",
       "inputs": [
         {
@@ -1549,7 +1549,7 @@
       "name": "we-revolve",
       "label": "Revolve",
       "description": "Revolve the selection around a vertical axis.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/revolve {pasteCount} {flags}",
       "inputs": [
         {
@@ -1597,7 +1597,7 @@
       "name": "we-setbiome",
       "label": "Set biome",
       "description": "Sets the biome of your region.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/setbiome {target}",
       "inputs": [
         {
@@ -1613,7 +1613,7 @@
       "name": "we-replacebiome",
       "label": "Replace biome",
       "description": "Replaces the biome of your region.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/replacebiome {from} {target}",
       "inputs": [
         {
@@ -1766,7 +1766,7 @@
       "name": "we-fill",
       "label": "Fill hole",
       "description": "Fill a hole.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/fill {pattern} {radius} {depth}",
       "inputs": [
         {
@@ -1794,7 +1794,7 @@
       "name": "we-fillr",
       "label": "Fill hole recursively",
       "description": "Fill a hole recursively.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/fillr {pattern} {radius} {depth}",
       "inputs": [
         {
@@ -1822,7 +1822,7 @@
       "name": "we-drain",
       "label": "Drain pool",
       "description": "Drain a pool.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "/drain {radius} {flags}",
       "inputs": [
         {
@@ -1846,7 +1846,7 @@
       "name": "fixlava",
       "label": "Fix lava",
       "description": "Fix lava to be stationary.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "fixlava {radius}",
       "inputs": [
         {
@@ -1861,7 +1861,7 @@
       "name": "fixwater",
       "label": "Fix water",
       "description": "Fix water to be stationary.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "fixwater {radius}",
       "inputs": [
         {
@@ -1876,7 +1876,7 @@
       "name": "removeabove",
       "label": "Remove above",
       "description": "Remove blocks above the placement position.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "removeabove {args}",
       "inputs": [
         {
@@ -1892,7 +1892,7 @@
       "name": "removebelow",
       "label": "Remove below",
       "description": "Remove blocks below the placement position.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "removebelow {args}",
       "inputs": [
         {
@@ -1908,7 +1908,7 @@
       "name": "removenear",
       "label": "Remove near",
       "description": "Remove blocks near the placement position.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "removenear {mask} {radius}",
       "inputs": [
         {
@@ -1930,7 +1930,7 @@
       "name": "replacenear",
       "label": "Replace near",
       "description": "Replace nearby blocks.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "replacenear {radius} {from} {to}",
       "inputs": [
         {
@@ -1959,7 +1959,7 @@
       "name": "snow",
       "label": "Simulate snow",
       "description": "Simulates snow.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "snow {args}",
       "inputs": [
         {
@@ -1975,7 +1975,7 @@
       "name": "thaw",
       "label": "Thaw",
       "description": "Thaws the area.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "thaw {args}",
       "inputs": [
         {
@@ -1991,7 +1991,7 @@
       "name": "green",
       "label": "Green",
       "description": "Converts dirt to grass blocks in the area.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "green {args}",
       "inputs": [
         {
@@ -2007,7 +2007,7 @@
       "name": "extinguish",
       "label": "Extinguish",
       "description": "Extinguish nearby fire.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "extinguish {radius}",
       "inputs": [
         {

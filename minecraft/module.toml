@@ -854,7 +854,7 @@ inputs = [
 
 [[commands.fields]]
 name = "tp"
-risk = "caution"
+risk = "danger"
 label = "Teleport"
 description = "Teleport a player"
 method = "console"

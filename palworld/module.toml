@@ -1190,7 +1190,7 @@ inputs = []
 
 [[commands.fields]]
 name = "players"
-risk = "safe"
+risk = "caution"
 label = "Player List"
 description = "List currently connected players"
 method = "rest"

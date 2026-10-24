@@ -1068,9 +1068,9 @@ def get_launch_command(config):
         if udp_port:
             args.extend(["-udpport", str(udp_port)])
 
-    # Admin password (only on first launch to bypass prompt)
+    # Admin password is needed only while the server creates its first account database.
     admin_password = config.get("admin_password", "")
-    if admin_password:
+    if admin_password and not _has_server_db(config):
         args.extend(["-adminpassword", admin_password])
     
     # 인스턴스마다 따로 둔 데이터 폴더 (없으면 PZ 기본 ~/Zomboid)
@@ -1344,7 +1344,6 @@ def install_server(config):
     """Install/update the Project Zomboid dedicated server via SteamCMD.
 
     Uses the saba-chan SteamCMD extension for portable, automatic download.
-    Falls back to raw SteamCMD if the extension is unavailable.
 
     Steam App ID: 380870
     Anonymous login: Yes
@@ -1399,70 +1398,15 @@ def install_server(config):
         return result
 
     except ImportError:
-        print("[Zomboid] SteamCMD extension not available, trying raw SteamCMD", file=sys.stderr)
+        return {
+            "success": False,
+            "message": i18n.t("errors.steamcmd_not_found"),
+        }
     except PathOutside:
         raise
     except Exception as e:
         print(f"[Zomboid] SteamCMD extension install failed: {e}", file=sys.stderr)
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
-
-    # ── Fallback: raw SteamCMD ──
-    steamcmd = _find_steamcmd()
-    if not steamcmd:
-        return {
-            "success": False,
-            "message": i18n.t("errors.steamcmd_not_found"),
-        }
-
-    cmd = [
-        steamcmd,
-        "+force_install_dir", install_dir,
-        "+login", "anonymous",
-        "+app_update", "380870",
-    ]
-
-    if use_beta:
-        cmd.extend(["-beta", "unstable"])
-
-    cmd.extend(["validate", "+quit"])
-
-    print(f"Running SteamCMD: {' '.join(cmd)}", file=sys.stderr)
-
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=600,
-        )
-
-        if result.returncode == 0 or "Success" in result.stdout:
-            if sys.platform == "win32":
-                exe = os.path.join(install_dir, "StartServer64.bat")
-            else:
-                exe = os.path.join(install_dir, "start-server.sh")
-            settings_error = _write_initial_ini(config)
-            if settings_error:
-                return settings_error
-
-            return {
-                "success": True,
-                "message": i18n.t("messages.install_complete"),
-                "install_path": install_dir,
-                "executable_path": exe if os.path.exists(exe) else "",
-            }
-        else:
-            return {
-                "success": False,
-                "message": i18n.t("errors.install_failed", error=result.stderr[-500:] if result.stderr else i18n.t("errors.unknown_error")),
-            }
-    except subprocess.TimeoutExpired:
-        return {"success": False, "message": i18n.t("errors.install_timeout")}
-    except PathOutside:
-        raise
-    except Exception as e:
-        return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
-
 
 def _write_initial_ini(config):
     """첫 설치: 만들 때 고른 설정(접속 암호·인원·포트 등)으로 서버 ini를 만든다. 서버는 첫 실행 때 나머지 키를
@@ -1480,43 +1424,6 @@ def _write_initial_ini(config):
         raise
     except Exception as e:
         return {"success": False, "error_code": "settings_write_failed", "message": i18n.t("errors.settings_write_failed", error=str(e))}
-
-
-def _find_steamcmd():
-    """Find SteamCMD executable."""
-    if sys.platform == "win32":
-        candidates = [
-            "steamcmd.exe",
-            os.path.join("C:\\", "steamcmd", "steamcmd.exe"),
-            os.path.join(os.environ.get("PROGRAMFILES(X86)", ""), "Steam", "steamcmd.exe"),
-        ]
-    else:
-        candidates = [
-            "steamcmd",
-            "/usr/games/steamcmd",
-            "/usr/bin/steamcmd",
-            os.path.expanduser("~/steamcmd/steamcmd.sh"),
-        ]
-    
-    for path in candidates:
-        # Check PATH first
-        try:
-            result = subprocess.run(
-                ["which" if sys.platform != "win32" else "where", path],
-                capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0:
-                return path
-        except PathOutside:
-            raise
-        except Exception:
-            pass
-        
-        # Check absolute path
-        if os.path.isfile(path):
-            return path
-    
-    return None
 
 
 def reset_server(config):

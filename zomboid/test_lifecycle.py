@@ -148,7 +148,9 @@ def test_a_failed_ini_save_keeps_the_old_file(tmp_path, monkeypatch):
 
     def broken_replace(*_):
         raise OSError("disk full")
-    monkeypatch.setattr(os, "replace", broken_replace)
+    # 바꾸는 단계에서 실패시킨다 (Windows는 기존 파일을 os.replace가 아니라 ReplaceFileW로 바꾼다)
+    import daemon_rcon
+    monkeypatch.setattr(daemon_rcon, "_replace_keeping_access", broken_replace)
 
     with pytest.raises(OSError):
         IniManager.write(ini_path, {"PublicName": "Changed"})

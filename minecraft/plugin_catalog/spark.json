@@ -77,7 +77,7 @@
       "name": "spark-health-upload",
       "label": "Upload health report",
       "description": "Uploads a static health report which does not automatically update.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "spark health upload",
       "inputs": []
     },

@@ -104,7 +104,7 @@
       "name": "mv-create",
       "label": "Create world",
       "description": "Creates a new world and loads it.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv create {name} {environment} {flags}",
       "inputs": [
         {
@@ -139,7 +139,7 @@
       "name": "mv-import",
       "label": "Import world",
       "description": "Imports an existing world folder.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv import {name} {environment} {flags}",
       "inputs": [
         {
@@ -197,7 +197,7 @@
       "name": "mv-unload",
       "label": "Unload world",
       "description": "Unloads a world from Multiverse without removing the world folder or its config entry.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv unload {world} {flags}",
       "inputs": [
         {
@@ -220,7 +220,7 @@
       "name": "mv-remove",
       "label": "Remove world",
       "description": "Unloads a world from Multiverse and removes it from worlds.yml without deleting the world folder.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv remove {world} {flags}",
       "inputs": [
         {
@@ -266,7 +266,7 @@
       "name": "mv-clone",
       "label": "Clone world",
       "description": "Clones a world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv clone {world} {new_name} {flags}",
       "inputs": [
         {
@@ -418,7 +418,7 @@
       "name": "mv-dumps",
       "label": "Dumps",
       "description": "Dumps version info to the console or paste services.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "mv dumps {flags}",
       "inputs": [
         {
@@ -434,7 +434,7 @@
       "name": "mv-gamerule-set",
       "label": "Set gamerule",
       "description": "Changes a gamerule in one or more worlds.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv gamerule set {gamerule} {value} {worlds}",
       "inputs": [
         {
@@ -464,7 +464,7 @@
       "name": "mv-gamerule-reset",
       "label": "Reset gamerule",
       "description": "Resets a gamerule in one or more worlds to its default value.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv gamerule reset {gamerule} {worlds}",
       "inputs": [
         {
@@ -550,7 +550,7 @@
       "name": "mv-teleport",
       "label": "Teleport",
       "description": "Teleports a player to a destination.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv teleport {player} {destination} {flags}",
       "inputs": [
         {
@@ -580,7 +580,7 @@
       "name": "mv-spawn",
       "label": "Teleport to spawn",
       "description": "Teleports the specified player to the spawn of the world they are in.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv spawn {player} {flags}",
       "inputs": [
         {
@@ -603,7 +603,7 @@
       "name": "mv-setspawn",
       "label": "Set spawn",
       "description": "Sets the spawn location of the specified world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv setspawn {location} {flags}",
       "inputs": [
         {
@@ -656,7 +656,7 @@
       "name": "mv-anchor-delete",
       "label": "Delete anchor",
       "description": "Deletes an anchor.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv anchor delete {name}",
       "inputs": [
         {
@@ -743,7 +743,7 @@
       "name": "mv-entity-spawn-config-modify",
       "label": "Modify entity spawn config",
       "description": "Changes the spawn settings of a spawn category in a world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv entity-spawn-config modify {world} {category} {action} {property} {value}",
       "inputs": [
         {
@@ -831,7 +831,7 @@
       "name": "mv-worldborder-add",
       "label": "Grow world border",
       "description": "Grows or shrinks the world border diameter by the given size.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv worldborder add {size} {time} {world}",
       "inputs": [
         {
@@ -861,7 +861,7 @@
       "name": "mv-worldborder-center",
       "label": "World border center",
       "description": "Sets the world border center.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv worldborder center {x} {z} {world}",
       "inputs": [
         {
@@ -889,7 +889,7 @@
       "name": "mv-worldborder-damage-amount",
       "label": "Border damage amount",
       "description": "Sets the damage per second per block outside the world border.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv worldborder damage amount {damage} {world}",
       "inputs": [
         {
@@ -912,7 +912,7 @@
       "name": "mv-worldborder-damage-buffer",
       "label": "Border damage buffer",
       "description": "Sets how far outside the world border a player can be before taking damage.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv worldborder damage buffer {distance} {world}",
       "inputs": [
         {
@@ -951,7 +951,7 @@
       "name": "mv-worldborder-set",
       "label": "Set world border",
       "description": "Sets the world border diameter.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv worldborder set {size} {time} {world}",
       "inputs": [
         {

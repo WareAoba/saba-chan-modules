@@ -52,7 +52,7 @@
       "name": "lp-editor",
       "label": "Open web editor",
       "description": "Opens a web editor session to edit permissions data; saved changes must be applied with the command it gives.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "lp editor {type} {filter}",
       "inputs": [
         {
@@ -433,7 +433,7 @@
       "name": "lp-user-editor",
       "label": "User web editor",
       "description": "Opens a web editor session to edit the permissions of the specified user.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "lp user {user} editor",
       "inputs": [
         {
@@ -587,7 +587,7 @@
       "name": "lp-group-editor",
       "label": "Group web editor",
       "description": "Opens a web editor session to edit the permissions of the specified group.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "lp group {group} editor",
       "inputs": [
         {
@@ -3329,7 +3329,7 @@
       "name": "lp-track-editor",
       "label": "Track web editor",
       "description": "Opens a web editor session to edit the specified track.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "lp track {track} editor",
       "inputs": [
         {

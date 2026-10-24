@@ -499,6 +499,36 @@ def test_the_declared_udp_port_reaches_the_server(tmp_path):
     assert lifecycle._INI_KEY_MAP["udp_port"] == "UDPPort"
 
 
+@pytest.mark.parametrize(("has_db", "include_password"), [(False, True), (True, False)])
+def test_admin_password_is_only_passed_before_the_server_database_exists(tmp_path, monkeypatch, has_db, include_password):
+    from unittest import mock
+    from zomboid import lifecycle
+
+    parsed = {"java_exe_abs": "java", "classpath": "a.jar", "jvm_flags": [],
+              "main_class": "zombie.network.GameServer", "extra_args": []}
+    monkeypatch.setattr(lifecycle, "_has_server_db", lambda _config: has_db)
+    with mock.patch.object(lifecycle, "_find_server_dir", return_value=str(tmp_path)), \
+         mock.patch.object(lifecycle, "_parse_launch_info", return_value=parsed):
+        args = lifecycle.get_launch_command({"admin_password": "private", "preview": True})["args"]
+
+    assert ("-adminpassword" in args) is include_password
+    assert ("private" in args) is include_password
+
+
+def test_steamcmd_extension_import_failure_does_not_search_for_an_executable(monkeypatch):
+    from zomboid import lifecycle
+    import extensions.steamcmd
+
+    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
+    monkeypatch.delattr(extensions.steamcmd, "SteamCMD", raising=False)
+    monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
+
+    result = lifecycle.install_server({"install_dir": "server", "settings": {}})
+
+    assert result["success"] is False
+    assert result["message"]
+
+
 def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(tmp_path, monkeypatch):
     """만들 때 고른 접속 암호·인원·포트는 첫 설치에서 서버 ini에 들어간다 (암호 없이 열리지 않게). 업데이트는 덮지 않는다"""
     from unittest import mock
@@ -652,9 +682,7 @@ def test_the_compatibility_data_root_can_be_loaded_without_legacy_config(tmp_pat
     assert str(tmp_path / "db" / "srv.db") in lifecycle.backup_paths(config)["paths"]
 
 
-@pytest.mark.parametrize("fallback", [False, True])
-def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_path, monkeypatch, fallback):
-    from types import SimpleNamespace
+def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_path, monkeypatch):
     from zomboid import lifecycle
     import extensions.steamcmd
 
@@ -667,11 +695,6 @@ def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_pa
 
     monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
     monkeypatch.setattr(extensions.steamcmd, "SteamCMD", FakeSteam)
-    if fallback:
-        monkeypatch.delattr(extensions.steamcmd, "SteamCMD")
-        monkeypatch.setattr(lifecycle, "_find_steamcmd", lambda: "steamcmd")
-        monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="Success", stderr=""))
-
     def denied(*args, **kwargs):
         raise PermissionError("denied")
 

@@ -107,7 +107,7 @@
       "name": "worldguard-flushstates",
       "label": "Flush region states",
       "description": "Clears information about players that is stored for applying region flags; resets all players if none is given.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "worldguard flushstates {player}",
       "inputs": [
         {
@@ -123,7 +123,7 @@
       "name": "stopfire",
       "label": "Stop fire spread",
       "description": "Immediately stop all fire spread on the given world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "stopfire {world}",
       "inputs": [
         {
@@ -139,7 +139,7 @@
       "name": "allowfire",
       "label": "Allow fire spread",
       "description": "Lift the fire spread suspension on the given world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "allowfire {world}",
       "inputs": [
         {
@@ -195,7 +195,7 @@
       "name": "worldguard-report",
       "label": "Write report",
       "description": "Writes a report file detailing the server setup and WorldGuard's configuration; -p also submits it to a pastebin.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "worldguard report {flags}",
       "inputs": [
         {
@@ -355,7 +355,7 @@
       "name": "region-redefine",
       "label": "Redefine region",
       "description": "Replaces the area of an existing region with the current WorldEdit selection.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "region redefine -w {world} {id} {flags}",
       "inputs": [
         {

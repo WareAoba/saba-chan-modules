@@ -44,7 +44,7 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 
 # 공용 SDK import 중 가장 새 SINCE 버전 이상을 선언합니다.
 [module.dependencies]
-saba-core = ">=0.1.2"
+saba-core = ">=0.1.10"
 
 # ── [protocols] 통신 프로토콜 ────────────────────────────────────
 #

@@ -733,11 +733,12 @@ default = false
 hook = true
 # 콘솔 답이 이 모양이면 디스코드 답이 실패로 알린다 (reason이 이유). 문구는 server jar en_us.json
 # argument.entity.notfound.player·command.unknown.command·command.unknown.argument·argument.item.id.invalid
+# 로그 머리 바로 뒤에 온 줄만 (공지 `[Server] …`·채팅 `<이름> …` 본문의 같은 문구는 실패가 아니다)
 failure_patterns = [
-    '(?P<reason>No player was found)',
-    '(?P<reason>Unknown or incomplete command)',
-    '(?P<reason>Incorrect argument for command)',
-    "(?P<reason>Unknown item '[^']*')",
+    '(?m)^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<reason>No player was found)',
+    '(?m)^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<reason>Unknown or incomplete command)',
+    '(?m)^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<reason>Incorrect argument for command)',
+    '''(?m)^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<reason>Unknown item '[^']*')''',
 ]
 
 [[commands.fields]]

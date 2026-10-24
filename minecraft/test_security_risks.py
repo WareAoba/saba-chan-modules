@@ -37,7 +37,8 @@ def test_world_and_player_impacting_commands_require_admin():
                              "tpall", "tpr", "togglejail", "warp-player", "ess-time-set",
                              "ess-time-add", "ess-weather"],
         "essentialsx-spawn.json": ["spawn"],
-        "multiverse-core.json": ["mv-create", "mv-import", "mv-unload", "mv-remove", "mv-clone"],
+        "multiverse-core.json": ["mv-create", "mv-import", "mv-unload", "mv-remove", "mv-clone",
+                                 "mv-gamerule-set", "mv-gamerule-reset"],
         "chunky.json": ["chunky-start", "chunky-continue"],
     }
     for filename, names in expected.items():
@@ -51,6 +52,10 @@ def test_world_and_player_impacting_commands_require_admin():
     assert _catalog_risks("multiverse-inventories.json")["mvinv-playerdata-import"] == "danger"
     assert _catalog_risks("multiverse-netherportals.json")["mvnp-link"] == "danger"
     assert _catalog_risks("worldguard.json")["allowfire"] == "danger"
+    module = tomllib.loads((ROOT / "module.toml").read_text(encoding="utf-8"))
+    vanilla = {command["name"]: command["risk"] for command in module["commands"]["fields"]}
+    for name in ("weather", "time", "tp"):
+        assert vanilla[name] == "danger", name
 
 
 def test_player_network_and_location_commands_are_not_public():

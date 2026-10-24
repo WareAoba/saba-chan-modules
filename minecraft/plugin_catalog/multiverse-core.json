@@ -434,7 +434,7 @@
       "name": "mv-gamerule-set",
       "label": "Set gamerule",
       "description": "Changes a gamerule in one or more worlds.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv gamerule set {gamerule} {value} {worlds}",
       "inputs": [
         {
@@ -464,7 +464,7 @@
       "name": "mv-gamerule-reset",
       "label": "Reset gamerule",
       "description": "Resets a gamerule in one or more worlds to its default value.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mv gamerule reset {gamerule} {worlds}",
       "inputs": [
         {

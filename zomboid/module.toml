@@ -1158,6 +1158,8 @@ description = "View list of connected players"
 method = "console"
 console_template = "players"
 inputs = []
+# 디스코드·챗봇의 접속자 목록은 데몬 `players`([status] players)가 한다
+remote = false
 
 [[commands.fields]]
 name = "save"

@@ -100,6 +100,8 @@
       "inputs": { "player": { "label": "Nom du joueur", "placeholder": "Pseudo du joueur" }, "item": { "label": "ID de l'objet", "placeholder": "Ex: diamond, iron_ore" }, "amount": { "label": "Quantité" } }
     },
     "save-all": { "label": "Sauvegarder le monde", "description": "Sauvegarder le monde du jeu" },
+    "save-off": { "label": "Suspendre la sauvegarde auto", "description": "Le serveur ne sauvegarde plus le monde automatiquement" },
+    "save-on": { "label": "Reprendre la sauvegarde auto", "description": "Le serveur sauvegarde de nouveau le monde automatiquement" },
     "list": { "label": "Liste des joueurs", "description": "Voir la liste des joueurs connectés" },
     "weather": {
       "label": "Changer la météo",
@@ -156,7 +158,7 @@
       "description": "Gérer la liste blanche du serveur",
       "inputs": { "action": { "label": "Action" }, "player": { "label": "Nom du joueur" } }
     },
-    "seed": { "label": "Afficher la graine", "description": "Afficher la graine du monde" },
+    "seed": { "label": "Afficher la graine", "description": "Afficher la graine du monde", "done": "Graine du monde : {{seed}}" },
     "stop": { "label": "Arrêter le serveur", "description": "Arrêter le serveur proprement" }
   },
   "errors": {

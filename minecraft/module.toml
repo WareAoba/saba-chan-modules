@@ -46,7 +46,12 @@ paths = ["{level_name}", "{level_name}_nether", "{level_name}_the_end",
          "bukkit.yml", "spigot.yml", "commands.yml", "permissions.yml", "help.yml",
          "paper.yml", "purpur.yml", "pufferfish.yml"]
 hook = true
+# 켜진 서버: 자동 저장을 멈추고(save-off) 저장한 뒤 묶고, 끝나면 되돌린다(save-on). 서버가 잠가 두는 session.lock은 빼고
+# (Windows에서 켜진 서버의 session.lock은 읽을 수 없다. 서버가 켜질 때 새로 만든다)
+pause_command = "save-off"
 save_command = "save-all"
+resume_command = "save-on"
+exclude = ["session.lock"]
 
 [install]
 method = "download"
@@ -726,6 +731,14 @@ default = false
 [commands]
 # 서버에 설치된 플러그인·모드 명령은 lifecycle instance_commands()가 준다 (plugins.py, plugin_catalog/)
 hook = true
+# 콘솔 답이 이 모양이면 디스코드 답이 실패로 알린다 (reason이 이유). 문구는 server jar en_us.json
+# argument.entity.notfound.player·command.unknown.command·command.unknown.argument·argument.item.id.invalid
+failure_patterns = [
+    '(?P<reason>No player was found)',
+    '(?P<reason>Unknown or incomplete command)',
+    '(?P<reason>Incorrect argument for command)',
+    "(?P<reason>Unknown item '[^']*')",
+]
 
 [[commands.fields]]
 name = "say"
@@ -760,6 +773,27 @@ method = "console"
 console_template = "save-all"
 inputs = []
 
+# 백업이 켜진 서버에서 쓰는 자동 저장 멈춤·되돌리기 ([backup] pause_command·resume_command). 원격에서는 부르지 않는다
+[[commands.fields]]
+name = "save-off"
+risk = "caution"
+label = "Pause Autosave"
+description = "Stop the server from saving the world automatically"
+method = "console"
+console_template = "save-off"
+inputs = []
+remote = false
+
+[[commands.fields]]
+name = "save-on"
+risk = "safe"
+label = "Resume Autosave"
+description = "Let the server save the world automatically again"
+method = "console"
+console_template = "save-on"
+inputs = []
+remote = false
+
 [[commands.fields]]
 name = "list"
 risk = "safe"
@@ -768,6 +802,8 @@ description = "View list of connected players"
 method = "console"
 console_template = "list"
 inputs = []
+# 디스코드·챗봇의 접속자 목록은 데몬 `players`([status] players)가 한다
+remote = false
 
 [[commands.fields]]
 name = "weather"
@@ -904,6 +940,8 @@ description = "Display the world seed"
 method = "console"
 console_template = "seed"
 inputs = []
+# 콘솔 답 `Seed: [-123]` → 디스코드 답 locales commands.seed.done
+reply_pattern = 'Seed: \[(?P<seed>-?\d+)\]'
 
 [[commands.fields]]
 name = "stop"
@@ -933,7 +971,7 @@ status = { aliases = ["상태", "상황", "확인", "정보", "info"], descripti
 say = { aliases = ["말", "채팅", "메시지"], description = "Broadcast a message" }
 give = { aliases = ["지급", "줘", "item"], description = "Give an item to a player" }
 save-all = { aliases = ["저장"], description = "Save the world" }
-list = { aliases = ["목록", "플레이어", "유저", "players"], description = "View connected players" }
+players = { aliases = ["목록", "플레이어", "유저", "접속자", "list"], description = "View connected players" }
 weather = { aliases = ["날씨", "웨더"], description = "Change the weather" }
 difficulty = { aliases = ["난이도", "어려움"], description = "Change game difficulty" }
 gamemode = { aliases = ["겜모드", "게임모드"], description = "Change game mode" }

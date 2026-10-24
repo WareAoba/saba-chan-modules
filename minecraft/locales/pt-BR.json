@@ -100,6 +100,8 @@
       "inputs": { "player": { "label": "Nome do jogador", "placeholder": "Apelido do jogador" }, "item": { "label": "ID do item", "placeholder": "Ex: diamond, iron_ore" }, "amount": { "label": "Quantidade" } }
     },
     "save-all": { "label": "Salvar mundo", "description": "Salvar o mundo do jogo" },
+    "save-off": { "label": "Pausar salvamento automático", "description": "O servidor para de salvar o mundo automaticamente" },
+    "save-on": { "label": "Retomar salvamento automático", "description": "O servidor volta a salvar o mundo automaticamente" },
     "list": { "label": "Lista de jogadores", "description": "Ver lista de jogadores conectados" },
     "weather": {
       "label": "Alterar clima",
@@ -156,7 +158,7 @@
       "description": "Gerenciar a whitelist do servidor",
       "inputs": { "action": { "label": "Ação" }, "player": { "label": "Nome do jogador" } }
     },
-    "seed": { "label": "Mostrar semente", "description": "Exibir a semente do mundo" },
+    "seed": { "label": "Mostrar semente", "description": "Exibir a semente do mundo", "done": "Semente do mundo: {{seed}}" },
     "stop": { "label": "Parar servidor", "description": "Parar o servidor corretamente" }
   },
   "errors": {

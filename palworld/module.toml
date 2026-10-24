@@ -1197,6 +1197,8 @@ method = "rest"
 http_method = "GET"
 endpoint_template = "/v1/api/players"
 inputs = []
+# 디스코드·챗봇의 접속자 목록은 데몬 `players`([status] players)가 한다
+remote = false
 
 [[commands.fields]]
 name = "metrics"

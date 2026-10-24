@@ -100,6 +100,8 @@
       "inputs": { "player": { "label": "玩家名称", "placeholder": "玩家昵称" }, "item": { "label": "物品ID", "placeholder": "例: diamond, iron_ore" }, "amount": { "label": "数量" } }
     },
     "save-all": { "label": "保存世界", "description": "保存游戏世界" },
+    "save-off": { "label": "暂停自动保存", "description": "让服务器不再自动保存世界" },
+    "save-on": { "label": "恢复自动保存", "description": "让服务器重新自动保存世界" },
     "list": { "label": "玩家列表", "description": "查看已连接的玩家列表" },
     "weather": {
       "label": "更改天气",
@@ -156,7 +158,7 @@
       "description": "管理服务器白名单",
       "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名称" } }
     },
-    "seed": { "label": "显示种子", "description": "显示世界种子" },
+    "seed": { "label": "显示种子", "description": "显示世界种子", "done": "世界种子：{{seed}}" },
     "stop": { "label": "停止服务器", "description": "正常停止服务器" }
   },
   "errors": {

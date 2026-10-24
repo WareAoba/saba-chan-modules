@@ -1,0 +1,299 @@
+{
+  "module": {
+    "display_name": "Terraria",
+    "description": "Servidor dedicado de Terraria"
+  },
+  "settings": {
+    "managed_start": {
+      "label": "Inicio gestionado (consola)",
+      "description": "Iniciar con la consola de saba-chan conectada"
+    },
+    "ip": {
+      "label": "IP de escucha",
+      "description": "Dirección IP en la que escucha el servidor (-ip). Vacío = todas"
+    },
+    "steam": {
+      "label": "Compatibilidad con Steam",
+      "description": "Activar la compatibilidad con Steam (-steam)"
+    },
+    "lobby": {
+      "label": "Sala de Steam",
+      "description": "Quién puede unirse por Steam (-lobby, requiere Steam)"
+    },
+    "disable_announcement_box": {
+      "label": "Desactivar caja de anuncios",
+      "description": "Desactivar los mensajes de la caja de anuncios"
+    },
+    "announcement_box_range": {
+      "label": "Alcance de la caja de anuncios",
+      "description": "Alcance en píxeles, -1 = todo el servidor"
+    },
+    "world_name": {
+      "label": "Nombre del mundo",
+      "description": "Nombre del archivo del mundo (<nombre>.wld) y del mundo nuevo"
+    },
+    "world_dir": {
+      "label": "Carpeta de mundos",
+      "description": "Carpeta de los archivos de mundo (worldpath)"
+    },
+    "autocreate": {
+      "label": "Tamaño del mundo nuevo",
+      "description": "Tamaño si no hay mundo: 1 pequeño, 2 mediano, 3 grande"
+    },
+    "difficulty": {
+      "label": "Dificultad del mundo nuevo",
+      "description": "0 Clásico, 1 Experto, 2 Maestro, 3 Viaje"
+    },
+    "seed": {
+      "label": "Semilla del mundo nuevo",
+      "description": "Semilla para un mundo nuevo"
+    },
+    "port": {
+      "label": "Puerto",
+      "description": "Puerto TCP del servidor"
+    },
+    "max_players": {
+      "label": "Máx. jugadores",
+      "description": "Número máximo de jugadores (1-255)"
+    },
+    "password": {
+      "label": "Contraseña del servidor",
+      "description": "Contraseña para unirse (vacío = ninguna)"
+    },
+    "motd": {
+      "label": "Mensaje del día",
+      "description": "Mensaje para los jugadores que entran"
+    },
+    "secure": {
+      "label": "Protección contra trampas",
+      "description": "Protección adicional contra trampas (secure)"
+    },
+    "language": {
+      "label": "Idioma del servidor",
+      "description": "Idioma de los mensajes del servidor"
+    },
+    "upnp": {
+      "label": "Reenvío de puertos UPnP",
+      "description": "Reenviar el puerto automáticamente con UPnP"
+    },
+    "banlist": {
+      "label": "Archivo de lista de baneos",
+      "description": "Nombre del archivo de baneos en la carpeta del servidor"
+    },
+    "npcstream": {
+      "label": "Flujo de NPC",
+      "description": "Sincronía de enemigos: menor = menos saltos, más ancho de banda. 0 = desactivado"
+    },
+    "priority": {
+      "label": "Prioridad del proceso",
+      "description": "0 Tiempo real, 1 Alta, 2 Superior a normal, 3 Normal, 4 Inferior a normal, 5 Baja"
+    },
+    "journeypermission_time_setfrozen": {
+      "label": "Viaje: Congelar tiempo",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_time_setdawn": {
+      "label": "Viaje: Amanecer",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_time_setnoon": {
+      "label": "Viaje: Mediodía",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_time_setdusk": {
+      "label": "Viaje: Atardecer",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_time_setmidnight": {
+      "label": "Viaje: Medianoche",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_godmode": {
+      "label": "Viaje: Modo dios",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_wind_setstrength": {
+      "label": "Viaje: Fuerza del viento",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_rain_setstrength": {
+      "label": "Viaje: Fuerza de la lluvia",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_time_setspeed": {
+      "label": "Viaje: Velocidad del tiempo",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_rain_setfrozen": {
+      "label": "Viaje: Congelar lluvia",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_wind_setfrozen": {
+      "label": "Viaje: Congelar viento",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_increaseplacementrange": {
+      "label": "Viaje: Alcance de colocación",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_setdifficulty": {
+      "label": "Viaje: Dificultad",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_biomespread_setfrozen": {
+      "label": "Viaje: Congelar propagación de biomas",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    },
+    "journeypermission_setspawnrate": {
+      "label": "Viaje: Tasa de aparición",
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+    }
+  },
+  "commands": {
+    "help": {
+      "label": "Ayuda",
+      "description": "Lista los comandos del servidor"
+    },
+    "playing": {
+      "label": "Jugadores",
+      "description": "Lista los jugadores conectados"
+    },
+    "clear": {
+      "label": "Limpiar consola",
+      "description": "Limpia la consola del servidor"
+    },
+    "save": {
+      "label": "Guardar mundo",
+      "description": "Guarda el mundo"
+    },
+    "say": {
+      "label": "Decir",
+      "description": "Envía un mensaje a todos",
+      "inputs": {
+        "message": {
+          "label": "Mensaje"
+        }
+      }
+    },
+    "version": {
+      "label": "Versión",
+      "description": "Muestra la versión"
+    },
+    "time": {
+      "label": "Hora del juego",
+      "description": "Muestra la hora del juego"
+    },
+    "port": {
+      "label": "Puerto",
+      "description": "Muestra el puerto"
+    },
+    "maxplayers": {
+      "label": "Máx. jugadores",
+      "description": "Muestra el límite"
+    },
+    "motd": {
+      "label": "Mensaje del día",
+      "description": "Muestra el mensaje del día"
+    },
+    "password": {
+      "label": "Mostrar contraseña",
+      "description": "Muestra la contraseña en la consola"
+    },
+    "death": {
+      "label": "Muertes",
+      "description": "Muestra las muertes"
+    },
+    "pvpdeath": {
+      "label": "Muertes PvP",
+      "description": "Muestra las muertes PvP"
+    },
+    "alldeath": {
+      "label": "Todas las muertes",
+      "description": "Muertes de todos"
+    },
+    "allpvpdeath": {
+      "label": "Todas las muertes PvP",
+      "description": "Muertes PvP de todos"
+    },
+    "dawn": {
+      "label": "Amanecer",
+      "description": "Pone la hora al amanecer"
+    },
+    "noon": {
+      "label": "Mediodía",
+      "description": "Pone la hora al mediodía"
+    },
+    "dusk": {
+      "label": "Atardecer",
+      "description": "Pone la hora al atardecer"
+    },
+    "midnight": {
+      "label": "Medianoche",
+      "description": "Pone la hora a medianoche"
+    },
+    "settle": {
+      "label": "Asentar líquidos",
+      "description": "Asienta toda el agua"
+    },
+    "kick": {
+      "label": "Expulsar jugador",
+      "description": "Expulsa a un jugador",
+      "inputs": {
+        "player": {
+          "label": "Nombre del jugador"
+        }
+      }
+    },
+    "ban": {
+      "label": "Banear jugador",
+      "description": "Banea a un jugador (lista de baneos)",
+      "inputs": {
+        "player": {
+          "label": "Nombre del jugador"
+        }
+      }
+    },
+    "exit-nosave": {
+      "label": "Apagar sin guardar",
+      "description": "Apaga el servidor sin guardar"
+    }
+  },
+  "errors": {
+    "archive_corrupt": "El archivo del servidor está dañado ({{file}})",
+    "backup_paths_failed": "No se pudieron determinar los archivos de copia: {{error}}",
+    "download_failed": "Error en la descarga: {{error}}",
+    "executable_not_found": "No se encontró el ejecutable del servidor. Instala el servidor primero",
+    "failed_to_kill": "No se pudo terminar el proceso: {{error}}",
+    "graceful_stop_unavailable": "La consola no está conectada y no se puede guardar antes de detener. Fuerza el cierre solo si aceptas perder el progreso no guardado",
+    "install_failed": "Error en la instalación: {{error}}",
+    "invalid_banlist": "El nombre \"{{name}}\" no es un nombre de archivo simple",
+    "invalid_world_name": "El nombre \"{{name}}\" no puede contener / \\ : * ? \" < > | ni terminar en espacio o punto",
+    "line_break": "El valor de {{setting}} no puede tener saltos de línea",
+    "no_install_dir": "No se indicó la carpeta de instalación",
+    "no_version": "Elige una versión del servidor (p. ej. 1.4.5.8)",
+    "not_server_folder": "Esta carpeta no tiene un servidor de Terraria; no se borró nada",
+    "properties_read_failed": "No se pudo leer serverconfig.txt: {{error}}",
+    "properties_write_failed": "No se pudo guardar serverconfig.txt: {{error}}",
+    "server_not_in_archive": "El archivo no tiene {{file}} para este sistema",
+    "server_reset_partial": "No se pudieron borrar algunos archivos: {{errors}}",
+    "settings_write_failed": "El servidor se instaló, pero no se pudieron escribir los ajustes: {{error}}",
+    "version_list_failed": "No se pudo obtener la lista de versiones de terraria.org: {{error}}"
+  },
+  "messages": {
+    "downloading": "Descargando el servidor de Terraria",
+    "extracting": "Extrayendo archivos del servidor",
+    "force_killed": "Se forzó el cierre del proceso {{pid}}",
+    "graceful_stop": "El servidor guardó el mundo y se detuvo",
+    "graceful_stop_timeout": "El servidor no se detuvo a tiempo; forzando cierre",
+    "install_complete": "Servidor de Terraria instalado",
+    "no_mappable_settings": "Nada que escribir en serverconfig.txt",
+    "no_process_running": "El servidor no está en marcha",
+    "properties_updated": "Guardado en serverconfig.txt. Reinicia el servidor para aplicarlo",
+    "server_reset_complete": "Se borró el mundo. Se creará uno nuevo al iniciar",
+    "stop_requested": "Se pidió al servidor guardar y detenerse"
+  },
+  "reset": {
+    "label": "Reiniciar mundo",
+    "description": "Borra solo el archivo de mundo de este servidor (<nombre>.wld y el .wld.bak del juego). serverconfig.txt, la lista de baneos, otros mundos y los archivos del servidor se conservan. Se crea un mundo nuevo al iniciar."
+  }
+}

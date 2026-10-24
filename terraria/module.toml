@@ -1,0 +1,576 @@
+# Terraria 공식 데디케이티드 서버 모듈. 조사 근거는 RESEARCH.md
+[module]
+schema_version = 1
+name = "terraria"
+version = "0.1.0"
+description = "Terraria dedicated server"
+game_name = "Terraria"
+display_name = "Terraria"
+entry = "lifecycle.py"
+author = "WareAoba"
+
+# safe_join·PathOutside·atomic_write
+[module.dependencies]
+saba-core = ">=0.1.10"
+
+[permissions]
+network = true
+
+[protocols]
+supported = ["stdin"]
+default = "stdin"
+interaction_mode = "console"
+
+[config]
+server_executable = "TerrariaServer.exe"
+process_name = "TerrariaServer.exe"
+default_port = 7777
+# 위키: exit = 저장하고 종료
+stop_command = "exit"
+stop_timeout = 60
+announce_command = "say"
+
+[install]
+method = "download"
+
+[detection]
+dir_signatures = ["TerrariaServer.exe|TerrariaServer.bin.x86_64"]
+
+# 월드 폴더는 사용자가 서버 폴더 밖으로 고를 수 있다(가져온 서버의 Documents\My Games\Terraria\Worlds 등)
+[extensions.saba-core]
+data_roots = ["{world_dir}"]
+
+[backup]
+hook = true
+save_command = "save"
+
+# ═══════════════════════════════════════════════════════════
+#                       SETTINGS
+# ═══════════════════════════════════════════════════════════
+[settings]
+
+# ── 사바쨩 설정 (실행 인자로만 들어간다. serverconfig.txt에 키가 없다) ──
+
+[[settings.fields]]
+name = "managed_start"
+type = "boolean"
+label = "Managed Start (Console)"
+description = "Start with the saba-chan console attached"
+default = true
+group = "saba-chan"
+
+[[settings.fields]]
+name = "ip"
+type = "text"
+label = "Listen IP"
+description = "IP address the server listens on (-ip). Empty = all addresses"
+group = "saba-chan"
+arg = "-ip {value}"
+pattern = '[0-9A-Fa-f:.]+'
+
+[[settings.fields]]
+name = "steam"
+type = "boolean"
+label = "Steam Support"
+description = "Enable Steam support (-steam)"
+default = false
+group = "saba-chan"
+arg = "-steam"
+
+[[settings.fields]]
+name = "lobby"
+type = "select"
+label = "Steam Lobby"
+description = "Who can join through Steam (-lobby, needs Steam Support)"
+options = ["friends", "private"]
+group = "saba-chan"
+arg = "-lobby {value}"
+
+[[settings.fields]]
+name = "disable_announcement_box"
+type = "boolean"
+label = "Disable Announcement Box"
+description = "Disable Announcement Box messages (-disableannouncementbox)"
+default = false
+group = "saba-chan"
+arg = "-disableannouncementbox"
+
+[[settings.fields]]
+name = "announcement_box_range"
+type = "number"
+label = "Announcement Box Range"
+description = "Announcement Box message range in pixels, -1 = whole server (-announcementboxrange)"
+min = -1
+group = "saba-chan"
+arg = "-announcementboxrange {value}"
+
+# ── 월드 (serverconfig.txt) ──
+
+[[settings.fields]]
+name = "world_name"
+type = "text"
+label = "World Name"
+description = "World file name (<name>.wld) and the name of a new world"
+default = "world"
+pattern = '[^\\/:*?"<>|]*[^\\/:*?"<>|. ]'
+
+[[settings.fields]]
+name = "world_dir"
+type = "text"
+label = "World Folder"
+description = "Folder where world files are kept (worldpath)"
+default = "{instance_dir}/Worlds"
+format = "path"
+group = "advanced"
+
+[[settings.fields]]
+name = "autocreate"
+type = "select"
+label = "New World Size"
+description = "Size of the world created when none exists: 1 small, 2 medium, 3 large (autocreate)"
+options = ["1", "2", "3"]
+default = "2"
+install = true
+
+[[settings.fields]]
+name = "difficulty"
+type = "select"
+label = "New World Difficulty"
+description = "Difficulty of a newly created world: 0 Classic, 1 Expert, 2 Master, 3 Journey"
+options = ["0", "1", "2", "3"]
+
+[[settings.fields]]
+name = "seed"
+type = "text"
+label = "New World Seed"
+description = "Seed for a newly created world"
+
+# ── 서버 ──
+
+[[settings.fields]]
+name = "port"
+type = "number"
+label = "Port"
+description = "TCP port the server listens on"
+default = 7777
+min = 1
+max = 65535
+port = true
+format = "port"
+
+[[settings.fields]]
+name = "max_players"
+type = "number"
+label = "Max Players"
+description = "Maximum number of players (1-255)"
+default = 8
+min = 1
+max = 255
+
+[[settings.fields]]
+name = "password"
+type = "password"
+label = "Server Password"
+description = "Password to join (empty = none)"
+
+[[settings.fields]]
+name = "motd"
+type = "text"
+label = "Message of the Day"
+description = "Message shown to joining players"
+
+[[settings.fields]]
+name = "secure"
+type = "boolean"
+label = "Cheat Protection"
+description = "Additional cheat protection (secure)"
+
+[[settings.fields]]
+name = "language"
+type = "select"
+label = "Server Language"
+description = "Language of server messages"
+options = ["en-US", "de-DE", "it-IT", "fr-FR", "es-ES", "ru-RU", "zh-Hans", "pt-BR", "pl-PL"]
+
+[[settings.fields]]
+name = "upnp"
+type = "boolean"
+label = "UPnP Port Forwarding"
+description = "Forward the port automatically with UPnP"
+
+[[settings.fields]]
+name = "banlist"
+type = "text"
+label = "Ban List File"
+description = "Ban list file name in the server folder"
+default = "banlist.txt"
+pattern = '[^\\/:*?"<>|]*[^\\/:*?"<>|. ]'
+group = "advanced"
+
+[[settings.fields]]
+name = "npcstream"
+type = "number"
+label = "NPC Stream"
+description = "Enemy sync rate: lower skips less but uses more bandwidth. 0 = off"
+min = 0
+group = "advanced"
+
+[[settings.fields]]
+name = "priority"
+type = "select"
+label = "Process Priority"
+description = "0 Realtime, 1 High, 2 AboveNormal, 3 Normal, 4 BelowNormal, 5 Idle"
+options = ["0", "1", "2", "3", "4", "5"]
+group = "advanced"
+
+# ── Journey 모드 권한: 0 모두 잠금, 1 호스트만, 2 모두 ──
+
+[[settings.fields]]
+name = "journeypermission_time_setfrozen"
+type = "select"
+label = "Journey: Freeze Time"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_time_setdawn"
+type = "select"
+label = "Journey: Set Dawn"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_time_setnoon"
+type = "select"
+label = "Journey: Set Noon"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_time_setdusk"
+type = "select"
+label = "Journey: Set Dusk"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_time_setmidnight"
+type = "select"
+label = "Journey: Set Midnight"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_godmode"
+type = "select"
+label = "Journey: God Mode"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_wind_setstrength"
+type = "select"
+label = "Journey: Wind Strength"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_rain_setstrength"
+type = "select"
+label = "Journey: Rain Strength"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_time_setspeed"
+type = "select"
+label = "Journey: Time Speed"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_rain_setfrozen"
+type = "select"
+label = "Journey: Freeze Rain"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_wind_setfrozen"
+type = "select"
+label = "Journey: Freeze Wind"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_increaseplacementrange"
+type = "select"
+label = "Journey: Placement Range"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_setdifficulty"
+type = "select"
+label = "Journey: Difficulty"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_biomespread_setfrozen"
+type = "select"
+label = "Journey: Freeze Biome Spread"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+[[settings.fields]]
+name = "journeypermission_setspawnrate"
+type = "select"
+label = "Journey: Spawn Rate"
+description = "0 locked, 1 host only, 2 everyone"
+options = ["0", "1", "2"]
+group = "advanced"
+
+# ═══════════════════════════════════════════════════════════
+#                       COMMANDS (콘솔, 위키 명령 목록 그대로)
+# ═══════════════════════════════════════════════════════════
+[commands]
+
+[[commands.fields]]
+name = "help"
+risk = "safe"
+label = "Help"
+description = "List the server commands"
+method = "console"
+console_template = "help"
+inputs = []
+
+[[commands.fields]]
+name = "playing"
+risk = "safe"
+label = "Players"
+description = "List the connected players"
+method = "console"
+console_template = "playing"
+inputs = []
+
+[[commands.fields]]
+name = "clear"
+risk = "safe"
+label = "Clear Console"
+description = "Clear the server console"
+method = "console"
+console_template = "clear"
+inputs = []
+remote = false
+
+[[commands.fields]]
+name = "save"
+risk = "safe"
+label = "Save World"
+description = "Save the world"
+method = "console"
+console_template = "save"
+inputs = []
+
+[[commands.fields]]
+name = "say"
+risk = "safe"
+label = "Say"
+description = "Send a message to all players"
+method = "console"
+console_template = "say {message}"
+inputs = [{ name = "message", type = "text", label = "Message", required = true }]
+
+[[commands.fields]]
+name = "version"
+risk = "safe"
+label = "Version"
+description = "Print the server version"
+method = "console"
+console_template = "version"
+inputs = []
+
+[[commands.fields]]
+name = "time"
+risk = "safe"
+label = "Game Time"
+description = "Show the game time"
+method = "console"
+console_template = "time"
+inputs = []
+
+[[commands.fields]]
+name = "port"
+risk = "safe"
+label = "Port"
+description = "Print the listening port"
+method = "console"
+console_template = "port"
+inputs = []
+
+[[commands.fields]]
+name = "maxplayers"
+risk = "safe"
+label = "Max Players"
+description = "Print the player limit"
+method = "console"
+console_template = "maxplayers"
+inputs = []
+
+[[commands.fields]]
+name = "motd"
+risk = "safe"
+label = "Message of the Day"
+description = "Show the message of the day"
+method = "console"
+console_template = "motd"
+inputs = []
+
+[[commands.fields]]
+name = "password"
+risk = "caution"
+label = "Show Password"
+description = "Print the server password on the server console"
+method = "console"
+console_template = "password"
+inputs = []
+remote = false
+
+[[commands.fields]]
+name = "death"
+risk = "safe"
+label = "Deaths"
+description = "Show player death counts"
+method = "console"
+console_template = "death"
+inputs = []
+
+[[commands.fields]]
+name = "pvpdeath"
+risk = "safe"
+label = "PvP Deaths"
+description = "Show player PvP death counts"
+method = "console"
+console_template = "pvpdeath"
+inputs = []
+
+[[commands.fields]]
+name = "alldeath"
+risk = "safe"
+label = "All Deaths"
+description = "Show death counts of all players"
+method = "console"
+console_template = "alldeath"
+inputs = []
+
+[[commands.fields]]
+name = "allpvpdeath"
+risk = "safe"
+label = "All PvP Deaths"
+description = "Show PvP death counts of all players"
+method = "console"
+console_template = "allpvpdeath"
+inputs = []
+
+[[commands.fields]]
+name = "dawn"
+risk = "caution"
+label = "Dawn"
+description = "Set the time to dawn"
+method = "console"
+console_template = "dawn"
+inputs = []
+
+[[commands.fields]]
+name = "noon"
+risk = "caution"
+label = "Noon"
+description = "Set the time to noon"
+method = "console"
+console_template = "noon"
+inputs = []
+
+[[commands.fields]]
+name = "dusk"
+risk = "caution"
+label = "Dusk"
+description = "Set the time to dusk"
+method = "console"
+console_template = "dusk"
+inputs = []
+
+[[commands.fields]]
+name = "midnight"
+risk = "caution"
+label = "Midnight"
+description = "Set the time to midnight"
+method = "console"
+console_template = "midnight"
+inputs = []
+
+[[commands.fields]]
+name = "settle"
+risk = "caution"
+label = "Settle Liquids"
+description = "Settle all water in the world"
+method = "console"
+console_template = "settle"
+inputs = []
+
+[[commands.fields]]
+name = "kick"
+risk = "danger"
+label = "Kick Player"
+description = "Kick a player from the server"
+method = "console"
+console_template = "kick {player}"
+inputs = [{ name = "player", type = "text", label = "Player Name", required = true }]
+
+[[commands.fields]]
+name = "ban"
+risk = "danger"
+label = "Ban Player"
+description = "Ban a player (written to the ban list)"
+method = "console"
+console_template = "ban {player}"
+inputs = [{ name = "player", type = "text", label = "Player Name", required = true }]
+
+[[commands.fields]]
+name = "exit-nosave"
+risk = "danger"
+label = "Shut Down Without Saving"
+description = "Shut down the server without saving the world"
+method = "console"
+console_template = "exit-nosave"
+inputs = []
+
+[errors]
+server_not_running = "Server is not running. Please start the server first"
+
+[aliases]
+module_aliases = ["테라리아", "테라", "terraria"]
+
+[aliases.commands]
+start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
+stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
+status = { aliases = ["상태", "확인"], description = "Check server status" }
+say = { aliases = ["말", "공지", "채팅"], description = "Send a message" }
+save = { aliases = ["저장"], description = "Save the world" }
+playing = { aliases = ["접속자", "플레이어", "목록"], description = "List players" }
+kick = { aliases = ["킥", "추방"], description = "Kick a player" }
+ban = { aliases = ["밴", "차단"], description = "Ban a player" }

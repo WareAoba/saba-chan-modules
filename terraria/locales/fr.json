@@ -1,0 +1,299 @@
+{
+  "module": {
+    "display_name": "Terraria",
+    "description": "Serveur dédié Terraria"
+  },
+  "settings": {
+    "managed_start": {
+      "label": "Démarrage géré (console)",
+      "description": "Démarrer avec la console saba-chan attachée"
+    },
+    "ip": {
+      "label": "IP d'écoute",
+      "description": "Adresse IP d'écoute du serveur (-ip). Vide = toutes"
+    },
+    "steam": {
+      "label": "Prise en charge de Steam",
+      "description": "Activer la prise en charge de Steam (-steam)"
+    },
+    "lobby": {
+      "label": "Salon Steam",
+      "description": "Qui peut rejoindre via Steam (-lobby, nécessite Steam)"
+    },
+    "disable_announcement_box": {
+      "label": "Désactiver la boîte d'annonce",
+      "description": "Désactiver les messages de la boîte d'annonce"
+    },
+    "announcement_box_range": {
+      "label": "Portée de la boîte d'annonce",
+      "description": "Portée en pixels, -1 = tout le serveur"
+    },
+    "world_name": {
+      "label": "Nom du monde",
+      "description": "Nom du fichier du monde (<nom>.wld) et du nouveau monde"
+    },
+    "world_dir": {
+      "label": "Dossier des mondes",
+      "description": "Dossier des fichiers de monde (worldpath)"
+    },
+    "autocreate": {
+      "label": "Taille du nouveau monde",
+      "description": "Taille si aucun monde : 1 petit, 2 moyen, 3 grand"
+    },
+    "difficulty": {
+      "label": "Difficulté du nouveau monde",
+      "description": "0 Classique, 1 Expert, 2 Maître, 3 Voyage"
+    },
+    "seed": {
+      "label": "Graine du nouveau monde",
+      "description": "Graine pour un monde nouvellement créé"
+    },
+    "port": {
+      "label": "Port",
+      "description": "Port TCP du serveur"
+    },
+    "max_players": {
+      "label": "Joueurs max.",
+      "description": "Nombre maximal de joueurs (1-255)"
+    },
+    "password": {
+      "label": "Mot de passe du serveur",
+      "description": "Mot de passe pour rejoindre (vide = aucun)"
+    },
+    "motd": {
+      "label": "Message du jour",
+      "description": "Message affiché aux joueurs qui arrivent"
+    },
+    "secure": {
+      "label": "Protection anti-triche",
+      "description": "Protection supplémentaire anti-triche (secure)"
+    },
+    "language": {
+      "label": "Langue du serveur",
+      "description": "Langue des messages du serveur"
+    },
+    "upnp": {
+      "label": "Redirection de port UPnP",
+      "description": "Rediriger le port automatiquement via UPnP"
+    },
+    "banlist": {
+      "label": "Fichier de bannissement",
+      "description": "Nom du fichier de bannissement dans le dossier du serveur"
+    },
+    "npcstream": {
+      "label": "Flux des PNJ",
+      "description": "Synchro des ennemis : plus bas = moins de saccades, plus de bande passante. 0 = désactivé"
+    },
+    "priority": {
+      "label": "Priorité du processus",
+      "description": "0 Temps réel, 1 Haute, 2 Supérieure à la normale, 3 Normale, 4 Inférieure à la normale, 5 Basse"
+    },
+    "journeypermission_time_setfrozen": {
+      "label": "Voyage : Figer le temps",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_time_setdawn": {
+      "label": "Voyage : Aube",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_time_setnoon": {
+      "label": "Voyage : Midi",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_time_setdusk": {
+      "label": "Voyage : Crépuscule",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_time_setmidnight": {
+      "label": "Voyage : Minuit",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_godmode": {
+      "label": "Voyage : Mode dieu",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_wind_setstrength": {
+      "label": "Voyage : Force du vent",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_rain_setstrength": {
+      "label": "Voyage : Force de la pluie",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_time_setspeed": {
+      "label": "Voyage : Vitesse du temps",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_rain_setfrozen": {
+      "label": "Voyage : Figer la pluie",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_wind_setfrozen": {
+      "label": "Voyage : Figer le vent",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_increaseplacementrange": {
+      "label": "Voyage : Portée de placement",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_setdifficulty": {
+      "label": "Voyage : Difficulté",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_biomespread_setfrozen": {
+      "label": "Voyage : Figer la propagation des biomes",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    },
+    "journeypermission_setspawnrate": {
+      "label": "Voyage : Taux d'apparition",
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+    }
+  },
+  "commands": {
+    "help": {
+      "label": "Aide",
+      "description": "Liste les commandes du serveur"
+    },
+    "playing": {
+      "label": "Joueurs",
+      "description": "Liste les joueurs connectés"
+    },
+    "clear": {
+      "label": "Effacer la console",
+      "description": "Efface la console du serveur"
+    },
+    "save": {
+      "label": "Sauvegarder le monde",
+      "description": "Sauvegarde le monde"
+    },
+    "say": {
+      "label": "Dire",
+      "description": "Envoie un message à tous",
+      "inputs": {
+        "message": {
+          "label": "Message"
+        }
+      }
+    },
+    "version": {
+      "label": "Version",
+      "description": "Affiche la version"
+    },
+    "time": {
+      "label": "Heure du jeu",
+      "description": "Affiche l'heure du jeu"
+    },
+    "port": {
+      "label": "Port",
+      "description": "Affiche le port"
+    },
+    "maxplayers": {
+      "label": "Joueurs max.",
+      "description": "Affiche la limite"
+    },
+    "motd": {
+      "label": "Message du jour",
+      "description": "Affiche le message du jour"
+    },
+    "password": {
+      "label": "Afficher le mot de passe",
+      "description": "Affiche le mot de passe dans la console"
+    },
+    "death": {
+      "label": "Morts",
+      "description": "Affiche les morts"
+    },
+    "pvpdeath": {
+      "label": "Morts JcJ",
+      "description": "Affiche les morts JcJ"
+    },
+    "alldeath": {
+      "label": "Toutes les morts",
+      "description": "Morts de tous les joueurs"
+    },
+    "allpvpdeath": {
+      "label": "Toutes les morts JcJ",
+      "description": "Morts JcJ de tous"
+    },
+    "dawn": {
+      "label": "Aube",
+      "description": "Règle l'heure à l'aube"
+    },
+    "noon": {
+      "label": "Midi",
+      "description": "Règle l'heure à midi"
+    },
+    "dusk": {
+      "label": "Crépuscule",
+      "description": "Règle l'heure au crépuscule"
+    },
+    "midnight": {
+      "label": "Minuit",
+      "description": "Règle l'heure à minuit"
+    },
+    "settle": {
+      "label": "Stabiliser les liquides",
+      "description": "Stabilise toute l'eau"
+    },
+    "kick": {
+      "label": "Expulser un joueur",
+      "description": "Expulse un joueur",
+      "inputs": {
+        "player": {
+          "label": "Nom du joueur"
+        }
+      }
+    },
+    "ban": {
+      "label": "Bannir un joueur",
+      "description": "Bannit un joueur (liste de bannissement)",
+      "inputs": {
+        "player": {
+          "label": "Nom du joueur"
+        }
+      }
+    },
+    "exit-nosave": {
+      "label": "Arrêter sans sauvegarder",
+      "description": "Arrête le serveur sans sauvegarder"
+    }
+  },
+  "errors": {
+    "archive_corrupt": "L'archive du serveur est endommagée ({{file}})",
+    "backup_paths_failed": "Impossible de déterminer les fichiers à sauvegarder : {{error}}",
+    "download_failed": "Échec du téléchargement : {{error}}",
+    "executable_not_found": "Exécutable du serveur introuvable. Installez d'abord le serveur",
+    "failed_to_kill": "Impossible d'arrêter le processus : {{error}}",
+    "graceful_stop_unavailable": "La console n'est pas connectée : impossible de sauvegarder avant l'arrêt. Forcez l'arrêt seulement si vous acceptez de perdre la progression non sauvegardée",
+    "install_failed": "Échec de l'installation : {{error}}",
+    "invalid_banlist": "Le nom \"{{name}}\" n'est pas un simple nom de fichier",
+    "invalid_world_name": "Le nom \"{{name}}\" ne peut pas contenir / \\ : * ? \" < > | ni finir par une espace ou un point",
+    "line_break": "La valeur de {{setting}} ne peut pas contenir de saut de ligne",
+    "no_install_dir": "Aucun dossier d'installation indiqué",
+    "no_version": "Choisissez une version du serveur (ex. 1.4.5.8)",
+    "not_server_folder": "Ce dossier ne contient pas de serveur Terraria : rien n'a été supprimé",
+    "properties_read_failed": "Impossible de lire serverconfig.txt : {{error}}",
+    "properties_write_failed": "Impossible d'enregistrer serverconfig.txt : {{error}}",
+    "server_not_in_archive": "Le fichier ne contient pas {{file}} pour ce système",
+    "server_reset_partial": "Certains fichiers du monde n'ont pas pu être supprimés : {{errors}}",
+    "settings_write_failed": "Le serveur est installé, mais les paramètres n'ont pas pu être écrits : {{error}}",
+    "version_list_failed": "Impossible d'obtenir les versions depuis terraria.org : {{error}}"
+  },
+  "messages": {
+    "downloading": "Téléchargement du serveur Terraria",
+    "extracting": "Extraction des fichiers du serveur",
+    "force_killed": "Le processus {{pid}} a été arrêté de force",
+    "graceful_stop": "Le serveur a sauvegardé et s'est arrêté",
+    "graceful_stop_timeout": "Le serveur ne s'est pas arrêté à temps ; arrêt forcé",
+    "install_complete": "Serveur Terraria installé",
+    "no_mappable_settings": "Rien à écrire dans serverconfig.txt",
+    "no_process_running": "Le serveur ne tourne pas",
+    "properties_updated": "Enregistré dans serverconfig.txt. Redémarrez le serveur pour l'appliquer",
+    "server_reset_complete": "Le monde a été supprimé. Un nouveau sera créé au prochain démarrage",
+    "stop_requested": "Demande de sauvegarde et d'arrêt envoyée"
+  },
+  "reset": {
+    "label": "Réinitialiser le monde",
+    "description": "Supprime seulement le fichier du monde de ce serveur (<nom>.wld et le .wld.bak du jeu). serverconfig.txt, la liste de bannissement, les autres mondes et les fichiers du serveur restent. Un nouveau monde est créé au prochain démarrage."
+  }
+}

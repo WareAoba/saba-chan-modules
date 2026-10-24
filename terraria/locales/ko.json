@@ -1,0 +1,299 @@
+{
+  "module": {
+    "display_name": "테라리아",
+    "description": "테라리아 데디케이티드 서버"
+  },
+  "settings": {
+    "managed_start": {
+      "label": "콘솔 연결 시작",
+      "description": "사바쨩 콘솔을 붙여서 시작합니다"
+    },
+    "ip": {
+      "label": "수신 IP",
+      "description": "서버가 받을 IP 주소(-ip). 비우면 모든 주소"
+    },
+    "steam": {
+      "label": "Steam 지원",
+      "description": "Steam 지원을 켭니다(-steam)"
+    },
+    "lobby": {
+      "label": "Steam 로비",
+      "description": "Steam으로 들어올 수 있는 사람(-lobby, Steam 지원 필요)"
+    },
+    "disable_announcement_box": {
+      "label": "알림판 끄기",
+      "description": "알림판(Announcement Box) 메시지를 끕니다"
+    },
+    "announcement_box_range": {
+      "label": "알림판 범위",
+      "description": "메시지가 닿는 범위(픽셀). -1이면 서버 전체"
+    },
+    "world_name": {
+      "label": "월드 이름",
+      "description": "월드 파일 이름(<이름>.wld)이자 새 월드의 이름"
+    },
+    "world_dir": {
+      "label": "월드 폴더",
+      "description": "월드 파일을 두는 폴더(worldpath)"
+    },
+    "autocreate": {
+      "label": "새 월드 크기",
+      "description": "월드가 없을 때 만들 크기: 1 작음, 2 중간, 3 큼"
+    },
+    "difficulty": {
+      "label": "새 월드 난이도",
+      "description": "0 클래식, 1 엑스퍼트, 2 마스터, 3 저니"
+    },
+    "seed": {
+      "label": "새 월드 시드",
+      "description": "새로 만드는 월드의 시드"
+    },
+    "port": {
+      "label": "포트",
+      "description": "서버가 받을 TCP 포트"
+    },
+    "max_players": {
+      "label": "최대 인원",
+      "description": "최대 접속 인원(1~255)"
+    },
+    "password": {
+      "label": "서버 비밀번호",
+      "description": "접속 비밀번호(비우면 없음)"
+    },
+    "motd": {
+      "label": "오늘의 메시지",
+      "description": "들어오는 플레이어에게 보이는 메시지"
+    },
+    "secure": {
+      "label": "치트 방지",
+      "description": "추가 치트 방지(secure)"
+    },
+    "language": {
+      "label": "서버 언어",
+      "description": "서버 메시지 언어"
+    },
+    "upnp": {
+      "label": "UPnP 포트 포워딩",
+      "description": "UPnP로 포트를 자동으로 엽니다"
+    },
+    "banlist": {
+      "label": "밴 목록 파일",
+      "description": "서버 폴더 안의 밴 목록 파일 이름"
+    },
+    "npcstream": {
+      "label": "NPC 동기화",
+      "description": "적 동기화: 낮을수록 덜 끊기지만 대역폭을 더 씁니다. 0이면 끔"
+    },
+    "priority": {
+      "label": "프로세스 우선순위",
+      "description": "0 실시간, 1 높음, 2 보통 이상, 3 보통, 4 보통 이하, 5 낮음"
+    },
+    "journeypermission_time_setfrozen": {
+      "label": "저니: 시간 멈추기",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_time_setdawn": {
+      "label": "저니: 새벽으로",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_time_setnoon": {
+      "label": "저니: 정오로",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_time_setdusk": {
+      "label": "저니: 해 질 녘으로",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_time_setmidnight": {
+      "label": "저니: 자정으로",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_godmode": {
+      "label": "저니: 무적",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_wind_setstrength": {
+      "label": "저니: 바람 세기",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_rain_setstrength": {
+      "label": "저니: 비 세기",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_time_setspeed": {
+      "label": "저니: 시간 속도",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_rain_setfrozen": {
+      "label": "저니: 비 멈추기",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_wind_setfrozen": {
+      "label": "저니: 바람 멈추기",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_increaseplacementrange": {
+      "label": "저니: 설치 범위",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_setdifficulty": {
+      "label": "저니: 난이도",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_biomespread_setfrozen": {
+      "label": "저니: 환경 확산 멈추기",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    },
+    "journeypermission_setspawnrate": {
+      "label": "저니: 몬스터 생성률",
+      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+    }
+  },
+  "commands": {
+    "help": {
+      "label": "도움말",
+      "description": "서버 명령 목록을 봅니다"
+    },
+    "playing": {
+      "label": "접속자",
+      "description": "접속한 플레이어 목록을 봅니다"
+    },
+    "clear": {
+      "label": "콘솔 지우기",
+      "description": "서버 콘솔을 지웁니다"
+    },
+    "save": {
+      "label": "월드 저장",
+      "description": "월드를 저장합니다"
+    },
+    "say": {
+      "label": "공지",
+      "description": "모든 플레이어에게 메시지를 보냅니다",
+      "inputs": {
+        "message": {
+          "label": "메시지"
+        }
+      }
+    },
+    "version": {
+      "label": "버전",
+      "description": "서버 버전을 봅니다"
+    },
+    "time": {
+      "label": "게임 시간",
+      "description": "게임 안 시간을 봅니다"
+    },
+    "port": {
+      "label": "포트",
+      "description": "받는 포트를 봅니다"
+    },
+    "maxplayers": {
+      "label": "최대 인원",
+      "description": "최대 인원을 봅니다"
+    },
+    "motd": {
+      "label": "오늘의 메시지",
+      "description": "오늘의 메시지를 봅니다"
+    },
+    "password": {
+      "label": "비밀번호 보기",
+      "description": "서버 콘솔에 서버 비밀번호를 찍습니다"
+    },
+    "death": {
+      "label": "사망 수",
+      "description": "플레이어 사망 수를 봅니다"
+    },
+    "pvpdeath": {
+      "label": "PvP 사망 수",
+      "description": "플레이어 PvP 사망 수를 봅니다"
+    },
+    "alldeath": {
+      "label": "전체 사망 수",
+      "description": "모든 플레이어의 사망 수를 봅니다"
+    },
+    "allpvpdeath": {
+      "label": "전체 PvP 사망 수",
+      "description": "모든 플레이어의 PvP 사망 수를 봅니다"
+    },
+    "dawn": {
+      "label": "새벽",
+      "description": "시간을 새벽으로 바꿉니다"
+    },
+    "noon": {
+      "label": "정오",
+      "description": "시간을 정오로 바꿉니다"
+    },
+    "dusk": {
+      "label": "해 질 녘",
+      "description": "시간을 해 질 녘으로 바꿉니다"
+    },
+    "midnight": {
+      "label": "자정",
+      "description": "시간을 자정으로 바꿉니다"
+    },
+    "settle": {
+      "label": "물 안정화",
+      "description": "월드의 모든 물을 가라앉힙니다"
+    },
+    "kick": {
+      "label": "플레이어 추방",
+      "description": "플레이어를 서버에서 내보냅니다",
+      "inputs": {
+        "player": {
+          "label": "플레이어 이름"
+        }
+      }
+    },
+    "ban": {
+      "label": "플레이어 차단",
+      "description": "플레이어를 차단합니다(밴 목록에 기록)",
+      "inputs": {
+        "player": {
+          "label": "플레이어 이름"
+        }
+      }
+    },
+    "exit-nosave": {
+      "label": "저장 없이 종료",
+      "description": "월드를 저장하지 않고 서버를 끕니다"
+    }
+  },
+  "errors": {
+    "archive_corrupt": "서버 압축 파일이 손상되었습니다({{file}})",
+    "backup_paths_failed": "백업할 파일을 정하지 못했습니다: {{error}}",
+    "download_failed": "내려받기에 실패했습니다: {{error}}",
+    "executable_not_found": "테라리아 서버 실행 파일이 없습니다. 먼저 서버를 설치하세요",
+    "failed_to_kill": "서버 프로세스를 끝내지 못했습니다: {{error}}",
+    "graceful_stop_unavailable": "서버 콘솔이 연결되어 있지 않아 저장하고 끌 수 없습니다. 저장하지 않은 진행이 사라져도 되면 강제 종료하세요",
+    "install_failed": "설치에 실패했습니다: {{error}}",
+    "invalid_banlist": "밴 목록 이름 \"{{name}}\"은 단순한 파일 이름이 아닙니다",
+    "invalid_world_name": "월드 이름 \"{{name}}\"에는 / \\ : * ? \" < > |를 쓸 수 없고 공백이나 점으로 끝날 수 없습니다",
+    "line_break": "{{setting}} 값에 줄바꿈을 넣을 수 없습니다",
+    "no_install_dir": "설치 폴더가 없습니다",
+    "no_version": "서버 버전을 고르세요(예: 1.4.5.8)",
+    "not_server_folder": "이 폴더에 테라리아 서버가 없어 아무것도 지우지 않았습니다",
+    "properties_read_failed": "serverconfig.txt를 읽지 못했습니다: {{error}}",
+    "properties_write_failed": "serverconfig.txt를 저장하지 못했습니다: {{error}}",
+    "server_not_in_archive": "내려받은 파일에 이 시스템용 {{file}}이 없습니다",
+    "server_reset_partial": "월드 파일 일부를 지우지 못했습니다: {{errors}}",
+    "settings_write_failed": "서버는 설치했지만 설정을 쓰지 못했습니다: {{error}}",
+    "version_list_failed": "terraria.org에서 서버 버전 목록을 받지 못했습니다: {{error}}"
+  },
+  "messages": {
+    "downloading": "테라리아 서버를 내려받는 중",
+    "extracting": "서버 파일을 푸는 중",
+    "force_killed": "서버 프로세스 {{pid}}를 강제로 끝냈습니다",
+    "graceful_stop": "서버가 월드를 저장하고 꺼졌습니다",
+    "graceful_stop_timeout": "서버가 제시간에 꺼지지 않아 강제로 끕니다",
+    "install_complete": "테라리아 서버를 설치했습니다",
+    "no_mappable_settings": "serverconfig.txt에 쓸 값이 없습니다",
+    "no_process_running": "서버가 켜져 있지 않습니다",
+    "properties_updated": "serverconfig.txt에 저장했습니다. 서버를 다시 켜면 적용됩니다",
+    "server_reset_complete": "월드를 지웠습니다. 다음에 켤 때 새 월드를 만듭니다",
+    "stop_requested": "서버에 저장하고 끄라고 요청했습니다"
+  },
+  "reset": {
+    "label": "월드 초기화",
+    "description": "이 서버의 월드 파일(<월드 이름>.wld와 게임이 만든 .wld.bak)만 지웁니다. serverconfig.txt, 밴 목록, 다른 월드, 서버 파일은 남습니다. 다음에 켤 때 새 월드를 만듭니다."
+  }
+}

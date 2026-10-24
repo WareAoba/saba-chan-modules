@@ -74,6 +74,26 @@ def test_server_properties_manager_update():
         assert result["gamemode"] == "creative"
 
 
+def test_a_failed_properties_save_keeps_the_old_file(monkeypatch):
+    """저장이 중간에 실패해도 server.properties가 비거나 잘리지 않는다 (화이트리스트 등 접속 설정이 기본값으로 돌아가지 않게)"""
+    from minecraft.lifecycle import ServerPropertiesManager
+    with tempfile.TemporaryDirectory() as tmpdir:
+        mgr = ServerPropertiesManager(tmpdir)
+        mgr.write({"white-list": "true", "online-mode": "true"})
+        before = open(mgr.path, "rb").read()
+
+        def broken_replace(*_):
+            raise OSError("disk full")
+        # 바꾸는 단계에서 실패시킨다 (Windows는 기존 파일을 os.replace가 아니라 ReplaceFileW로 바꾼다)
+        import daemon_rcon
+        monkeypatch.setattr(daemon_rcon, "_replace_keeping_access", broken_replace)
+
+        assert mgr.update({"white-list": "false"}) is False
+        assert mgr.write({"white-list": "false"}) is False
+        assert open(mgr.path, "rb").read() == before
+        assert [n for n in os.listdir(tmpdir) if n.endswith(".tmp")] == []
+
+
 def test_server_properties_manager_update_new_file():
     """ServerPropertiesManager update creates file from defaults if missing."""
     from minecraft.lifecycle import ServerPropertiesManager
@@ -1358,7 +1378,23 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     # 채팅에 머리 흉내("]: ")를 넣어도 줄 처음의 로그 머리부터 맞춰야 한다 (리뷰 544)
     assert not any(p.search('[20:08:00] [Server thread/INFO]: <Steve> ]: Done (1.0s)! For help, type "help"') for p in patterns)
     assert "ready_patterns" not in toml["detection"]
-    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.5"
+    # 설정 파일 저장이 공용 atomic_write(saba-core 0.1.10부터)를 쓴다
+    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.10"
+
+
+def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():
+    """정상 종료 문구도 줄 처음의 로그 머리부터 맞춘다. 채팅에 "Stopping the server"를 친 뒤 서버가 충돌 신호 없이 죽으면
+    "게임 안 정지"로 잘못 갈라 자동 재시작·알림이 빠지지 않게 한다 (EE2)"""
+    import re
+    import tomllib
+    with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
+        toml = tomllib.load(f)
+    patterns = [re.compile(p) for p in toml["detection"]["graceful_exit_patterns"]]
+    assert any(p.search("[20:07:01] [Server thread/INFO]: Stopping the server") for p in patterns)
+    assert any(p.search("[20:07:01 INFO]: Stopping the server") for p in patterns)
+    assert any(p.search("[20:07:01] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping the server") for p in patterns)
+    assert not any(p.search("[20:08:00] [Server thread/INFO]: <Steve> Stopping the server") for p in patterns)
+    assert not any(p.search("[20:08:00] [Server thread/INFO]: <Steve> ]: Stopping the server") for p in patterns)
 
 
 def test_player_patterns_name_who_joined_or_left():

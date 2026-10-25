@@ -162,6 +162,8 @@
     "stop": { "label": "Detener servidor", "description": "Detener el servidor correctamente" }
   },
   "errors": {
+    "graceful_stop_unavailable": "No hay forma de pedir al servidor que guarde y se cierre (sin consola ni REST). No se detuvo. Fuérzalo solo si aceptas perder el progreso no guardado.",
+    "backup_paths_failed": "No se pudo leer la carpeta de plugins para la copia de seguridad: {{error}}",
     "server_not_running": "El servidor no está en ejecución. Inicia primero el servidor.",
     "timeout": "Se agotó el tiempo de respuesta del servidor. Comprueba el estado del servidor.",
     "internal_server_error": "Se produjo un error interno del servidor.",

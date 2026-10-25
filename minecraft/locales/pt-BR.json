@@ -162,6 +162,8 @@
     "stop": { "label": "Parar servidor", "description": "Parar o servidor corretamente" }
   },
   "errors": {
+    "graceful_stop_unavailable": "Não há como pedir ao servidor que salve e encerre (sem console nem REST). Ele não foi parado. Force a parada só se aceitar perder o progresso não salvo.",
+    "backup_paths_failed": "Não foi possível ler a pasta de plugins para o backup: {{error}}",
     "server_not_running": "O servidor não está em execução. Inicie o servidor primeiro.",
     "timeout": "O servidor demorou demais para responder. Verifique o status do servidor.",
     "internal_server_error": "Ocorreu um erro interno no servidor.",

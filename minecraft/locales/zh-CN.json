@@ -162,6 +162,8 @@
     "stop": { "label": "停止服务器", "description": "正常停止服务器" }
   },
   "errors": {
+    "graceful_stop_unavailable": "无法请求服务器保存并退出(没有控制台或 REST)。服务器未停止。只有在可以接受丢失未保存进度时才强制停止。",
+    "backup_paths_failed": "无法读取要备份的插件文件夹:{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
     "timeout": "服务器响应超时。请检查服务器状态。",
     "internal_server_error": "发生服务器内部错误。",

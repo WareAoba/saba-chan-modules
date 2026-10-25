@@ -17,11 +17,12 @@
 ## 받기
 
 메이커의 버전은 `.claude-plugin/plugin.json` 하나에 있다. 발행할 때 한 번 올리고 `maker-v<버전>` 태그를 단다.
+Claude Code 플러그인 마켓(`.claude-plugin/marketplace.json`)은 아직 열지 않았다. 열 때는 저장소 루트에 마켓 파일만 더하면 이 폴더가 그대로 플러그인이 된다.
 이 메이커가 맞는 데몬 계약은 `SKILL.md` 머리의 `metadata`(saba-core 최소 버전, 모듈 스키마 버전)다.
 
 | 에이전트 | 설치 | 업데이트 |
 |---|---|---|
-| Claude Code | `/plugin marketplace add WareAoba/saba-chan-modules` 뒤 `/plugin install saba-module-maker@saba-chan-modules` | `/plugin` › Installed › Update now, 또는 `claude plugin update saba-module-maker@saba-chan-modules` |
+| Claude Code | `git clone https://github.com/WareAoba/saba-chan-modules` 뒤 그 폴더에서 Claude Code를 연다. `.claude/skills/saba-module-maker/`로 스킬을 찾는다 | `git pull` |
 | Codex | 기본 스킬 `$skill-installer`에 "WareAoba/saba-chan-modules 저장소의 maker 경로 설치"라고 부탁 (`--repo WareAoba/saba-chan-modules --path maker`) | 같은 방법으로 다시 설치 |
 | 그 밖의 에이전트 | 이 저장소를 받으면 `AGENTS.md`가 `maker/SKILL.md`를 가리킨다. 스킬 폴더를 읽지 않으면 "`maker/SKILL.md`를 읽고 따르라"고 부탁 | `git pull` |
 

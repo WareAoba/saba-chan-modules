@@ -43,6 +43,8 @@ announce_command = "announce"
 paths = ["Pal/Saved/Config"]
 hook = true
 save_command = "save"
+# 게임 자동 백업(bIsUseBackupSaveData, backup/world/<시각>/)을 사바쨩 백업 목록에 보이고 보관·복원한다 (lifecycle backup_snapshots)
+snapshots = true
 
 # Shipping-Cmd는 stdout이 파이프면 끝날 때까지 모아 둔다(2026-10-16 실측). 의사 콘솔로 띄워 줄마다 받는다.
 # Pal/Saved/Logs에는 .log가 생기지 않아 log_files는 쓰지 않는다.

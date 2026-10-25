@@ -544,6 +544,10 @@
             "string",
             "null"
           ]
+        },
+        "snapshots": {
+          "description": "true면 lifecycle `backup_snapshots(config)`가 게임이 스스로 만든 자동 백업(스냅샷)을 `{\"success\": true, \"snapshots\": [{\"id\", \"created\", \"paths\": [{\"from\", \"to\"}]}]}`(새것부터)로 준다. 백업 목록에 함께 보이고, 사바쨩 백업으로 보관하거나 바로 복원할 수 있다",
+          "type": "boolean"
         }
       },
       "type": "object"

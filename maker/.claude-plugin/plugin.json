@@ -1,0 +1,9 @@
+{
+  "name": "saba-module-maker",
+  "version": "0.1.0",
+  "description": "사바쨩(saba-chan) 게임 서버 모듈을 만들고 고치는 스킬과 도구: 조사, 실물 확인, 뼈대, 관문 검사, 격리 실측",
+  "author": { "name": "WareAoba" },
+  "homepage": "https://github.com/WareAoba/saba-chan-modules/tree/main/maker",
+  "repository": "https://github.com/WareAoba/saba-chan-modules",
+  "license": "MIT"
+}

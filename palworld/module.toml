@@ -11,8 +11,9 @@ icon = "icon.png"
 log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
 
 [module.dependencies]
-# [launch] line_start는 0.1.11 데몬부터 읽는다 (0.1.10은 모르는 키라 모듈을 거절한다)
-saba-core = ">=0.1.11"
+# [launch] line_start·[backup] snapshots는 0.1.10 발행본이 모르는 키다. 발행 전 main 데몬도 0.1.10으로 보고하므로
+# 0.1.11을 발행할 때 ">=0.1.11-0"으로 올린다 (-0이 있어야 0.1.11-beta.N·rc.N 데몬도 받는다)
+saba-core = ">=0.1.10"
 ext-steamcmd = ">=0.1.0"
 ext-ue4-ini = ">=0.1.0"
 

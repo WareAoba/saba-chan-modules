@@ -8,7 +8,7 @@
 4. 부르면 안전한 함수들을 빈 작업 폴더에서 불러, 제한 시간 안에 종료 코드 0으로 끝나고
    stdout 마지막 줄이 JSON 객체이며, stderr의 `PROGRESS:` 줄이 JSON인지
 5. 예약 함수 `functions`가 FUNCTIONS 표의 이름을 돌려준다
-6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일에 en에 없는 키가 없다
+6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일의 키가 en과 같다
 7. 명령마다 `risk`와 `description`이 있다
 8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다
 9. 콘솔 없는 서버의 일반 정지는 저장 후 종료를 요청하거나, 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 알린다
@@ -837,7 +837,7 @@ def test_translation_keys(module):
             used.add(n.args[0].value)
     assert not (used - en), f"코드가 쓰는데 en.json에 없는 키: {sorted(used - en)}"
 
-    problems, untranslated = [], {}
+    problems = []
     for f in sorted(locales.glob("*.json")):
         try:
             keys = flat_keys(json.loads(f.read_text(encoding="utf-8-sig")))
@@ -847,10 +847,9 @@ def test_translation_keys(module):
         if keys - en:
             problems.append(f"{f.name}: en.json에 없는 키 {sorted(keys - en)[:5]}")
         if en - keys:
-            untranslated[f.stem] = len(en - keys)
+            # 빠진 키는 그 언어에서 영어로 보인다 (사용자 문구는 10개 언어)
+            problems.append(f"{f.name}: 번역 안 된 키 {sorted(en - keys)[:5]}")
     assert not problems, "\n".join(problems)
-    if untranslated:
-        warnings.warn(f"{module.name}: 번역 안 된 키 수 (영어로 보인다): {untranslated}")
 
 
 # ── 코드 검사 (M12) ─────────────────────────────────────

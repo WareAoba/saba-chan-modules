@@ -87,6 +87,20 @@ class Output:
             return self.lines[mark:]
 
 
+def kill_tree(proc):
+    """이 도구가 띄운 자식과 그 자손만 끝낸다 (배치 파일이 띄운 java 같은 손자가 남지 않게). 이름으로 찾지 않는다"""
+    if sys.platform == "win32":
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)], capture_output=True, stdin=subprocess.DEVNULL)
+    else:
+        try:
+            os.killpg(proc.pid, 9)  # start_new_session으로 자식이 따로 프로세스 그룹을 가진다
+        except OSError:
+            pass
+    if proc.poll() is None:
+        proc.kill()
+    proc.wait()
+
+
 def text(raw, encoding):
     return raw.rstrip(b"\r\n").decode(encoding, errors="replace")
 
@@ -100,13 +114,14 @@ def probe(command, cwd, ready=None, sends=(), stop=None, timeout=120, settle=3.0
     before = snapshot(cwd)
     started = time.monotonic()
     # stdin은 버퍼 없이 연다: 막힌 쓰기가 남긴 버퍼를 나중에 비우려다 닫힌 파이프에 쓰지 않게
-    proc = subprocess.Popen(command, cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
+    proc = subprocess.Popen(command, cwd=cwd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0,
+                            start_new_session=sys.platform != "win32")
     writers = []
     try:
         return _drive(proc, writers, cwd, before, started, pattern, ready, sends, stop, timeout, settle, encoding)
     finally:
         if proc.poll() is None:
-            proc.kill()  # 이 도구가 띄운 자식만 (예외로 빠져나와도 남기지 않는다)
+            kill_tree(proc)  # 예외로 빠져나와도 남기지 않는다
             proc.wait()
         for writer in writers:  # 자식이 끝나면 막힌 쓰기도 실패로 풀린다
             writer.join(5)
@@ -165,7 +180,7 @@ def _drive(proc, writers, cwd, before, started, pattern, ready, sends, stop, tim
         stop_result["exit_code"] = proc.wait(timeout=timeout)
         stop_result["exited"] = True
     except subprocess.TimeoutExpired:
-        proc.kill()  # 이 도구가 띄운 자식만
+        kill_tree(proc)
         proc.wait()
     out.thread.join(5)
     stop_result["output"] = [text(raw, encoding) for _, raw in out.since(mark)]

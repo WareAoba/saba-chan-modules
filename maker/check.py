@@ -54,6 +54,13 @@ def leaves(data, prefix=""):
         yield prefix[:-1]
 
 
+def same_json(path, data):
+    try:
+        return json.loads(path.read_text(encoding="utf-8")) == data
+    except (OSError, ValueError):
+        return False
+
+
 def placeholders_gate(folder):
     hits = []
     for name in ("module.toml", "lifecycle.py"):
@@ -88,6 +95,10 @@ def locales_gate(folder):
         untranslated = sorted(set(leaves(en)) - set(leaves(ko)))
         if untranslated:
             problems.append("ko에 없는 키: " + ", ".join(untranslated))
+        # new_module.py는 틀에 없는 언어를 en으로 채운다. 그대로 두면 번역하지 않은 것이다
+        copies = [f"{lang}.json" for lang in LANGUAGES if lang not in ("en", "ko") and same_json(locales / f"{lang}.json", en)]
+        if copies:
+            problems.append("en.json과 같은 (번역 안 된) 언어 파일: " + ", ".join(copies))
     return gate("locales", "fail" if problems else "ok", "; ".join(problems))
 
 
@@ -103,7 +114,7 @@ def tests_gate(folder, repo):
 
 def version_gate(folder, repo, base):
     try:
-        version = tomllib.loads((folder / "module.toml").read_text(encoding="utf-8"))["module"]["version"]
+        version = tomllib.loads((folder / "module.toml").read_text(encoding="utf-8-sig"))["module"]["version"]
     except (OSError, ValueError, KeyError) as e:
         return gate("version", "fail", f"module.toml에서 버전을 읽지 못했다: {e}")
     before = None
@@ -112,9 +123,12 @@ def version_gate(folder, repo, base):
         if found.returncode != 0:
             return gate("version", "fail", f"비교할 기준 {base}를 찾지 못했다")
         shown = subprocess.run(["git", "show", f"{base}:{folder.relative_to(repo).as_posix()}/module.toml"],
-                               cwd=repo, capture_output=True, stdin=subprocess.DEVNULL, text=True, encoding="utf-8")
+                               cwd=repo, capture_output=True, stdin=subprocess.DEVNULL, text=True, encoding="utf-8-sig")
         if shown.returncode == 0:  # 기준에 없으면 새 모듈이다
-            before = tomllib.loads(shown.stdout)["module"]["version"]
+            try:
+                before = tomllib.loads(shown.stdout)["module"]["version"]
+            except (ValueError, KeyError) as e:
+                return gate("version", "fail", f"{base}의 module.toml에서 버전을 읽지 못했다: {e}")
     expected = before or "0.1.0"
     if version != expected:
         where = f"{base}의 {before}" if before else "새 모듈은 0.1.0"
@@ -141,9 +155,9 @@ def tool_gates(folder, repo, args):
     env = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, [shared, os.environ.get("PYTHONPATH")]))}
     results = [run("module-tests", [python, "-m", "pytest", "-q", str(folder)], repo, env)]
     conformance = [python, "-m", "pytest", "-q", "conformance", "--module", str(folder)]
-    if args.shared_libs:
-        conformance += ["--shared-libs", args.shared_libs]
-    results.append(run("conformance", conformance, repo))
+    if os.path.isfile(os.path.join(shared, "i18n.py")):
+        conformance += ["--shared-libs", shared]
+    results.append(run("conformance", conformance, repo, env))
     if args.saba_core:
         # audit이 `python`을 찾으므로 이 Python을 PATH 앞에 둔다
         env = {**env, "PATH": os.path.dirname(python) + os.pathsep + os.environ.get("PATH", "")}
@@ -210,7 +224,8 @@ def main():
         pathlib.Path(args.out).write_text(report, encoding="utf-8")
     sys.stdout.reconfigure(encoding="utf-8")
     print(report)
-    return 1 if any(r["status"] == "fail" for r in results) else 0
+    # 건너뛴 관문도 통과가 아니다 (--saba-core 없이 돌리면 validate·audit를 재지 않는다)
+    return 1 if any(r["status"] != "ok" for r in results) else 0
 
 
 if __name__ == "__main__":

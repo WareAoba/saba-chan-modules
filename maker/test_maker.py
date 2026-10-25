@@ -295,6 +295,12 @@ def finished_module(repo):
     folder = new_module.create(repo, "mygamex", "My Game X")
     path = folder / "module.toml"
     path.write_text(path.read_text(encoding="utf-8").replace("MyGameServer", "XServer"), encoding="utf-8")
+    for lang in new_module.LANGUAGES:
+        if lang not in ("en", "ko"):
+            locale = folder / "locales" / f"{lang}.json"
+            data = json.loads(locale.read_text(encoding="utf-8"))
+            data["messages"]["stop_requested"] = f"[{lang}] stop"
+            locale.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     (folder / "RESEARCH.md").write_text("# 조사\n\n| 항목 | 값 | 출처 |\n|---|---|---|\n| 포트 | 1 | https://example.com 문서 |\n", encoding="utf-8")
     return folder
 
@@ -332,6 +338,17 @@ def test_check_static_flags_missing_languages_and_untranslated_korean(repo):
     assert details["locales"]["status"] == "fail"
     assert "ja.json" in details["locales"]["detail"]
     assert "messages.stop_requested" in details["locales"]["detail"]
+
+
+def test_check_static_flags_languages_left_as_english_copies(repo):
+    folder = finished_module(repo)
+    en = (folder / "locales" / "en.json").read_text(encoding="utf-8")
+    (folder / "locales" / "fr.json").write_text(en, encoding="utf-8")
+
+    details = {r["gate"]: r for r in check.static_gates(folder, repo)}
+
+    assert details["locales"]["status"] == "fail"
+    assert "fr.json" in details["locales"]["detail"]
 
 
 def test_check_static_flags_unregistered_tests(repo):

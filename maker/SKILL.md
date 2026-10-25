@@ -80,7 +80,8 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
    python maker/check.py <name> --saba-core <saba-core 실행 파일>
    ```
    자리표시·조사 표 출처·10개 언어·테스트 등록·버전, 모듈 테스트, 적합성 키트, `module validate`, `module audit`를 돌려 표로 보고한다.
-   실패가 있으면 종료 코드 1이다. "직접 확인" 목록은 에이전트가 스스로 확인하고 결과를 적는다.
+   실패나 건너뛴 관문(`--saba-core`를 주지 않으면 validate·audit)이 있으면 종료 코드 1이다. 번역하지 않고 en.json 그대로 둔 언어 파일도 실패다.
+   "직접 확인" 목록은 에이전트가 스스로 확인하고 결과를 적는다.
 9. **실측한다.** 진짜 데몬과 격리로 설치 → 설정 → 시작 → 명령 → 정지 → 백업 → 초기화를 밟는다.
    ```
    python maker/check.py <name> --saba-core <saba-core> --trial [--accept-agreement <id>]

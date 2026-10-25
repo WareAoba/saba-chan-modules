@@ -773,3 +773,29 @@ def test_path_boundary_errors_reach_the_shared_runner(tmp_path, monkeypatch, fun
         with mock.patch.object(lifecycle, "_get_settings_ini_path", side_effect=PathOutside(tmp_path / "outside")):
             with pytest.raises(PathOutside):
                 getattr(lifecycle, function)({"pid": 4321, "instance_id": "i1"})
+
+
+def test_line_start_splits_rest_logs_written_without_newlines():
+    """[launch] line_start: 팰월드는 REST 접근 로그를 줄바꿈 없이 이어 쓴다 (2026-10-25 PC 실측 원문).
+    줄 머리는 시각까지 포함해야 한다: `[LOG]`로만 나누면 시각이 앞 줄에 떨어져 남는다."""
+    import re
+
+    with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
+        pattern = tomllib.load(f)["launch"]["line_start"]
+    head = re.compile(pattern)
+    assert not head.match("")
+    joined = (
+        "[2026-10-26 01:21:33] [LOG] REST accessed endpoint /v1/api/metrics OK"
+        "[2026-10-26 01:21:33] [LOG] REST accessed endpoint /v1/api/save OK"
+        "[2026-10-26 01:21:33] [LOG] REST accessed endpoint /v1/api/shutdown OK"
+    )
+    starts = [m.start() for m in head.finditer(joined) if m.start() > 0]
+    parts = [joined[a:b] for a, b in zip([0, *starts], [*starts, len(joined)])]
+    assert parts == [
+        "[2026-10-26 01:21:33] [LOG] REST accessed endpoint /v1/api/metrics OK",
+        "[2026-10-26 01:21:33] [LOG] REST accessed endpoint /v1/api/save OK",
+        "[2026-10-26 01:21:33] [LOG] REST accessed endpoint /v1/api/shutdown OK",
+    ]
+    # 한 줄로 온 로그는 나누지 않는다
+    single = "[2026-10-26 01:18:32] [LOG] REST accessed endpoint /v1/api/metrics OK"
+    assert [m.start() for m in head.finditer(single) if m.start() > 0] == []

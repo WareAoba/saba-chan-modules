@@ -14,6 +14,7 @@
 | 테라리아가 정식 설치에서 설정 파일을 못 고쳐 시작 실패 (modules #57 실측) | 단위 테스트는 격리 없이 돌았고, 격리된 비공식 모듈에서 공용 `atomic_write`(ReplaceFileW)가 액세스 거부 | PC 실측을 격리 실행으로(`trial.py`) 하고, 격리 실패는 데몬 문제로 보고 (testing.md) |
 | 테라리아 Windows 서버가 시작 즉시 죽음 (modules #57 실측) | 실행 전제(XNA Framework 4.0)를 조사하지 않음 | 실행 전제를 조사하고 고정 판을 서버 폴더에 둠 (설계 원칙 3, lifecycle.md §공통) |
 | 테라리아 명령·정지가 먹지 않고 정지가 60초 뒤 강제 종료 (modules #57 PC 실측) | Windows 서버가 파이프 stdin을 읽지 않음. Linux 실측(파이프로 동작)만 보고 Windows도 같다고 봄 | OS마다 콘솔 입력을 확인하고(`probe_server.py` "답 없음") 필요하면 `console = "pty"` |
+| 팰월드 REST 응답 로그(save OK·shutdown OK)가 콘솔에 한 줄로 붙음 (saba-chan #571 PC 실측) | 서버가 로그를 줄바꿈 없이 이어 씀. 출력이 멈출 때 끊는 것만으로는 0.5초 안에 연달아 쓴 줄을 못 나눔 | 붙은 자리 원문으로 줄 머리를 정해 `[launch] line_start`에 선언. 시각까지 포함해야 함 |
 | 테라리아 XNA 설치가 격리 실행에서 실패 (modules #57 PC 실측) | `msiexec /a`는 Windows Installer 서비스에 닿지 못함(1601), `tempfile.mkdtemp` 폴더는 격리 계정이 못 씀 | 격리 실행 제약을 알고 파일 형식을 직접 읽음, 임시 파일은 `mkstemp` (lifecycle.md §공통) |
 
 ## 공식 기능을 두고 자체 구현한 곳 (다시 하기 쉬움)

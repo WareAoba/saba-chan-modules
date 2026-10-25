@@ -37,6 +37,8 @@ announce_command = "servermsg"
 [backup]
 hook = true
 save_command = "save"
+# 서버가 스스로 만든 백업 zip(BackupsOnStart 등, backups/<종류>/backup_N.zip)을 사바쨩 백업 목록에 보이고 보관·복원한다 (lifecycle backup_snapshots)
+snapshots = true
 
 [extensions.saba-core]
 data_roots = ["{cache_dir}", "{data_home}", "{home}/Zomboid"]

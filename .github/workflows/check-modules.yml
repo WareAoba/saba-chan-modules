@@ -55,7 +55,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pytest jsonschema
+      - run: pip install -r requirements-dev.txt
       - run: pytest conformance -W default --shared-libs saba-chan/modules
       # 모듈 단위 테스트 (pytest.ini testpaths)
       - if: github.event_name == 'workflow_dispatch'

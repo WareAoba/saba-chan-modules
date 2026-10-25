@@ -29,3 +29,20 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 | `test_code_uses_only_declared_permissions` | 코드가 쓰는 능력(네트워크, 프로세스 실행, 네이티브·동적 코드 등)을 `[permissions]`에 선언하지 않았다 (`saba_audit.py`가 있는 saba-chan일 때) |
 
 키트는 익스텐션을 넣지 않고 데몬 주소를 닫힌 포트로 준다. `HOME`·`USERPROFILE`도 임시 폴더로 바꿔, 사용자 폴더를 기본 위치로 쓰는 게임도 임시 폴더에만 쓰게 한다. 익스텐션이나 데몬이 없어도 모듈은 죽지 않고 JSON으로 답해야 한다(`error_code: "extension_required"`, `missing_extensions[]`).
+
+## 실측 모드 (`trial.py`)
+
+위 검사는 빈 작업 폴더에서 함수를 한 번씩 부른다. 실제 배포판, 실제 콘솔, 실제 격리에서만 드러나는 문제(설치 파일 이름, 의사 콘솔, 격리 안의 권한 거부, msiexec 1601 등)는 `trial.py`로 잰다. PR을 올리기 전에 돌리고 `trial-report.md`를 PR 본문에 붙인다.
+
+```bash
+python conformance/trial.py path/to/mygame --saba-core path/to/saba-core \
+    [--extensions path/to/saba-chan-extensions] [--accept-agreement eula] [--out trial-report]
+```
+
+- 진짜 데몬(`saba-core`)을 임시 데이터 폴더로 하나 더 띄우고(설치된 사바쨩과 데이터·포트를 나누지 않는다) 데몬 API만 부른다. `saba-runner`가 `saba-core` 옆에 있어야 한다. 끝나면 임시 폴더를 지운다(`--keep`이면 남긴다).
+- 모듈은 임시 모듈 폴더에 복사되어 확인되지 않은 모듈이 된다. Windows에서는 모든 lifecycle 호출이 데몬의 실제 AppContainer 격리 안에서 돈다. 격리가 없는 OS에서는 그 복사본에만 비격리 동의를 하고 돌리며 보고서에 "격리 없음"으로 적는다.
+- 흐름: 데몬 기동과 모듈 로드 → 버전 목록 → 인스턴스 생성과 실제 배포판 설치 → 설치 버전 → 게임 파일 설정 읽기, 숫자 설정 하나 쓰고 다시 읽기, 속성 읽기 → 시작 전 점검과 시작(러너, `[launch] console`) → `ready_patterns` 준비 알림 → `--help-command`(기본 `help`) 출력과 선언한 콘솔 명령 대조 → 명령 목록, 접속자, 로그 진단 → 저장 후 정지(종료 판정 `user_stop`, `graceful_exit_patterns`, 정지 중 저장된 파일) → 백업(서버가 쓴 플레이 데이터가 백업 대상에 다 들었는지, 서버 실행 파일이 들었는지) → 초기화(지운 파일, 서버 실행 파일을 지웠는지).
+- 약관(`[[agreements]]`)은 `--accept-agreement`로 준 것만 동의한다. 동의하지 않은 약관이 있으면 시작 단계부터 건너뛰고 초기화만 잰다.
+- 실패한 응답이 격리 문제로 보이면(`sandbox_unavailable`, 권한 거부, 1601 등) 그 단계에 "격리 오류 의심"을 적는다.
+- 결과는 `<out>/trial-report.md`, `trial-report.json`, `daemon.log`다. 실패가 하나라도 있으면 종료 코드 1이다. 경고는 사람이 판단할 것(help 문구에 없는 명령, 백업 대상 밖의 데이터 등)이다.
+- `pytest conformance --saba-core <saba-core>`(또는 `SABA_CORE`)를 주면 `test_trial.py`가 픽스처 모듈(`fixtures/trialgame`)로 이 흐름 전체를 돌린다. 주지 않으면 판정 규칙만 검사한다.

@@ -305,6 +305,12 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 
 키트는 데몬과 익스텐션 없이 함수를 부른다. 데몬에 닿지 않아도, 서버 파일이 없어도 모듈은 JSON으로 답해야 한다. 자세한 검사 목록은 [conformance/README.md](../conformance/README.md).
 
+마지막으로 실측 모드로 실제 배포판을 진짜 데몬에 설치·시작·정지·백업·초기화해 본다. Windows에서는 lifecycle 호출이 데몬의 실제 격리(AppContainer) 안에서 돈다. 보고서 `trial-report.md`를 PR에 붙인다(자세한 흐름은 [conformance/README.md](../conformance/README.md#실측-모드-trialpy)).
+
+```bash
+python conformance/trial.py path/to/mygame --saba-core path/to/saba-core [--extensions path/to/saba-chan-extensions] [--accept-agreement <id>]
+```
+
 게임 동작은 모듈 폴더의 `test_lifecycle.py`(pytest)로 시험한다. 실제 게임 서버 없이 함수에 config를 넣고 답과 파일 변화를 본다(minecraft, palworld, zomboid의 `test_lifecycle.py` 참고).
 
 ### Linux·macOS에서 개발 복사본 실행하기
@@ -342,3 +348,4 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 - [ ] 코드가 쓰는 능력을 `[permissions]`에 선언했다(`saba-core module audit`)
 - [ ] SDK import 중 가장 높은 `SINCE` 버전 이상을 `[module.dependencies] saba-core`에 선언했다
 - [ ] `pytest conformance --module ...` 통과
+- [ ] `conformance/trial.py` 실측 보고서에 실패가 없고, 경고는 PR에 이유를 적었다 (Windows에서 잰 것)

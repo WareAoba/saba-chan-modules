@@ -12,6 +12,7 @@
 - 모든 실패는 종료 코드 0 + `{"success": false, "message": ...}`. 로그는 stderr로만, 진행률은 stderr `PROGRESS:{json}`. 실패를 삼키고 `success: true`로 답하지 않는다.
 - `validate`: `issues[]`의 `severity: critical`이 시작을 막는다.
 - 서버 로컬 REST·소켓은 `daemon_rcon.loopback_http`/`loopback_exchange`로 연다(격리 실행에서도 데몬이 중계).
+- 인스턴스 REST(저장·정지 등)는 `daemon_rcon.daemon_rest`로 보낸다. 격리 실행에서도 데몬이 그 인스턴스 서버의 REST 포트로만 대신 보낸다. 콘솔 `daemon_stdin_command`는 격리 실행에서 `op_not_allowed`다(saba-chan 0.1.11부터. 그 전 데몬은 격리 실행에서 둘 다 막는다).
 - 익스텐션은 함수 안에서 `import extensions.<id>`, 없으면 `error_code: "extension_required"`, `missing_extensions[]`. PATH의 도구로 대신 실행하지 않는다.
 - 비밀값(관리자 비밀번호 등)을 실행 인자에 매번 싣지 않는다. 첫 생성에만 필요한 플래그는 그때만 붙인다.
 - 화면 문구·오류는 `I18n(MODULE_DIR).t(...)`, 키는 `locales/en.json`이 기준이고 ko를 반드시 채운다(10개 언어). `check.py` locales가 ko 누락을 잡는다.

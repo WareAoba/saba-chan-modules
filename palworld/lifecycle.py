@@ -1098,6 +1098,16 @@ def backup_paths(config):
         return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
 
 
+def _snapshot_time(stamp, path):
+    """스냅샷 시각: 게임이 폴더 이름에 적은 시각(YYYY.MM.DD-HH.MM.SS, 이 PC 시간대). 읽지 못하면 폴더 수정 시각.
+    수정 시각은 복사·압축 해제로 바뀌어 순서가 뒤집힐 수 있다"""
+    import time
+    try:
+        return int(time.mktime(time.strptime(stamp, "%Y.%m.%d-%H.%M.%S")))
+    except (ValueError, OverflowError):
+        return int(os.path.getmtime(path))
+
+
 def backup_snapshots(config):
     """게임이 스스로 만든 월드 자동 백업 (데몬 `[backup] snapshots`): `SaveGames/<번호>/<월드>/backup/world/<시각>/`.
     새것부터. 스냅샷 안의 항목(Level.sav, Players/ …)은 월드 폴더의 같은 이름 자리로 돌아간다"""
@@ -1119,12 +1129,12 @@ def backup_snapshots(config):
                         continue
                     snapshots.append({
                         "id": f"{slot}/{world}/{stamp}",
-                        "created": int(os.path.getmtime(snap)),
+                        "created": _snapshot_time(stamp, snap),
                         "paths": [{"from": str(safe_join(snap, name)), "to": str(safe_join(world_path, name))}
                                   for name in _entries(snap)],
                     })
-        # 폴더 이름(YYYY.MM.DD-HH.MM.SS)이 시각 순이다. 수정 시각은 복사·압축 해제로 바뀔 수 있다
-        snapshots.sort(key=lambda s: s["id"].rsplit("/", 1)[-1], reverse=True)
+        # 게임이 적은 시각 순 (CLI·GUI의 "가장 최근"과 데몬의 기본 선택이 같은 것을 고른다)
+        snapshots.sort(key=lambda s: s["created"], reverse=True)
         return {"success": True, "snapshots": snapshots}
     except OSError as e:
         return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}

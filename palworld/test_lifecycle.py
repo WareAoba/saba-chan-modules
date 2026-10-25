@@ -289,7 +289,12 @@ def test_backup_snapshots_list_the_games_world_backups_newest_first(tmp_path):
     ids = [s["id"] for s in result["snapshots"]]
     assert ids == ["0/ABCDEF0123456789/2026.10.24-10.30.00", "0/ABCDEF0123456789/2026.10.24-10.00.00"]
     newest = result["snapshots"][0]
-    assert isinstance(newest["created"], int) and newest["created"] > 0
+    # 시각은 폴더 이름(게임이 적은 시각)에서: 복사·압축 해제로 바뀐 수정 시각을 쓰지 않는다
+    import time
+    assert newest["created"] == int(time.mktime(time.strptime("2026.10.24-10.30.00", "%Y.%m.%d-%H.%M.%S")))
+    os.utime(world / "backup" / "world" / "2026.10.24-10.00.00", (2_000_000_000, 2_000_000_000))
+    again = backup_snapshots({"working_dir": str(tmp_path)})["snapshots"]
+    assert again[0]["id"].endswith("10.30.00") and again[0]["created"] > again[1]["created"]
     snap = world / "backup" / "world" / "2026.10.24-10.30.00"
     assert sorted((p["from"], p["to"]) for p in newest["paths"]) == sorted([
         (str(snap / "Level.sav"), str(world / "Level.sav")),

@@ -147,3 +147,16 @@ def test_port_settings_all_get_free_ports():
     ]}}
     picked = iter([40001, 40002, 40003])
     assert trial.port_settings(manifest, lambda: next(picked)) == {"port": 40001, "rest_port": 40002, "udp_port": 40003}
+
+
+def test_play_data_ignores_program_files_the_server_unpacks():
+    files = ["libraries/com/x/y.jar", "bin/native.dll", "world/region/r.0.0.mca", "plugins/a.so"]
+    assert trial.play_data(files) == ["world/region/r.0.0.mca"]
+
+
+def test_live_console_lines_only_come_from_the_running_buffer():
+    live = {"lines": [{"id": 4, "content": "a"}, {"id": 5, "content": "b"}], "epoch": 1}
+    assert trial.live_lines(live, 5) == (["b"], 6, True)
+    # 서버가 끝나 디스크 기록으로 넘어가면 since를 무시하고 앞 줄까지 돌려준다: 쓰지 않는다
+    disk = {"lines": [{"id": 0, "content": "[2026-10-25 12:00:00] [stdout/INFO] old"}]}
+    assert trial.live_lines(disk, 6) == ([], 6, False)

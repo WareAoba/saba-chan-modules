@@ -45,7 +45,8 @@ SANDBOX_MARKS = ("PermissionError", "Access is denied", "WinError 5", "액세스
 DAEMON_ENTRIES = {"instance.json", "settings.json", "rcon.json", "managed.pid", "exit-events.json"}
 DAEMON_DIRS = {"backups", "run"}
 # 서버가 쓰지만 플레이 데이터가 아닌 것 (백업 누락으로 보지 않는다)
-NOT_PLAY_DATA = re.compile(r"(^|/)logs?/|\.log$|\.lock$|(^|/)Saved/Logs/", re.IGNORECASE)
+# 실행 파일·라이브러리는 서버가 첫 실행 때 풀어 놓아도 프로그램 파일이다 (예: libraries/*.jar)
+NOT_PLAY_DATA = re.compile(r"(^|/)logs?/|\.log$|\.lock$|(^|/)Saved/Logs/|\.(jar|dll|exe|so|dylib|pdb)$", re.IGNORECASE)
 
 
 # ── 판정 규칙 (test_trial.py) ──
@@ -113,6 +114,15 @@ def removed(before, after):
 
 def play_data(files):
     return [f for f in files if not NOT_PLAY_DATA.search(f)]
+
+
+def live_lines(body, since):
+    """콘솔 응답에서 `since` 이후 줄과 다음 `since`. 서버가 끝나 디스크 기록으로 넘어간 응답(`epoch` 없음)은
+    since를 무시하고 앞 줄을 다시 주며 줄 모양도 달라 쓰지 않는다 (live=False)"""
+    if not isinstance(body, dict) or "epoch" not in body:
+        return [], since, False
+    lines = [l for l in body.get("lines", []) if l.get("id", -1) >= since]
+    return [l.get("content", "") for l in lines], (lines[-1]["id"] + 1 if lines else since), True
 
 
 def backup_targets(zip_path):
@@ -602,7 +612,22 @@ class Trial:
         before_stop = self.snap()
         lines = self.console_since(0)
         last = lines[-1]["id"] + 1 if lines else 0
-        status, body = d.call("POST", f"/api/instance/{self.instance}/stop", {"force": False}, timeout=300)
+        # 정지 요청은 서버가 끝날 때까지 돌아오지 않고, 끝나면 데몬은 콘솔 버퍼를 놓는다:
+        # 정지 출력(graceful_exit_patterns)은 요청이 도는 동안 읽어 둔다
+        answer = {}
+        request = threading.Thread(target=lambda: answer.update(r=d.call(
+            "POST", f"/api/instance/{self.instance}/stop", {"force": False}, timeout=300)), daemon=True)
+        request.start()
+        tail = []
+        while True:
+            _, console = d.call("GET", f"/api/instance/{self.instance}/console?since={last}&count=2000")
+            got, last, live = live_lines(console, last)
+            tail += got
+            if not live or not request.is_alive():
+                break
+            time.sleep(0.3)
+        request.join()
+        status, body = answer.get("r", (0, None))
         functions = ["stop"] if "stdin" not in self.manifest.get("protocols", {}).get("supported", []) else []
         if not self.step("stop", functions, status, body, describe=lambda b: ""):
             d.call("POST", f"/api/instance/{self.instance}/stop", {"force": True}, timeout=60)
@@ -617,7 +642,6 @@ class Trial:
             time.sleep(1)
         _, events = d.call("GET", f"/api/instance/{self.instance}/events")
         kind = ((events or {}).get("events") or [{}])[-1].get("kind") if isinstance(events, dict) else None
-        tail = [l.get("content", "") for l in self.console_since(last)]
         after_stop = self.snap()
         saved = play_data(changed(before_stop, after_stop))
         exit_patterns = self.manifest.get("detection", {}).get("graceful_exit_patterns", [])

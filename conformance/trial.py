@@ -140,6 +140,12 @@ def uncovered(root, files, targets):
     return out
 
 
+def port_settings(manifest, pick):
+    """포트 설정(`port`, `port = true`인 칸)마다 빈 포트. 기본값으로 두면 이 PC에서 도는 실제 서버와 겹친다"""
+    fields = manifest.get("settings", {}).get("fields", [])
+    return {f["name"]: pick() for f in fields if f.get("name") == "port" or f.get("port")}
+
+
 # ── 보고서 ──
 
 STATUS_MARK = {"ok": "✅", "fail": "❌", "warn": "⚠️", "skip": "⏭️"}
@@ -228,6 +234,10 @@ class Daemon:
             "SABA_EXTENSIONS_DIR": str(self.extensions), "SABA_INSTANCES_PATH": str(self.instances),
             "SABA_IPC_PORT": str(self.port), "RUST_LOG": env.get("RUST_LOG", "info"),
         })
+        # 업데이트 확인을 끈다: 켜 두면 --saba-core 옆 설치본의 파일을 바꿀 수 있다
+        config = self.data / "config.json"
+        if not config.exists():
+            config.write_text(json.dumps({"updates": {"enabled": False}}), encoding="utf-8")
         log = open(self.root / "daemon.log", "wb")
         self.proc = subprocess.Popen([str(self.exe), "--spawned"], env=env, stdin=subprocess.DEVNULL,
                                      stdout=log, stderr=subprocess.STDOUT, cwd=self.root)
@@ -331,6 +341,7 @@ class Trial:
         self.root = pathlib.Path(tempfile.mkdtemp(prefix="saba-trial-"))
         self.daemon = Daemon(pathlib.Path(args.saba_core).resolve(), self.root)
         self.instance = None
+        self.functions = None
         self.instance_dir = None
         self.server_dir = None
 
@@ -352,12 +363,31 @@ class Trial:
     def run(self):
         try:
             self.boot() and self.install() and self.settings() and self.serve()
+        except KeyboardInterrupt:
+            self.report.add("trial", "fail", "중단됨")
         except Exception as e:  # 보고서는 끝까지 남긴다
             self.report.add("trial", "fail", f"{type(e).__name__}: {e}")
         finally:
-            self.cleanup()
-        self.write_report()
+            try:
+                self.cleanup()
+            finally:
+                self.write_report()
         return self.report.exit_code()
+
+    def implements(self, name, function):
+        """모듈이 밝힌 함수 목록에 없으면 그 단계를 건너뛴다 (목록을 모르면 부른다)"""
+        if self.functions is None or function in self.functions:
+            return True
+        self.report.add(name, "skip", f"모듈에 {function} 함수가 없다")
+        return False
+
+    def snap(self):
+        """인스턴스 폴더(모듈 데이터 폴더 포함)와, 그 밖에 있으면 서버 폴더. 키는 인스턴스 폴더 기준 상대 경로이거나 절대 경로"""
+        files = snapshot(self.instance_dir)
+        server = self.server_dir.resolve()
+        if not server.is_relative_to(self.instance_dir.resolve()):
+            files.update({(server / k).as_posix(): v for k, v in snapshot(server).items()})
+        return files
 
     def boot(self):
         d = self.daemon
@@ -398,6 +428,8 @@ class Trial:
         if failed or module is None:
             self.report.add("boot", "fail", f"데몬이 모듈을 읽지 못했다: {failed[0] if failed else listing}")
             return False
+        functions = module.get("functions")
+        self.functions = set(functions) if isinstance(functions, list) else None
         for ext in exts:
             d.call("POST", "/api/extensions/rescan")
             status, body = d.call("POST", f"/api/extensions/{ext}/enable")
@@ -406,6 +438,8 @@ class Trial:
         warnings = module.get("warnings") or []
         self.report.add("boot", "warn" if warnings else "ok",
                         f"데몬 {self.report.daemon} 기동, 모듈 로드" + (f", 경고: {'; '.join(warnings)}" if warnings else ""), ["functions"])
+        if not self.implements("versions", "list_versions"):
+            return True
         status, versions = d.call("GET", f"/api/module/{self.name}/versions")
         self.step("versions", ["list_versions"], status, versions,
                   describe=lambda b: f"{len(b.get('versions', []))}개" if isinstance(b, dict) and "versions" in b else "")
@@ -413,12 +447,13 @@ class Trial:
 
     def install(self):
         d = self.daemon
-        port = free_port()
-        body = {"name": f"trial-{self.name}", "module_name": self.name, "port": port,
+        ports = port_settings(self.manifest, free_port)
+        port = ports.pop("port", None) or free_port()
+        body = {"name": f"trial-{self.name}", "module_name": self.name, "port": port, "module_settings": ports,
                 "accept_agreements": self.args.accept_agreement}
         status, created = d.call("POST", "/api/instances", body)
         if not self.step("create", ["accept_agreements"] if self.args.accept_agreement else [], status, created,
-                         ok_when=lambda b: bool(b.get("id")), describe=lambda b: f"포트 {port}" if b.get("id") else ""):
+                         ok_when=lambda b: bool(b.get("id")), describe=lambda b: f"포트 {', '.join(map(str, [port, *ports.values()]))}"):
             return False
         self.instance = created["id"]
         self.instance_dir = d.instances / self.instance
@@ -446,15 +481,26 @@ class Trial:
             self.report.add("install", "fail", "설치가 끝났다는데 서버 폴더가 비었다", ["install_server"])
             return False
         self.report.add("install", "ok", f"{len(files)}개 파일, {time.monotonic() - started:.0f}초", ["list_versions", "install_server"])
+        if not self.implements("installed-version", "get_installed_version"):
+            return True
         status, ver = d.call("GET", f"/api/instance/{self.instance}/installed-version")
         self.step("installed-version", ["get_installed_version"], status, ver, describe=lambda b: str(b.get("version", "")))
         return True
 
     def settings(self):
         d = self.daemon
+        if self.implements("settings", "import_settings") and self.implements("settings-write", "configure"):
+            self.check_settings()
+        if self.implements("properties", "read_properties"):
+            status, props = d.call("GET", f"/api/instance/{self.instance}/properties")
+            self.step("properties", ["read_properties"], status, props, describe=lambda b: "")
+        return True
+
+    def check_settings(self):
+        d = self.daemon
         status, live = d.call("GET", f"/api/instance/{self.instance}/settings/live")
         if not self.step("settings", ["import_settings"], status, live, describe=lambda b: "게임 파일에서 설정을 읽었다"):
-            return True
+            return
         # 게임 파일에 쓰는 숫자 설정 하나를 바꿔 쓰고 다시 읽는다 (데몬이 쓴 값을 게임이 받는 모양인지)
         field = next((f for f in self.manifest.get("settings", {}).get("fields", [])
                       if f.get("type") == "number" and f.get("group") != "saba-chan" and f.get("name") != "port"
@@ -463,9 +509,6 @@ class Trial:
             self.report.add("settings-write", "skip", "바꿔 볼 숫자 설정이 없다")
         else:
             self.write_setting(field)
-        status, props = d.call("GET", f"/api/instance/{self.instance}/properties")
-        self.step("properties", ["read_properties"], status, props, describe=lambda b: "")
-        return True
 
     def write_setting(self, field):
         d = self.daemon
@@ -492,9 +535,10 @@ class Trial:
             self.report.add("start", "skip", f"동의하지 않은 약관 {', '.join(missing)}: --accept-agreement로 동의해야 시작한다")
             self.reset()
             return False
-        status, body = d.call("POST", f"/api/instance/{self.instance}/validate")
-        self.step("validate", ["validate"], status, body, describe=lambda b: "")
-        before_start = snapshot(self.server_dir)
+        if self.implements("validate", "validate"):
+            status, body = d.call("POST", f"/api/instance/{self.instance}/validate")
+            self.step("validate", ["validate"], status, body, describe=lambda b: "")
+        before_start = self.snap()
         status, body = d.call("POST", f"/api/instance/{self.instance}/start", timeout=300)
         if not self.step("start", ["validate", "get_launch_command"], status, body,
                          describe=lambda b: f"{'러너' if b.get('managed') else '직접'} 실행"):
@@ -508,10 +552,13 @@ class Trial:
         elif not ready.get("ok"):
             tail = [l.get("content", "") for l in self.console_since(0)[-5:]]
             self.report.add("ready", "fail", f"{ready.get('code')}: 콘솔 끝 {tail}")
+            # 준비 시간 초과여도 서버는 돈다: 끄지 않으면 초기화가 server_running으로 거절된다
+            d.call("POST", f"/api/instance/{self.instance}/stop", {"force": True}, timeout=60)
             self.reset()
             return False
         elif not patterns:
-            self.report.add("ready", "warn", "ready_patterns가 없어 시작 즉시 준비로 본다 ([extensions.saba-core] ready_patterns)")
+            self.report.add("ready", "warn", f"ready_patterns가 없어 준비 시점을 모른다: {self.args.warmup}초 기다린 뒤 잰다 ([extensions.saba-core] ready_patterns)")
+            time.sleep(self.args.warmup)
         else:
             self.report.add("ready", "ok", "준비 문구가 콘솔에 나왔다")
         self.help()
@@ -522,8 +569,9 @@ class Trial:
         if self.manifest.get("status", {}).get("players"):
             status, body = d.call("GET", f"/api/instance/{self.instance}/players")
             self.step("players", [self.manifest["status"]["players"]], status, body, describe=lambda b: f"{b.get('online')}명")
-        status, body = d.call("POST", f"/api/instance/{self.instance}/diagnose")
-        self.step("diagnose", ["diagnose_log"], status, body, describe=lambda b: "")
+        if self.implements("diagnose", "diagnose_log"):
+            status, body = d.call("POST", f"/api/instance/{self.instance}/diagnose")
+            self.step("diagnose", ["diagnose_log"], status, body, describe=lambda b: "")
         self.stop(before_start)
         return True
 
@@ -551,7 +599,7 @@ class Trial:
     def stop(self, before_start):
         d = self.daemon
         time.sleep(self.args.play_seconds)
-        before_stop = snapshot(self.server_dir)
+        before_stop = self.snap()
         lines = self.console_since(0)
         last = lines[-1]["id"] + 1 if lines else 0
         status, body = d.call("POST", f"/api/instance/{self.instance}/stop", {"force": False}, timeout=300)
@@ -570,7 +618,7 @@ class Trial:
         _, events = d.call("GET", f"/api/instance/{self.instance}/events")
         kind = ((events or {}).get("events") or [{}])[-1].get("kind") if isinstance(events, dict) else None
         tail = [l.get("content", "") for l in self.console_since(last)]
-        after_stop = snapshot(self.server_dir)
+        after_stop = self.snap()
         saved = play_data(changed(before_stop, after_stop))
         exit_patterns = self.manifest.get("detection", {}).get("graceful_exit_patterns", [])
         notes = []
@@ -599,7 +647,7 @@ class Trial:
             step.update(status="warn", detail=f"백업 {name}의 목록을 읽지 못했다")
             return
         written = play_data(changed(before_start, after_stop))
-        missing = uncovered(self.server_dir, written, targets)
+        missing = uncovered(self.instance_dir, written, targets)
         absent = [str(t) for t in targets if not t.exists()]
         executable = self.manifest.get("config", {}).get("server_executable")
         binaries = [str(t) for t in targets if executable and (t.name == executable or (t / executable).exists())]
@@ -614,13 +662,13 @@ class Trial:
                     detail="; ".join(notes) or f"대상 {len(targets)}개가 서버가 쓴 플레이 데이터를 모두 담는다")
 
     def reset(self):
-        if self.instance is None:
+        if self.instance is None or not self.implements("reset", "reset_server"):
             return
-        before = snapshot(self.server_dir)
+        before = self.snap()
         status, body = self.daemon.call("POST", f"/api/instance/{self.instance}/server/reset", timeout=300)
         if not self.step("reset", ["reset_server"], status, body, describe=lambda b: ""):
             return
-        after = snapshot(self.server_dir)
+        after = self.snap()
         gone = removed(before, after)
         executable = self.manifest.get("config", {}).get("server_executable") or ""
         lost_binary = [g for g in gone if executable and pathlib.PurePosixPath(g).name == executable]
@@ -636,7 +684,8 @@ class Trial:
         try:
             if self.instance:
                 self.daemon.call("POST", f"/api/instance/{self.instance}/stop", {"force": True}, timeout=60)
-                self.daemon.call("DELETE", f"/api/instance/{self.instance}")
+                if not self.args.keep:
+                    self.daemon.call("DELETE", f"/api/instance/{self.instance}")
         except OSError:
             pass
         self.daemon.stop()
@@ -663,6 +712,7 @@ def main(argv=None):
     p.add_argument("--accept-agreement", action="append", default=[], help="동의할 [[agreements]] id")
     p.add_argument("--help-command", default="help", help="콘솔 명령 목록을 찍는 명령")
     p.add_argument("--play-seconds", type=int, default=10, help="준비된 뒤 정지하기 전에 기다릴 시간")
+    p.add_argument("--warmup", type=int, default=90, help="ready_patterns가 없을 때 시작 뒤 기다릴 시간")
     p.add_argument("--install-timeout", type=int, default=1900)
     p.add_argument("--out", default="trial-report", help="보고서 폴더")
     p.add_argument("--keep", action="store_true", help="임시 폴더를 지우지 않는다")

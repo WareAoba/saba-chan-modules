@@ -136,3 +136,14 @@ def test_trial_runs_the_fixture_module_through_a_real_daemon(pytestconfig, tmp_p
     assert steps["help"]["status"] == "warn" and "kick" in steps["help"]["detail"]
     # 픽스처는 정지할 때 world/와 함께 백업에 없는 notes.txt도 쓴다
     assert steps["backup"]["status"] == "warn" and "notes.txt" in steps["backup"]["detail"]
+
+
+def test_port_settings_all_get_free_ports():
+    manifest = {"settings": {"fields": [
+        {"name": "port", "type": "number", "default": 7777},
+        {"name": "rest_port", "type": "number", "default": 8212, "port": True},
+        {"name": "udp_port", "type": "number", "default": 16262, "port": True},
+        {"name": "max_players", "type": "number", "default": 8},
+    ]}}
+    picked = iter([40001, 40002, 40003])
+    assert trial.port_settings(manifest, lambda: next(picked)) == {"port": 40001, "rest_port": 40002, "udp_port": 40003}

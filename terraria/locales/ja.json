@@ -306,7 +306,9 @@
     "server_reset_partial": "一部のワールドファイルを削除できませんでした: {{errors}}",
     "settings_write_failed": "サーバーはインストールしましたが、設定を書き込めませんでした: {{error}}",
     "version_list_failed": "terraria.org からサーバーバージョン一覧を取得できませんでした: {{error}}",
-    "xna_framework_missing": "WindowsでTerrariaを実行するには Microsoft XNA Framework Redistributable 4.0 Refresh が必要です。https://www.microsoft.com/en-us/download/details.aspx?id=27598"
+    "xna_framework_missing": "サーバーフォルダーに XNA Framework 4.0 のファイルがありません。サーバーを再インストールすると配置されます。",
+    "xna_install_failed": "サーバーフォルダーに XNA Framework 4.0 を配置できませんでした: {{error}}",
+    "xna_checksum_mismatch": "ダウンロードした XNA インストーラーが公式ファイルと一致しません。"
   },
   "messages": {
     "downloading": "テラリアサーバーをダウンロード中",
@@ -319,7 +321,8 @@
     "no_process_running": "サーバーは起動していません",
     "properties_updated": "serverconfig.txt に保存しました。サーバーを再起動すると反映されます",
     "server_reset_complete": "ワールドを削除しました。次回起動時に新しいワールドを作ります",
-    "stop_requested": "サーバーに保存して停止するよう要求しました"
+    "stop_requested": "サーバーに保存して停止するよう要求しました",
+    "installing_xna": "サーバーフォルダーに XNA Framework 4.0 を配置しています..."
   },
   "reset": {
     "label": "ワールドの初期化",

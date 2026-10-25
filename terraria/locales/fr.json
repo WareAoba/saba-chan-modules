@@ -306,7 +306,9 @@
     "server_reset_partial": "Certains fichiers du monde n'ont pas pu être supprimés : {{errors}}",
     "settings_write_failed": "Le serveur est installé, mais les paramètres n'ont pas pu être écrits : {{error}}",
     "version_list_failed": "Impossible d'obtenir les versions depuis terraria.org : {{error}}",
-    "xna_framework_missing": "Terraria requiert Microsoft XNA Framework Redistributable 4.0 Refresh sous Windows. Téléchargement : https://www.microsoft.com/en-us/download/details.aspx?id=27598"
+    "xna_framework_missing": "Les fichiers de XNA Framework 4.0 sont absents du dossier du serveur. Réinstallez le serveur pour les ajouter.",
+    "xna_install_failed": "Impossible d'ajouter XNA Framework 4.0 au dossier du serveur : {{error}}",
+    "xna_checksum_mismatch": "Le programme d'installation XNA téléchargé ne correspond pas au fichier officiel."
   },
   "messages": {
     "downloading": "Téléchargement du serveur Terraria",
@@ -319,7 +321,8 @@
     "no_process_running": "Le serveur ne tourne pas",
     "properties_updated": "Enregistré dans serverconfig.txt. Redémarrez le serveur pour l'appliquer",
     "server_reset_complete": "Le monde a été supprimé. Un nouveau sera créé au prochain démarrage",
-    "stop_requested": "Demande de sauvegarde et d'arrêt envoyée"
+    "stop_requested": "Demande de sauvegarde et d'arrêt envoyée",
+    "installing_xna": "Installation de XNA Framework 4.0 à côté du serveur..."
   },
   "reset": {
     "label": "Réinitialiser le monde",

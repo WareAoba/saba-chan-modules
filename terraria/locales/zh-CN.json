@@ -306,7 +306,9 @@
     "server_reset_partial": "部分世界文件无法删除：{{errors}}",
     "settings_write_failed": "服务器已安装，但无法写入设置：{{error}}",
     "version_list_failed": "无法从 terraria.org 获取服务器版本：{{error}}",
-    "xna_framework_missing": "Terraria 在 Windows 上需要 Microsoft XNA Framework Redistributable 4.0 Refresh。下载：https://www.microsoft.com/en-us/download/details.aspx?id=27598"
+    "xna_framework_missing": "服务器文件夹中缺少 XNA Framework 4.0 文件。重新安装服务器即可添加。",
+    "xna_install_failed": "无法将 XNA Framework 4.0 放入服务器文件夹：{{error}}",
+    "xna_checksum_mismatch": "下载的 XNA 安装程序与官方文件不一致。"
   },
   "messages": {
     "downloading": "正在下载泰拉瑞亚服务器",
@@ -319,7 +321,8 @@
     "no_process_running": "服务器未运行",
     "properties_updated": "已保存到 serverconfig.txt，重启服务器后生效",
     "server_reset_complete": "世界已删除，下次启动时会创建新世界",
-    "stop_requested": "已请求服务器保存并停止"
+    "stop_requested": "已请求服务器保存并停止",
+    "installing_xna": "正在将 XNA Framework 4.0 放入服务器文件夹..."
   },
   "reset": {
     "label": "重置世界",

@@ -30,6 +30,11 @@ stop_command = "exit"
 stop_timeout = 60
 announce_command = "say"
 
+# Windows 서버는 stdin이 파이프면 콘솔 입력을 읽지 않는다(2026-10-25 실측: help·seed·exit에 답 없음,
+# 정지가 시간 초과로 강제 종료). 의사 콘솔로 띄운다
+[launch]
+console = "pty"
+
 [install]
 method = "download"
 

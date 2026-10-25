@@ -115,7 +115,12 @@
 | ko-KR | `서버 시작` | `종료 전에 저장하는 중...` |
 | zh-Hant | `伺服器已啟動` | `離開前儲存中……` |
 - `exit` 저장 때 `<월드>.wld.bak`, `<월드>.wld.bak2`가 만들어졌다. `worldrollbackstokeep=0`이면 `.bak`만 남았다.
-- Windows PC에 XNA Framework 4.0이 없으면 `TerrariaServer.exe`가 `System.IO.FileNotFoundException`으로 종료됐다. 참조 어셈블리는 `Microsoft.Xna.Framework` 4.0.0.0 및 `Graphics`, `Game`, `Xact`이며 zip에는 포함되지 않는다. 모듈은 설치를 대신하지 않고 필요한 런타임을 안내한다.
+- Windows PC에 XNA Framework 4.0이 없으면 `TerrariaServer.exe`가 `System.IO.FileNotFoundException`으로 종료됐다. 참조 어셈블리는 `Microsoft.Xna.Framework` 4.0.0.0 및 `Graphics`, `Game`, `Xact`이며 zip에는 포함되지 않는다.
+- 모듈은 어디서나 같은 실행 환경을 위해(사용자 지정) PC에 XNA가 있어도 고정 판을 서버 폴더에 둔다. 출처는 Microsoft 공식 [XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598) `xnafx40_redist.msi`(7,059,456바이트, Microsoft Corporation Authenticode 서명 유효, SHA-256 `2b03c130…0a83b27`). 공식 체크섬은 없어서 서명을 확인한 파일의 SHA-256을 고정했다.
+- 필요한 파일은 XNA 4개(`Microsoft.Xna.Framework`, `.Game`, `.Graphics`, `.Xact`)와 `XnaNative.dll`, `msvcr100.dll`, `msvcp100.dll`이다(실측: 이 7개만 둔 폴더에서 XNA 없는 PC가 월드 생성과 `Server started`까지 갔다). 모듈이 꺼낸 바이트는 `msiexec /a`가 푼 파일과 같다.
+- 격리 실행에서는 `msiexec /a`가 Windows Installer 서비스에 닿지 못해 1601로 실패한다. 그래서 MSI(OLE 복합 문서)의 CAB(MSZIP 폴더 하나)을 Python으로 직접 읽는다.
+- 한계: .NET Framework는 같은 이름·버전의 어셈블리가 GAC에 있으면 GAC 쪽을 먼저 쓴다. 두 판은 같은 4.0 Refresh라 동작은 같다. 네이티브 DLL(`XnaNative`, VC++ 2010)은 서버 폴더 것이 먼저 쓰인다.
+- Windows 서버는 stdin이 파이프면 콘솔 입력을 읽지 않았다(help·seed·exit에 답 없음, 정지가 60초 뒤 강제 종료). 의사 콘솔(`[launch] console = "pty"`)에서는 명령이 동작하고 `exit`가 저장 뒤 2초 안에 끝났다. 의사 콘솔에서는 프롬프트 `:`와 `Server started`가 다른 줄로 나왔다.
 - 서버는 인스턴스 바깥의 `~/.local/share/Terraria/favorites.json`에 쓴다. Windows에서는 `Documents\\My Games\\Terraria` 아래다. 현재 모듈은 이 파일을 격리하지 않는다.
 
 ## 확인 못 함

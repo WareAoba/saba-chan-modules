@@ -306,7 +306,9 @@
     "server_reset_partial": "Не удалось удалить некоторые файлы мира: {{errors}}",
     "settings_write_failed": "Сервер установлен, но настройки записать не удалось: {{error}}",
     "version_list_failed": "Не удалось получить список версий с terraria.org: {{error}}",
-    "xna_framework_missing": "Для Terraria в Windows требуется Microsoft XNA Framework Redistributable 4.0 Refresh. Скачать: https://www.microsoft.com/en-us/download/details.aspx?id=27598"
+    "xna_framework_missing": "В папке сервера нет файлов XNA Framework 4.0. Переустановите сервер, чтобы добавить их.",
+    "xna_install_failed": "Не удалось добавить XNA Framework 4.0 в папку сервера: {{error}}",
+    "xna_checksum_mismatch": "Скачанный установщик XNA не совпадает с официальным файлом."
   },
   "messages": {
     "downloading": "Загрузка сервера Terraria",
@@ -319,7 +321,8 @@
     "no_process_running": "Сервер не запущен",
     "properties_updated": "Сохранено в serverconfig.txt. Перезапустите сервер",
     "server_reset_complete": "Мир удалён. Новый будет создан при следующем запуске",
-    "stop_requested": "Серверу отправлен запрос на сохранение и остановку"
+    "stop_requested": "Серверу отправлен запрос на сохранение и остановку",
+    "installing_xna": "Установка XNA Framework 4.0 рядом с сервером..."
   },
   "reset": {
     "label": "Сброс мира",

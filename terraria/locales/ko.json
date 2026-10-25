@@ -306,7 +306,9 @@
     "server_reset_partial": "월드 파일 일부를 지우지 못했습니다: {{errors}}",
     "settings_write_failed": "서버는 설치했지만 설정을 쓰지 못했습니다: {{error}}",
     "version_list_failed": "terraria.org에서 서버 버전 목록을 받지 못했습니다: {{error}}",
-    "xna_framework_missing": "Windows에서 테라리아를 실행하려면 Microsoft XNA Framework Redistributable 4.0 Refresh가 필요합니다. https://www.microsoft.com/en-us/download/details.aspx?id=27598 에서 내려받으세요"
+    "xna_framework_missing": "서버 폴더에 XNA Framework 4.0 파일이 없습니다. 서버를 다시 설치하면 넣습니다.",
+    "xna_install_failed": "서버 폴더에 XNA Framework 4.0을 넣지 못했습니다: {{error}}",
+    "xna_checksum_mismatch": "내려받은 XNA 설치 파일이 공식 파일과 다릅니다."
   },
   "messages": {
     "downloading": "테라리아 서버를 내려받는 중",
@@ -319,7 +321,8 @@
     "no_process_running": "서버가 켜져 있지 않습니다",
     "properties_updated": "serverconfig.txt에 저장했습니다. 서버를 다시 켜면 적용됩니다",
     "server_reset_complete": "월드를 지웠습니다. 다음에 켤 때 새 월드를 만듭니다",
-    "stop_requested": "서버에 저장하고 끄라고 요청했습니다"
+    "stop_requested": "서버에 저장하고 끄라고 요청했습니다",
+    "installing_xna": "서버 폴더에 XNA Framework 4.0을 넣는 중..."
   },
   "reset": {
     "label": "월드 초기화",

@@ -30,6 +30,8 @@ def lc():
     spec = importlib.util.spec_from_file_location("terraria_lifecycle", MODULE_DIR / "lifecycle.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+    # XNA 설치·점검은 Windows 전용이다. 그 동작을 보는 테스트만 켠다
+    module._is_windows = lambda: False
     return module
 
 
@@ -528,17 +530,148 @@ def test_install_picks_platform_named_folder_only_and_refuses_ambiguous(lc, tmp_
         lc._extract_server(io.BytesIO(ambiguous), str(tmp_path / "ambiguous"))
 
 
-def test_validate_reports_missing_xna_framework(lc, tmp_path, monkeypatch):
+def test_validate_reports_missing_xna_even_when_windows_has_it(lc, tmp_path, monkeypatch):
+    # 실행 환경을 어디서나 같게: PC에 설치된 XNA(GAC)는 쓰지 않고 서버 폴더의 고정 판만 본다
     server = _server(tmp_path, lc)
     windir = tmp_path / "Windows"
-    framework = windir / "Microsoft.NET/assembly/GAC_32/Microsoft.Xna.Framework"
+    (windir / "Microsoft.NET/assembly/GAC_32/Microsoft.Xna.Framework").mkdir(parents=True)
     monkeypatch.setenv("WINDIR", str(windir))
     monkeypatch.setattr(lc, "_is_windows", lambda: True)
     issue = next(i for i in lc.validate(_config(server))["issues"] if i["code"] == "xna_framework_missing")
     assert issue["severity"] == "critical"
-    assert "https://www.microsoft.com/en-us/download/details.aspx?id=27598" in issue["message"]
-    framework.mkdir(parents=True)
+
+
+def test_validate_accepts_xna_next_to_the_server(lc, tmp_path, monkeypatch):
+    server = _server(tmp_path, lc)
+    monkeypatch.setattr(lc, "_is_windows", lambda: True)
+    for _, name in lc._XNA_FILES:
+        (server / name).write_bytes(b"dll")
     assert "xna_framework_missing" not in [i["code"] for i in lc.validate(_config(server))["issues"]]
+
+
+def _fake_xna(monkeypatch, lc, tmp_path, msi=b"official msi"):
+    """서버 zip과 XNA MSI 내려받기, msiexec 관리 설치를 흉내 낸다"""
+    import hashlib
+    exe = lc._server_exe_name()
+    folder = "Windows" if exe.endswith(".exe") else "Linux"
+    server_zip = _zip_bytes({f"1458/{folder}/{exe}": b"server"})
+    monkeypatch.setenv("WINDIR", str(tmp_path / "Windows"))
+    monkeypatch.setattr(lc, "_is_windows", lambda: True)
+    monkeypatch.setattr(lc, "XNA_MSI_SHA256", hashlib.sha256(b"official msi").hexdigest())
+    seen = []
+
+    def download(url, dest):
+        seen.append(url)
+        Path(dest).write_bytes(msi if url == lc.XNA_MSI_URL else server_zip)
+
+    monkeypatch.setattr(lc, "_download", download)
+    monkeypatch.setattr(lc, "_xna_files_from_msi", lambda data: {name: name.encode() for _, name in lc._XNA_FILES})
+    return seen
+
+
+def _mszip_cab(files):
+    """MSZIP 폴더 하나짜리 CAB. 블록마다 앞 블록 출력을 사전으로 쓴다 (실제 MSZIP처럼 32KB씩)"""
+    import struct
+    import zlib
+    body = b"".join(files.values())
+    blocks, prev = [], b""
+    for i in range(0, len(body), 32768):
+        chunk = body[i:i + 32768]
+        c = zlib.compressobj(9, zlib.DEFLATED, -15, zdict=prev) if prev else zlib.compressobj(9, zlib.DEFLATED, -15)
+        blocks.append((b"CK" + c.compress(chunk) + c.flush(), len(chunk)))
+        prev = chunk
+    entries, offset = b"", 0
+    for name, data in files.items():
+        entries += struct.pack("<IIHHHH", len(data), offset, 0, 0, 0, 0) + name.encode() + b"\x00"
+        offset += len(data)
+    coff_files = 36 + 8
+    data_start = coff_files + len(entries)
+    folder = struct.pack("<IHH", data_start, len(blocks), 1)
+    datas = b"".join(struct.pack("<IHH", 0, len(blk), n) + blk for blk, n in blocks)
+    header = struct.pack("<4sIIIIIBBHHHHH", b"MSCF", 0, data_start + len(datas), 0, coff_files, 0, 3, 1,
+                         1, len(files), 0, 0, 0)
+    # 실제 CAB처럼 미니 스트림 기준(4096바이트)보다 크게: 뒤를 채워도 CAB 크기 칸은 그대로다
+    return (header + folder + entries + datas).ljust(5000, b"\x00")
+
+
+def _cfb(streams):
+    """512바이트 섹터의 최소 복합 문서(OLE). 스트림은 4096바이트 이상만 (MSI의 CAB처럼 FAT에 둔다)"""
+    import struct
+    sectors, fat = [], []
+
+    def put(data):
+        start = len(sectors)
+        chunks = [data[i:i + 512].ljust(512, b"\x00") for i in range(0, len(data), 512)] or [b"\x00" * 512]
+        for n, chunk in enumerate(chunks):
+            sectors.append(chunk)
+            fat.append(start + n + 1 if n + 1 < len(chunks) else 0xFFFFFFFE)
+        return start
+    entries = [("Root Entry", 5, 0xFFFFFFFE, 0)]
+    for name, data in streams:
+        entries.append((name, 2, put(data), len(data)))
+    directory = b""
+    for i, (name, kind, start, size) in enumerate(entries):
+        raw = name.encode("utf-16-le") + b"\x00\x00"
+        child = 1 if kind == 5 and len(entries) > 1 else 0xFFFFFFFF
+        right = i + 1 if kind == 2 and i + 1 < len(entries) else 0xFFFFFFFF
+        directory += (raw.ljust(64, b"\x00") + struct.pack("<HBBIII", len(raw), kind, 1, 0xFFFFFFFF, right, child)
+                      + b"\x00" * 36 + struct.pack("<IQ", start, size))
+    dir_start = put(directory)
+    fat_sector = len(sectors)
+    fat.append(0xFFFFFFFD)
+    sectors.append(b"".join(struct.pack("<I", v) for v in fat).ljust(512, b"\xff"))
+    header = (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 16 + struct.pack("<HHHHH", 0x3E, 3, 0xFFFE, 9, 6)
+              + b"\x00" * 6 + struct.pack("<IIIIIIIII", 0, 1, dir_start, 0, 4096, 0xFFFFFFFE, 0, 0xFFFFFFFE, 0)
+              + struct.pack("<I", fat_sector) + b"\xff" * (436 - 4))
+    return header + b"".join(sectors)
+
+
+def test_xna_files_come_out_of_the_msi_cabinet(lc, monkeypatch):
+    # 32KB 블록을 여러 개 넘기되(앞 블록 사전을 쓰게) 압축이 잘 돼 FAT 섹터 하나에 들어가는 내용
+    files = {"Other_File": b"x" * 5000}
+    files.update({f"key_{name}": (name.encode() + bytes(range(256))) * 160 for _, name in lc._XNA_FILES})
+    monkeypatch.setattr(lc, "_XNA_FILES", [(f"key_{name}", name) for _, name in lc._XNA_FILES])
+    msi = _cfb([("table", b"t" * 5000), ("cab", _mszip_cab(files))])
+    out = lc._xna_files_from_msi(msi)
+    assert out == {name: files[f"key_{name}"] for _, name in lc._XNA_FILES}
+
+
+def test_xna_extraction_refuses_an_msi_without_the_files(lc):
+    with pytest.raises(ValueError):
+        lc._xna_files_from_msi(_cfb([("cab", _mszip_cab({"Other_File": b"x" * 5000}))]))
+    with pytest.raises(ValueError):
+        lc._xna_files_from_msi(b"not an msi")
+
+
+def test_install_puts_xna_next_to_the_server_on_windows(lc, tmp_path, monkeypatch):
+    seen = _fake_xna(monkeypatch, lc, tmp_path)
+    install = tmp_path / "inst"
+    result = lc.install_server({"version": "1.4.5.8", "install_dir": str(install)})
+    assert result["success"] is True
+    assert lc.XNA_MSI_URL in seen
+    for _, name in lc._XNA_FILES:
+        assert (install / name).read_bytes() == name.encode()
+    # 내려받은 MSI와 풀어 둔 폴더는 남지 않는다
+    assert not [p for p in install.iterdir() if p.name.startswith(".")]
+
+
+def test_install_refuses_xna_msi_with_wrong_checksum(lc, tmp_path, monkeypatch):
+    _fake_xna(monkeypatch, lc, tmp_path, msi=b"tampered")
+    install = tmp_path / "inst"
+    result = lc.install_server({"version": "1.4.5.8", "install_dir": str(install)})
+    assert result["success"] is False
+    assert result["error_code"] == "xna_install_failed"
+    assert not any((install / name).exists() for _, name in lc._XNA_FILES)
+    assert not [p for p in install.iterdir() if p.name.startswith(".")]
+
+
+def test_install_puts_xna_in_the_server_folder_even_when_windows_has_it(lc, tmp_path, monkeypatch):
+    seen = _fake_xna(monkeypatch, lc, tmp_path)
+    (tmp_path / "Windows/Microsoft.NET/assembly/GAC_32/Microsoft.Xna.Framework").mkdir(parents=True)
+    install = tmp_path / "inst"
+    assert lc.install_server({"version": "1.4.5.8", "install_dir": str(install)})["success"]
+    assert lc.XNA_MSI_URL in seen
+    assert all((install / name).exists() for _, name in lc._XNA_FILES)
 
 
 def test_server_patterns_accept_only_measured_full_lines(toml):
@@ -620,3 +753,8 @@ def test_locales_have_the_same_keys():
     assert len(files) == 10
     for path in files:
         assert keys(json.loads(path.read_text(encoding="utf-8"))) == base, path.name
+
+
+def test_server_console_is_a_pseudo_console(toml):
+    # 실측(2026-10-25): Windows 서버는 파이프 stdin을 읽지 않아 명령·exit가 먹지 않았다
+    assert toml["launch"]["console"] == "pty"

@@ -1,4 +1,4 @@
-"""픽스처 모듈: dist/의 서버를 "배포판"으로 설치한다 (실측 모드 시험용)"""
+"""픽스처 모듈: server/의 서버를 "배포판"으로 설치한다 (실측 모드 시험용)"""
 import json
 import os
 import shutil
@@ -32,7 +32,7 @@ def install_server(config):
     if not install_dir:
         return {"success": False, "message": "install_dir not specified"}
     os.makedirs(install_dir, exist_ok=True)
-    shutil.copy(os.path.join(MODULE_DIR, "dist", SERVER), os.path.join(install_dir, SERVER))
+    shutil.copy(os.path.join(MODULE_DIR, "server", SERVER), os.path.join(install_dir, SERVER))
     with open(os.path.join(install_dir, "version.txt"), "w", encoding="utf-8") as f:
         f.write(config.get("version") or "1.0.0")
     initial = {k: v for k, v in (config.get("settings") or {}).items() if k in SETTINGS}

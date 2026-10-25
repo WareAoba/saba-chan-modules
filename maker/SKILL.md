@@ -1,6 +1,9 @@
 ---
 name: saba-module-maker
 description: 사바쨩(saba-chan)에 새 게임 서버 모듈을 만들거나 기존 모듈에 기능을 더하거나 고칠 때 쓴다. 사용자 설계 원칙과 PR 전 관문(실물 확인, 실제 서버 실행, 포터블 런타임, 격리 실행)을 지키고, 공식 자료와 실측으로 module.toml·lifecycle.py·locales를 계약대로 쓴 뒤 도구로 검사와 실측까지 마친다.
+metadata:
+  saba-core: ">=0.1.10"
+  module-schema: "1"
 ---
 
 # 사바쨩 모듈 만들기
@@ -51,6 +54,11 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
 
 도구는 Python 3.11 이상 표준 라이브러리만 쓴다. 명령은 모듈 저장소 루트에서 실행한다.
 
+0. **작업 폴더를 마련한다.** 이 스킬을 플러그인·스킬 설치기로 받았어도 도구는 모듈 저장소 안에서만 돈다(틀 `__example/`, 검사 키트 `conformance/`를 저장소에서 읽는다).
+   - 모듈 저장소 `https://github.com/WareAoba/saba-chan-modules`를 받는다. 공개할 모듈이면 사용자 계정으로 포크한 뒤 받는다. 이미 받아 두었으면 최신으로 맞춘다.
+   - 사바쨩이 설치된 PC면 `saba-chan-cli module maker --json`으로 이 PC의 경로(saba-core, 데몬의 Python, 공용 런타임, 모듈 폴더)를 얻는다. `check.py`는 이 값을 스스로 읽는다.
+   - 사바쨩이 없으면 saba-chan 저장소를 모듈 저장소 옆에 받는다(공용 런타임 `saba-chan/modules`). 이때 실측 관문은 "PC 실측 필요"로 남긴다.
+   - 이 스킬이 맞는 데몬은 위 머리의 `metadata`(saba-core 최소 버전, 모듈 스키마 버전)다. `check.py`의 compat 관문이 잰다.
 1. **기준 문서를 읽는다.** 계약의 유일한 기준은 saba-chan 저장소 `docs/architecture/02-modules.md`다. 이 저장소의 `docs/module-spec.md`(키·함수 표)와
    `docs/module-development-guide.md`(만드는 순서, 공용 도우미 표)는 요약이다. 다르면 02 문서와 데몬 코드(`src/supervisor/module_loader.rs`)를 믿는다.
    스키마는 `schema/module.schema.json`(= `saba-core module schema`). 저장소 `AGENTS.md`의 역할·검증 규칙도 따른다.
@@ -77,8 +85,9 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
 7. **lifecycle.py를 쓴다** → [references/lifecycle.md](references/lifecycle.md). 함수마다 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다([references/testing.md](references/testing.md)).
 8. **관문을 검사한다.**
    ```
-   python maker/check.py <name> --saba-core <saba-core 실행 파일>
+   python maker/check.py <name>
    ```
+   사바쨩이 설치돼 있으면 saba-core와 공용 런타임 경로를 앱에서 얻는다. 없거나 다른 판을 쓰려면 `--saba-core <saba-core 실행 파일>`, `--shared-libs <saba-chan/modules>`를 준다.
    자리표시·조사 표 출처·10개 언어·테스트 등록·버전, 모듈 테스트, 적합성 키트, `module validate`, `module audit`를 돌려 표로 보고한다.
    실패나 건너뛴 관문(`--saba-core`를 주지 않으면 validate·audit)이 있으면 종료 코드 1이다. 번역하지 않고 en.json 그대로 둔 언어 파일도 실패다.
    "직접 확인" 목록은 에이전트가 스스로 확인하고 결과를 적는다.

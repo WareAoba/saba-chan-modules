@@ -2,6 +2,7 @@
 import importlib.util
 import io
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -376,10 +377,36 @@ def test_check_version_bump_against_the_base(repo):
     assert "no-such-ref" in unknown["version"]["detail"]
 
 
+def test_check_reads_its_own_version_and_requirement():
+    plugin = json.loads((MAKER / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
+
+    assert check.maker_version() == plugin["version"]
+    assert check.requirement() == ">=0.1.10"
+
+
+@pytest.mark.parametrize("installed, status", [("0.1.10", "ok"), ("0.1.11", "ok"), ("0.2.0", "ok"), ("0.1.9", "fail")])
+def test_check_compat_compares_saba_core_versions(installed, status):
+    assert check.compat_gate(installed, ">=0.1.10")["status"] == status
+
+
+def test_check_takes_paths_from_the_app(tmp_path):
+    cli = tmp_path / "cli.py"
+    cli.write_text("import json, sys\nassert sys.argv[1:] == ['module', 'maker', '--json']\n"
+                   "print(json.dumps({'saba_core': {'path': 'C:/S/saba-core.exe', 'version': '0.1.10'}, 'shared_libs': 'C:/D/python-shared'}))\n",
+                   encoding="utf-8")
+
+    app = check.app_paths([sys.executable, str(cli)])
+
+    assert app["saba_core"]["path"] == "C:/S/saba-core.exe"
+    assert check.app_paths([sys.executable, "-c", "import sys; sys.exit(2)"]) is None
+
+
 def test_check_trial_needs_saba_core(repo):
     folder = finished_module(repo)
 
-    done = subprocess.run([sys.executable, str(MAKER / "check.py"), str(folder), "--trial"], capture_output=True, text=True, stdin=subprocess.DEVNULL)
+    env = {**os.environ, "SABA_CHAN_CLI": "no-such-cli"}  # 앱에서 saba-core 경로를 얻지 못하게
+    done = subprocess.run([sys.executable, str(MAKER / "check.py"), str(folder), "--trial"], capture_output=True, text=True,
+                          stdin=subprocess.DEVNULL, env=env)
 
     assert done.returncode == 2
     assert "--saba-core" in done.stderr

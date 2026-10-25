@@ -14,28 +14,22 @@
 | `probe_server.py --cwd <폴더> ... -- <실행 파일>` | 서버를 파이프로 띄워 준비 줄, 명령 응답, 정지 뒤 줄, 생긴 파일을 원문으로 기록 |
 | `check.py <name> [--saba-core ...] [--trial]` | PR 전 관문 중 기계로 잴 수 있는 것 전부와 직접 확인 목록, `--trial`이면 `conformance/trial.py` 실측까지 |
 
-## 에이전트에 연결하기
+## 받기
 
-이 저장소에서 일하는 에이전트는 따로 설치할 것이 없다. `AGENTS.md`가 모듈 작업에 이 스킬을 쓰라고 가리키고,
-Claude Code는 `.claude/skills/saba-module-maker/`로도 찾는다.
+메이커의 버전은 `.claude-plugin/plugin.json` 하나에 있다. 발행할 때 한 번 올리고 `maker-v<버전>` 태그를 단다.
+Claude Code 플러그인 마켓(`.claude-plugin/marketplace.json`)은 아직 열지 않았다. 열 때는 저장소 루트에 마켓 파일만 더하면 이 폴더가 그대로 플러그인이 된다.
+이 메이커가 맞는 데몬 계약은 `SKILL.md` 머리의 `metadata`(saba-core 최소 버전, 모듈 스키마 버전)다.
 
-다른 곳에서도 스킬로 부르려면 이 폴더를 에이전트의 스킬 폴더에 연결한다. 복사하지 않고 연결하면 저장소를 받을 때마다 같이 갱신된다.
-도구는 모듈 저장소 안에서 실행하므로 저장소는 받아 둔다.
+| 에이전트 | 설치 | 업데이트 |
+|---|---|---|
+| Claude Code | `git clone https://github.com/WareAoba/saba-chan-modules` 뒤 그 폴더에서 Claude Code를 연다. `.claude/skills/saba-module-maker/`로 스킬을 찾는다 | `git pull` |
+| Codex | 기본 스킬 `$skill-installer`에 "WareAoba/saba-chan-modules 저장소의 maker 경로 설치"라고 부탁 (`--repo WareAoba/saba-chan-modules --path maker`) | 같은 방법으로 다시 설치 |
+| 그 밖의 에이전트 | 이 저장소를 받으면 `AGENTS.md`가 `maker/SKILL.md`를 가리킨다. 스킬 폴더를 읽지 않으면 "`maker/SKILL.md`를 읽고 따르라"고 부탁 | `git pull` |
 
-```powershell
-# Windows (관리자 권한 없이 되는 디렉터리 연결)
-cmd /c mklink /J "%USERPROFILE%\.claude\skills\saba-module-maker" "C:\Git\saba-chan-modules\maker"
-cmd /c mklink /J "%USERPROFILE%\.codex\skills\saba-module-maker" "C:\Git\saba-chan-modules\maker"
-```
+어떤 길로 받든 도구는 받아 둔 모듈 저장소 안에서 실행한다(`SKILL.md` 작업 순서 0). 이 저장소에서 일하는 Claude Code는
+`.claude/skills/saba-module-maker/`로도 이 스킬을 찾는다.
 
-```bash
-# Linux·macOS
-ln -s "$PWD/maker" ~/.claude/skills/saba-module-maker
-ln -s "$PWD/maker" ~/.codex/skills/saba-module-maker
-```
-
-스킬 폴더를 읽지 않는 에이전트에는 프롬프트로 `maker/SKILL.md`를 먼저 읽고 따르라고 한다.
-
+사바쨩이 설치된 PC면 `saba-chan-cli module maker`가 설치 명령, 첫 부탁 예시, 이 PC의 경로를 보여 준다.
 ## 테스트
 
 ```bash

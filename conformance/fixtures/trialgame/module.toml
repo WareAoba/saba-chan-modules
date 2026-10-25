@@ -1,0 +1,76 @@
+# 실측 모드(trial.py) 전체 흐름 시험용 모듈. 저장소 모듈 목록에는 들지 않는다 (conformance/fixtures)
+[module]
+schema_version = 1
+name = "trialgame"
+version = "0.1.0"
+description = "Fixture game for the trial mode of the conformance kit"
+game_name = "Trial Game"
+display_name = "Trial Game"
+entry = "lifecycle.py"
+
+[module.dependencies]
+saba-core = ">=0.1.10"
+
+[permissions]
+
+[protocols]
+supported = ["stdin"]
+default = "stdin"
+
+[config]
+server_executable = "trialgame_server.py"
+default_port = 30000
+stop_command = "stop"
+
+[install]
+method = "download"
+
+[detection]
+graceful_exit_patterns = ['^Saved and stopped$']
+
+[extensions.saba-core]
+ready_patterns = ['^Done, type help$']
+ready_timeout = 60
+
+[backup]
+paths = ["world"]
+
+[[settings.fields]]
+name = "port"
+type = "number"
+label = "Port"
+default = 30000
+min = 1024
+max = 65535
+
+[[settings.fields]]
+name = "max_players"
+type = "number"
+label = "Max Players"
+default = 8
+min = 1
+max = 50
+
+[[commands.fields]]
+name = "say"
+risk = "safe"
+description = "Broadcast a message"
+method = "console"
+console_template = "say {message}"
+inputs = [{ name = "message", type = "text", required = true }]
+
+[[commands.fields]]
+name = "save"
+risk = "safe"
+description = "Save the world"
+method = "console"
+console_template = "save"
+inputs = []
+
+[[commands.fields]]
+name = "kick"
+risk = "caution"
+description = "Kick a player"
+method = "console"
+console_template = "kick {player}"
+inputs = [{ name = "player", type = "text", required = true }]

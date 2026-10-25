@@ -470,6 +470,14 @@
           "default": "pipe",
           "description": "\"pipe\"(기본) | \"pty\". 출력을 파이프로 주면 끝날 때까지 모아 두는 서버(stdout 블록 버퍼링)는 \"pty\"로 의사 콘솔(Windows ConPTY)에 띄워 줄마다 받는다. stdout과 stderr가 한 갈래로 합쳐진다."
         },
+        "line_start": {
+          "default": null,
+          "description": "줄 머리 정규식. 서버가 줄바꿈 없이 이어 쓴 출력(예: 팰월드 REST 접근 로그)을 맞는 자리마다 새 줄로 나눈다. 없으면 나누지 않는다. 빈 글자에 맞는 정규식은 받지 않는다",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "log_files": {
           "default": [],
           "description": "서버가 콘솔 대신 파일에 쓰는 로그 (작업 디렉터리 기준, 마지막 칸만 `*` `?`)",

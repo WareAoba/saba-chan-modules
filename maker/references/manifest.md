@@ -14,7 +14,7 @@
 ## 절마다
 
 - `[config]`: `server_executable`, `default_port`, `stop_command`, `stop_timeout`(실측한 최대 저장 시간보다 넉넉히), `announce_command`.
-- `[launch]`: 서버가 로그를 파일에만 쓰면 `log_files`, 콘솔이 tty를 요구하면 `console = "pty"`.
+- `[launch]`: 서버가 로그를 파일에만 쓰면 `log_files`, 콘솔이 tty를 요구하면 `console = "pty"`. 서버가 로그를 줄바꿈 없이 이어 써서 여러 줄이 한 줄로 붙으면 `line_start`에 실측한 줄 머리 정규식을 둔다. 줄 머리에 시각 같은 앞부분이 있으면 그것까지 넣는다(팰월드: `'\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\]'`, `[LOG]`만 쓰면 시각이 앞 줄에 남는다). 빈 글자에 맞는 정규식은 거절된다. 머리 없이 붙는 문구는 나눌 수 없다.
 - `[detection]`: `graceful_exit_patterns`, `crash_artifacts`, `dir_signatures`(기존 서버 가져오기), `cmd_patterns`. 준비 완료·접속·퇴장 패턴은 `[extensions.saba-core]`의 `ready_patterns`·`player_join_patterns`·`player_leave_patterns`에 넣는다(마인크래프트 모듈과 같은 자리). 하나만 빠지면 그 게임만 접속자·준비가 안 보인다.
 - 콘솔 패턴은 `probe_server.py`로 얻은 원문으로만 쓴다. 줄 처음과 끝에 묶어 채팅에 같은 문구가 찍혀도 맞지 않게 한다. 줄 앞에 프롬프트가 붙을 수 있으면 `^(?:<프롬프트>)?`로 받는다. 언어 설정이 문구를 번역하면 언어마다 실측한 문구를 모두 넣는다. 영어만 넣으면 다른 언어로 설정한 서버는 준비·정상 종료가 안 보인다.
 - `[install]`: `method`, `app_id`, `requires_extensions`; 익스텐션 방식이면 `[module.dependencies] ext-<id>`도. 같은 값을 lifecycle.py에 다시 적지 않는다.

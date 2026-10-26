@@ -1474,3 +1474,49 @@ color = "path"
 name = "unix_path"
 pattern = '/[\w/.\-]+'
 color = "path"
+
+# ── [[diagnose]] 서버 로그 진단 (diagnose_log가 공용 diagnose_lines로 읽는다. 문구: validate.log_<code>·validate.log_<code>_hint) ──
+
+[[diagnose]]
+code = "PORT_IN_USE"
+severity = "critical"
+patterns = [
+    'Address already in use',
+    'Failed.*bind.*port',
+    'Only one usage of each socket address',
+]
+
+[[diagnose]]
+code = "OUT_OF_MEMORY"
+severity = "critical"
+patterns = [
+    'OutOfMemory',
+    'Ran out of memory',
+    'Could not allocate memory',
+]
+
+[[diagnose]]
+code = "EXECUTABLE_CRASH"
+severity = "critical"
+patterns = [
+    'Unhandled Exception',
+    'Fatal error',
+    'Assertion failed',
+    'appError called',
+]
+
+[[diagnose]]
+code = "SAVE_CORRUPT"
+patterns = [
+    'Failed to load.*SaveData',
+    'Corrupted save',
+    'Failed to read save file',
+]
+
+[[diagnose]]
+code = "STEAM_AUTH_FAILED"
+patterns = [
+    'LogOnline.*Warning.*Steam',
+    'SteamAPI.*failed',
+    'Steam must be running',
+]

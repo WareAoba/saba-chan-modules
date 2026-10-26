@@ -15,7 +15,8 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-from daemon_rcon import PathOutside, daemon_rest, graceful_stop, is_process_alive, safe_join, setting_file_keys
+from daemon_rcon import (PathOutside, daemon_rest, diagnose_lines, graceful_stop, is_process_alive, load_diagnose_rules,
+                         safe_join, setting_file_keys, tail_lines)
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -556,60 +557,6 @@ def _write_option_settings(ini_path, props):
 
 
 # ╔═══════════════════════════════════════════════════════════╗
-# ║            Error Detection (Palworld)                     ║
-# ╚═══════════════════════════════════════════════════════════╝
-
-PALWORLD_ERROR_PATTERNS = [
-    {
-        "code": "PORT_IN_USE",
-        "patterns": [
-            r"Address already in use",
-            r"Failed.*bind.*port",
-            r"Only one usage of each socket address",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "OUT_OF_MEMORY",
-        "patterns": [
-            r"OutOfMemory",
-            r"Ran out of memory",
-            r"Could not allocate memory",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "EXECUTABLE_CRASH",
-        "patterns": [
-            r"Unhandled Exception",
-            r"Fatal error",
-            r"Assertion failed",
-            r"appError called",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "SAVE_CORRUPT",
-        "patterns": [
-            r"Failed to load.*SaveData",
-            r"Corrupted save",
-            r"Failed to read save file",
-        ],
-        "severity": "error",
-    },
-    {
-        "code": "STEAM_AUTH_FAILED",
-        "patterns": [
-            r"LogOnline.*Warning.*Steam",
-            r"SteamAPI.*failed",
-            r"Steam must be running",
-        ],
-        "severity": "error",
-    },
-]
-
-
-# ╔═══════════════════════════════════════════════════════════╗
 # ║          Additional Lifecycle Functions                    ║
 # ╚═══════════════════════════════════════════════════════════╝
 
@@ -922,9 +869,7 @@ def _save_entries(saves):
 
 
 def diagnose_log(config):
-    """Diagnose errors from provided log lines or server log files."""
-    import re as _re
-
+    """Diagnose errors from provided log lines or server log files. 규칙은 module.toml [[diagnose]]"""
     log_lines = config.get("log_lines", [])
     working_dir = config.get("working_dir", "")
 
@@ -933,32 +878,10 @@ def diagnose_log(config):
 
     # If no lines provided, try to read from Palworld log file
     if not log_lines and working_dir:
-        log_path = safe_join(working_dir, "Pal", "Saved", "Logs", "Pal.log")
-        if os.path.isfile(log_path):
-            try:
-                with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-                    log_lines = f.readlines()[-500:]
-            except OSError:
-                pass
+        log_lines = tail_lines(safe_join(working_dir, "Pal", "Saved", "Logs", "Pal.log"))
 
-    issues = []
-    seen_codes = set()
-    for line in log_lines:
-        for pdef in PALWORLD_ERROR_PATTERNS:
-            if pdef["code"] in seen_codes:
-                continue
-            for regex in pdef["patterns"]:
-                if _re.search(regex, line, _re.IGNORECASE):
-                    code = pdef["code"]
-                    seen_codes.add(code)
-                    issues.append({
-                        "code": code,
-                        "severity": pdef["severity"],
-                        "matched_line": line.strip()[:200],
-                        "message": i18n.t(f"validate.log_{code.lower()}"),
-                        "solution": i18n.t(f"validate.log_{code.lower()}_hint"),
-                    })
-                    break
+    issues = diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n,
+                            message="validate.log_{code}", solution="validate.log_{code}_hint")
 
     return {
         "success": True,

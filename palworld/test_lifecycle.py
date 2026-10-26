@@ -775,3 +775,17 @@ def test_stop_uses_the_shared_procedure_with_a_rest_shutdown():
         assert lifecycle.stop({"pid": 4321}) is False
     rest.assert_called_once_with({"pid": 4321})
     assert shared.call_args.kwargs["module_dir"] == lifecycle.MODULE_DIR
+
+
+def test_diagnose_rules_come_from_module_toml_with_their_phrases(tmp_path):
+    """진단 규칙은 module.toml [[diagnose]] 하나에 둔다(공용 diagnose_lines). 문구는 validate.log_<code>(_hint)"""
+    from daemon_rcon import load_diagnose_rules
+    from palworld import lifecycle
+    rules = load_diagnose_rules(os.path.dirname(MODULE_TOML))
+    with open(os.path.join(os.path.dirname(MODULE_TOML), "locales", "en.json"), encoding="utf-8") as f:
+        phrases = json.load(f)["validate"]
+    for rule in rules:
+        assert f"log_{rule['code'].lower()}" in phrases and f"log_{rule['code'].lower()}_hint" in phrases, rule["code"]
+    issues = lifecycle.diagnose_log({"log_lines": ["LogNet: Error: Address already in use"]})["issues"]
+    assert [(i["code"], i["severity"], i["message"]) for i in issues] == [
+        ("PORT_IN_USE", "critical", phrases["log_port_in_use"])]

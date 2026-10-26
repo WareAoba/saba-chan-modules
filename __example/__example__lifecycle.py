@@ -22,7 +22,7 @@
         daemon_post(f"/api/instance/{instance_id}/rcon", {"command": "<정지 명령>"})로 데몬에 보냅니다
 
    4. configure()에 설정 파일 쓰기 로직 구현
-      → _KEY_MAP에 saba-chan 키 → 게임 키 매핑 추가
+      → module.toml [[settings.fields]]에 file_key = "게임 설정 파일 키" 추가 (이름 표를 코드에 따로 두지 않습니다)
 
    5. 나머지 함수는 필요할 때 하나씩 구현
 
@@ -99,31 +99,14 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 #   daemon_stdin_command(instance_id, line): 데몬이 관리하는 서버 콘솔(stdin)에 한 줄 보내기
 #   is_process_alive / wait_for_exit / force_kill: OS별 프로세스 처리 (직접 만들지 마세요)
 #   graceful_stop / request_console / request_terminate: stop()의 공용 절차 (saba-core 0.1.11부터)
-from daemon_rcon import (atomic_write, daemon_stdin_command, graceful_stop, is_process_alive, request_console,
-                         request_terminate, run_lifecycle)
+#   settings_to_file / settings_from_file: 설정 이름 ↔ 게임 설정 파일 키 (module.toml file_key, 0.1.11부터)
+#   read_key_values / update_key_values: `키=값` 설정 파일 읽기·바뀐 키만 쓰기 (인코딩·주석·순서 유지, 0.1.11부터)
+from daemon_rcon import (atomic_write, daemon_stdin_command, graceful_stop, is_process_alive, read_key_values,
+                         request_console, request_terminate, run_lifecycle, settings_from_file, settings_to_file,
+                         update_key_values)
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
-
-
-# ═══════════════════════════════════════════════════════════════════
-#  설정 키 매핑: saba-chan 내부 키 → 게임 설정 파일 키
-# ═══════════════════════════════════════════════════════════════════
-#
-#  module.toml [[settings.fields]] 의 name  →  게임 설정 파일의 실제 키
-#  configure()와 import_settings()에서 사용합니다.
-#
-_KEY_MAP = {
-    # saba-chan 키          # 게임 설정 파일 키
-    "server_name":          "ServerName",
-    "max_players":          "MaxPlayers",
-    "port":                 "ServerPort",
-    "server_password":      "Password",
-    "pvp":                  "PVP",
-    "difficulty":           "Difficulty",
-    "tick_rate":            "TickRate",
-    # ... 게임 설정 파일의 키에 맞춰 확장
-}
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -292,7 +275,7 @@ def status(config):
 #  사용자 설정을 게임 설정 파일에 적용합니다.
 #
 #  config["settings"]: { "server_name": "My Server", ... }
-#  → _KEY_MAP으로 게임 키 변환 후 설정 파일에 기록
+#  → module.toml file_key로 게임 키로 바꿔 설정 파일에 기록 (바뀐 키만)
 #
 def configure(config):
     settings = config.get("settings", {})
@@ -303,19 +286,10 @@ def configure(config):
     config_file = os.path.join(working_dir, "server.cfg")  # ← 게임별 설정 파일 경로
 
     try:
-        # 1) 기존 설정 파일 읽기 (없으면 빈 dict)
-        current = _read_config_file(config_file)
-
-        # 2) 키 매핑 적용
-        for saba_key, value in settings.items():
-            game_key = _KEY_MAP.get(saba_key)
-            if game_key:
-                current[game_key] = value
-
-        # 3) 설정 파일 쓰기
-        _write_config_file(config_file, current)
-
-        return {"success": True, "message": f"Applied {len(settings)} settings"}
+        # file_key가 없는 설정(데몬 전용 group="saba-chan")은 빠집니다. 불리언 표기는 게임에 맞추세요(true=/false=)
+        updates = settings_to_file(MODULE_DIR, settings)
+        update_key_values(config_file, updates)  # `키=값`이 아닌 형식(JSON 등)이면 직접 쓰되 atomic_write로
+        return {"success": True, "updated_keys": sorted(updates)}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -334,21 +308,8 @@ def import_settings(config):
         return {"success": False, "message": "Config file not found"}
 
     try:
-        current = _read_config_file(config_file)
-
-        # 파일 값은 문자열이다. module.toml 형식(number·boolean)으로 바꿔야 앱 값과 같아진다
-        from daemon_rcon import coerce_setting, load_setting_types
-        types = load_setting_types(MODULE_DIR)
-
-        # 역매핑: 게임 키 → saba-chan 키
-        reverse_map = {v: k for k, v in _KEY_MAP.items()}
-        imported = {}
-        for game_key, value in current.items():
-            saba_key = reverse_map.get(game_key)
-            if saba_key:
-                imported[saba_key] = coerce_setting(value, types.get(saba_key))
-
-        return {"success": True, "settings": imported}
+        # 파일 값은 문자열이다. settings_from_file이 module.toml 형식(number·boolean)으로 바꿉니다
+        return {"success": True, "settings": settings_from_file(MODULE_DIR, read_key_values(config_file, strip_values=True))}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -432,25 +393,6 @@ def diagnose_log(config):
 # ═══════════════════════════════════════════════════════════════════
 #  내부 헬퍼 함수들
 # ═══════════════════════════════════════════════════════════════════
-
-def _read_config_file(path):
-    """게임 설정 파일 읽기 (게임별로 구현)"""
-    # 예: INI 파서, properties 파서, JSON 등
-    config = {}
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if '=' in line and not line.startswith('#'):
-                    key, _, value = line.partition('=')
-                    config[key.strip()] = value.strip()
-    return config
-
-
-def _write_config_file(path, config):
-    """게임 설정 파일 쓰기 (게임별로 구현). 늘 atomic_write로 통째로 바꾼다: 쓰다 끊겨도 파일이 비지 않고 원래 권한이 남는다"""
-    atomic_write(path, "".join(f"{key}={value}\n" for key, value in config.items()).encode("utf-8"))
-
 
 def _do_backup(config):
     """커스텀 백업 명령어 예시"""

@@ -189,10 +189,12 @@ group = "saba-chan"
 
 # ── 일반 게임 설정 ──
 # 아래 필드들은 게임의 설정 파일(INI, properties 등)에 매핑됩니다.
-# lifecycle.py의 configure()에서 _KEY_MAP을 통해 변환합니다.
+# file_key = 게임 설정 파일의 키. lifecycle.py의 configure()·import_settings()가 이 키로 바꿉니다
+# (settings_to_file·settings_from_file). file_key가 없는 설정은 파일에 쓰지 않습니다.
 
 [[settings.fields]]
 name = "server_name"
+file_key = "ServerName"
 type = "text"
 label = "Server Name"
 description = "Name displayed in the server browser"
@@ -200,6 +202,7 @@ default = "My Server"
 
 [[settings.fields]]
 name = "max_players"
+file_key = "MaxPlayers"
 type = "number"
 label = "Max Players"
 description = "Maximum number of players"
@@ -209,6 +212,7 @@ max = 100
 
 [[settings.fields]]
 name = "port"
+file_key = "ServerPort"
 type = "number"
 label = "Game Port"
 description = "Main game server port"
@@ -218,6 +222,7 @@ max = 65535
 
 [[settings.fields]]
 name = "server_password"
+file_key = "Password"
 type = "password"
 label = "Server Password"
 description = "Password to join the server (empty = no password)"
@@ -225,6 +230,7 @@ default = ""
 
 [[settings.fields]]
 name = "pvp"
+file_key = "PVP"
 type = "boolean"
 label = "PvP"
 description = "Enable player vs player combat"
@@ -232,6 +238,7 @@ default = true
 
 [[settings.fields]]
 name = "difficulty"
+file_key = "Difficulty"
 type = "select"
 label = "Difficulty"
 description = "Game difficulty"
@@ -242,6 +249,7 @@ default = "normal"
 
 [[settings.fields]]
 name = "tick_rate"
+file_key = "TickRate"
 type = "number"
 label = "Tick Rate"
 description = "Server tick rate (Hz)"

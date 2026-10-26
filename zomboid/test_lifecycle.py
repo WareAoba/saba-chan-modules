@@ -803,14 +803,43 @@ def test_backup_rejects_a_linked_subfolder_outside_the_data_root(tmp_path, folde
         backup_paths({"cache_dir": str(home), "server_name": "srv"})
 
 
-def _existing_server(tmp_path, script):
+def _existing_server(tmp_path, script, monkeypatch=None):
     server = tmp_path / "기존 서버"
     server.mkdir()
     (server / "StartServer64.bat").write_text(script, encoding="utf-8")
+    if monkeypatch:
+        from zomboid import lifecycle
+        monkeypatch.setattr(lifecycle, "_find_launch_script", lambda d: os.path.join(d, "StartServer64.bat"))
     return server
 
 
-def test_import_reads_memory_profile_and_data_folder_from_the_start_script(tmp_path):
+def test_import_reads_the_script_this_os_would_run(tmp_path, monkeypatch):
+    """.bat과 .sh가 함께 있으면 실행할 때 고르는 스크립트(_find_launch_script)의 값을 가져온다"""
+    from zomboid import lifecycle
+
+    server = _existing_server(tmp_path, '".\\jre64\\bin\\java.exe" -Xmx16g -cp java/ zombie.network.GameServer -servername win\n')
+    (server / "start-server.sh").write_text('#!/bin/sh\n./jre64/bin/java -Xmx6g -cp java/ zombie.network.GameServer -servername linux "$@"\n', encoding="utf-8")
+    monkeypatch.setattr(lifecycle, "_find_launch_script", lambda d: os.path.join(d, "start-server.sh"))
+
+    found = lifecycle._script_settings(str(server))
+
+    assert found["ram"] == 6
+    assert found["server_name"] == "linux"
+
+
+def test_import_resolves_a_relative_data_folder_against_the_server_folder(tmp_path, monkeypatch):
+    """스크립트의 -cachedir=./data는 서버 폴더 기준이다 (lifecycle이 도는 폴더 기준이면 다른 설정을 읽는다)"""
+    from zomboid import lifecycle
+
+    server = _existing_server(tmp_path, '".\\jre64\\bin\\java.exe" -Xmx8g -cp java/ zombie.network.GameServer -cachedir=./data\n', monkeypatch)
+    monkeypatch.chdir(tmp_path)
+
+    found = lifecycle._script_settings(str(server))
+
+    assert found["data_home"] == os.path.normpath(os.path.join(str(server), "data"))
+
+
+def test_import_reads_memory_profile_and_data_folder_from_the_start_script(tmp_path, monkeypatch):
     """가져온 서버는 쓰던 StartServer64.bat의 -Xmx·-servername·-cachedir를 그대로 쓴다 (기본값 4GB·servertest로 덮지 않게)"""
     from zomboid import lifecycle
 
@@ -822,7 +851,7 @@ def test_import_reads_memory_profile_and_data_folder_from_the_start_script(tmp_p
         'SET PZ_CLASSPATH=java/;java/projectzomboid.jar\n'
         f'".\\jre64\\bin\\java.exe" -Djava.awt.headless=true -Xms16g -Xmx16g -cp %PZ_CLASSPATH% zombie.network.GameServer -statistic 0 -servername pvp "-cachedir={home}" %1 %2\n'
         'PAUSE\n'
-    ))
+    ), monkeypatch)
 
     settings = lifecycle.import_settings({"working_dir": str(server)})["settings"]
 
@@ -844,7 +873,7 @@ def test_import_finds_the_only_existing_profile_when_the_script_names_none(tmp_p
         (home / "Server" / f"{name}_SandboxVars.lua").write_text("SandboxVars = {}", encoding="utf-8")
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setenv("HOME", str(tmp_path))
-    server = _existing_server(tmp_path, '".\\jre64\\bin\\java.exe" -Xmx8g -cp java/ zombie.network.GameServer -statistic 0\n')
+    server = _existing_server(tmp_path, '".\\jre64\\bin\\java.exe" -Xmx8g -cp java/ zombie.network.GameServer -statistic 0\n', monkeypatch)
 
     settings = lifecycle.import_settings({"working_dir": str(server)})["settings"]
 

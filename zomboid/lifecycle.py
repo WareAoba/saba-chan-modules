@@ -1254,13 +1254,9 @@ def _heap_gb(value):
 def _script_settings(server_dir):
     """쓰던 실행 스크립트가 정한 메모리(-Xmx)·서버 이름(-servername)·데이터 폴더(-cachedir).
     가져오기가 모듈 기본값(4GB, servertest, ~/Zomboid)으로 덮지 않게 한다. 읽지 못한 값은 빠진다"""
-    info = None
-    for name in ("StartServer64.bat", "StartServer64_nosteam.bat", "StartServer.bat", "start-server.sh", "StartServer.sh"):
-        script = os.path.join(server_dir, name)
-        if os.path.isfile(script):
-            info = _parse_launch_script(script)
-            if info:
-                break
+    # 실행할 때 쓰는 스크립트와 같은 것 (Windows는 .bat, 그 밖은 .sh)
+    script = _find_launch_script(server_dir)
+    info = _parse_launch_script(script) if script else None
     if not info:
         return {}
     found = {}
@@ -1276,6 +1272,9 @@ def _script_settings(server_dir):
             found["server_name"] = args[i + 1]
         elif arg.startswith("-cachedir="):
             found["data_home"] = arg.split("=", 1)[1]
+    # 상대 경로는 서버가 도는 폴더(서버 폴더) 기준이다
+    if found.get("data_home"):
+        found["data_home"] = os.path.normpath(os.path.join(server_dir, os.path.expanduser(found["data_home"])))
     return found
 
 

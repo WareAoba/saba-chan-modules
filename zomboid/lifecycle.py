@@ -15,7 +15,6 @@ Project Zomboid is a Java-based game server (Steam App 380870) that:
 import sys
 import json
 import subprocess
-import locale
 import os
 import re
 import sqlite3
@@ -33,144 +32,14 @@ if _root_dir not in sys.path:
 
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, atomic_write, safe_join, daemon_stdin_command, graceful_stop, is_process_alive,
-                         request_console, request_terminate)
+from daemon_rcon import (PathOutside, safe_join, daemon_stdin_command, graceful_stop, is_process_alive,
+                         read_key_values, request_console, request_terminate, setting_file_keys, settings_to_file,
+                         update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
 
 # ─── Constants ───────────────────────────────────────────
-
-# Mapping: saba-chan internal key → servertest.ini key
-_INI_KEY_MAP = {
-    "public_name":           "PublicName",
-    "public_description":    "PublicDescription",
-    "password":              "Password",
-    "max_players":           "MaxPlayers",
-    "port":                  "DefaultPort",
-    "udp_port":              "UDPPort",
-    "pvp":                   "PVP",
-    "open":                  "Open",
-    "public":                "Public",
-    "pause_empty":           "PauseEmpty",
-    "global_chat":           "GlobalChat",
-    "map":                   "Map",
-    "mods":                  "Mods",
-    "workshop_items":        "WorkshopItems",
-    "announce_death":        "AnnounceDeath",
-    "safety_system":         "SafetySystem",
-    "sleep_allowed":         "SleepAllowed",
-    "sleep_needed":          "SleepNeeded",
-    "save_world_every_minutes": "SaveWorldEveryMinutes",
-    "ping_limit":            "PingLimit",
-    "hours_for_loot_respawn": "HoursForLootRespawn",
-    "max_items_for_loot_respawn": "MaxItemsForLootRespawn",
-    "no_fire":               "NoFire",
-    "player_safehouse":      "PlayerSafehouse",
-    "safehouse_allow_trespass": "SafehouseAllowTrepass",
-    "safehouse_allow_loot":  "SafehouseAllowLoot",
-    "safehouse_allow_respawn": "SafehouseAllowRespawn",
-    "faction":               "Faction",
-    "allow_destruction_by_sledgehammer": "AllowDestructionBySledgehammer",
-    "speed_limit":           "SpeedLimit",
-    "do_lua_checksum":       "DoLuaChecksum",
-    "steam_vac":             "SteamVAC",
-    "voice_enable":          "VoiceEnable",
-    "minutes_per_page":      "MinutesPerPage",
-    "spawn_point":           "SpawnPoint",
-    "max_accounts_per_user": "MaxAccountsPerUser",
-    "spawn_items":           "SpawnItems",
-    # ── Player / Display ──
-    "server_welcome_message":  "ServerWelcomeMessage",
-    "auto_create_user_in_whitelist": "AutoCreateUserInWhiteList",
-    "display_user_name":       "DisplayUserName",
-    "show_first_and_last_name": "ShowFirstAndLastName",
-    "chat_streams":            "ChatStreams",
-    "allow_non_ascii_username": "AllowNonAsciiUsername",
-    "mouse_over_to_see_display_name": "MouseOverToSeeDisplayName",
-    "hide_players_behind_you": "HidePlayersBehindYou",
-    "player_bump_player":      "PlayerBumpPlayer",
-    "player_respawn_with_self": "PlayerRespawnWithSelf",
-    "player_respawn_with_other": "PlayerRespawnWithOther",
-    "drop_off_whitelist_after_death": "DropOffWhiteListAfterDeath",
-    # ── Safety / PVP ──
-    "show_safety":             "ShowSafety",
-    "safety_toggle_timer":     "SafetyToggleTimer",
-    "safety_cooldown_timer":   "SafetyCooldownTimer",
-    "pvp_melee_while_hit_reaction": "PVPMeleeWhileHitReaction",
-    "pvp_melee_damage_modifier": "PVPMeleeDamageModifier",
-    "pvp_firearm_damage_modifier": "PVPFirearmDamageModifier",
-    # ── Safehouse (extended) ──
-    "admin_safehouse":         "AdminSafehouse",
-    "safehouse_allow_fire":    "SafehouseAllowFire",
-    "safehouse_day_survived_to_claim": "SafehouseDaySurvivedToClaim",
-    "safehouse_removal_time":  "SafeHouseRemovalTime",
-    "disable_safehouse_when_player_connected": "DisableSafehouseWhenPlayerConnected",
-    # ── Faction (extended) ──
-    "faction_day_survived_to_create": "FactionDaySurvivedToCreate",
-    "faction_players_required_for_tag": "FactionPlayersRequiredForTag",
-    "allow_trade_ui":          "AllowTradeUI",
-    # ── Loot / World ──
-    "construction_prevents_loot_respawn": "ConstructionPreventsLootRespawn",
-    "hours_for_world_item_removal": "HoursForWorldItemRemoval",
-    "world_item_removal_list": "WorldItemRemovalList",
-    "blood_splat_lifespan_days": "BloodSplatLifespanDays",
-    "item_numbers_limit_per_container": "ItemNumbersLimitPerContainer",
-    "trash_delete_all":        "TrashDeleteAll",
-    # ── Network / Steam ──
-    "ping_frequency":          "PingFrequency",
-    "deny_login_on_overloaded_server": "DenyLoginOnOverloadedServer",
-    "kick_fast_players":       "KickFastPlayers",
-    "steam_port1":             "SteamPort1",
-    "steam_port2":             "SteamPort2",
-    "steam_scoreboard":        "SteamScoreboard",
-    "upnp":                    "UPnP",
-    "upnp_lease_time":         "UPnPLeaseTime",
-    "upnp_zero_lease_time_fallback": "UPnPZeroLeaseTimeFallback",
-    "upnp_force":              "UPnPForce",
-    "server_browser_announced_ip": "server_browser_announced_ip",
-    "use_tcp_for_map_downloads": "UseTCPForMapDownloads",
-    "physics_delay":           "PhysicsDelay",
-    # ── Voice ──
-    "voice_complexity":        "VoiceComplexity",
-    "voice_period":            "VoicePeriod",
-    "voice_sample_rate":       "VoiceSampleRate",
-    "voice_buffering":         "VoiceBuffering",
-    "voice_min_distance":      "VoiceMinDistance",
-    "voice_max_distance":      "VoiceMaxDistance",
-    "voice_3d":                "Voice3D",
-    # ── Co-op ──
-    "coop_server_launch_timeout": "CoopServerLaunchTimeout",
-    "coop_master_ping_timeout": "CoopMasterPingTimeout",
-    # ── Gameplay misc ──
-    "fast_forward_multiplier": "FastForwardMultiplier",
-    "player_save_on_damage":   "PlayerSaveOnDamage",
-    "save_transaction_id":     "SaveTransactionID",
-    "car_engine_attraction_modifier": "CarEngineAttractionModifier",
-    "ban_kick_global_sound":   "BanKickGlobalSound",
-    "remove_player_corpses_on_corpse_removal": "RemovePlayerCorpsesOnCorpseRemoval",
-    "client_command_filter":   "ClientCommandFilter",
-    # ── Discord ──
-    "discord_enable":          "DiscordEnable",
-    "discord_token":           "DiscordToken",
-    "discord_channel":         "DiscordChannel",
-    "discord_channel_id":      "DiscordChannelID",
-    # ── Radio ──
-    "disable_radio_staff":     "DisableRadioStaff",
-    "disable_radio_admin":     "DisableRadioAdmin",
-    "disable_radio_gm":        "DisableRadioGM",
-    "disable_radio_overseer":  "DisableRadioOverseer",
-    "disable_radio_moderator": "DisableRadioModerator",
-    "disable_radio_invisible": "DisableRadioInvisible",
-    # ── Zombie performance ──
-    "zombie_update_max_high_priority": "ZombieUpdateMaxHighPriority",
-    "zombie_update_delta":     "ZombieUpdateDelta",
-    "zombie_update_radius_low_priority": "ZombieUpdateRadiusLowPriority",
-    "zombie_update_radius_high_priority": "ZombieUpdateRadiusHighPriority",
-}
-
-# Reverse mapping for read_properties
-_INI_KEY_MAP_REV = {v: k for k, v in _INI_KEY_MAP.items()}
 
 # Default servertest.ini values
 DEFAULT_INI_PROPERTIES = {
@@ -395,96 +264,24 @@ class IniManager:
         return str(safe_join(_zomboid_home(config), "Server", f"{server_name}.ini"))
 
     @staticmethod
-    def encoding_of(ini_path):
-        """ini의 인코딩: UTF-8이 아니면(PZ·메모장이 ANSI로 쓴 cp949 등) cp949·시스템 로캘·latin-1 순서
-        (영문 Windows의 cp1252는 거의 모든 바이트를 받아 한글을 깨진 글자로 읽으므로 cp949가 먼저다).
-        쓸 때도 같은 인코딩을 써서 건드리지 않은 키의 한글 값이 깨지지 않게 한다"""
-        try:
-            with open(ini_path, "rb") as f:
-                raw = f.read()
-        except OSError:
-            return "utf-8"
-        for encoding in ("utf-8", "cp949", locale.getpreferredencoding(False), "latin-1"):
-            try:
-                raw.decode(encoding)
-                return encoding
-            except (UnicodeDecodeError, LookupError):
-                continue
-        return "utf-8"
-
-    @staticmethod
     def read(ini_path):
-        """Read an INI file and return {key: value} dict."""
-        props = {}
+        """Read an INI file and return {key: value} dict. 값은 첫 "=" 뒤를 그대로 둔다(비밀번호의 앞뒤 공백도 값이다).
+        인코딩 추측(UTF-8 → cp949 → 로캘, PZ·메모장이 ANSI로 쓴 파일)은 공용 read_key_values가 한다"""
         if not os.path.exists(ini_path):
-            return props
-        
+            return {}
         try:
-            with open(ini_path, 'r', encoding=IniManager.encoding_of(ini_path), errors='replace') as f:
-                for raw in f:
-                    # 값은 첫 "=" 뒤를 그대로 둔다 (비밀번호의 앞뒤 공백도 값이다). 줄바꿈만 뗀다
-                    line = raw.rstrip('\r\n')
-                    if not line.strip() or line.lstrip().startswith('#'):
-                        continue
-                    if '=' in line:
-                        key, _, value = line.partition('=')
-                        props[key.strip()] = value
-        except (IOError, OSError) as e:
+            return read_key_values(ini_path)
+        except OSError as e:
             print(f"Warning: Could not read {ini_path}: {e}", file=sys.stderr)
-        
-        return props
-
-    @staticmethod
-    def write(ini_path, properties):
-        """Write properties to INI file, preserving comments and order.
-        
-        If the file exists, updates existing keys and appends new ones.
-        If it doesn't exist, creates it from scratch.
-        """
-        os.makedirs(os.path.dirname(ini_path), exist_ok=True)
-        
-        if os.path.exists(ini_path):
-            # Read existing file, update values in place
-            lines = []
-            updated_keys = set()
-            encoding = IniManager.encoding_of(ini_path)
-            
-            with open(ini_path, 'r', encoding=encoding, errors='replace') as f:
-                for line in f:
-                    stripped = line.strip()
-                    if stripped and not stripped.startswith('#') and '=' in stripped:
-                        key, _, old_val = stripped.partition('=')
-                        key = key.strip()
-                        if key in properties:
-                            lines.append(f"{key}={properties[key]}\n")
-                            updated_keys.add(key)
-                        else:
-                            lines.append(line)
-                    else:
-                        lines.append(line)
-            
-            # Append any new keys not already in the file
-            for key, value in properties.items():
-                if key not in updated_keys:
-                    lines.append(f"{key}={value}\n")
-            
-            text = "".join(lines)
-            try:
-                data = text.encode(encoding)
-            except UnicodeEncodeError:
-                # 원래 인코딩에 없는 글자를 새로 넣었다: UTF-8로 바꿔 쓴다
-                data = text.encode("utf-8")
-            atomic_write(ini_path, data)
-        else:
-            # Create new file
-            atomic_write(ini_path, "".join(f"{key}={value}\n" for key, value in properties.items()).encode("utf-8"))
+            return {}
 
     @staticmethod
     def update(ini_path, updates):
-        """Update specific keys in an INI file."""
-        existing = IniManager.read(ini_path) if os.path.exists(ini_path) else {}
-        existing.update(updates)
-        IniManager.write(ini_path, existing)
+        """주어진 키만 고친다. 주석·순서·다른 키·원래 인코딩은 그대로 두고, 없는 키는 끝에 붙이며, 파일이 없으면 만든다"""
+        os.makedirs(os.path.dirname(ini_path), exist_ok=True)
+        update_key_values(ini_path, updates)
+
+    write = update
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1112,16 +909,8 @@ def stop(config):
 
 
 def _ini_updates(settings):
-    """saba-chan 설정 키를 ini 키·값으로 (ini에 없는 키는 뺀다)"""
-    updates = {}
-    for key, value in (settings or {}).items():
-        ini_key = _INI_KEY_MAP.get(key)
-        if ini_key and value is not None:
-            # Convert booleans to lowercase strings
-            if isinstance(value, bool):
-                value = "true" if value else "false"
-            updates[ini_key] = str(value)
-    return updates
+    """saba-chan 설정 키를 ini 키·값으로 (module.toml file_key가 없는 키는 뺀다)"""
+    return settings_to_file(MODULE_DIR, settings)
 
 
 def configure(config):
@@ -1252,12 +1041,14 @@ def read_properties(config):
     Returns properties mapped back to saba-chan internal key names.
     """
     ini_path = IniManager.get_ini_path(config)
-    
+    # ini 키 → 설정 이름 (설정 화면에 없는 키는 이름 그대로)
+    names = {ini_key: name for name, ini_key in setting_file_keys(MODULE_DIR).items()}
+
     if not os.path.exists(ini_path):
         # Return defaults mapped to internal keys
         mapped_defaults = {}
         for ini_key, value in DEFAULT_INI_PROPERTIES.items():
-            internal_key = _INI_KEY_MAP_REV.get(ini_key, ini_key)
+            internal_key = names.get(ini_key, ini_key)
             mapped_defaults[internal_key] = value
         return {
             "success": True,
@@ -1268,7 +1059,7 @@ def read_properties(config):
     raw_props = IniManager.read(ini_path)
     mapped = {}
     for ini_key, value in raw_props.items():
-        internal_key = _INI_KEY_MAP_REV.get(ini_key, ini_key)
+        internal_key = names.get(ini_key, ini_key)
         mapped[internal_key] = value
     
     return {"success": True, "properties": mapped}

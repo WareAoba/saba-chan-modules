@@ -43,10 +43,12 @@ def test_module_toml_required_sections_present():
 # ─── 2. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
 
 def test_ini_key_map_values_mostly_in_defaults():
-    """_INI_KEY_MAP이 가리키는 INI 키의 상당수는 DEFAULT_INI_PROPERTIES에 있어야 한다.
+    """module.toml file_key가 가리키는 INI 키의 상당수는 DEFAULT_INI_PROPERTIES에 있어야 한다.
     모두 있어야 한다고 강제하진 않는다 (PZ는 기본값이 서버 최초 실행 시 생성되는
     필드도 있음). 단 coverage가 극도로 낮으면 매핑이 깨진 것."""
-    from zomboid.lifecycle import _INI_KEY_MAP, DEFAULT_INI_PROPERTIES
+    from zomboid.lifecycle import DEFAULT_INI_PROPERTIES, MODULE_DIR
+    from daemon_rcon import setting_file_keys
+    _INI_KEY_MAP = setting_file_keys(MODULE_DIR)
 
     covered = sum(1 for v in _INI_KEY_MAP.values() if v in DEFAULT_INI_PROPERTIES)
     ratio = covered / max(1, len(_INI_KEY_MAP))
@@ -58,20 +60,15 @@ def test_ini_key_map_values_mostly_in_defaults():
 
 def test_ini_key_map_no_duplicate_targets():
     """두 friendly name이 같은 INI 키에 매핑되면 설정이 소실된다."""
-    from zomboid.lifecycle import _INI_KEY_MAP
+    from zomboid.lifecycle import MODULE_DIR
+    from daemon_rcon import setting_file_keys
+    _INI_KEY_MAP = setting_file_keys(MODULE_DIR)
 
     reverse = {}
     for friendly, ini_key in _INI_KEY_MAP.items():
         reverse.setdefault(ini_key, []).append(friendly)
     dupes = {k: v for k, v in reverse.items() if len(v) > 1}
     assert not dupes, f"중복 매핑된 INI 키: {dupes}"
-
-
-def test_ini_key_map_reverse_is_bijective():
-    """_INI_KEY_MAP_REV는 _INI_KEY_MAP의 완전 역이어야 한다.
-    일방향만 수정되면 read_properties가 잘못된 필드를 반환한다."""
-    from zomboid.lifecycle import _INI_KEY_MAP, _INI_KEY_MAP_REV
-    assert _INI_KEY_MAP_REV == {v: k for k, v in _INI_KEY_MAP.items()}
 
 
 def test_default_ini_no_duplicate_keys_case_insensitive():
@@ -107,9 +104,11 @@ def _ini_bound_field_names(cfg):
 
 
 def test_ini_bound_fields_are_mapped():
-    """INI에 쓰여야 하는 UI 필드가 모두 _INI_KEY_MAP에 있어야 한다.
+    """INI에 쓰여야 하는 UI 필드가 모두 file_key를 가져야 한다.
     누락되면 GUI에서 바꾼 값이 서버에 반영되지 않는다. (RCON 칸은 없다: 보안상 늘 꺼 둔다)"""
-    from zomboid.lifecycle import _INI_KEY_MAP
+    from zomboid.lifecycle import MODULE_DIR
+    from daemon_rcon import setting_file_keys
+    _INI_KEY_MAP = setting_file_keys(MODULE_DIR)
 
     cfg = _load_module_toml()
     unmapped = [n for n in _ini_bound_field_names(cfg) if n not in _INI_KEY_MAP]
@@ -473,7 +472,7 @@ def test_saving_one_setting_keeps_other_values_in_a_locale_encoded_ini(tmp_path,
     영문 Windows(cp1252)에서도 한글 값을 깨진 글자로 읽지 않는다"""
     from zomboid import lifecycle
     from zomboid.lifecycle import IniManager
-    monkeypatch.setattr(lifecycle.locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
+    monkeypatch.setattr(__import__("locale"), "getpreferredencoding", lambda do_setlocale=True: "cp1252")
     ini = tmp_path / "servertest.ini"
     ini.write_bytes("PublicName=우리 서버\nMaxPlayers=8\n".encode("cp949"))
     assert IniManager.read(str(ini))["PublicName"] == "우리 서버"
@@ -526,7 +525,8 @@ def test_the_declared_udp_port_reaches_the_server(tmp_path):
     assert args[args.index("-udpport") + 1] == "16300"
     # 마지막 포트도 -port로 넘긴다. port+1이 없으니 -udpport만 뺀다
     assert top[top.index("-port") + 1] == "65535" and "-udpport" not in top
-    assert lifecycle._INI_KEY_MAP["udp_port"] == "UDPPort"
+    from daemon_rcon import setting_file_keys
+    assert setting_file_keys(lifecycle.MODULE_DIR)["udp_port"] == "UDPPort"
 
 
 @pytest.mark.parametrize(("has_db", "include_password"), [(False, True), (True, False)])

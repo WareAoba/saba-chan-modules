@@ -90,14 +90,26 @@ _KEY_MAP_REV = {v: k for k, v in _KEY_MAP.items()}
 _BOOL_KEYS = {"secure", "upnp", "slowliquids", "seed_celebration", "seed_theconstant", "seed_notthebees",
               "seed_notraps", "seed_fortheworthy", "seed_remix", "seed_drunk", "seed_zenith"}
 
-# 실행 인자로만 들어가는 설정(group = "saba-chan"): (설정 이름, 인자 모양)
-_LAUNCH_ARGS = [
-    ("ip", ["-ip", "{value}"]),
-    ("steam", ["-steam"]),
-    ("lobby", ["-lobby", "{value}"]),
-    ("disable_announcement_box", ["-disableannouncementbox"]),
-    ("announcement_box_range", ["-announcementboxrange", "{value}"]),
+# 서버 파일의 `playing` 답 마지막 줄(CLI.NoPlayers·OnePlayerConnected·PlayersConnected, 1.4.5.8 TerrariaServer.exe 12개 언어).
+# 0명·1명 문구는 숫자를 그대로 적는다
+_PLAYING_COUNT = [
+    ("No players connected.", "1 player connected.", "{0} players connected."),
+    ("Keine Spieler verbunden.", "1 Spieler verbunden.", "{0} Spieler verbunden."),
+    ("Nessun giocatore connesso.", "1 giocatore connesso.", "{0} giocatori connessi."),
+    ("Aucun joueur connecté.", "1 joueur connecté.", "{0} joueurs connectés."),
+    ("No hay jugadores conectados.", "1 jugador conectado.", "{0} jugadores conectados."),
+    ("Нет подключенных игроков.", "Подключён 1 игрок.", "Подключено игроков: {0}."),
+    ("无玩家连接。", "1个玩家已连接。", "{0}个玩家已连接。"),
+    ("Nenhum jogador conectado.", "1 jogador conectado.", "{0} jogadores conectados."),
+    ("Nie przyłączyli się żadni gracze.", "Przyłączył się 1 gracz.", "Przyłączyła się następująca liczba graczy: {0}."),
+    ("接続中のプレイヤーはいません。", "1人のプレイヤーが接続中です。", "{0}人のプレイヤーが接続中です。"),
+    ("접속 중인 플레이어가 없음.", "플레이어 1명 접속 중.", "플레이어 {0}명 접속 중."),
+    ("沒有玩家連線。", "已與 1 名玩家連線。", "已與 {0} 名玩家連線。"),
 ]
+# 플레이어마다 한 줄 "<이름> (<주소>)"
+_PLAYING_LINE_RE = re.compile(r"^(.+) \(([^()]+)\)$")
+# 줄 앞 서버 프롬프트(줄바꿈 없이 찍힌 ": ", 의사 콘솔은 ":")
+_PROMPT_RE = re.compile(r"^:(?: |$)")
 
 # 이름 조각 검사: 빈 값·구분자·드라이브·Windows가 잘라 내는 끝 공백/점("."·".." 포함)
 _BAD_NAME_CHARS = set('/\\:*?"<>|')
@@ -320,12 +332,26 @@ def validate(config):
     return {"success": not any(i["severity"] == "critical" for i in issues), "issues": issues}
 
 
+def _launch_arg_shapes():
+    """실행 인자로만 들어가는 설정(group = "saba-chan")의 인자 모양: [(설정 이름, 토큰)]. module.toml `arg`가 원본이다"""
+    import tomllib
+    with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
+        fields = tomllib.loads(f.read().decode("utf-8-sig")).get("settings", {}).get("fields", [])
+    shapes = []
+    for field in fields:
+        arg = field.get("arg")
+        if field.get("group") == "saba-chan" and arg:
+            shapes.append((field["name"], arg.split() if isinstance(arg, str) else list(arg)))
+    return shapes
+
+
 def _launch_args(config):
     args = ["-config", CONFIG_FILE]
     steam = bool(config_value(config, "steam", False))
-    for name, shape in _LAUNCH_ARGS:
+    for name, shape in _launch_arg_shapes():
         value = config_value(config, name, None)
-        if value in (None, "", False):
+        # 0은 값이다(announcement_box_range = 0). 꺼진 플래그만 뺀다
+        if value is None or value is False or value == "":
             continue
         if name == "lobby" and not steam:
             # 위키: -lobby는 -steam이 있어야 한다
@@ -475,6 +501,67 @@ def import_settings(config):
     if exe:
         out["executable_path"] = os.path.basename(exe)
     return out
+
+
+def config_files(config):
+    """사바쨩이 고치는 게임 설정 파일 (가져온 서버를 해제할 때 데몬이 가져오기 전 내용으로 되돌린다)"""
+    if not _working_dir(config):
+        return {"success": False, "message": i18n.t("errors.no_working_dir")}
+    return {"success": True, "files": [os.path.abspath(_config_path(config))]}
+
+
+def _int_or_none(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _playing_count(line):
+    for none, one, many in _PLAYING_COUNT:
+        if line == none:
+            return 0
+        if line == one:
+            return 1
+        head, tail = many.split("{0}")
+        if line.startswith(head) and line.endswith(tail) and line[len(head):len(line) - len(tail)].isdigit():
+            return int(line[len(head):len(line) - len(tail)])
+    return None
+
+
+def player_count(config):
+    """접속자 (module.toml [status] players). 게임에 조회 API가 없어 콘솔 `playing`으로 읽는다.
+    1분 갱신(players_detail 없음)에는 콘솔에 찍히지 않게 묻지 않고 수를 모른다고 답한다"""
+    if not config.get("players_detail"):
+        return {"success": True}
+    try:
+        reply = daemon_stdin_command(config.get("instance_id", ""), "playing", timeout=5)
+    except PathOutside:
+        raise
+    except Exception as e:
+        print(f"[Terraria] playing failed: {e}", file=sys.stderr)
+        return {"success": False, "message": i18n.t("errors.players_unavailable")}
+    response = ((reply or {}).get("data") or {}).get("response") or ""
+    names = []
+    for raw in response.splitlines():
+        line = _PROMPT_RE.sub("", raw.strip()).strip()
+        if line == "playing":
+            # 명령 메아리 앞의 줄은 이 답이 아니다
+            names = []
+            continue
+        count = _playing_count(line)
+        if count is not None:
+            result = {"success": True, "online": count}
+            max_players = _int_or_none(config_value(config, "max_players", None))
+            if max_players:
+                result["max"] = max_players
+            if len(names) == count:
+                result["players"] = [{"name": n} for n in names]
+            return result
+        match = _PLAYING_LINE_RE.match(line)
+        if match:
+            names.append(match.group(1))
+    return {"success": False, "message": i18n.t("errors.players_unavailable")}
 
 
 def backup_paths(config):
@@ -704,6 +791,8 @@ FUNCTIONS = {
     "read_properties":    read_properties,
     "import_settings":    import_settings,
     "backup_paths":       backup_paths,
+    "config_files":       config_files,
+    "player_count":       player_count,
     "reset_server":       reset_server,
     "list_versions":      list_versions,
     "install_server":     install_server,

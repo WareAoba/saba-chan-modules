@@ -309,7 +309,9 @@
     "xna_framework_missing": "服务器文件夹中缺少 XNA Framework 4.0 文件。重新安装服务器即可添加。",
     "xna_install_failed": "无法将 XNA Framework 4.0 放入服务器文件夹：{{error}}",
     "xna_extension_missing": "在 Windows 上运行 Terraria 服务器需要 XNA 扩展。请安装并启用“XNA Framework 4.0 (portable)”扩展。",
-    "version_unknown": "找不到已安装的服务器版本。"
+    "version_unknown": "找不到已安装的服务器版本。",
+    "no_working_dir": "无法确定服务器文件夹",
+    "players_unavailable": "无法从服务器控制台读取玩家列表"
   },
   "messages": {
     "downloading": "正在下载泰拉瑞亚服务器",

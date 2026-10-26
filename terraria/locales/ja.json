@@ -309,7 +309,9 @@
     "xna_framework_missing": "サーバーフォルダーに XNA Framework 4.0 のファイルがありません。サーバーを再インストールすると配置されます。",
     "xna_install_failed": "サーバーフォルダーに XNA Framework 4.0 を配置できませんでした: {{error}}",
     "xna_extension_missing": "Windows でテラリアサーバーを実行するには XNA エクステンションが必要です。「XNA Framework 4.0 (portable)」エクステンションをインストールして有効にしてください。",
-    "version_unknown": "インストールされたサーバーのバージョンが見つかりません。"
+    "version_unknown": "インストールされたサーバーのバージョンが見つかりません。",
+    "no_working_dir": "サーバーフォルダーが分かりません",
+    "players_unavailable": "サーバーコンソールからプレイヤー一覧を読み取れませんでした"
   },
   "messages": {
     "downloading": "テラリアサーバーをダウンロード中",

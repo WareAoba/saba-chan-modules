@@ -824,3 +824,147 @@ def test_relative_world_path_is_under_the_server_folder(lc, tmp_path):
     world_dir, _, world_file = lc._world(_config(server, world_dir="Worlds", world_name="a"))
     assert Path(world_dir) == server / "Worlds"
     assert Path(world_file) == server / "Worlds" / "a.wld"
+
+
+# ─── 연결 해제 때 되돌릴 설정 파일 (#70 계약) ───────────────────
+
+def test_config_files_is_the_server_config(lc, tmp_path):
+    server = _server(tmp_path, lc)
+    result = lc.config_files(_config(server))
+    assert result == {"success": True, "files": [str(server / "serverconfig.txt")]}
+
+
+def test_config_files_needs_a_server_folder(lc):
+    assert lc.config_files({})["success"] is False
+
+
+# ─── 실행 인자 모양은 module.toml `arg` 한 곳 ──────────────────
+
+def test_launch_argument_shapes_come_from_module_toml(tmp_path):
+    import shutil
+    copy = tmp_path / "terraria"
+    shutil.copytree(MODULE_DIR, copy, ignore=shutil.ignore_patterns("__pycache__", "test_*"))
+    text = (copy / "module.toml").read_text(encoding="utf-8")
+    assert "arg = \"-ip {value}\"" in text
+    (copy / "module.toml").write_text(text.replace("arg = \"-ip {value}\"", "arg = \"-ip={value}\""),
+                                      encoding="utf-8")
+    spec = importlib.util.spec_from_file_location("terraria_lifecycle_copy", copy / "lifecycle.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    server = _server(tmp_path, module)
+    result = module.get_launch_command(_config(server, preview=True, ip="127.0.0.1"))
+    assert result["args"] == ["-config", "serverconfig.txt", "-ip=127.0.0.1"]
+
+
+# ─── 접속·퇴장 (서버 파일 번역 문자열 LegacyMultiplayer.19·20, 12개 언어) ───
+
+_JOIN_LEAVE = [
+    ("{0} has joined.", "{0} has left."),
+    ("{0} ist beigetreten.", "{0} ist gegangen."),
+    ("{0} si è unito.", "{0} ha abbandonato."),
+    ("{0} s'est connecté-e.", "{0} est parti-e."),
+    ("{0} se ha unido.", "{0} se ha ido."),
+    ("Игрок {0} присоединился.", "Игрок {0} вышел."),
+    ("{0}已加入。", "{0}已离开。"),
+    ("{0} entrou.", "{0} saiu."),
+    ("{0} dołącza.", "{0} odchodzi."),
+    ("{0}が参加しました。", "{0}が去りました。"),
+    ("{0} 님이 참가했습니다.", "{0} 님이 떠났습니다."),
+    ("{0}已加入。", "{0}已離開。"),
+]
+
+
+def _player_name(patterns, line):
+    for pattern in patterns:
+        m = re.fullmatch(pattern, line)
+        if m:
+            return m.group("name")
+    return None
+
+
+@pytest.mark.parametrize("name", ["Bob", "사바쨩", "Dr. Who"])
+def test_join_and_leave_lines_name_the_player(toml, name):
+    saba = toml["extensions"]["saba-core"]
+    for join, leave in _JOIN_LEAVE:
+        for prefix in ("", ": "):
+            assert _player_name(saba["player_join_patterns"], prefix + join.format(name)) == name, join
+            assert _player_name(saba["player_leave_patterns"], prefix + leave.format(name)) == name, leave
+            assert _player_name(saba["player_leave_patterns"], prefix + join.format(name)) is None
+
+
+def test_chat_and_team_lines_are_not_joins(toml):
+    saba = toml["extensions"]["saba-core"]
+    for line in ("<Bob> Alice has joined.", "Bob has joined the red team.", "<Bob> Alice has left.",
+                 "Bob has left!", "*Bob has joined.", ": *Bob has left.", ": <Bob> Alice has joined.", ":<Bob> 사바쨩 님이 떠났습니다."):
+        assert _player_name(saba["player_join_patterns"] + saba["player_leave_patterns"], line) is None, line
+
+
+# ─── 접속자 (`playing`, 서버 파일 CLI.NoPlayers·OnePlayerConnected·PlayersConnected) ───
+
+def _playing(monkeypatch, lc, response):
+    sent = []
+
+    def fake(iid, line, **kw):
+        sent.append(line)
+        return {"success": True, "data": {"response": response}}
+    monkeypatch.setattr(lc, "daemon_stdin_command", fake)
+    return sent
+
+
+def test_player_count_does_not_write_to_the_console_every_minute(lc, monkeypatch):
+    sent = _playing(monkeypatch, lc, "")
+    assert lc.player_count({"instance_id": "inst-1"}) == {"success": True}
+    assert sent == []
+
+
+@pytest.mark.parametrize("response,online,names", [
+    (": playing\nNo players connected.", 0, []),
+    ("Bob (127.0.0.1:50012)\n1 player connected.", 1, ["Bob"]),
+    (": Bob (10.0.0.2:1)\n사바쨩 (10.0.0.3:2)\n2 players connected.", 2, ["Bob", "사바쨩"]),
+    ("사바쨩 (10.0.0.3:2)\n플레이어 1명 접속 중.", 1, ["사바쨩"]),
+    ("접속 중인 플레이어가 없음.", 0, []),
+    ("A (1)\nB (2)\nC (3)\nПодключено игроков: 3.", 3, ["A", "B", "C"]),
+])
+def test_player_list_reads_playing(lc, monkeypatch, response, online, names):
+    sent = _playing(monkeypatch, lc, response)
+    result = lc.player_count({"instance_id": "inst-1", "players_detail": True})
+    assert sent == ["playing"]
+    assert result["success"] is True
+    assert result["online"] == online
+    assert result["players"] == [{"name": n} for n in names]
+    assert "max" not in result
+
+
+def test_player_list_reports_the_limit_and_keeps_names_that_start_with_a_colon(lc, monkeypatch):
+    _playing(monkeypatch, lc, "Other (line)\n: playing\n:3 (1.2.3.4:5)\n1 player connected.")
+    result = lc.player_count({"instance_id": "inst-1", "players_detail": True, "max_players": 8})
+    assert result == {"success": True, "online": 1, "max": 8, "players": [{"name": ":3"}]}
+
+
+def test_zero_is_a_launch_argument_value(lc, tmp_path):
+    server = _server(tmp_path, lc)
+    result = lc.get_launch_command(_config(server, preview=True, announcement_box_range=0))
+    assert result["args"] == ["-config", "serverconfig.txt", "-announcementboxrange", "0"]
+
+
+def test_player_list_without_matching_names_gives_only_the_count(lc, monkeypatch):
+    _playing(monkeypatch, lc, "Bob (127.0.0.1:1)\n2 players connected.")
+    result = lc.player_count({"instance_id": "inst-1", "players_detail": True})
+    assert result == {"success": True, "online": 2}
+
+
+def test_player_list_unknown_reply_is_a_failure(lc, monkeypatch):
+    _playing(monkeypatch, lc, "Invalid command.")
+    assert lc.player_count({"instance_id": "inst-1", "players_detail": True})["success"] is False
+
+
+def test_player_list_console_failure_is_a_failure(lc, monkeypatch):
+    def unavailable(*a, **kw):
+        raise ConnectionError("409")
+    monkeypatch.setattr(lc, "daemon_stdin_command", unavailable)
+    assert lc.player_count({"instance_id": "inst-1", "players_detail": True})["success"] is False
+
+
+def test_player_count_is_the_status_function(lc, toml):
+    assert toml["status"]["players"] == "player_count"
+    assert "player_count" in lc.FUNCTIONS and "config_files" in lc.FUNCTIONS

@@ -1536,3 +1536,22 @@ def test_diagnose_rules_come_from_module_toml_and_read_the_latest_log(tmp_path):
     (tmp_path / "logs" / "latest.log").write_text("[12:00:00] [main/INFO]: You need to agree to the EULA\n", encoding="utf-8")
     issues = lifecycle.diagnose_log({"working_dir": str(tmp_path)})["issues"]
     assert [(i["code"], i["severity"]) for i in issues] == [("EULA_NOT_ACCEPTED", "critical")]
+
+
+def test_a_jre_archive_that_reaches_outside_the_java_folder_is_not_extracted(tmp_path):
+    """받은 JRE 압축은 공용 safe_extract로 푼다: java/ 밖을 가리키는 항목이 하나라도 있으면 아무것도 쓰지 않는다"""
+    import zipfile
+    from minecraft import lifecycle
+
+    def fake_download(url, dest, **kwargs):
+        with zipfile.ZipFile(dest, "w") as z:
+            z.writestr("jdk-21-jre/bin/java", "x")
+            z.writestr("jdk-21-jre/../../evil.txt", "x")
+        return {}
+
+    with mock.patch.object(lifecycle, "download", side_effect=fake_download), \
+         mock.patch.object(lifecycle.JavaDownloader, "_find_bundled_java", return_value=None):
+        result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
+    assert result["success"] is False
+    assert not (tmp_path.parent / "evil.txt").exists()
+    assert sorted(p.name for p in tmp_path.iterdir()) == []

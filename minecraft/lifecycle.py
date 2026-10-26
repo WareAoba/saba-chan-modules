@@ -23,7 +23,6 @@ import shutil
 import socket
 import struct
 import time
-import hashlib
 import tempfile
 import zipfile
 from pathlib import Path
@@ -33,19 +32,16 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더�
 
 import plugins
 import server_types
-from daemon_rcon import (PathOutside, atomic_write, diagnose_lines, graceful_stop, is_process_alive,
-                         load_diagnose_rules, read_key_values, request_console, request_terminate, safe_join,
-                         setting_file_keys, settings_from_file, settings_to_file, tail_lines, update_key_values)
+from daemon_rcon import (ChecksumMismatch, PathOutside, atomic_write, diagnose_lines, download, graceful_stop,
+                         is_process_alive, load_diagnose_rules, progress, read_key_values, request_console,
+                         request_terminate, safe_extract, safe_join, setting_file_keys, settings_from_file,
+                         settings_to_file, tail_lines, update_key_values)
 
 # ─── Init ─────────────────────────────────────────────────────
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
 
-
-def _progress(percent, message):
-    """데몬이 읽는 진행률 줄 (stderr `PROGRESS:{json}`, GUI 설치 진행률)"""
-    print("PROGRESS:" + json.dumps({"percent": percent, "message": message}, ensure_ascii=True), file=sys.stderr, flush=True)
 
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                    Java Detection                         ║
@@ -332,10 +328,6 @@ class JavaDownloader:
         Returns:
             dict with success, java_path, java_home, version
         """
-        import urllib.request
-        import tarfile
-        import zipfile
-
         os_name, arch = JavaDownloader._platform_info()
         java_dir = os.path.join(install_dir, "java")
 
@@ -366,35 +358,22 @@ class JavaDownloader:
         print(f"  URL: {url}", file=sys.stderr)
 
         tmp_file = os.path.join(install_dir, f"java-jre.{ext}")
+        message = i18n.t("messages.downloading_java", version=str(major_version))
+        shown = [-1]
+
+        def report(done, total):
+            pct = done * 100 // total if total else -1
+            if pct != shown[0] and pct >= 0:
+                shown[0] = pct
+                progress(pct, message)
 
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "saba-chan/1.0"})
-            with urllib.request.urlopen(req, timeout=300) as resp:
-                total = int(resp.headers.get("Content-Length", 0))
-                downloaded = 0
-                chunk_size = 256 * 1024
-                last_pct = -1
-                message = i18n.t("messages.downloading_java", version=str(major_version))
-
-                with open(tmp_file, "wb") as f:
-                    while True:
-                        chunk = resp.read(chunk_size)
-                        if not chunk:
-                            break
-                        f.write(chunk)
-                        downloaded += len(chunk)
-                        if total > 0:
-                            pct = downloaded * 100 // total
-                            if pct != last_pct:
-                                last_pct = pct
-                                _progress(pct, message)
-
+            download(url, tmp_file, on_progress=report, timeout=300, user_agent="saba-chan/1.0")
         except Exception as e:
-            if os.path.exists(tmp_file):
-                os.remove(tmp_file)
             return {"success": False, "message": i18n.t("errors.java_download_failed", error=str(e))}
 
-        # Extract: 임시 폴더에 다 푼 뒤에만 java/를 바꾼다 (중간 실패가 반쯤 풀린 Java를 남기지 않게)
+        # Extract: 임시 폴더에 다 푼 뒤에만 java/를 바꾼다 (중간 실패가 반쯤 풀린 Java를 남기지 않게).
+        # Adoptium 압축은 맨 위에 "jdk-21.0.2+13-jre" 같은 폴더 하나가 있다. 폴더 밖으로 나가는 항목·링크는 풀지 않는다
         final_dir = java_dir
         java_dir = final_dir + ".part"
         print(f"  Extracting to {final_dir}...", file=sys.stderr)
@@ -402,35 +381,7 @@ class JavaDownloader:
         os.makedirs(java_dir, exist_ok=True)
 
         try:
-            if ext == "zip":
-                with zipfile.ZipFile(tmp_file) as zf:
-                    # Adoptium zips have a top-level dir like "jdk-21.0.2+13-jre"
-                    top_dirs = {name.split("/")[0] for name in zf.namelist() if "/" in name}
-                    strip_prefix = top_dirs.pop() + "/" if len(top_dirs) == 1 else ""
-                    for member in zf.infolist():
-                        if member.is_dir():
-                            continue
-                        # Strip top-level directory
-                        rel_path = member.filename
-                        if strip_prefix and rel_path.startswith(strip_prefix):
-                            rel_path = rel_path[len(strip_prefix):]
-                        if not rel_path:
-                            continue
-                        dest = os.path.join(java_dir, rel_path)
-                        os.makedirs(os.path.dirname(dest), exist_ok=True)
-                        with zf.open(member) as src, open(dest, "wb") as dst:
-                            dst.write(src.read())
-            else:
-                with tarfile.open(tmp_file, "r:gz") as tf:
-                    # Same stripping for tar.gz
-                    members = tf.getmembers()
-                    if members:
-                        top_dir = members[0].name.split("/")[0]
-                        for member in members:
-                            if member.name.startswith(top_dir + "/"):
-                                member.name = member.name[len(top_dir) + 1:]
-                            if member.name:
-                                tf.extract(member, java_dir)
+            safe_extract(tmp_file, java_dir, strip_top=True)
         except Exception as e:
             shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
@@ -1765,47 +1716,32 @@ class ServerInstaller:
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
 
         # Download with progress
-        import urllib.request
         print(f"Downloading Minecraft server {version_id}...", file=sys.stderr)
         print(f"  URL: {download_url}", file=sys.stderr)
         print(f"  Destination: {jar_path}", file=sys.stderr)
+        message = i18n.t("messages.downloading_server", version=version_id)
+        shown = [-1]
 
+        def report(done, total):
+            pct = done * 100 // total if total else -1
+            if pct != shown[0] and pct >= 0:
+                shown[0] = pct
+                progress(pct, message)
+
+        expected = {"sha1": expected_sha1, "sha256": expected_sha256, "md5": expected_md5}
         try:
-            req = urllib.request.Request(download_url, headers={"User-Agent": "saba-chan/1.0"})
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                total = int(resp.headers.get("Content-Length", 0))
-                sha1 = hashlib.sha1()
-                sha256 = hashlib.sha256()
-                md5 = hashlib.md5()
-                downloaded = 0
-                chunk_size = 65536
-                last_pct = -1
-                message = i18n.t("messages.downloading_server", version=version_id)
-
-                with open(part_path, "wb") as f:
-                    while True:
-                        chunk = resp.read(chunk_size)
-                        if not chunk:
-                            break
-                        f.write(chunk)
-                        sha1.update(chunk)
-                        sha256.update(chunk)
-                        md5.update(chunk)
-                        downloaded += len(chunk)
-                        if total > 0:
-                            pct = downloaded * 100 // total
-                            if pct != last_pct:
-                                last_pct = pct
-                                _progress(pct, message)
-                # 연결이 일찍 정상 종료되면 read()는 오류 없이 끝난다
-                if total > 0 and downloaded != total:
-                    raise IOError(f"incomplete download: {downloaded}/{total} bytes")
-            if not (expected_sha1 or expected_sha256 or expected_md5):
+            digests = download(download_url, part_path, on_progress=report, timeout=120,
+                               checksums=expected, user_agent="saba-chan/1.0")
+            if not any(expected.values()):
                 with zipfile.ZipFile(part_path) as z:
                     bad = z.testzip()
                 if bad is not None:
                     raise IOError(f"corrupt jar entry: {bad}")
-
+        except ChecksumMismatch as e:
+            _remove_quietly(part_path)
+            return {"success": False,
+                    "message": i18n.t("errors.checksum_mismatch", algorithm=e.algorithm,
+                                      expected=e.expected, actual=e.actual)}
         except Exception as e:
             # Clean up partial download
             _remove_quietly(part_path)
@@ -1813,23 +1749,8 @@ class ServerInstaller:
                 "success": False,
                 "message": i18n.t("errors.download_failed", error=str(e)),
             }
-
-        # Verify SHA1
-        actual_sha1 = sha1.hexdigest()
-        if expected_sha1 and actual_sha1 != expected_sha1:
-            _remove_quietly(part_path)
-            return {
-                "success": False,
-                "message": i18n.t("errors.checksum_mismatch", algorithm="SHA1",
-                                  expected=expected_sha1, actual=actual_sha1),
-            }
-
-        for name, expected, digest in (("SHA256", expected_sha256, sha256), ("MD5", expected_md5, md5)):
-            if expected and digest.hexdigest() != expected.lower():
-                _remove_quietly(part_path)
-                return {"success": False,
-                        "message": i18n.t("errors.checksum_mismatch", algorithm=name,
-                                          expected=expected, actual=digest.hexdigest())}
+        actual_sha1 = digests["sha1"]
+        downloaded = os.path.getsize(part_path)
 
         # mkstemp는 0600으로 만든다: 옛 jar 권한(없으면 umask 기본값)을 따른다.
         # 권한을 바꿀 수 없는 파일시스템이면 그대로 둔다

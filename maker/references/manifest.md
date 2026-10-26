@@ -31,3 +31,23 @@
 - 추천 설정 묶음은 `[[presets]]`. 비밀번호·경로 설정은 넣지 않는다.
 - 코드가 쓰는 위험 능력은 `[permissions]`(network, spawn_process, native_code, dynamic_code, env_secrets, fs_outside_instance)에 선언한다. `saba-core module audit`이 맞는지 잰다.
 - REST 비밀번호가 게임 설정 키에 있으면 `[credential_map]`.
+
+## 콘솔 하이라이트 (`[[syntax_highlight.rules]]`)
+
+틀의 예시 규칙(`WARN:`, `ERROR:`, `INFO:`, IP)은 그 게임의 콘솔과 상관없다. 규칙은 실제 서버 로그로 만든다. `check.py`의 highlight 관문이
+틀 규칙만 남은 모듈을 막는다.
+
+1. **로그를 모은다.** 실측(`trial.py`, PC 실측) 뒤 인스턴스의 저장 로그를 모은다: `saba-chan-cli server log <서버> --runs`로 실행 목록,
+   `--source <실행> --all`로 실행 하나 전체, 또는 인스턴스 폴더의 `logs/sessions/*.log`. 시작·월드 생성·명령 전부·저장·정지·오류(설치 전제가
+   빠졌을 때의 예외, 모르는 명령)가 들어간 실행을 고른다.
+2. **줄 모양을 분류한다.** 앞의 `[시각] [STDOUT/INFO]` 머리를 떼고 숫자를 `N`으로 바꿔 모양마다 세면 수천 줄도 수십 가지로 줄어든다.
+   많이 나오는 진행 줄(테라리아 월드 생성 `60.3% - Smoothing the world - 0.2%`는 한 번에 수만 줄)은 `dim`, 준비 완료는 `success`,
+   정상 종료 문구는 `warn`, 예외·모르는 명령은 `error`, 채팅 보낸 이는 `player`, 프롬프트 뒤 다시 찍힌 명령은 `command`처럼 뜻으로 고른다.
+3. **데몬 규칙을 지킨다.** 데몬 토큰화(saba-chan 02 §`[[syntax_highlight.rules]]`)는 Rust `regex`라 lookaround(`(?=`, `(?!`, `(?<=`, `(?<!`)가 없다.
+   `color`는 토큰 16개(`error, warn, info, debug, success, string, number, keyword, timestamp, player, command, selector, ip, uuid, path, dim`)만 쓴다.
+   일부만 칠하려면 `(?P<hl>…)`. 겹치면 `priority`가 큰 규칙이 이긴다. 채팅 줄(`<이름> 말`)을 높은 priority로 먼저 잡아 채팅 안 낱말이
+   준비·오류 규칙에 걸리지 않게 한다.
+4. **감지 패턴과 한 목록으로.** 준비·정상 종료 규칙의 문구 목록은 `ready_patterns`·`graceful_exit_patterns`와 같게 두고, 둘이 같은지 테스트로 맞춘다
+   (언어를 더할 때 한쪽만 고치지 않게).
+5. **테스트한다.** 모은 로그의 줄 원문을 (줄, 토큰, 칠할 글자) 표로 테스트에 넣는다(테라리아 `test_console_highlight_uses_measured_lines`).
+   PC에서는 데몬의 `GET /api/instance/<id>/console?spans=1` 결과로 실제로 칠해지는지 본다.

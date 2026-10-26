@@ -46,6 +46,8 @@ Windows PC가 없는 환경(클라우드 Linux 등)에서 잴 수 없는 관문�
 | 10 | **격리 실행에서 동작한다.** 새 모듈은 "확인 안 됨"으로 AppContainer 안에서 돈다. msiexec·서비스·`tempfile.mkdtemp` 폴더를 쓰지 않고, PC 실측을 격리 실행으로 했다 | `trial.py` (Windows) | [testing.md](references/testing.md) |
 | 11 | **검사를 돌렸다.** 함수별 테스트(먼저 쓰고 실패 확인), `module validate`, 적합성 검사, `module audit` | `check.py` | testing.md |
 | 12 | **위험 패턴 표를 한 줄씩 지웠다.** "해당 없음"도 이유를 적는다 | 직접 확인 | [lessons.md](references/lessons.md) |
+| 13 | **콘솔 하이라이트를 실측 로그로 만들었다.** 실측 뒤 저장 로그를 모아 줄 모양을 분류하고, 그 원문으로 규칙과 테스트를 썼다. 틀의 예시 규칙만 남기지 않는다 | `check.py` highlight | manifest.md §콘솔 하이라이트 |
+| 14 | **설치된 버전을 알린다.** 모듈이 직접 내려받아 설치하면(`download`) `get_installed_version`도 만든다(`server version`, 업데이트 비교). 서버가 버전을 남기는 곳(동봉 파일, 실행 파일)을 실측으로 찾는다 | `check.py` installed-version | lifecycle.md §설치 |
 
 Windows에서만 드러나는 위험은 Linux에서 보이지 않는다: 런타임 누락(XNA류), 파이프 입력 무시, 격리 권한, 레거시 인코딩(cp1252),
 Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"으로 보고한다.
@@ -88,7 +90,7 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
    python maker/check.py <name>
    ```
    사바쨩이 설치돼 있으면 saba-core와 공용 런타임 경로를 앱에서 얻는다. 없거나 다른 판을 쓰려면 `--saba-core <saba-core 실행 파일>`, `--shared-libs <saba-chan/modules>`를 준다.
-   자리표시·조사 표 출처·10개 언어·테스트 등록·버전, 모듈 테스트, 적합성 키트, `module validate`, `module audit`를 돌려 표로 보고한다.
+   자리표시·조사 표 출처·10개 언어·테스트 등록·버전·하이라이트·설치된 버전, 모듈 테스트, 적합성 키트, `module validate`, `module audit`를 돌려 표로 보고한다.
    실패나 건너뛴 관문(`--saba-core`를 주지 않으면 validate·audit)이 있으면 종료 코드 1이다. 번역하지 않고 en.json 그대로 둔 언어 파일도 실패다.
    "직접 확인" 목록은 에이전트가 스스로 확인하고 결과를 적는다.
 9. **실측한다.** 진짜 데몬과 격리로 설치 → 설정 → 시작 → 명령 → 정지 → 백업 → 초기화를 밟는다.
@@ -97,6 +99,7 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
    ```
    (`conformance/trial.py`를 부른다.) Windows에서 설치된 사바쨩의 `saba-core.exe`(옆에 `saba-runner.exe`)를 주면 실제 AppContainer 격리로 돈다.
    설치된 사바쨩의 데이터·포트는 건드리지 않는다. `trial-report/trial-report.md`를 PR 본문에 붙인다.
+   실측이 끝나면 저장 로그를 모아 콘솔 하이라이트 규칙을 만든다(manifest.md §콘솔 하이라이트, 관문 13).
 10. **마무리** → testing.md §마무리. 보고에 조사 표, 옮기지 못한 것과 이유, 확인 못 한 것, 실행한 검사와 결과를 적는다.
     커밋·PR은 사용자가 요청했을 때만. 버전은 올리지 않는다.
 

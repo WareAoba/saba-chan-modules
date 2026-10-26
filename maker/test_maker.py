@@ -303,7 +303,13 @@ def finished_module(repo):
             data["messages"]["stop_requested"] = f"[{lang}] stop"
             locale.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     (folder / "RESEARCH.md").write_text("# 조사\n\n| 항목 | 값 | 출처 |\n|---|---|---|\n| 포트 | 1 | https://example.com 문서 |\n", encoding="utf-8")
+    # 실측 로그에서 만든 하이라이트 규칙 하나 (틀의 예시 규칙만 두면 관문이 막는다)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(MEASURED_RULE)
     return folder
+
+
+MEASURED_RULE = "\n[[syntax_highlight.rules]]\nname = \"server_ready\"\npattern = '^(?P<hl>X Server ready)$'\ncolor = \"success\"\n"
 
 
 def statuses(results):
@@ -325,6 +331,41 @@ def test_check_static_flags_leftover_placeholders_and_empty_research(repo):
 
     assert result["placeholders"] == "fail"
     assert result["research"] == "fail"
+
+
+def test_check_static_flags_highlight_rules_left_from_the_template(repo):
+    """새 모듈 틀의 예시 규칙(WARN:, ERROR:, INFO:, IP)만 있으면 그 게임의 콘솔을 본 적이 없는 것이다"""
+    folder = finished_module(repo)
+    path = folder / "module.toml"
+    path.write_text(path.read_text(encoding="utf-8").replace(MEASURED_RULE, ""), encoding="utf-8")
+
+    assert statuses(check.static_gates(folder, repo))["highlight"] == "fail"
+
+
+def test_check_highlight_compares_with_the_makers_own_template(repo, tmp_path):
+    """저장소 밖 모듈을 검사해도(넘긴 repo에 __example이 없어도) 틀 예시 규칙만 있으면 실패한다"""
+    folder = finished_module(repo)
+    path = folder / "module.toml"
+    path.write_text(path.read_text(encoding="utf-8").replace(MEASURED_RULE, ""), encoding="utf-8")
+    elsewhere = tmp_path / "outside"
+    elsewhere.mkdir()
+
+    assert statuses(check.static_gates(folder, elsewhere))["highlight"] == "fail"
+
+
+def test_check_static_flags_a_download_module_without_installed_version(repo):
+    """모듈이 직접 내려받아 설치하면(download) 설치된 버전도 알려야 한다 (server version, 업데이트 비교)"""
+    folder = finished_module(repo)
+    path = folder / "module.toml"
+    path.write_text(path.read_text(encoding="utf-8").replace('method = "steamcmd"', 'method = "download"', 1), encoding="utf-8")
+
+    assert statuses(check.static_gates(folder, repo))["installed-version"] == "fail"
+
+    lifecycle = folder / "lifecycle.py"
+    lifecycle.write_text(lifecycle.read_text(encoding="utf-8").replace(
+        "FUNCTIONS = {", 'def get_installed_version(config):\n    return {"success": True, "version": "1"}\n\n\n'
+        'FUNCTIONS = {\n    "get_installed_version": get_installed_version,', 1), encoding="utf-8")
+    assert statuses(check.static_gates(folder, repo))["installed-version"] == "ok"
 
 
 def test_check_static_flags_missing_languages_and_untranslated_korean(repo):

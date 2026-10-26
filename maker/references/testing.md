@@ -6,7 +6,7 @@
    - `pytest conformance --module <game>` (적합성 키트, `conformance/README.md`). 저장소 밖 모듈이면 `--shared-libs <saba-chan>/modules`
    - `saba-core module validate <game>` (데몬과 같은 파서)
    - `saba-core module audit <game>` (찾은 능력이 `[permissions]`와 맞는지)
-   - 정적 관문: 틀 자리표시, 조사 표 출처 URL, 10개 언어와 ko 번역, 테스트 등록, 버전을 올리지 않았는지
+   - 정적 관문: 틀 자리표시, 조사 표 출처 URL, 10개 언어와 ko 번역, 테스트 등록, 버전을 올리지 않았는지, 틀 예시가 아닌 하이라이트 규칙, download 설치의 `get_installed_version`
 3. **손 확인**: 조사 표의 명령·설정이 모두 module.toml에 있는지, 명령 이름이 공식 목록과 같은지, 모든 명령에 `risk`·`description`이 있는지, 설정 `type`이 6가지 안인지, lessons.md 표를 하나씩 지웠는지. `check.py`의 "직접 확인" 목록을 채운다.
 4. **제작 환경 실측**(PR 전 필수): 실물 확인(research.md)을 끝낸 상태여야 한다. 그 위에서 진짜 데몬으로 사용자 흐름을 밟는다.
    ```

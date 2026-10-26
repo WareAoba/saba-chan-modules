@@ -159,6 +159,9 @@ def _world(config):
     이름이 안전하지 않으면 ValueError, 폴더 밖이면 PathOutside"""
     working_dir = _working_dir(config)
     world_dir = config_value(config, "world_dir", "") or os.path.join(working_dir, "Worlds")
+    if not os.path.isabs(world_dir):
+        # 가져온 serverconfig.txt의 상대 경로는 서버 폴더 기준이다 (모듈 실행 폴더가 아니라)
+        world_dir = os.path.join(working_dir, world_dir)
     name = str(config_value(config, "world_name", "") or DEFAULT_WORLD_NAME)
     if not _check_name(name):
         raise ValueError(i18n.t("errors.invalid_world_name", name=name))
@@ -250,7 +253,12 @@ def _update_config_file(path, updates):
             out.append(f"{key}={value}")
     data = (newline.join(out) + newline) if out else ""
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    atomic_write(path, data.encode(encoding))
+    try:
+        encoded = data.encode(encoding)
+    except UnicodeEncodeError:
+        # 공식 예시 파일은 cp1252지만 서버는 UTF-8로 읽는다(PC 실측). cp1252로 못 쓰는 값(한국어 MOTD·경로)이면 UTF-8로 쓴다
+        encoded = data.encode("utf-8")
+    atomic_write(path, encoded)
 
 
 def _file_updates(settings):

@@ -803,3 +803,24 @@ def test_progress_patterns_fold_only_measured_progress_lines(toml):
         assert folds(line), line
     for line in ("Server started", ": Backing up world file", "<Server> 50% done", "Time: 4:30 AM"):
         assert not folds(line), line
+
+
+def test_configure_writes_utf8_when_cp1252_cannot_hold_the_value(lc, tmp_path):
+    """공식 cp1252 파일에 cp1252로 못 쓰는 값(한국어 MOTD, 한국어 사용자 이름 아래 월드 폴더)이 오면 UTF-8로 쓴다.
+    서버는 UTF-8로 읽는다(PC 실측). 리뷰 P2: 'charmap' codec can't encode로 저장·시작이 실패했다"""
+    server = _server(tmp_path, lc)
+    (server / "serverconfig.txt").write_bytes(b"#motd=Please don\x92t cut the purple trees!\r\npriority=1\r\n")
+    assert lc.configure(_config(server, settings={"motd": "안녕 사바쨩"}))["success"] is True
+    raw = (server / "serverconfig.txt").read_bytes()
+    text = raw.decode("utf-8")
+    assert "motd=안녕 사바쨩\r\n" in text
+    assert "#motd=Please don\u2019t cut the purple trees!" in text  # 주석의 0x92도 같은 글자로 옮겨진다
+    assert lc.import_settings(_config(server))["settings"]["motd"] == "안녕 사바쨩"
+
+
+def test_relative_world_path_is_under_the_server_folder(lc, tmp_path):
+    """가져온 serverconfig.txt의 상대 world 경로는 서버 폴더 기준이다 (리뷰 P3: 모듈 폴더 기준으로 풀려 초기화가 아무것도 지우지 않았다)"""
+    server = _server(tmp_path, lc)
+    world_dir, _, world_file = lc._world(_config(server, world_dir="Worlds", world_name="a"))
+    assert Path(world_dir) == server / "Worlds"
+    assert Path(world_file) == server / "Worlds" / "a.wld"

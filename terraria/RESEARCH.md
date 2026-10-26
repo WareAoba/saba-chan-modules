@@ -66,7 +66,7 @@
 | `language` 추가 선택지 | `language` | `ja-JP`, `ko-KR`, `zh-Hant` | 없음 | 공식 파일 목록, 2026-10-24 서버 적용 실측 |
 | `journeypermission_*` 15개 | 같은 이름 | 0 잠금 / 1 호스트만 / 2 모두 | 없음 | W1 |
 
-예시 설정의 주석에는 `#motd=Please don’t cut the purple trees!`가 있으며 Windows-1252의 `0x92` 바이트를 쓴다. 설정을 바꿀 때 읽은 인코딩과 줄바꿈을 유지한다. 새 설정 파일은 UTF-8로 쓴다.
+예시 설정의 주석에는 `#motd=Please don’t cut the purple trees!`가 있으며 Windows-1252의 `0x92` 바이트를 쓴다. 설정을 바꿀 때 읽은 인코딩과 줄바꿈을 유지한다. 새 설정 파일은 UTF-8로 쓴다. 서버는 이 파일을 UTF-8로 읽는다(2026-10-26 PC 실측: UTF-8로 쓴 `motd=안녕 사바쨩`이 `motd` 명령에 그대로 나왔다). 그래서 cp1252로 담을 수 없는 값(한국어 MOTD, 한국어 사용자 이름 아래 월드 폴더)이 오면 파일 전체를 UTF-8로 다시 쓴다. 주석의 `0x92`는 같은 글자(’)로 옮겨진다.
 
 ## 명령 → module.toml (모두 `method = "console"`, 1.4.5.8 `help` 실측)
 

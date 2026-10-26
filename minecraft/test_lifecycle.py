@@ -1520,3 +1520,19 @@ def test_stop_uses_the_shared_procedure_with_console_then_sigterm():
          mock.patch.object(lifecycle, "request_terminate", return_value=True) as term:
         assert lifecycle.stop({"pid": 99}) is True
     term.assert_called_once_with(99)
+
+
+def test_diagnose_rules_come_from_module_toml_and_read_the_latest_log(tmp_path):
+    """진단 규칙은 module.toml [[diagnose]] 하나에 둔다(공용 diagnose_lines). 규칙마다 문제·해결 문구가 있다"""
+    from daemon_rcon import load_diagnose_rules
+    from minecraft import lifecycle
+    rules = load_diagnose_rules(MODULE_DIR)
+    assert {"JAVA_NOT_FOUND", "EULA_NOT_ACCEPTED", "PORT_IN_USE", "SERVER_OVERLOADED"} <= {r["code"] for r in rules}
+    with open(os.path.join(MODULE_DIR, "locales", "ko.json"), encoding="utf-8") as f:
+        errors = json.load(f)["errors"]
+    for rule in rules:
+        assert rule["code"].lower() in errors["detect"] and rule["code"].lower() in errors["solutions"], rule["code"]
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs" / "latest.log").write_text("[12:00:00] [main/INFO]: You need to agree to the EULA\n", encoding="utf-8")
+    issues = lifecycle.diagnose_log({"working_dir": str(tmp_path)})["issues"]
+    assert [(i["code"], i["severity"]) for i in issues] == [("EULA_NOT_ACCEPTED", "critical")]

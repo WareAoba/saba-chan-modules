@@ -33,9 +33,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더�
 
 import plugins
 import server_types
-from daemon_rcon import (PathOutside, atomic_write, graceful_stop, is_process_alive, read_key_values, request_console,
-                         request_terminate, safe_join, setting_file_keys, settings_from_file, settings_to_file,
-                         update_key_values)
+from daemon_rcon import (PathOutside, atomic_write, diagnose_lines, graceful_stop, is_process_alive,
+                         load_diagnose_rules, read_key_values, request_console, request_terminate, safe_join,
+                         setting_file_keys, settings_from_file, settings_to_file, tail_lines, update_key_values)
 
 # ─── Init ─────────────────────────────────────────────────────
 
@@ -629,155 +629,6 @@ class ServerPropertiesManager:
 
     def get_defaults(self):
         return dict(DEFAULT_PROPERTIES)
-
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                Error Detection                            ║
-# ╚═══════════════════════════════════════════════════════════╝
-
-ERROR_PATTERNS = [
-    {
-        "code": "JAVA_NOT_FOUND",
-        "patterns": [
-            r"'java' is not recognized",
-            r"java: not found",
-            r"No such file or directory.*java",
-            r"The system cannot find the file specified",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "JAVA_VERSION_TOO_OLD",
-        "patterns": [
-            r"UnsupportedClassVersionError",
-            r"class file version \d+\.\d+",
-            r"requires Java \d+",
-            r"has been compiled by a more recent version",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "EULA_NOT_ACCEPTED",
-        "patterns": [
-            r"You need to agree to the EULA",
-            r"Failed to load eula",
-            r"Go to eula\.txt",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "PORT_IN_USE",
-        "patterns": [
-            r"FAILED TO BIND TO PORT",
-            r"Address already in use",
-            r"Perhaps a server is already running on that port",
-            r"java\.net\.BindException",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "OUT_OF_MEMORY",
-        "patterns": [
-            r"java\.lang\.OutOfMemoryError",
-            r"There is insufficient memory",
-            r"Could not reserve enough space",
-            r"GC overhead limit exceeded",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "WORLD_CORRUPT",
-        "patterns": [
-            r"Failed to load.*level\.dat",
-            r"Caused by: java\.util\.zip\.ZipException",
-            r"Region file is truncated",
-        ],
-        "severity": "error",
-    },
-    {
-        "code": "INVALID_JAR",
-        "patterns": [
-            r"Invalid or corrupt jarfile",
-            r"Error: Unable to access jarfile",
-            r"Could not find or load main class",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "PERMISSION_DENIED",
-        "patterns": [
-            r"Permission denied",
-            r"Access is denied",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "SERVER_OVERLOADED",
-        "patterns": [
-            r"Can't keep up! Is the server overloaded\?",
-        ],
-        "severity": "warning",
-    },
-]
-
-
-class ErrorDetector:
-    """Detect and diagnose common Minecraft server errors in log output."""
-
-    @staticmethod
-    def diagnose(log_lines):
-        """Analyze log lines for known error patterns. Returns list of issues."""
-        issues = []
-        seen_codes = set()
-        if isinstance(log_lines, str):
-            log_lines = log_lines.splitlines()
-
-        for line in log_lines:
-            for pdef in ERROR_PATTERNS:
-                if pdef["code"] in seen_codes:
-                    continue
-                for regex in pdef["patterns"]:
-                    if re.search(regex, line, re.IGNORECASE):
-                        code = pdef["code"]
-                        seen_codes.add(code)
-                        issues.append({
-                            "code": code,
-                            "severity": pdef["severity"],
-                            "matched_line": line.strip()[:200],
-                            "message": i18n.t(f"errors.detect.{code.lower()}"),
-                            "solution": i18n.t(f"errors.solutions.{code.lower()}"),
-                        })
-                        break
-        return issues
-
-    @staticmethod
-    def diagnose_startup_failure(exit_code, stderr_text, working_dir):
-        """Diagnose why a server failed to start."""
-        issues = ErrorDetector.diagnose(stderr_text)
-
-        eula_accepted, _ = EulaManager.check_eula(working_dir)
-        if not eula_accepted:
-            if not any(i["code"] == "EULA_NOT_ACCEPTED" for i in issues):
-                issues.append({
-                    "code": "EULA_NOT_ACCEPTED",
-                    "severity": "critical",
-                    "matched_line": "",
-                    "message": i18n.t("errors.detect.eula_not_accepted"),
-                    "solution": i18n.t("errors.solutions.eula_not_accepted"),
-                })
-
-        log_path = os.path.join(working_dir, "logs", "latest.log")
-        if os.path.isfile(log_path):
-            try:
-                with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-                    recent = f.readlines()[-200:]
-                for issue in ErrorDetector.diagnose(recent):
-                    if not any(i["code"] == issue["code"] for i in issues):
-                        issues.append(issue)
-            except OSError:
-                pass
-
-        return issues
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1452,7 +1303,7 @@ def accept_agreements(config):
 
 
 def diagnose_log(config):
-    """Diagnose errors from provided log lines or logs/latest.log."""
+    """Diagnose errors from provided log lines or logs/latest.log. 규칙은 module.toml [[diagnose]]"""
     log_lines = config.get("log_lines", [])
     working_dir = config.get("working_dir", "")
 
@@ -1460,17 +1311,11 @@ def diagnose_log(config):
         log_lines = log_lines.splitlines()
 
     if not log_lines and working_dir:
-        log_path = os.path.join(working_dir, "logs", "latest.log")
-        if os.path.isfile(log_path):
-            try:
-                with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-                    log_lines = f.readlines()[-500:]
-            except OSError:
-                pass
+        log_lines = tail_lines(os.path.join(working_dir, "logs", "latest.log"))
 
     return {
         "success": True,
-        "issues": ErrorDetector.diagnose(log_lines),
+        "issues": diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n),
         "lines_analyzed": len(log_lines),
     }
 

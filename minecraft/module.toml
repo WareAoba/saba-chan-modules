@@ -1412,3 +1412,86 @@ difficulty = "hard"
 [[agreements]]
 id = "eula"
 url = "https://aka.ms/MinecraftEULA"
+
+# ── [[diagnose]] 서버 로그 진단 (diagnose_log가 공용 diagnose_lines로 읽는다. 문구: errors.detect.<code>·errors.solutions.<code>) ──
+
+[[diagnose]]
+code = "JAVA_NOT_FOUND"
+severity = "critical"
+patterns = [
+    "'java' is not recognized",
+    'java: not found',
+    'No such file or directory.*java',
+    'The system cannot find the file specified',
+]
+
+[[diagnose]]
+code = "JAVA_VERSION_TOO_OLD"
+severity = "critical"
+patterns = [
+    'UnsupportedClassVersionError',
+    'class file version \d+\.\d+',
+    'requires Java \d+',
+    'has been compiled by a more recent version',
+]
+
+[[diagnose]]
+code = "EULA_NOT_ACCEPTED"
+severity = "critical"
+patterns = [
+    'You need to agree to the EULA',
+    'Failed to load eula',
+    'Go to eula\.txt',
+]
+
+[[diagnose]]
+code = "PORT_IN_USE"
+severity = "critical"
+patterns = [
+    'FAILED TO BIND TO PORT',
+    'Address already in use',
+    'Perhaps a server is already running on that port',
+    'java\.net\.BindException',
+]
+
+[[diagnose]]
+code = "OUT_OF_MEMORY"
+severity = "critical"
+patterns = [
+    'java\.lang\.OutOfMemoryError',
+    'There is insufficient memory',
+    'Could not reserve enough space',
+    'GC overhead limit exceeded',
+]
+
+[[diagnose]]
+code = "WORLD_CORRUPT"
+patterns = [
+    'Failed to load.*level\.dat',
+    'Caused by: java\.util\.zip\.ZipException',
+    'Region file is truncated',
+]
+
+[[diagnose]]
+code = "INVALID_JAR"
+severity = "critical"
+patterns = [
+    'Invalid or corrupt jarfile',
+    'Error: Unable to access jarfile',
+    'Could not find or load main class',
+]
+
+[[diagnose]]
+code = "PERMISSION_DENIED"
+severity = "critical"
+patterns = [
+    'Permission denied',
+    'Access is denied',
+]
+
+[[diagnose]]
+code = "SERVER_OVERLOADED"
+severity = "warning"
+patterns = [
+    "Can't keep up! Is the server overloaded\\?",
+]

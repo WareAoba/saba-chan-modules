@@ -245,8 +245,6 @@
     "executable_not_found_hint": "請檢查執行檔路徑或重新安裝伺服器。",
     "cannot_create_dir": "無法建立工作目錄：{{path}}",
     "cannot_create_dir_hint": "請檢查資料夾權限或選擇其他路徑。",
-    "port_in_use": "連接埠 {{port}} 已被使用。",
-    "port_in_use_hint": "請停止佔用連接埠 {{port}} 的程式，或更改連接埠。",
     "log_port_in_use": "連接埠已被佔用",
     "log_port_in_use_hint": "請停止佔用該連接埠的其他程序，或變更伺服器連接埠。",
     "log_out_of_memory": "記憶體不足",

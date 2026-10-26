@@ -799,8 +799,6 @@ FUNCTIONS = {
     "install_server":     install_server,
     "get_installed_version": get_installed_version,
 }
-# 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
-FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
 
 
 if __name__ == "__main__":

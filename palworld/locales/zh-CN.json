@@ -245,8 +245,6 @@
     "executable_not_found_hint": "请检查可执行文件路径或重新安装服务器。",
     "cannot_create_dir": "无法创建工作目录：{{path}}",
     "cannot_create_dir_hint": "请检查文件夹权限或选择其他路径。",
-    "port_in_use": "端口 {{port}} 已被占用。",
-    "port_in_use_hint": "请停止占用端口 {{port}} 的其他进程或更改端口。",
     "log_port_in_use": "端口已被占用",
     "log_port_in_use_hint": "请停止占用该端口的其他进程，或更改服务器端口。",
     "log_out_of_memory": "内存不足",

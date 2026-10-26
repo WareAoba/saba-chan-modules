@@ -245,8 +245,6 @@
     "executable_not_found_hint": "実行ファイルのパスを確認するか、サーバーを再インストールしてください。",
     "cannot_create_dir": "作業ディレクトリを作成できません: {{path}}",
     "cannot_create_dir_hint": "フォルダの権限を確認するか、別のパスを選択してください。",
-    "port_in_use": "ポート {{port}} は既に使用中です。",
-    "port_in_use_hint": "ポート {{port}} を使用している他のプロセスを停止するか、ポートを変更してください。",
     "log_port_in_use": "ポートはすでに使用中です",
     "log_port_in_use_hint": "そのポートを使っている他のプロセスを停止するか、サーバーのポートを変更してください。",
     "log_out_of_memory": "メモリが不足しています",

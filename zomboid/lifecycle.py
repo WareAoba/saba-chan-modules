@@ -18,7 +18,6 @@ import subprocess
 import locale
 import os
 import re
-import socket
 import sqlite3
 import hashlib
 import time
@@ -914,18 +913,6 @@ def validate(config):
             "solution": i18n.t("errors.solutions.java_not_found"),
         })
     
-    # Check port availability
-    port = int(config.get("port", 16261))
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(1)
-        result = sock.connect_ex(("127.0.0.1", port))
-        sock.close()
-    except PathOutside:
-        raise
-    except Exception:
-        pass  # UDP port check is unreliable; skip
-    
     # 첫 실행에 관리자 비밀번호가 없으면 PZ가 콘솔에서 비밀번호를 기다리며 멈춘다: 켜기 전에 막는다
     if not config.get("admin_password") and not _has_server_db(config):
         issues.append({
@@ -1671,8 +1658,6 @@ FUNCTIONS = {
     "backup_paths":       backup_paths,
     "backup_snapshots":   backup_snapshots,
 }
-# 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
-FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
 
 
 # ╔═══════════════════════════════════════════════════════════╗

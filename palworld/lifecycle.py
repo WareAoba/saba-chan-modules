@@ -6,9 +6,7 @@ Always outputs JSON to stdout, logs to stderr.
 
 import sys
 import json
-import subprocess
 import os
-import socket
 import struct
 import time
 import random
@@ -17,7 +15,7 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-from daemon_rcon import PathOutside, daemon_rest, safe_join
+from daemon_rcon import PathOutside, daemon_rest, force_kill, is_process_alive, safe_join, wait_for_exit
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -302,19 +300,6 @@ def get_launch_command(config):
     return result
 
 
-def _pid_running(pid):
-    if sys.platform == 'win32':
-        out = subprocess.run(['tasklist', '/FI', f'PID eq {pid}', '/NH'],
-                             capture_output=True, text=True, check=False,
-                             creationflags=0x08000000).stdout
-        return str(pid) in out
-    try:
-        os.kill(pid, 0)
-        return True
-    except OSError:
-        return False
-
-
 def _rest_client(config):
     """데몬의 인스턴스 문맥이 있으면 REST 클라이언트를 만든다."""
     instance_id = config.get("instance_id")
@@ -391,24 +376,6 @@ def _stop_timeout(config):
     return max(1, min(value, cap))
 
 
-def _kill(pid):
-    """그 PID(와 자식)만 강제 종료한다. 실행 파일 이름으로는 끝내지 않는다: 같은 게임의 다른 인스턴스까지 죽는다.
-    끝났으면 True. taskkill·os.kill이 실패해도(접근 거부 등) 살아 있으면 False"""
-    if sys.platform == 'win32':
-        subprocess.run(['taskkill', '/F', '/T', '/PID', str(pid)], capture_output=True, text=True,
-                       check=False, creationflags=0x08000000)
-    else:
-        try:
-            os.kill(pid, 9)
-        except OSError:
-            pass
-    for _ in range(10):
-        if not _pid_running(pid):
-            return True
-        time.sleep(0.5)
-    return False
-
-
 def stop(config):
     """Stop Palworld server.
 
@@ -431,14 +398,14 @@ def stop(config):
             # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 90초 상한에 잘린다
             return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
         if not force:
-            for _ in range(_stop_timeout(config)):
-                time.sleep(1)
-                if not _pid_running(pid):
-                    return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
+            if wait_for_exit(pid, timeout=_stop_timeout(config)):
+                return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
             print("[Palworld] Server did not exit after REST shutdown, force killing", file=sys.stderr)
 
-        if not _kill(pid):
-            return {"success": False, "message": i18n.t("errors.failed_to_stop_process", error=f"PID {pid}")}
+        # 그 PID(와 자식)만 끝낸다. 실행 파일 이름으로는 끝내지 않는다: 같은 게임의 다른 인스턴스까지 죽는다
+        ok, error = force_kill(pid)
+        if not ok:
+            return {"success": False, "message": i18n.t("errors.failed_to_stop_process", error=error or f"PID {pid}")}
         return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
     except PathOutside:
         raise
@@ -470,7 +437,7 @@ def status(config):
     try:
         exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
         pid = config.get("pid")
-        running = bool(pid) and _pid_running(pid)
+        running = bool(pid) and is_process_alive(pid)
         key = "messages.process_running" if running else "messages.process_not_running"
         return {"success": True, "status": "running" if running else "stopped", "message": i18n.t(key, name=exe_name)}
     except PathOutside:
@@ -878,22 +845,6 @@ def validate(config):
                 "message": i18n.t("validate.cannot_create_dir", path=working_dir),
                 "solution": i18n.t("validate.cannot_create_dir_hint"),
             })
-
-    # Port availability — 이 서버가 이미 켜져 있으면 그 포트는 자기 것이다
-    port = config.get("port", 8211)
-    if port and not config.get("running"):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(1)
-                if s.connect_ex(("127.0.0.1", int(port))) == 0:
-                    issues.append({
-                        "code": "PORT_IN_USE",
-                        "severity": "warning",
-                        "message": i18n.t("validate.port_in_use", port=port),
-                        "solution": i18n.t("validate.port_in_use_hint", port=port),
-                    })
-        except (OSError, ValueError):
-            pass
 
     # Settings file check
     ini_path = _get_settings_ini_path(config)
@@ -1524,8 +1475,6 @@ FUNCTIONS = {
     "backup_paths": backup_paths,
     "backup_snapshots": backup_snapshots,
 }
-# 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
-FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
 
 
 def _answering_missing_extension(fn):

@@ -248,8 +248,6 @@
     "executable_not_found_hint": "Check the executable path or reinstall the server.",
     "cannot_create_dir": "Cannot create working directory: {{path}}",
     "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
-    "port_in_use": "Port {{port}} is already in use.",
-    "port_in_use_hint": "Stop the other process using port {{port}} or change the port.",
     "log_port_in_use": "El puerto ya está en uso",
     "log_port_in_use_hint": "Detén cualquier otro proceso que use el puerto o cambia el puerto del servidor.",
     "log_out_of_memory": "Memoria insuficiente",

@@ -895,7 +895,7 @@ def test_join_and_leave_lines_name_the_player(toml, name):
 def test_chat_and_team_lines_are_not_joins(toml):
     saba = toml["extensions"]["saba-core"]
     for line in ("<Bob> Alice has joined.", "Bob has joined the red team.", "<Bob> Alice has left.",
-                 "Bob has left!"):
+                 "Bob has left!", "*Bob has joined.", ": *Bob has left.", ": <Bob> Alice has joined.", ":<Bob> 사바쨩 님이 떠났습니다."):
         assert _player_name(saba["player_join_patterns"] + saba["player_leave_patterns"], line) is None, line
 
 
@@ -932,6 +932,19 @@ def test_player_list_reads_playing(lc, monkeypatch, response, online, names):
     assert result["success"] is True
     assert result["online"] == online
     assert result["players"] == [{"name": n} for n in names]
+    assert "max" not in result
+
+
+def test_player_list_reports_the_limit_and_keeps_names_that_start_with_a_colon(lc, monkeypatch):
+    _playing(monkeypatch, lc, "Other (line)\n: playing\n:3 (1.2.3.4:5)\n1 player connected.")
+    result = lc.player_count({"instance_id": "inst-1", "players_detail": True, "max_players": 8})
+    assert result == {"success": True, "online": 1, "max": 8, "players": [{"name": ":3"}]}
+
+
+def test_zero_is_a_launch_argument_value(lc, tmp_path):
+    server = _server(tmp_path, lc)
+    result = lc.get_launch_command(_config(server, preview=True, announcement_box_range=0))
+    assert result["args"] == ["-config", "serverconfig.txt", "-announcementboxrange", "0"]
 
 
 def test_player_list_without_matching_names_gives_only_the_count(lc, monkeypatch):

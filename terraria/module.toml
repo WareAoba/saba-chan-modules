@@ -53,33 +53,33 @@ data_roots = ["{world_dir}"]
 progress_patterns = ['^\d+(?:\.\d+)?% - .+ - \d+(?:\.\d+)?%$', '^(?::\s*)?(?:Resetting game objects|Loading world data:|Saving world data:|Validating world save:|Settling liquids) \d+%$']
 ready_patterns = ["^(?:: )?(?:Server started|Server gestartet|Server avviato|Serveur démarré|Servidor iniciado|Сервер запущен|服务器已启动|Servidor inicializado\\.|Serwer uruchomiony|サーバーが開始しました|서버 시작|伺服器已啟動)\\s*$"]
 # 접속·퇴장: 서버 파일의 번역 문자열 LegacyMultiplayer.19·20(1.4.5.8 TerrariaServer.exe, 12개 언어. zh-Hans·zh-Hant 접속 문구는 같다).
-# 이름 앞의 "<"는 채팅 줄("<이름> 말")이라 받지 않는다. 이름은 게임 제한 20자
+# 이름 앞의 "<"는 채팅 줄("<이름> 말"), "*"는 /me 줄이라 받지 않는다. ":"로 시작하는 이름도 받지 않는다(프롬프트 ": "가 붙은 채팅 줄과 가릴 수 없다). 이름은 게임 제한 20자
 player_join_patterns = [
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) has joined\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) ist beigetreten\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) si è unito\.\s*$',
-    '''^(?::\s*)?(?P<name>[^<\s].{0,19}?) s'est connecté-e\.\s*$''',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) se ha unido\.\s*$',
-    '^(?::\s*)?Игрок (?P<name>[^<\s].{0,19}?) присоединился\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)已加入。\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) entrou\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) dołącza\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)が参加しました。\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) 님이 참가했습니다\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) has joined\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) ist beigetreten\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) si è unito\.\s*$',
+    '''^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) s'est connecté-e\.\s*$''',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) se ha unido\.\s*$',
+    '^(?::\s*)?Игрок (?P<name>[^<*:\s].{0,19}?) присоединился\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?)已加入。\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) entrou\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) dołącza\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?)が参加しました。\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) 님이 참가했습니다\.\s*$',
 ]
 player_leave_patterns = [
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) has left\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) ist gegangen\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) ha abbandonato\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) est parti-e\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) se ha ido\.\s*$',
-    '^(?::\s*)?Игрок (?P<name>[^<\s].{0,19}?) вышел\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)已离开。\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) saiu\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) odchodzi\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)が去りました。\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) 님이 떠났습니다\.\s*$',
-    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)已離開。\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) has left\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) ist gegangen\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) ha abbandonato\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) est parti-e\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) se ha ido\.\s*$',
+    '^(?::\s*)?Игрок (?P<name>[^<*:\s].{0,19}?) вышел\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?)已离开。\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) saiu\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) odchodzi\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?)が去りました。\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?) 님이 떠났습니다\.\s*$',
+    '^(?::\s*)?(?P<name>[^<*:\s].{0,19}?)已離開。\s*$',
 ]
 
 [status]

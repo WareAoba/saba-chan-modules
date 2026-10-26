@@ -109,7 +109,7 @@ _PLAYING_COUNT = [
 # 플레이어마다 한 줄 "<이름> (<주소>)"
 _PLAYING_LINE_RE = re.compile(r"^(.+) \(([^()]+)\)$")
 # 줄 앞 서버 프롬프트(줄바꿈 없이 찍힌 ": ", 의사 콘솔은 ":")
-_PROMPT_RE = re.compile(r"^:\s*")
+_PROMPT_RE = re.compile(r"^:(?: |$)")
 
 # 이름 조각 검사: 빈 값·구분자·드라이브·Windows가 잘라 내는 끝 공백/점("."·".." 포함)
 _BAD_NAME_CHARS = set('/\\:*?"<>|')
@@ -336,7 +336,7 @@ def _launch_arg_shapes():
     """실행 인자로만 들어가는 설정(group = "saba-chan")의 인자 모양: [(설정 이름, 토큰)]. module.toml `arg`가 원본이다"""
     import tomllib
     with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-        fields = tomllib.load(f).get("settings", {}).get("fields", [])
+        fields = tomllib.loads(f.read().decode("utf-8-sig")).get("settings", {}).get("fields", [])
     shapes = []
     for field in fields:
         arg = field.get("arg")
@@ -350,7 +350,8 @@ def _launch_args(config):
     steam = bool(config_value(config, "steam", False))
     for name, shape in _launch_arg_shapes():
         value = config_value(config, name, None)
-        if value in (None, "", False):
+        # 0은 값이다(announcement_box_range = 0). 꺼진 플래그만 뺀다
+        if value is None or value is False or value == "":
             continue
         if name == "lobby" and not steam:
             # 위키: -lobby는 -steam이 있어야 한다
@@ -506,7 +507,14 @@ def config_files(config):
     """사바쨩이 고치는 게임 설정 파일 (가져온 서버를 해제할 때 데몬이 가져오기 전 내용으로 되돌린다)"""
     if not _working_dir(config):
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
-    return {"success": True, "files": [_config_path(config)]}
+    return {"success": True, "files": [os.path.abspath(_config_path(config))]}
+
+
+def _int_or_none(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _playing_count(line):
@@ -537,9 +545,16 @@ def player_count(config):
     names = []
     for raw in response.splitlines():
         line = _PROMPT_RE.sub("", raw.strip()).strip()
+        if line == "playing":
+            # 명령 메아리 앞의 줄은 이 답이 아니다
+            names = []
+            continue
         count = _playing_count(line)
         if count is not None:
             result = {"success": True, "online": count}
+            max_players = _int_or_none(config_value(config, "max_players", None))
+            if max_players:
+                result["max"] = max_players
             if len(names) == count:
                 result["players"] = [{"name": n} for n in names]
             return result

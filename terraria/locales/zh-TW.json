@@ -309,7 +309,9 @@
     "xna_framework_missing": "伺服器資料夾中缺少 XNA Framework 4.0 檔案。重新安裝伺服器即可加入。",
     "xna_install_failed": "無法將 XNA Framework 4.0 放入伺服器資料夾：{{error}}",
     "xna_extension_missing": "在 Windows 上執行 Terraria 伺服器需要 XNA 擴充功能。請安裝並啟用「XNA Framework 4.0 (portable)」擴充功能。",
-    "version_unknown": "找不到已安裝的伺服器版本。"
+    "version_unknown": "找不到已安裝的伺服器版本。",
+    "no_working_dir": "無法確定伺服器資料夾",
+    "players_unavailable": "無法從伺服器主控台讀取玩家清單"
   },
   "messages": {
     "downloading": "正在下載泰拉瑞亞伺服器",

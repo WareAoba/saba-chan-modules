@@ -39,7 +39,7 @@ DAEMON_FUNCTIONS = {
     "validate", "configure", "read_properties", "reset_properties", "reset_server",
     "accept_agreements", "diagnose_log",
     "list_versions", "get_version_details", "install_server", "get_installed_version",
-    "import_settings", "backup_paths", "backup_snapshots", "instance_commands",
+    "import_settings", "backup_paths", "backup_snapshots", "instance_commands", "config_files",
 }
 # 켜면 데몬이 그 함수를 부르는 module.toml 훅
 # (섹션, 키, 함수): 키가 true면 데몬이 그 함수를 부른다

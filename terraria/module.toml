@@ -52,6 +52,39 @@ data_roots = ["{world_dir}"]
 # 데몬이 단계마다 접는다 (saba-chan #605, 0.1.10은 모르는 키 경고로 무시)
 progress_patterns = ['^\d+(?:\.\d+)?% - .+ - \d+(?:\.\d+)?%$', '^(?::\s*)?(?:Resetting game objects|Loading world data:|Saving world data:|Validating world save:|Settling liquids) \d+%$']
 ready_patterns = ["^(?:: )?(?:Server started|Server gestartet|Server avviato|Serveur démarré|Servidor iniciado|Сервер запущен|服务器已启动|Servidor inicializado\\.|Serwer uruchomiony|サーバーが開始しました|서버 시작|伺服器已啟動)\\s*$"]
+# 접속·퇴장: 서버 파일의 번역 문자열 LegacyMultiplayer.19·20(1.4.5.8 TerrariaServer.exe, 12개 언어. zh-Hans·zh-Hant 접속 문구는 같다).
+# 이름 앞의 "<"는 채팅 줄("<이름> 말")이라 받지 않는다. 이름은 게임 제한 20자
+player_join_patterns = [
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) has joined\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) ist beigetreten\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) si è unito\.\s*$',
+    '''^(?::\s*)?(?P<name>[^<\s].{0,19}?) s'est connecté-e\.\s*$''',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) se ha unido\.\s*$',
+    '^(?::\s*)?Игрок (?P<name>[^<\s].{0,19}?) присоединился\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)已加入。\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) entrou\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) dołącza\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)が参加しました。\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) 님이 참가했습니다\.\s*$',
+]
+player_leave_patterns = [
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) has left\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) ist gegangen\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) ha abbandonato\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) est parti-e\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) se ha ido\.\s*$',
+    '^(?::\s*)?Игрок (?P<name>[^<\s].{0,19}?) вышел\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)已离开。\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) saiu\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) odchodzi\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)が去りました。\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?) 님이 떠났습니다\.\s*$',
+    '^(?::\s*)?(?P<name>[^<\s].{0,19}?)已離開。\s*$',
+]
+
+[status]
+# 접속자: 목록을 물을 때만 콘솔 `playing`으로 읽는다(1분 갱신마다 콘솔에 찍히지 않게)
+players = "player_count"
 
 [backup]
 hook = true
@@ -452,6 +485,8 @@ description = "List the connected players"
 method = "console"
 console_template = "playing"
 inputs = []
+# 디스코드·챗봇의 접속자 목록은 데몬 `players`([status] players)가 한다
+remote = false
 
 [[commands.fields]]
 name = "clear"

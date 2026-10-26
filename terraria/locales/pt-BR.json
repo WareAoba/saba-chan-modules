@@ -309,7 +309,9 @@
     "xna_framework_missing": "Os arquivos do XNA Framework 4.0 estão ausentes da pasta do servidor. Reinstale o servidor para adicioná-los.",
     "xna_install_failed": "Não foi possível adicionar o XNA Framework 4.0 à pasta do servidor: {{error}}",
     "xna_extension_missing": "A extensão XNA é necessária para rodar o servidor do Terraria no Windows. Instale e ative a extensão \"XNA Framework 4.0 (portable)\".",
-    "version_unknown": "Não foi possível encontrar a versão do servidor instalada."
+    "version_unknown": "Não foi possível encontrar a versão do servidor instalada.",
+    "no_working_dir": "A pasta do servidor é desconhecida",
+    "players_unavailable": "Não foi possível ler a lista de jogadores no console do servidor"
   },
   "messages": {
     "downloading": "Baixando o servidor do Terraria",

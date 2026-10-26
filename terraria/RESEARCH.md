@@ -91,7 +91,7 @@
 
 - `password <pass>`, `motd <message>`(바꾸기): 실행 중 값만 바뀌고 serverconfig.txt는 그대로라 단일 설정원(§8.3)을 깬다. 설정 화면의 `password`·`motd`로 바꾸고 다시 켠다. 실행 중 적용이 필요하면 데몬에 "설정 저장 때 켜진 서버에 반영할 명령" 같은 범용 지점이 먼저 필요하다.
 - 밴 해제: 게임에 명령이 없다(W1). 밴 목록 파일을 고치는 모듈 명령은 공식 기능이 아니라 넣지 않았다.
-- `[status] players`(접속자 수): 접속자 수 표시는 실측하지 못했다.
+- `[status] players`의 1분 갱신: 게임에 조회 API가 없고 `playing`을 1분마다 보내면 콘솔에 쌓인다. 그래서 목록을 물을 때(`players_detail`)만 `playing`을 보내고, 1분 갱신에는 수를 모른다고 답한다.
 
 ## 2026-10-24 실측 (공식 1.4.5.8 zip)
 
@@ -122,9 +122,31 @@
 - Windows 서버는 stdin이 파이프면 콘솔 입력을 읽지 않았다(help·seed·exit에 답 없음, 정지가 60초 뒤 강제 종료). 의사 콘솔(`[launch] console = "pty"`)에서는 명령이 동작하고 `exit`가 저장 뒤 2초 안에 끝났다. 의사 콘솔에서는 프롬프트 `:`와 `Server started`가 다른 줄로 나왔다.
 - 서버는 인스턴스 바깥의 `~/.local/share/Terraria/favorites.json`에 쓴다. Windows에서는 `Documents\\My Games\\Terraria` 아래다. 현재 모듈은 이 파일을 격리하지 않는다.
 
+## 접속·퇴장·접속자 (2026-10-26, 서버 파일 확인)
+
+PC 인스턴스의 공식 1.4.5.8 `TerrariaServer.exe` 안 번역 JSON(언어마다 `LegacyMultiplayer`·`CLI` 절)에서 읽었다. 서버가 콘솔에 찍는 문구의 원본이지만 실제 클라이언트 접속으로는 아직 재지 못했다(PC 실측 필요).
+
+| 언어 | 접속 (`LegacyMultiplayer.19`) | 퇴장 (`.20`) | `playing` 마지막 줄 (`CLI.NoPlayers` / `OnePlayerConnected` / `PlayersConnected`) |
+|---|---|---|---|
+| en-US | `{0} has joined.` | `{0} has left.` | `No players connected.` / `1 player connected.` / `{0} players connected.` |
+| de-DE | `{0} ist beigetreten.` | `{0} ist gegangen.` | `Keine Spieler verbunden.` / `1 Spieler verbunden.` / `{0} Spieler verbunden.` |
+| it-IT | `{0} si è unito.` | `{0} ha abbandonato.` | `Nessun giocatore connesso.` / `1 giocatore connesso.` / `{0} giocatori connessi.` |
+| fr-FR | `{0} s'est connecté-e.` | `{0} est parti-e.` | `Aucun joueur connecté.` / `1 joueur connecté.` / `{0} joueurs connectés.` |
+| es-ES | `{0} se ha unido.` | `{0} se ha ido.` | `No hay jugadores conectados.` / `1 jugador conectado.` / `{0} jugadores conectados.` |
+| ru-RU | `Игрок {0} присоединился.` | `Игрок {0} вышел.` | `Нет подключенных игроков.` / `Подключён 1 игрок.` / `Подключено игроков: {0}.` |
+| zh-Hans | `{0}已加入。` | `{0}已离开。` | `无玩家连接。` / `1个玩家已连接。` / `{0}个玩家已连接。` |
+| pt-BR | `{0} entrou.` | `{0} saiu.` | `Nenhum jogador conectado.` / `1 jogador conectado.` / `{0} jogadores conectados.` |
+| pl-PL | `{0} dołącza.` | `{0} odchodzi.` | `Nie przyłączyli się żadni gracze.` / `Przyłączył się 1 gracz.` / `Przyłączyła się następująca liczba graczy: {0}.` |
+| ja-JP | `{0}が参加しました。` | `{0}が去りました。` | `接続中のプレイヤーはいません。` / `1人のプレイヤーが接続中です。` / `{0}人のプレイヤーが接続中です。` |
+| ko-KR | `{0} 님이 참가했습니다.` | `{0} 님이 떠났습니다.` | `접속 중인 플레이어가 없음.` / `플레이어 1명 접속 중.` / `플레이어 {0}명 접속 중.` |
+| zh-Hant | `{0}已加入。` | `{0}已離開。` | `沒有玩家連線。` / `已與 1 名玩家連線。` / `已與 {0} 名玩家連線。` |
+
+- `player_join_patterns`·`player_leave_patterns`는 위 문구 줄 전체에 묶는다. 이름이 `<`로 시작하면 채팅 줄(`<이름> 말`)이라 받지 않는다.
+- `playing`의 플레이어 줄 모양 `<이름> (<주소>)`은 서버 파일에 번역 문자열이 없어 확인하지 못했다. 그래서 이름 줄 수가 마지막 줄의 수와 맞을 때만 이름을 싣고, 아니면 수만 답한다.
+
 ## 확인 못 함
 
-- 접속·퇴장 문구와 접속자 수는 클라이언트 없이 실측하지 못했다. 패턴을 등록하지 않았다.
+- 위 접속·퇴장·`playing` 문구를 실제 클라이언트 접속으로 재는 것(PC 실측 필요).
 - `kick`·`ban`의 실제 대상 처리는 실측하지 못했다.
 - serverconfig의 키 대소문자, 값 앞뒤 공백, 중복 키와 값 안의 `=`·`#` 동작은 확인하지 않았다.
 - `exit` 저장 시간과 SIGTERM 저장 여부는 확인하지 않았다.
@@ -180,7 +202,7 @@
 | XNA 익스텐션이 꺼졌을 때 | 시작 전 확인이 익스텐션이 필요하다고 막음. 서버 만들기는 데몬이 익스텐션을 켜고 진행 |
 
 남은 한계:
-- 접속자 수·목록(`[status] players`)과 접속·퇴장 패턴: 게임 클라이언트가 없어 `playing` 출력 모양을 재지 못했다.
+- 접속자 수·목록(`[status] players`)과 접속·퇴장 패턴: 문구는 서버 파일에서 확인했지만(위 절) 게임 클라이언트로 재지는 못했다.
 - 의사 콘솔에서 `help`의 명령 이름과 설명 사이 칸이 사라져 붙어 보인다(서버가 커서 이동으로 줄을 맞추고, 러너가 터미널 제어 문자를 지운다).
 - 실행 직후 `exit-nosave`나 강제 종료는 데몬이 "시작 실패"로 분류한다(데몬의 시작 직후 종료 판정).
 - Linux zip에는 `changelog.txt`가 없어 Linux에서는 설치된 버전을 알 수 없다.

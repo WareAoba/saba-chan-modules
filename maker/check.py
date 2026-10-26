@@ -46,6 +46,7 @@ MANUAL = (
     "초기화가 계산된 대상만 지우고 서버 폴더가 아니면 거절한다",
     "Windows PC 격리(AppContainer) 실측을 했다 (trial.py --saba-core <설치된 saba-core>)",
     "위험 패턴 표(maker/references/lessons.md)를 한 줄씩 지웠다",
+    "콘솔 하이라이트 규칙을 실측 저장 로그의 줄 원문으로 만들고 테스트했다 (PC: console?spans=1로 확인)",
 )
 
 
@@ -213,10 +214,48 @@ def newer_release():
     return latest if latest and version_tuple(latest) > version_tuple(maker_version()) else None
 
 
+def read_manifest(path):
+    try:
+        return tomllib.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        return None
+
+
+def highlight_gate(folder, repo):
+    """콘솔 하이라이트는 그 게임의 실측 로그로 만든다. 틀의 예시 규칙(WARN:, ERROR:, INFO:, IP)만 남은 모듈은
+    콘솔을 본 적이 없는 것이다 (references/manifest.md "콘솔 하이라이트")"""
+    manifest = read_manifest(folder / "module.toml")
+    if manifest is None:
+        return gate("highlight", "fail", "module.toml을 읽지 못했다")
+    template = read_manifest(repo / "__example" / "__example__module.toml") or {}
+    patterns = lambda m: {r.get("pattern") for r in (m.get("syntax_highlight") or {}).get("rules", [])}
+    own = patterns(manifest) - patterns(template)
+    if not own:
+        return gate("highlight", "fail", "실측 로그로 만든 하이라이트 규칙이 없다 (틀의 예시 규칙만 있다)")
+    return gate("highlight", "ok", f"규칙 {len(own)}개")
+
+
+def installed_version_gate(folder):
+    """모듈이 직접 내려받아 설치하면(download) 설치된 버전도 알린다: server version, 업데이트 비교가 이것을 쓴다"""
+    manifest = read_manifest(folder / "module.toml")
+    if manifest is None:
+        return gate("installed-version", "fail", "module.toml을 읽지 못했다")
+    method = (manifest.get("install") or {}).get("method", "manual")
+    if method != "download":
+        return gate("installed-version", "ok", f"설치 방법 {method}")
+    try:
+        code = (folder / "lifecycle.py").read_text(encoding="utf-8")
+    except OSError:
+        code = ""
+    if re.search(r"""["']get_installed_version["']\s*:""", code):
+        return gate("installed-version", "ok", "")
+    return gate("installed-version", "fail", "download 설치인데 FUNCTIONS에 get_installed_version이 없다")
+
+
 def static_gates(folder, repo=REPO, base=None):
     folder, repo = pathlib.Path(folder).resolve(), pathlib.Path(repo).resolve()
     return [placeholders_gate(folder), research_gate(folder), locales_gate(folder), tests_gate(folder, repo),
-            version_gate(folder, repo, base)]
+            version_gate(folder, repo, base), highlight_gate(folder, repo), installed_version_gate(folder)]
 
 
 def run(name, command, cwd, env=None):

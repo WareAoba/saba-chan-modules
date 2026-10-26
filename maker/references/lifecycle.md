@@ -71,3 +71,9 @@
 - 기존 설정·월드를 덮지 않는다. 동봉 예시 설정은 없을 때만 푼다.
 - 받은 파일 검증: 공식 체크섬이 있으면 받는 모든 바이너리에 쓴다. 없으면 HTTPS와 고정된 공식 호스트, 압축 무결성(CRC), 기대 실행 파일 존재로 확인하고, 조사 표에 "공식 체크섬 없음"과 근거 URL을 남긴다. 체크섬을 지어내거나 커뮤니티 해시를 쓰지 않는다.
 - 테스트: 실제 배포물과 같은 구조(모든 OS 폴더)의 가짜 압축 파일로, OS마다 그 OS 파일만 풀리는지 본다.
+- 직접 내려받아 설치하면(`download`) `get_installed_version`도 만든다. `server version`과 업데이트 비교가 이 함수를 쓴다. 서버가 버전을 남기는
+  곳을 실측으로 찾는다(테라리아: Windows zip의 `changelog.txt` 첫 줄 `Version 1.4.5.8 Changes`. Linux zip에는 이 파일이 없다).
+  찾지 못하면 `success: false`로 답하고 이유를 조사 표에 적는다.
+- 실행 전제 런타임은 게임마다 다시 만들지 말고 익스텐션으로 둔다(XNA: `saba-chan-extensions/xna`). 모듈은 `[install] requires_extensions`와
+  `[module.dependencies] ext-<id>`로 선언하고, 함수 안에서 import한다. 없으면 설치는 `extension_required` + `missing_extensions`, 시작 전 확인은
+  `severity: critical`로 막는다.

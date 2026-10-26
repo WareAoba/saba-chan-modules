@@ -1478,6 +1478,63 @@ def reset_server(config):
 _SERVER_LUA_KINDS = ("SandboxVars", "spawnregions", "spawnpoints")
 
 
+def _backup_zip_info(path):
+    """PZ 백업 zip의 readme.txt: (서버 이름, 월드가 들었는가). 읽지 못하면 None.
+    42.21 실측: `ServerName: <이름>`, 월드가 없던 때는 `World version in this backup is:World isn't exist`"""
+    import zipfile
+    try:
+        with zipfile.ZipFile(path) as z:
+            text = z.read("readme.txt").decode("utf-8", "replace")
+    except (OSError, KeyError, zipfile.BadZipFile):
+        return None
+    fields = dict(line.split(":", 1) for line in text.splitlines() if ":" in line)
+    name = fields.get("ServerName", "").strip()
+    world = fields.get("World version in this backup is", "").strip()
+    return name, bool(world) and world != "World isn't exist"
+
+
+def backup_snapshots(config):
+    """서버가 스스로 만든 백업 (데몬 `[backup] snapshots`): BackupsOnStart·BackupsOnVersionChange 등이 만든
+    `<데이터 폴더>/backups/<종류>/backup_N.zip`(N=1이 가장 새것, 42.21 실측). zip 하나라 `archive`로 알리고,
+    zip 안의 이 서버 세이브·DB·설정(`Saves/Multiplayer/<이름>`, `db/<이름>.db`, `Server/<이름>…`)만 데이터 폴더의 같은 자리로 돌아간다.
+    다른 서버 이름의 백업과 월드가 없던 때의 백업은 뺀다"""
+    server_name = _server_name(config)
+    home = _zomboid_home(config)
+    root = safe_join(home, "backups")
+    try:
+        snapshots = []
+        for kind in _entries_or_empty(root):
+            folder = safe_join(root, kind)
+            if not os.path.isdir(folder):
+                continue
+            for name in _entries_or_empty(folder):
+                path = safe_join(folder, name)
+                if not (name.endswith(".zip") and os.path.isfile(path)):
+                    continue
+                info = _backup_zip_info(path)
+                if not info or info != (server_name, True):
+                    continue
+                inner = [f"Saves/Multiplayer/{server_name}", f"db/{server_name}.db", f"Server/{server_name}.ini"]
+                inner += [f"Server/{server_name}_{kind_}.lua" for kind_ in _SERVER_LUA_KINDS]
+                snapshots.append({
+                    "id": f"{kind}/{name[:-4]}",
+                    "created": int(os.path.getmtime(path)),
+                    "archive": str(path),
+                    "paths": [{"from": p, "to": str(safe_join(home, *p.split("/")))} for p in inner],
+                })
+        snapshots.sort(key=lambda s: s["created"], reverse=True)
+        return {"success": True, "snapshots": snapshots}
+    except OSError as e:
+        return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
+
+
+def _entries_or_empty(path):
+    try:
+        return sorted(os.listdir(path))
+    except FileNotFoundError:
+        return []
+
+
 def _server_config_files(server_dir, server_name):
     """Server/ 폴더에서 이 서버 이름의 파일: `<이름>.ini`와 `<이름>_<종류>.lua`(SandboxVars·spawnregions·spawnpoints).
     `<이름>_2.ini`나 `<이름>_2_SandboxVars.lua`는 다른 서버(`<이름>_2`) 것이다.
@@ -1531,6 +1588,7 @@ FUNCTIONS = {
     "install_server":     install_server,
     "reset_server":       reset_server,
     "backup_paths":       backup_paths,
+    "backup_snapshots":   backup_snapshots,
 }
 # 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
 FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}

@@ -38,6 +38,8 @@ def pytest_addoption(parser):
     parser.addoption("--module", action="append", default=[], help="검사할 모듈 폴더 (여러 번 줄 수 있다)")
     parser.addoption("--shared-libs", default=os.environ.get("SABA_SHARED_LIBS") or os.environ.get("SABA_RUNTIME_DIR"),
                      help="i18n.py, daemon_rcon.py가 있는 폴더")
+    parser.addoption("--saba-core", default=os.environ.get("SABA_CORE"),
+                     help="실측 모드(trial.py) 전체 흐름을 돌릴 saba-core 실행 파일")
 
 
 def _repo_modules(tmp_root: pathlib.Path) -> list[pathlib.Path]:

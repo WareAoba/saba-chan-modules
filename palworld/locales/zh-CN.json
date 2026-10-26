@@ -156,6 +156,8 @@
     "settings": { "label": "查看设置", "description": "查看当前服务器设置" }
   },
   "errors": {
+    "backup_paths_failed": "无法读取要备份的存档文件夹:{{error}}",
+    "graceful_stop_unavailable": "无法请求服务器保存并退出(没有控制台或 REST)。服务器未停止。只有在可以接受丢失未保存进度时才强制停止。",
     "server_not_running": "服务器未运行。请先启动服务器。",
     "auth_failed": "身份验证失败。请检查 REST API 用户名和密码。",
     "player_not_found": "找不到玩家。请检查昵称或 SteamID。",

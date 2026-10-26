@@ -10,6 +10,11 @@
 - 계약(API 라우트, `module.toml` 키, hook, manifest 필드, relay API)을 바꾸면 같은 커밋에서 `docs/architecture/`의 해당 절을 고친다.
 - 코드 규칙은 `.github/copilot-instructions.md`를 따른다. 이 파일과 다르면 이 파일이 우선한다.
 
+## 모듈 만들기·고치기
+
+- 새 모듈을 만들거나 기존 모듈에 기능을 더하거나 고칠 때는 `maker/SKILL.md`를 먼저 읽고 그 절차와 PR 전 관문을 따른다.
+- 뼈대·배포물 점검·서버 시험 실행·관문 검사는 `maker/`의 도구로 한다(`maker/README.md`).
+
 ## 역할과 협업 (Claude ↔ Codex)
 
 이 프로젝트는 역할을 고정한다(사용자 지정). 공통 지침의 "역할을 고정하지 않는다"보다 이 절이 우선한다.

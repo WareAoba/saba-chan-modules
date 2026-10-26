@@ -162,6 +162,8 @@
     "settings": { "label": "Voir les paramètres", "description": "Voir les paramètres actuels du serveur" }
   },
   "errors": {
+    "backup_paths_failed": "Impossible de lire le dossier des sauvegardes de jeu : {{error}}",
+    "graceful_stop_unavailable": "Impossible de demander au serveur d'enregistrer et de quitter (ni console ni REST). Il n'a pas été arrêté. Forcez l'arrêt uniquement si vous acceptez de perdre la progression non enregistrée.",
     "server_not_running": "Le serveur n'est pas démarré. Démarrez d'abord le serveur.",
     "auth_failed": "Échec de l'authentification. Vérifiez le nom d'utilisateur et le mot de passe de l'API REST.",
     "player_not_found": "Joueur introuvable. Vérifiez le pseudo ou le SteamID.",

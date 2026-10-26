@@ -162,6 +162,8 @@
     "stop": { "label": "Arrêter le serveur", "description": "Arrêter le serveur proprement" }
   },
   "errors": {
+    "graceful_stop_unavailable": "Impossible de demander au serveur d'enregistrer et de quitter (ni console ni REST). Il n'a pas été arrêté. Forcez l'arrêt uniquement si vous acceptez de perdre la progression non enregistrée.",
+    "backup_paths_failed": "Impossible de lire le dossier des plugins à sauvegarder : {{error}}",
     "server_not_running": "Le serveur n'est pas démarré. Démarrez d'abord le serveur.",
     "timeout": "Le serveur n'a pas répondu à temps. Vérifiez l'état du serveur.",
     "internal_server_error": "Une erreur interne du serveur s'est produite.",

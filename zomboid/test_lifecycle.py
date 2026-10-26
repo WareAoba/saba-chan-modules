@@ -265,6 +265,57 @@ def test_backup_paths_follow_cache_dir(tmp_path):
 
 
 
+def _pz_backup(path, server, world=True, when="2026-10-26 at 01:27:36 JST"):
+    """PZ 42.21 서버가 만든 백업 zip과 같은 모양 (test-zomboid 실측, 2026-10-26)"""
+    import zipfile
+    path.parent.mkdir(parents=True, exist_ok=True)
+    version = "249" if world else "World isn't exist"
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("readme.txt", f"Backup time: {when}\nServerName: {server}\nCurrent server version:42.21\n"
+                                 f"Current world version:249\nWorld version in this backup is:{version}\n")
+        z.writestr("options.ini", "x")
+        z.writestr(f"db/{server}.db", "db")
+        for name in (f"{server}.ini", f"{server}_SandboxVars.lua", f"{server}_spawnpoints.lua", f"{server}_spawnregions.lua"):
+            z.writestr(f"Server/{name}", "cfg")
+        if world:
+            z.writestr(f"Saves/Multiplayer/{server}/map_meta.bin", "w")
+            z.writestr(f"Saves/Multiplayer/{server}/players.db", "p")
+
+
+def test_backup_snapshots_list_the_servers_own_backup_zips(tmp_path):
+    """BackupsOnStart·BackupsOnVersionChange가 만든 `backups/<종류>/backup_N.zip`(1이 가장 새것)을 zip 스냅샷으로 알려 준다.
+    zip 안의 이 서버 세이브·DB·설정만 데이터 폴더의 같은 자리로 돌아가고, 월드가 없던 때의 백업과 다른 서버 이름의 백업은 뺀다"""
+    import time
+    from zomboid.lifecycle import backup_snapshots
+    home = tmp_path
+    _pz_backup(home / "backups" / "startup" / "backup_1.zip", "myserver")
+    _pz_backup(home / "backups" / "startup" / "backup_2.zip", "myserver", world=False, when="2026-10-26 at 01:25:16 JST")
+    _pz_backup(home / "backups" / "version" / "backup_1.zip", "other")
+    old = time.time() - 3600
+    os.utime(home / "backups" / "startup" / "backup_1.zip", (old, old))
+    result = backup_snapshots({"cache_dir": str(home), "server_name": "myserver"})
+    assert result["success"] is True, result
+    assert [s["id"] for s in result["snapshots"]] == ["startup/backup_1"]
+    snap = result["snapshots"][0]
+    assert snap["archive"] == str(home / "backups" / "startup" / "backup_1.zip")
+    assert snap["created"] == int(old)
+    assert sorted((p["from"], p["to"]) for p in snap["paths"]) == sorted([
+        ("Saves/Multiplayer/myserver", os.path.join(str(home), "Saves", "Multiplayer", "myserver")),
+        ("db/myserver.db", os.path.join(str(home), "db", "myserver.db")),
+        ("Server/myserver.ini", os.path.join(str(home), "Server", "myserver.ini")),
+        ("Server/myserver_SandboxVars.lua", os.path.join(str(home), "Server", "myserver_SandboxVars.lua")),
+        ("Server/myserver_spawnpoints.lua", os.path.join(str(home), "Server", "myserver_spawnpoints.lua")),
+        ("Server/myserver_spawnregions.lua", os.path.join(str(home), "Server", "myserver_spawnregions.lua")),
+    ])
+    assert backup_snapshots({"cache_dir": str(tmp_path / "none"), "server_name": "myserver"}) == {"success": True, "snapshots": []}
+
+
+def test_backup_snapshots_are_declared():
+    from zomboid.lifecycle import FUNCTIONS
+    assert _load_module_toml()["backup"].get("snapshots") is True
+    assert "backup_snapshots" in FUNCTIONS
+
+
 def test_backup_paths_let_older_whole_server_folder_backups_restore(tmp_path):
     """0.1.8 이전 백업은 Server/ 폴더를 통째로 담았다. 그 폴더를 restore_roots로 내야 데몬이 그 백업을 복원한다.
     restore_roots는 백업 대상이 아니므로 paths에는 여전히 이 서버 것만 든다 (MA3)"""

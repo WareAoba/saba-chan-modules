@@ -437,6 +437,14 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 
 Windows PC의 정규 설치 앱에서 실제 서버로 확인한다. 새 모듈은 "확인 안 됨"으로 격리 실행되므로, 격리 실행에서 생기는 문제도 여기서 드러난다.
 
+Windows에서는 실측 모드가 아래 절차의 설치·시작·정지·백업·초기화를 진짜 데몬과 러너로 자동으로 한다. lifecycle 호출은 데몬의 실제 격리(AppContainer) 안에서 돈다. 보고서 `trial-report.md`를 PR에 붙인다(자세한 흐름은 [conformance/README.md](../conformance/README.md#실측-모드-trialpy)).
+
+```bash
+python conformance/trial.py path/to/mygame --saba-core path/to/saba-core [--extensions path/to/saba-chan-extensions] [--accept-agreement <id>]
+```
+
+실측 모드가 다루지 않는 항목(명령 응답, 설정 변경 뒤 재시작해 서버가 그 값을 쓰는지)은 아래 순서로 정규 설치 앱에서 확인한다.
+
 1. 모듈 폴더를 데몬 데이터 폴더의 `modules\<이름>\`에 두고 `saba-chan-cli module refresh`를 실행한다.
 2. `saba-chan-cli server add <서버 이름> -m <모듈>`로 설치한다.
 3. 서버를 켜고 준비 표시가 나오는지 본다.
@@ -497,3 +505,4 @@ PC 실측을 위해 설치된 데몬 파일을 바꿔 넣었다면, 바꾸기 �
 - [ ] 코드가 쓰는 능력을 `[permissions]`에 선언했다(`saba-core module audit`)
 - [ ] SDK import 중 가장 높은 `SINCE` 버전 이상을 `[module.dependencies] saba-core`에 선언했다
 - [ ] `pytest conformance --module ...` 통과
+- [ ] `conformance/trial.py` 실측 보고서에 실패가 없고, 경고는 PR에 이유를 적었다 (Windows에서 잰 것)

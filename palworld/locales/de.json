@@ -156,6 +156,8 @@
     "settings": { "label": "Einstellungen anzeigen", "description": "Aktuelle Servereinstellungen anzeigen" }
   },
   "errors": {
+    "backup_paths_failed": "Der Spielstand-Ordner für die Sicherung konnte nicht gelesen werden: {{error}}",
+    "graceful_stop_unavailable": "Es gibt keinen Weg, den Server zum Speichern und Beenden aufzufordern (keine Konsole oder REST). Er wurde nicht gestoppt. Erzwinge das Stoppen nur, wenn du ungespeicherten Fortschritt verlieren darfst.",
     "server_not_running": "Der Server läuft nicht. Bitte starte zuerst den Server.",
     "auth_failed": "Authentifizierung fehlgeschlagen. Bitte prüfe Benutzername und Passwort der REST-API.",
     "player_not_found": "Spieler nicht gefunden. Bitte prüfe den Namen oder die SteamID.",

@@ -159,6 +159,8 @@
     "settings": { "label": "Ver configuración", "description": "Ver la configuración actual del servidor" }
   },
   "errors": {
+    "backup_paths_failed": "No se pudo leer la carpeta de partidas para la copia de seguridad: {{error}}",
+    "graceful_stop_unavailable": "No hay forma de pedir al servidor que guarde y se cierre (sin consola ni REST). No se detuvo. Fuérzalo solo si aceptas perder el progreso no guardado.",
     "server_not_running": "El servidor no está en ejecución. Inicia primero el servidor.",
     "auth_failed": "Error de autenticación. Comprueba el usuario y la contraseña de la API REST.",
     "player_not_found": "Jugador no encontrado. Comprueba el apodo o el SteamID.",

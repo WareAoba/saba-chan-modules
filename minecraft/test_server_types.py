@@ -361,6 +361,29 @@ def test_every_catalog_command_has_a_korean_label():
             assert ko.get(slug, {}).get(cmd["name"], {}).get("label"), f"{slug}:{cmd['name']}"
 
 
+def _leaf_paths(obj, prefix=()):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from _leaf_paths(v, prefix + (k,))
+    else:
+        yield prefix, obj
+
+
+def test_the_catalog_is_translated_into_every_module_language():
+    """화면 문구는 10개 언어 모두에 둔다. 한국어만 있으면 다른 언어 사용자는 영어 원문을 본다"""
+    catalog_locales = os.path.join(MODULE_DIR, "plugin_catalog", "locales")
+    ko = dict(_leaf_paths(json.load(open(os.path.join(catalog_locales, "ko.json"), encoding="utf-8"))))
+    for name in sorted(os.listdir(os.path.join(MODULE_DIR, "locales"))):
+        if name in ("ko.json", "en.json"):  # 영어는 카탈로그 원문이다
+            continue
+        path = os.path.join(catalog_locales, name)
+        assert os.path.exists(path), name
+        other = dict(_leaf_paths(json.load(open(path, encoding="utf-8"))))
+        assert other.keys() == ko.keys(), name
+        empty = [k for k, v in other.items() if not isinstance(v, str) or not v.strip()]
+        assert not empty, (name, empty[:5])
+
+
 def test_installing_a_version_without_settings_keeps_the_folders_server_type(tmp_path):
     """GUI의 '버전 설치'는 {version, install_dir}만 보낸다. Paper 폴더를 바닐라로 덮으면
     플러그인이 꺼지고 따로 저장된 지옥·엔드가 사라진 것처럼 보인다"""

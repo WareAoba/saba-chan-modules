@@ -1527,7 +1527,7 @@ def test_import_fetches_a_portable_java_into_the_instance_folder(tmp_path, monke
         return {"success": True, "java_path": _portable_java(os.path.join(install_dir, "java"), major)}
     monkeypatch.setattr(lifecycle.JavaDownloader, "download_jre", fake_download)
 
-    result = lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance)})
+    result = lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance), "migration_import": True})
 
     assert result["success"] is True
     assert calls == [(25, str(instance))]
@@ -1545,7 +1545,23 @@ def test_import_keeps_a_portable_java_the_server_folder_already_has(tmp_path, mo
     monkeypatch.setattr(lifecycle, "_required_java_for", lambda *a, **k: 21)
     monkeypatch.setattr(lifecycle.JavaDownloader, "download_jre", lambda *a: pytest.fail("no download when the folder has one"))
 
-    assert lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance)})["success"] is True
+    assert lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance), "migration_import": True})["success"] is True
+
+
+def test_only_the_migration_import_fetches_java(tmp_path, monkeypatch):
+    """런타임 받기는 데몬이 가져오기 표시(`migration_import`)를 실은 호출에서만: 설정 창의 실제 설정 읽기(settings/live)
+    같은 다른 import_settings 호출은 기본 시간 한도(120초) 안에 끝나야 하고, 열 때마다 받으려 하지 않는다"""
+    from minecraft import lifecycle
+    server, instance = tmp_path / "server", tmp_path / "instance"
+    server.mkdir()
+    instance.mkdir()
+    lifecycle.ServerPropertiesManager(str(server)).write({"motd": "kept"})
+    monkeypatch.setattr(lifecycle, "_required_java_for", lambda *a, **k: 25)
+    monkeypatch.setattr(lifecycle.JavaDownloader, "download_jre", lambda *a: pytest.fail("no download outside the migration import"))
+
+    result = lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance)})
+
+    assert result["success"] is True and result["settings"]["motd"] == "kept"
 
 
 def test_a_failed_java_download_does_not_fail_the_import(tmp_path, monkeypatch):
@@ -1558,7 +1574,7 @@ def test_a_failed_java_download_does_not_fail_the_import(tmp_path, monkeypatch):
     monkeypatch.setattr(lifecycle, "_required_java_for", lambda *a, **k: 25)
     monkeypatch.setattr(lifecycle.JavaDownloader, "download_jre", lambda *a: {"success": False, "message": "offline"})
 
-    result = lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance)})
+    result = lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance), "migration_import": True})
 
     assert result["success"] is True and result["settings"]["motd"] == "kept"
     assert "offline" in result.get("java_warning", "")

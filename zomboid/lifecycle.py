@@ -32,9 +32,9 @@ if _root_dir not in sys.path:
 
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, safe_join, daemon_stdin_command, graceful_stop, is_process_alive,
-                         read_key_values, request_console, request_terminate, setting_file_keys, settings_to_file,
-                         update_key_values)
+from daemon_rcon import (PathOutside, safe_join, daemon_stdin_command, diagnose_lines, graceful_stop, is_process_alive,
+                         load_diagnose_rules, read_key_values, request_console, request_terminate, setting_file_keys,
+                         settings_to_file, tail_lines, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
@@ -282,74 +282,6 @@ class IniManager:
         update_key_values(ini_path, updates)
 
     write = update
-
-
-# ═══════════════════════════════════════════════════════════
-#                   Error Detector
-# ═══════════════════════════════════════════════════════════
-
-class ErrorDetector:
-    """Detect known error patterns in PZ server logs."""
-
-    PATTERNS = [
-        {
-            "pattern": re.compile(r"java\.lang\.OutOfMemoryError|unable to create new native thread", re.IGNORECASE),
-            "code": "out_of_memory",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"Address already in use|BindException", re.IGNORECASE),
-            "code": "port_in_use",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"Assertion Failed.*Illegal termination", re.IGNORECASE),
-            "code": "illegal_termination",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"java\.io\.FileNotFoundException|AccessDeniedException|Permission denied", re.IGNORECASE),
-            "code": "permission_denied",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"crash|EXCEPTION_ACCESS_VIOLATION|StackOverflowError", re.IGNORECASE),
-            "code": "server_crash",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"mod.*error|lua.*error|LuaException", re.IGNORECASE),
-            "code": "mod_error",
-            "severity": "warning",
-        },
-        {
-            "pattern": re.compile(r"Save (complete|failed|error)", re.IGNORECASE),
-            "code": "save_status",
-            "severity": "info",
-        },
-    ]
-
-    @classmethod
-    def scan(cls, log_text):
-        """Scan log text and return list of detected issues."""
-        issues = []
-        seen_codes = set()
-
-        for entry in cls.PATTERNS:
-            if entry["code"] in seen_codes:
-                continue
-            match = entry["pattern"].search(log_text)
-            if match:
-                seen_codes.add(entry["code"])
-                issues.append({
-                    "severity": entry["severity"],
-                    "code": entry["code"],
-                    "message": i18n.t(f"errors.detect.{entry['code']}"),
-                    "solution": i18n.t(f"errors.solutions.{entry['code']}"),
-                    "matched_text": match.group(0)[:200],
-                })
-
-        return issues
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1085,37 +1017,24 @@ def command(config):
 
 
 def diagnose_log(config):
-    """Analyze server log for known error patterns."""
-    working_dir = config.get("working_dir", "")
-    server_name = _server_name(config)
-    
-    # PZ console log locations
-    log_paths = []
-    if working_dir:
-        log_paths.append(os.path.join(working_dir, "server-console.txt"))
-    
-    zomboid_dir = _zomboid_home(config)
-    log_paths.append(os.path.join(zomboid_dir, "console.txt"))
-    log_paths.append(os.path.join(zomboid_dir, "server-console.txt"))
-    
-    log_text = ""
-    for log_path in log_paths:
-        if os.path.exists(log_path):
-            try:
-                with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
-                    # Read last 100KB
-                    f.seek(0, 2)
-                    size = f.tell()
-                    f.seek(max(0, size - 102400))
-                    log_text += f.read()
-            except (IOError, OSError):
-                continue
-    
-    if not log_text:
+    """Analyze server log for known error patterns (module.toml [[diagnose]]).
+    데몬이 준 이번 실행의 콘솔 줄을 먼저 보고, 없으면 서버 콘솔 로그(server-console.txt) 끝부분을 본다.
+    클라이언트 로그(console.txt)는 보지 않는다: 같은 PC에서 게임을 한 기록을 서버 문제로 보게 된다"""
+    log_lines = config.get("log_lines") or []
+    if isinstance(log_lines, str):
+        log_lines = log_lines.splitlines()
+    if not log_lines:
+        candidates = [os.path.join(_zomboid_home(config), "server-console.txt")]
+        if config.get("working_dir"):
+            candidates.insert(0, os.path.join(config["working_dir"], "server-console.txt"))
+        for path in candidates:
+            log_lines = tail_lines(path)
+            if log_lines:
+                break
+    if not log_lines:
         return {"success": True, "issues": [], "message": i18n.t("messages.no_log_files")}
-    
-    issues = ErrorDetector.scan(log_text)
-    return {"success": True, "issues": issues}
+    return {"success": True, "issues": diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n),
+            "lines_analyzed": len(log_lines)}
 
 
 def install_server(config):

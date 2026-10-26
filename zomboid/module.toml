@@ -1705,3 +1705,49 @@ pattern = '(?P<hl>/[a-z][a-zA-Z0-9_]+)'
 color = "command"
 bold = true
 priority = 15
+
+# ── [[diagnose]] 서버 로그 진단 (diagnose_log가 공용 diagnose_lines로 읽는다. 문구: errors.detect.<code>·errors.solutions.<code>) ──
+
+[[diagnose]]
+code = "OUT_OF_MEMORY"
+patterns = [
+    'java\.lang\.OutOfMemoryError|unable to create new native thread',
+]
+
+[[diagnose]]
+code = "PORT_IN_USE"
+patterns = [
+    'Address already in use|BindException',
+]
+
+[[diagnose]]
+code = "ILLEGAL_TERMINATION"
+patterns = [
+    'Assertion Failed.*Illegal termination',
+]
+
+[[diagnose]]
+code = "PERMISSION_DENIED"
+patterns = [
+    'java\.io\.FileNotFoundException|AccessDeniedException|Permission denied',
+]
+
+[[diagnose]]
+code = "SERVER_CRASH"
+patterns = [
+    'crash|EXCEPTION_ACCESS_VIOLATION|StackOverflowError',
+]
+
+[[diagnose]]
+code = "MOD_ERROR"
+severity = "warning"
+patterns = [
+    'mod.*error|lua.*error|LuaException',
+]
+
+[[diagnose]]
+code = "SAVE_STATUS"
+severity = "info"
+patterns = [
+    'Save (complete|failed|error)',
+]

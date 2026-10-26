@@ -887,3 +887,18 @@ def test_stop_uses_the_shared_procedure_with_a_console_quit_then_sigterm():
          mock.patch.object(lifecycle, "request_terminate", return_value=True) as term:
         assert lifecycle.stop({"pid": 7}) is True
     term.assert_called_once_with(7)
+
+
+def test_diagnose_reads_the_daemon_lines_then_the_server_console_but_not_the_client_log(tmp_path):
+    """진단 규칙은 module.toml [[diagnose]] (공용 diagnose_lines). 데몬이 준 콘솔 줄 → server-console.txt 순이고,
+    같은 PC의 게임 클라이언트 로그(console.txt)는 서버 문제가 아니라 보지 않는다 (MP20)"""
+    from zomboid import lifecycle
+    issues = lifecycle.diagnose_log({"log_lines": ["java.net.BindException: Address already in use"]})["issues"]
+    assert [(i["code"], i["severity"]) for i in issues] == [("PORT_IN_USE", "error")]
+    home = tmp_path / "Zomboid"
+    home.mkdir()
+    (home / "console.txt").write_text("java.lang.OutOfMemoryError\n", encoding="utf-8")
+    config = {"cache_dir": str(home)}
+    assert lifecycle.diagnose_log(config)["issues"] == []
+    (home / "server-console.txt").write_text("LuaException: boom\n", encoding="utf-8")
+    assert [i["code"] for i in lifecycle.diagnose_log(config)["issues"]] == ["MOD_ERROR"]

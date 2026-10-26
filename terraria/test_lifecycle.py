@@ -118,7 +118,8 @@ def test_setting_types_are_supported(toml):
 def test_functions_named_by_toml_exist(lc, toml):
     if toml.get("backup", {}).get("hook"):
         assert "backup_paths" in lc.FUNCTIONS
-    assert "functions" in lc.FUNCTIONS
+    # 예약 함수 `functions`는 공용 run_lifecycle이 표의 이름으로 답한다
+    assert "functions" not in lc.FUNCTIONS
 
 
 # ─── serverconfig.txt 문법 ──────────────────────────────────

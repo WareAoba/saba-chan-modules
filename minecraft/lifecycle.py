@@ -1187,21 +1187,6 @@ def validate(config):
                 "solution": i18n.t("errors.solutions.eula_not_accepted"),
             })
 
-    # Port availability — 이 서버가 이미 켜져 있으면 그 포트는 자기 것이다
-    port = config.get("port", 25565)
-    if port and not config.get("running"):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(1)
-                if s.connect_ex(("127.0.0.1", int(port))) == 0:
-                    issues.append({
-                        "code": "PORT_IN_USE", "severity": "warning",
-                        "message": i18n.t("errors.detect.port_in_use", port=str(port)),
-                        "solution": i18n.t("errors.solutions.port_in_use", port=str(port)),
-                    })
-        except (OSError, ValueError):
-            pass
-
     return {
         "success": len([i for i in issues if i["severity"] == "critical"]) == 0,
         "issues": issues,
@@ -2446,8 +2431,6 @@ FUNCTIONS = {
     "player_count": player_count,
     "backup_paths": backup_paths,
 }
-# 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
-FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}
 
 if __name__ == "__main__":
     # 공용 진입점: 깨진 stdin·모르는 함수·함수 안의 예외도 JSON으로 답하고 종료 코드 0을 지킨다

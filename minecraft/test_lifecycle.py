@@ -1578,3 +1578,16 @@ def test_a_failed_java_download_does_not_fail_the_import(tmp_path, monkeypatch):
 
     assert result["success"] is True and result["settings"]["motd"] == "kept"
     assert "offline" in result.get("java_warning", "")
+
+
+def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
+    """포트 사용 검사는 데몬이 시작마다 한다(다른 인스턴스, 다른 프로그램, TCP·UDP, Windows 예약 범위).
+    모듈이 다시 확인하면 검사를 끈 사용자에게도 경고가 남는다"""
+    import socket
+    from minecraft import lifecycle
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+        result = lifecycle.validate({"working_dir": str(tmp_path), "port": port})
+    assert "PORT_IN_USE" not in [i["code"] for i in result.get("issues", [])]

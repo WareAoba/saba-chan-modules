@@ -370,7 +370,7 @@ def test_validate_accepts_daemon_server_jar_key(tmp_path):
 
 def test_stop_kills_only_given_pid():
     from palworld import lifecycle
-    with mock.patch.object(lifecycle, "_kill") as kill:
+    with mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
         result = lifecycle.stop({"pid": 4321, "force": True, "server_executable": "C:/x/PalServer.exe"})
     assert result["success"] is True
     kill.assert_called_once_with(4321)
@@ -379,7 +379,7 @@ def test_stop_kills_only_given_pid():
 def test_plain_stop_without_rest_does_not_kill():
     """REST로 저장 후 종료를 요청할 수 없으면 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
     from palworld import lifecycle
-    with mock.patch.object(lifecycle, "_kill") as kill, \
+    with mock.patch.object(lifecycle, "force_kill") as kill, \
          mock.patch.object(lifecycle, "_rest_shutdown", return_value=False):
         result = lifecycle.stop({"pid": 4321, "server_executable": "C:/x/PalServer.exe"})
     assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
@@ -389,9 +389,9 @@ def test_plain_stop_without_rest_does_not_kill():
 
 def test_status_uses_pid_liveness():
     from palworld import lifecycle
-    with mock.patch.object(lifecycle, "_pid_running", return_value=True):
+    with mock.patch.object(lifecycle, "is_process_alive", return_value=True):
         assert lifecycle.status({"pid": 77})["status"] == "running"
-    with mock.patch.object(lifecycle, "_pid_running", return_value=False):
+    with mock.patch.object(lifecycle, "is_process_alive", return_value=False):
         assert lifecycle.status({"pid": 77})["status"] == "stopped"
 
 
@@ -597,24 +597,25 @@ def test_stop_waits_for_the_configured_stop_timeout():
     from palworld import lifecycle
     for config, expected in (({"stop_timeout": "45"}, 45), ({}, 60), ({"stop_timeout": 600}, 90), ({"stop_timeout": 600, "stop_call_limit": 630}, 600), ({"stop_timeout": 600, "stop_call_limit": 100}, 70)):
         with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
-             mock.patch.object(lifecycle, "_pid_running", return_value=True), \
-             mock.patch.object(lifecycle, "_kill", return_value=True), \
-             mock.patch.object(lifecycle.time, "sleep") as sleep:
+             mock.patch.object(lifecycle, "wait_for_exit", return_value=False) as wait, \
+             mock.patch.object(lifecycle, "force_kill", return_value=(True, None)):
             lifecycle.stop({"pid": 4321, **config})
-        assert sleep.call_count == expected, config
+        assert wait.call_args.kwargs["timeout"] == expected, config
 
 
 def test_stop_reports_a_kill_that_did_not_work():
     """강제 종료가 듣지 않으면(접근 거부 등) 정지됐다고 답하지 않는다: 데몬이 서버를 멈춘 것으로 표시한다 (MA4)"""
     from palworld import lifecycle
-    with mock.patch.object(lifecycle, "_pid_running", return_value=True), \
-         mock.patch.object(lifecycle, "subprocess") as sub, \
-         mock.patch.object(lifecycle.os, "kill", side_effect=PermissionError("denied")), \
-         mock.patch.object(lifecycle.time, "sleep"):
-        sub.run.return_value = mock.Mock(returncode=1, stdout="", stderr="Access is denied.")
+    with mock.patch.object(lifecycle, "force_kill", return_value=(False, "Access is denied.")):
         result = lifecycle.stop({"pid": 4321, "force": True})
     assert result["success"] is False, result
-    assert result.get("message")
+    assert "Access is denied." in result.get("message", "")
+
+
+def test_stop_uses_the_shared_process_helpers():
+    """PID 확인·종료는 공용 도우미로만 한다: 직접 만든 것은 POSIX에서 자식(PalServer.sh가 띄운 서버)을 남긴다"""
+    from palworld import lifecycle
+    assert not hasattr(lifecycle, "_pid_running") and not hasattr(lifecycle, "_kill")
 
 
 def test_managed_stop_leaves_the_wait_to_the_daemon():
@@ -622,12 +623,11 @@ def test_managed_stop_leaves_the_wait_to_the_daemon():
     90초 상한에 잘려 저장 중에 끝난다 (리뷰 514 P2-1)"""
     from palworld import lifecycle
     with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
-         mock.patch.object(lifecycle, "_pid_running", return_value=True), \
-         mock.patch.object(lifecycle, "_kill") as kill, \
-         mock.patch.object(lifecycle.time, "sleep") as sleep:
+         mock.patch.object(lifecycle, "wait_for_exit") as wait, \
+         mock.patch.object(lifecycle, "force_kill") as kill:
         result = lifecycle.stop({"pid": 4321, "managed": True, "stop_timeout": 600})
     assert result["success"] is True, result
-    sleep.assert_not_called()
+    wait.assert_not_called()
     kill.assert_not_called()
 
 
@@ -806,3 +806,17 @@ def test_config_files_lists_the_settings_ini(tmp_path):
     from palworld.lifecycle import FUNCTIONS, _get_settings_ini_path
     config = {"working_dir": str(tmp_path)}
     assert FUNCTIONS["config_files"](config) == {"success": True, "files": [_get_settings_ini_path(config)]}
+
+
+def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
+    """포트 사용 검사는 데몬이 한다. 팰월드 게임 포트는 UDP라 TCP로 확인하던 모듈 검사는 아무것도 잡지 못했다"""
+    import socket
+    from palworld import lifecycle
+    exe = tmp_path / "PalServer.exe"
+    exe.write_text("x")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+        result = lifecycle.validate({"server_jar": str(exe), "port": port})
+    assert "PORT_IN_USE" not in [i["code"] for i in result.get("issues", [])]

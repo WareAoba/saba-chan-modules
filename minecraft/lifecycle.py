@@ -289,8 +289,51 @@ class JavaDownloader:
     a system-wide installation.
     """
 
-    # Adoptium API v3 — returns the latest Temurin JRE for a given major version
+    # Adoptium API v3 — 고정한 판의 플랫폼별 JRE 압축 주소와 SHA-256을 준다
     _API_BASE = "https://api.adoptium.net/v3"
+
+    # 주 버전별로 고정한 Temurin 판 (PC마다 같은 판을 받는다). 요청한 주 버전 이상인 가장 낮은 판을 쓴다 (16 → 17).
+    # 판을 올릴 때는 windows x64, linux x64·aarch64, mac x64·aarch64에 JRE가 있는 판을 고른다 (8은 mac aarch64 없음)
+    _RELEASES = {
+        8: "jdk8u504-b01",
+        17: "jdk-17.0.20.1+1",
+        21: "jdk-21.0.12.1+1",
+        25: "jdk-25.0.5+8",
+    }
+
+    @staticmethod
+    def _pinned_release(major_version):
+        for major in sorted(JavaDownloader._RELEASES):
+            if major >= major_version:
+                return JavaDownloader._RELEASES[major]
+        return None
+
+    @staticmethod
+    def _release_package(release, os_name, arch):
+        """고정 판 release의 이 플랫폼 JRE 압축 정보({link, checksum, ...}). 이 플랫폼용이 없으면 None"""
+        import urllib.error
+        import urllib.parse
+        import urllib.request
+        url = (
+            f"{JavaDownloader._API_BASE}/assets/release_name/eclipse/{urllib.parse.quote(release, safe='')}?"
+            + urllib.parse.urlencode({"os": os_name, "architecture": arch, "image_type": "jre",
+                                      "jvm_impl": "hotspot", "heap_size": "normal", "project": "jdk"})
+        )
+        print(f"  Release: {url}", file=sys.stderr)
+        req = urllib.request.Request(url, headers={"User-Agent": "saba-chan/1.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code == 404:  # 이 플랫폼용 JRE가 없는 판
+                return None
+            raise
+        for binary in data.get("binaries") or []:
+            package = binary.get("package") or {}
+            if (binary.get("os"), binary.get("architecture"), binary.get("image_type")) == (os_name, arch, "jre") \
+                    and str(package.get("link", "")).startswith("https://") and package.get("checksum"):
+                return package
+        return None
 
     @staticmethod
     def _platform_info():
@@ -347,14 +390,20 @@ class JavaDownloader:
         # Determine archive type
         ext = "zip" if os_name == "windows" else "tar.gz"
 
-        # Adoptium API: get latest release binary
-        url = (
-            f"{JavaDownloader._API_BASE}/binary/latest/{major_version}/ga/"
-            f"{os_name}/{arch}/jre/hotspot/normal/eclipse"
-            f"?project=jdk"
-        )
-
-        print(f"Downloading Java {major_version} JRE from Adoptium...", file=sys.stderr)
+        # 고정 판의 이 플랫폼 압축과 SHA-256: 해시가 다르면 풀지 않는다
+        unavailable = {"success": False, "message": i18n.t(
+            "errors.java_release_unavailable", version=str(major_version), platform=f"{os_name} {arch}")}
+        release = JavaDownloader._pinned_release(major_version)
+        if not release:
+            return unavailable
+        print(f"Downloading Java {major_version} JRE ({release}) from Adoptium...", file=sys.stderr)
+        try:
+            package = JavaDownloader._release_package(release, os_name, arch)
+        except Exception as e:
+            return {"success": False, "message": i18n.t("errors.java_download_failed", error=str(e))}
+        if not package:
+            return unavailable
+        url = package["link"]
         print(f"  URL: {url}", file=sys.stderr)
 
         tmp_file = os.path.join(install_dir, f"java-jre.{ext}")
@@ -368,7 +417,11 @@ class JavaDownloader:
                 progress(pct, message)
 
         try:
-            download(url, tmp_file, on_progress=report, timeout=300, user_agent="saba-chan/1.0")
+            download(url, tmp_file, on_progress=report, timeout=300,
+                     checksums={"sha256": package["checksum"]}, user_agent="saba-chan/1.0")
+        except ChecksumMismatch as e:
+            return {"success": False, "message": i18n.t("errors.checksum_mismatch", algorithm=e.algorithm,
+                                                         expected=e.expected, actual=e.actual)}
         except Exception as e:
             return {"success": False, "message": i18n.t("errors.java_download_failed", error=str(e))}
 

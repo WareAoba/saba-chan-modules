@@ -207,6 +207,7 @@
     "java_extract_failed": "Не удалось распаковать Java: {{error}}",
     "java_executable_missing": "Java распакована, но исполняемый файл java не найден",
     "java_run_failed": "Java распакована, но не запускается",
+    "java_release_unavailable": "Для этого ПК ({{platform}}) нет закреплённой JRE Java {{version}}+. Укажите путь к Java в настройках экземпляра.",
     "java_download_warning": "Не удалось загрузить Java {{version}}: {{error}}. Установите Java {{version}} или новее вручную.",
     "status_check_failed": "Не удалось проверить состояние: {{error}}",
     "no_version": "Не указана версия",

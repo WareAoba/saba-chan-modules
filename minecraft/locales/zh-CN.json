@@ -207,6 +207,7 @@
     "java_extract_failed": "Java 解压失败：{{error}}",
     "java_executable_missing": "Java 已解压，但找不到 java 可执行文件",
     "java_run_failed": "Java 已解压，但无法运行",
+    "java_release_unavailable": "没有适用于此电脑({{platform}})的固定版本 Java {{version}}+ JRE。请在实例设置中手动指定 Java 路径。",
     "java_download_warning": "下载 Java {{version}} 失败：{{error}}。请手动安装 Java {{version}} 或更高版本。",
     "status_check_failed": "状态检查失败：{{error}}",
     "no_version": "未指定版本",

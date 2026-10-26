@@ -207,6 +207,7 @@
     "java_extract_failed": "Échec de l'extraction de Java : {{error}}",
     "java_executable_missing": "Java a été extrait, mais l'exécutable java est introuvable",
     "java_run_failed": "Java a été extrait, mais ne parvient pas à démarrer",
+    "java_release_unavailable": "Aucun JRE épinglé pour Java {{version}}+ n'est disponible pour ce PC ({{platform}}). Définissez le chemin de Java dans les paramètres de l'instance.",
     "java_download_warning": "Impossible de télécharger Java {{version}} : {{error}}. Veuillez installer Java {{version}} ou une version ultérieure manuellement.",
     "status_check_failed": "Échec de la vérification de l'état : {{error}}",
     "no_version": "Aucune version indiquée",

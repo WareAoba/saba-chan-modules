@@ -207,6 +207,7 @@
     "java_extract_failed": "Error al extraer Java: {{error}}",
     "java_executable_missing": "Java se extrajo, pero no se encontró el ejecutable de java",
     "java_run_failed": "Java se extrajo, pero no se pudo ejecutar",
+    "java_release_unavailable": "No hay un JRE fijado de Java {{version}}+ para este PC ({{platform}}). Indica la ruta de Java en la configuración de la instancia.",
     "java_download_warning": "No se pudo descargar Java {{version}}: {{error}}. Instala Java {{version}} o posterior manualmente.",
     "status_check_failed": "Error al comprobar el estado: {{error}}",
     "no_version": "No se especificó ninguna versión",

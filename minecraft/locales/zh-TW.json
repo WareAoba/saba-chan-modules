@@ -207,6 +207,7 @@
     "java_extract_failed": "Java 解壓縮失敗：{{error}}",
     "java_executable_missing": "Java 已解壓縮，但找不到 java 執行檔",
     "java_run_failed": "Java 已解壓縮，但無法執行",
+    "java_release_unavailable": "沒有適用於此電腦({{platform}})的固定版本 Java {{version}}+ JRE。請在實例設定中手動指定 Java 路徑。",
     "java_download_warning": "下載 Java {{version}} 失敗：{{error}}。請手動安裝 Java {{version}} 或更新版本。",
     "status_check_failed": "狀態檢查失敗：{{error}}",
     "no_version": "未指定版本",

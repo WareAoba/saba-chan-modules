@@ -207,6 +207,7 @@
     "java_extract_failed": "Java の展開に失敗しました: {{error}}",
     "java_executable_missing": "Java を展開しましたが、java 実行ファイルが見つかりません",
     "java_run_failed": "Java を展開しましたが、実行できません",
+    "java_release_unavailable": "このPC({{platform}})向けの固定版 Java {{version}} 以上の JRE がありません。インスタンス設定で Java のパスを直接指定してください。",
     "java_download_warning": "Java {{version}} のダウンロードに失敗しました: {{error}}。Java {{version}} 以降を手動でインストールしてください。",
     "status_check_failed": "状態の確認に失敗しました: {{error}}",
     "no_version": "バージョンが指定されていません",

@@ -211,6 +211,7 @@
     "java_extract_failed": "Java extraction failed: {{error}}",
     "java_executable_missing": "Java was extracted but the java executable was not found",
     "java_run_failed": "Java was extracted but failed to run",
+    "java_release_unavailable": "No pinned Java {{version}}+ JRE is available for this PC ({{platform}}). Set the Java path in the instance settings.",
     "java_download_warning": "Failed to download Java {{version}}: {{error}}. Please install Java {{version}} or later manually.",
     "status_check_failed": "Status check failed: {{error}}",
     "no_version": "No version specified",

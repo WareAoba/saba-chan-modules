@@ -904,7 +904,7 @@ def test_a_failed_jre_extraction_leaves_no_half_java(tmp_path, monkeypatch):
 
     monkeypatch.setattr(lifecycle.JavaDownloader, "_platform_info", staticmethod(lambda: ("windows", "x64")))
     monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(lambda p: None))
-    with mock.patch("urllib.request.urlopen", return_value=Resp(body)):
+    with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(body)):
         result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
     assert result["success"] is False
     assert (old / exe).read_text() == "old", "the previous java/ is untouched"
@@ -930,6 +930,95 @@ def _jre_zip_response(exe):
     return Resp(body)
 
 
+def _fake_adoptium(archive, checksum=None, seen=None, binaries=None):
+    """urlopen 대역: Adoptium assets API에는 고정 판의 JRE 압축 정보(JSON)를, 그 link에는 archive를 준다"""
+    import hashlib
+    import io
+    import urllib.parse
+
+    class Resp(io.BytesIO):
+        def __init__(self, body):
+            super().__init__(body)
+            self.headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def urlopen(req, timeout=None):
+        url = req.full_url if hasattr(req, "full_url") else req
+        if seen is not None:
+            seen.append(url)
+        if "/v3/assets/release_name/" in url:
+            query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(url).query))
+            release = urllib.parse.unquote(urllib.parse.urlsplit(url).path.rsplit("/", 1)[1])
+            found = binaries if binaries is not None else [{
+                "os": query["os"], "architecture": query["architecture"], "image_type": "jre",
+                "package": {"link": f"https://github.com/adoptium/x/releases/download/{release}/jre.zip",
+                            "checksum": checksum or hashlib.sha256(archive).hexdigest()}}]
+            return Resp(json.dumps({"release_name": release, "binaries": found}).encode())
+        return Resp(archive)
+    return urlopen
+
+
+def test_jre_download_is_pinned_and_checked_against_the_release_checksum(tmp_path, monkeypatch):
+    """JRE는 그날의 최신 GA(binary/latest)가 아니라 주 버전별로 고정한 판을 받고, 그 판의 SHA-256으로 확인한다.
+    해시가 다르면 풀지 않고 멈춘다 (메이커 관문 6, 감사 0.1.11 P2-2)"""
+    from i18n import I18n
+    from minecraft import lifecycle
+    monkeypatch.setenv("SABA_LANG", "en")
+    monkeypatch.setattr(lifecycle, "i18n", I18n(MODULE_DIR))
+    exe = "java.exe" if os.name == "nt" else "java"
+    archive = _jre_zip_response(exe).getvalue()
+    monkeypatch.setattr(lifecycle.JavaDownloader, "_platform_info", staticmethod(lambda: ("windows", "x64")))
+    monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(
+        lambda p: {"path": p, "version": "21.0.12", "major_version": 21, "bits64": True} if open(p).read() == "new" else None))
+    seen = []
+    with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(archive, checksum="0" * 64, seen=seen)):
+        result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
+    assert result["success"] is False
+    assert "SHA256 mismatch" in result["message"], result
+    assert not (tmp_path / "java").exists() and sorted(p.name for p in tmp_path.iterdir()) == []
+    release = lifecycle.JavaDownloader._RELEASES[21]
+    assert "/v3/assets/release_name/eclipse/" in seen[0] and "latest" not in seen[0], seen
+    assert release.replace("+", "%2B") in seen[0] and "os=windows" in seen[0] and "architecture=x64" in seen[0]
+    assert seen[1] == f"https://github.com/adoptium/x/releases/download/{release}/jre.zip"
+
+    seen.clear()
+    with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(archive, seen=seen)):
+        result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
+    assert result["success"], result
+    assert (tmp_path / "java" / "bin" / exe).read_text() == "new"
+
+
+def test_jre_major_without_a_pinned_release_uses_the_next_pinned_one(tmp_path, monkeypatch):
+    """고정 판이 없는 주 버전(1.17의 16)은 그보다 높은 가장 낮은 고정 판을 받는다. 그런 판이 없거나
+    이 플랫폼용 JRE가 없으면 아무것도 받지 않고 사용자 언어로 알린다"""
+    from i18n import I18n
+    from minecraft import lifecycle
+    monkeypatch.setenv("SABA_LANG", "ko")
+    monkeypatch.setattr(lifecycle, "i18n", I18n(MODULE_DIR))
+    releases = lifecycle.JavaDownloader._RELEASES
+    assert lifecycle.JavaDownloader._pinned_release(16) == releases[17]
+    assert lifecycle.JavaDownloader._pinned_release(8) == releases[8]
+    assert lifecycle.JavaDownloader._pinned_release(max(releases) + 1) is None
+    monkeypatch.setattr(lifecycle.JavaDownloader, "_platform_info", staticmethod(lambda: ("mac", "aarch64")))
+    monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(lambda p: None))
+    seen = []
+    with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(b"", seen=seen)):
+        result = lifecycle.JavaDownloader.download_jre(max(releases) + 1, str(tmp_path))
+    assert result == {"success": False, "message": lifecycle.i18n.t(
+        "errors.java_release_unavailable", version=str(max(releases) + 1), platform="mac aarch64")}
+    assert seen == []
+    with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(b"", seen=seen, binaries=[])):
+        result = lifecycle.JavaDownloader.download_jre(8, str(tmp_path))
+    assert result["success"] is False and "aarch64" in result["message"] and "{" not in result["message"], result
+    assert len(seen) == 1, "only the assets API is asked"
+    assert sorted(p.name for p in tmp_path.iterdir()) == []
+
+
 def test_a_new_jre_that_does_not_run_keeps_the_old_java(tmp_path, monkeypatch):
     """받은 JRE가 이 PC에서 돌지 않으면 원래 java/를 지운 뒤에야 알게 되어 돌던 런타임까지 잃었다.
     새 JRE를 먼저 확인하고, 확인된 뒤에만 바꾼다"""
@@ -940,7 +1029,7 @@ def test_a_new_jre_that_does_not_run_keeps_the_old_java(tmp_path, monkeypatch):
     (old / exe).write_text("old")
     monkeypatch.setattr(lifecycle.JavaDownloader, "_platform_info", staticmethod(lambda: ("windows", "x64")))
     monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(lambda p: None))
-    with mock.patch("urllib.request.urlopen", return_value=_jre_zip_response(exe)):
+    with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(_jre_zip_response(exe).getvalue())):
         result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
     assert result["success"] is False
     assert (old / exe).read_text() == "old"
@@ -965,7 +1054,7 @@ def test_a_failed_java_swap_puts_the_old_java_back(tmp_path, monkeypatch):
             raise PermissionError("in use")
         return real_replace(src, dst)
     monkeypatch.setattr(lifecycle.os, "replace", replace)
-    with mock.patch("urllib.request.urlopen", return_value=_jre_zip_response(exe)):
+    with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(_jre_zip_response(exe).getvalue())):
         result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
     assert result["success"] is False
     assert (old / exe).read_text() == "old"

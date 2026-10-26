@@ -227,9 +227,12 @@ def highlight_gate(folder, repo):
     manifest = read_manifest(folder / "module.toml")
     if manifest is None:
         return gate("highlight", "fail", "module.toml을 읽지 못했다")
-    template = read_manifest(repo / "__example" / "__example__module.toml") or {}
-    patterns = lambda m: {r.get("pattern") for r in (m.get("syntax_highlight") or {}).get("rules", [])}
-    own = patterns(manifest) - patterns(template)
+    patterns = lambda m: {r.get("pattern") for r in ((m or {}).get("syntax_highlight") or {}).get("rules", [])}
+    # 넘긴 저장소의 틀과 이 메이커가 든 저장소의 틀을 함께 본다: 저장소 밖 모듈을 검사해 넘긴 곳에 틀이 없어도 비교가 비지 않는다
+    template = set()
+    for root in {repo, REPO}:
+        template |= patterns(read_manifest(root / "__example" / "__example__module.toml"))
+    own = patterns(manifest) - template
     if not own:
         return gate("highlight", "fail", "실측 로그로 만든 하이라이트 규칙이 없다 (틀의 예시 규칙만 있다)")
     return gate("highlight", "ok", f"규칙 {len(own)}개")

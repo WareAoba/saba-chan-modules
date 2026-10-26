@@ -342,6 +342,17 @@ def test_check_static_flags_highlight_rules_left_from_the_template(repo):
     assert statuses(check.static_gates(folder, repo))["highlight"] == "fail"
 
 
+def test_check_highlight_compares_with_the_makers_own_template(repo, tmp_path):
+    """저장소 밖 모듈을 검사해도(넘긴 repo에 __example이 없어도) 틀 예시 규칙만 있으면 실패한다"""
+    folder = finished_module(repo)
+    path = folder / "module.toml"
+    path.write_text(path.read_text(encoding="utf-8").replace(MEASURED_RULE, ""), encoding="utf-8")
+    elsewhere = tmp_path / "outside"
+    elsewhere.mkdir()
+
+    assert statuses(check.static_gates(folder, elsewhere))["highlight"] == "fail"
+
+
 def test_check_static_flags_a_download_module_without_installed_version(repo):
     """모듈이 직접 내려받아 설치하면(download) 설치된 버전도 알려야 한다 (server version, 업데이트 비교)"""
     folder = finished_module(repo)

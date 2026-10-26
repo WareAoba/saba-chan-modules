@@ -207,6 +207,7 @@
     "java_extract_failed": "Entpacken von Java fehlgeschlagen: {{error}}",
     "java_executable_missing": "Java wurde entpackt, aber die ausführbare Java-Datei wurde nicht gefunden",
     "java_run_failed": "Java wurde entpackt, lässt sich aber nicht ausführen",
+    "java_release_unavailable": "Für diesen PC ({{platform}}) ist keine festgelegte JRE für Java {{version}}+ verfügbar. Bitte legen Sie den Java-Pfad in den Instanzeinstellungen fest.",
     "java_download_warning": "Java {{version}} konnte nicht heruntergeladen werden: {{error}}. Bitte installieren Sie Java {{version}} oder neuer manuell.",
     "status_check_failed": "Statusprüfung fehlgeschlagen: {{error}}",
     "no_version": "Keine Version angegeben",

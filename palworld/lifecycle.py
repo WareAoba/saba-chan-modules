@@ -15,7 +15,7 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-from daemon_rcon import PathOutside, daemon_rest, graceful_stop, is_process_alive, safe_join
+from daemon_rcon import PathOutside, daemon_rest, graceful_stop, is_process_alive, safe_join, setting_file_keys
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -520,148 +520,6 @@ DEFAULT_PALWORLD_SETTINGS = {
     "BuildingNameDisplayCacheTTLSeconds": "60",
 }
 
-# saba-chan key → PalWorldSettings.ini key (full mapping)
-_PALWORLD_KEY_MAP = {
-    # Server identity
-    "port": "PublicPort",
-    "public_ip": "PublicIP",
-    "max_players": "ServerPlayerMaxNum",
-    "coop_max_players": "CoopPlayerMaxNum",
-    "server_name": "ServerName",
-    "server_description": "ServerDescription",
-    "server_password": "ServerPassword",
-    "admin_password": "AdminPassword",
-    "region": "Region",
-    # Connectivity / Auth (RCONEnabled는 보안 정책상 항상 False라 설정 키가 없다)
-    "rest_api_enabled": "RESTAPIEnabled",
-    "rest_port": "RESTAPIPort",
-    "use_auth": "bUseAuth",
-    "allow_client_mod": "bAllowClientMod",
-    "ban_list_url": "BanListURL",
-    "show_player_list": "bShowPlayerList",
-    "crossplay_platforms": "CrossplayPlatforms",
-    # Difficulty / Game mode
-    "difficulty": "Difficulty",
-    "randomizer_type": "RandomizerType",
-    "randomizer_seed": "RandomizerSeed",
-    "randomizer_pal_level_random": "bIsRandomizerPalLevelRandom",
-    "hardcore": "bHardcore",
-    "pal_lost": "bPalLost",
-    "character_recreate_in_hardcore": "bCharacterRecreateInHardcore",
-    "is_pvp": "bIsPvP",
-    "is_multiplay": "bIsMultiplay",
-    "death_penalty": "DeathPenalty",
-    "enable_player_to_player_damage": "bEnablePlayerToPlayerDamage",
-    "enable_friendly_fire": "bEnableFriendlyFire",
-    "enable_invader_enemy": "bEnableInvaderEnemy",
-    "enable_predator_boss_pal": "EnablePredatorBossPal",
-    # Rates
-    "day_time_speed_rate": "DayTimeSpeedRate",
-    "night_time_speed_rate": "NightTimeSpeedRate",
-    "exp_rate": "ExpRate",
-    "pal_capture_rate": "PalCaptureRate",
-    "pal_spawn_num_rate": "PalSpawnNumRate",
-    "pal_damage_rate_attack": "PalDamageRateAttack",
-    "pal_damage_rate_defense": "PalDamageRateDefense",
-    "player_damage_rate_attack": "PlayerDamageRateAttack",
-    "player_damage_rate_defense": "PlayerDamageRateDefense",
-    "player_stomach_decrease_rate": "PlayerStomachDecreaceRate",
-    "player_stamina_decrease_rate": "PlayerStaminaDecreaceRate",
-    "player_auto_hp_regen_rate": "PlayerAutoHPRegeneRate",
-    "player_auto_hp_regen_rate_in_sleep": "PlayerAutoHpRegeneRateInSleep",
-    "pal_stomach_decrease_rate": "PalStomachDecreaceRate",
-    "pal_stamina_decrease_rate": "PalStaminaDecreaceRate",
-    "pal_auto_hp_regen_rate": "PalAutoHPRegeneRate",
-    "pal_auto_hp_regen_rate_in_sleep": "PalAutoHpRegeneRateInSleep",
-    "work_speed_rate": "WorkSpeedRate",
-    "collection_drop_rate": "CollectionDropRate",
-    "collection_object_hp_rate": "CollectionObjectHpRate",
-    "collection_object_respawn_speed_rate": "CollectionObjectRespawnSpeedRate",
-    "enemy_drop_item_rate": "EnemyDropItemRate",
-    "item_weight_rate": "ItemWeightRate",
-    "equipment_durability_damage_rate": "EquipmentDurabilityDamageRate",
-    "item_corruption_multiplier": "ItemCorruptionMultiplier",
-    # Building
-    "build_object_hp_rate": "BuildObjectHpRate",
-    "build_object_damage_rate": "BuildObjectDamageRate",
-    "build_object_deterioration_damage_rate": "BuildObjectDeteriorationDamageRate",
-    "build_area_limit": "bBuildAreaLimit",
-    "max_building_limit_num": "MaxBuildingLimitNum",
-    # Base camp
-    "base_camp_max_num": "BaseCampMaxNum",
-    "base_camp_worker_max_num": "BaseCampWorkerMaxNum",
-    "base_camp_max_num_in_guild": "BaseCampMaxNumInGuild",
-    # Items / Drops
-    "drop_item_max_num": "DropItemMaxNum",
-    "drop_item_max_num_unko": "DropItemMaxNum_UNKO",
-    "drop_item_alive_max_hours": "DropItemAliveMaxHours",
-    "active_unko": "bActiveUNKO",
-    # Guild
-    "guild_player_max_num": "GuildPlayerMaxNum",
-    "auto_reset_guild_no_online_players": "bAutoResetGuildNoOnlinePlayers",
-    "auto_reset_guild_time_no_online_players": "AutoResetGuildTimeNoOnlinePlayers",
-    "guild_rejoin_cooldown_minutes": "GuildRejoinCooldownMinutes",
-    "can_pickup_other_guild_death_penalty_drop": "bCanPickupOtherGuildDeathPenaltyDrop",
-    "enable_defense_other_guild_player": "bEnableDefenseOtherGuildPlayer",
-    "invisible_other_guild_base_camp_area_fx": "bInvisibleOtherGuildBaseCampAreaFX",
-    # Travel / Spawn
-    "enable_fast_travel": "bEnableFastTravel",
-    "enable_fast_travel_only_base_camp": "bEnableFastTravelOnlyBaseCamp",
-    "is_start_location_select_by_map": "bIsStartLocationSelectByMap",
-    "exist_player_after_logout": "bExistPlayerAfterLogout",
-    "enable_non_login_penalty": "bEnableNonLoginPenalty",
-    # Pal / Egg
-    "pal_egg_default_hatching_time": "PalEggDefaultHatchingTime",
-    # Aim assist
-    "enable_aim_assist_pad": "bEnableAimAssistPad",
-    "enable_aim_assist_keyboard": "bEnableAimAssistKeyboard",
-    # Auto-save / Backup
-    "auto_save_span": "AutoSaveSpan",
-    "is_use_backup_save_data": "bIsUseBackupSaveData",
-    # Supply drop
-    "supply_drop_span": "SupplyDropSpan",
-    # Logging / Chat
-    "log_format_type": "LogFormatType",
-    "is_show_join_left_message": "bIsShowJoinLeftMessage",
-    "chat_post_limit_per_minute": "ChatPostLimitPerMinute",
-    # Network / Performance
-    "server_replicate_pawn_cull_distance": "ServerReplicatePawnCullDistance",
-    # Palbox
-    "allow_global_palbox_export": "bAllowGlobalPalboxExport",
-    "allow_global_palbox_import": "bAllowGlobalPalboxImport",
-    # Technology
-    "deny_technology_list": "DenyTechnologyList",
-    # Respawn
-    "block_respawn_time": "BlockRespawnTime",
-    "respawn_penalty_duration_threshold": "RespawnPenaltyDurationThreshold",
-    "respawn_penalty_time_scale": "RespawnPenaltyTimeScale",
-    # PvP specifics
-    "display_pvp_item_num_on_world_map_base_camp": "bDisplayPvPItemNumOnWorldMap_BaseCamp",
-    "display_pvp_item_num_on_world_map_player": "bDisplayPvPItemNumOnWorldMap_Player",
-    "additional_drop_item_when_player_killing_in_pvp_mode": "AdditionalDropItemWhenPlayerKillingInPvPMode",
-    "additional_drop_item_num_when_player_killing_in_pvp_mode": "AdditionalDropItemNumWhenPlayerKillingInPvPMode",
-    "additional_drop_item_when_player_killing_in_pvp_mode_enabled": "bAdditionalDropItemWhenPlayerKillingInPvPMode",
-    # Enhance stat
-    "allow_enhance_stat_health": "bAllowEnhanceStat_Health",
-    "allow_enhance_stat_attack": "bAllowEnhanceStat_Attack",
-    "allow_enhance_stat_stamina": "bAllowEnhanceStat_Stamina",
-    "allow_enhance_stat_weight": "bAllowEnhanceStat_Weight",
-    "allow_enhance_stat_work_speed": "bAllowEnhanceStat_WorkSpeed",
-    "item_container_force_mark_dirty_interval": "ItemContainerForceMarkDirtyInterval",
-    # 2026-07 업데이트로 추가된 옵션
-    "physics_active_drop_item_max_num": "PhysicsActiveDropItemMaxNum",
-    "player_data_pal_storage_update_check_tick_interval": "PlayerDataPalStorageUpdateCheckTickInterval",
-    "monster_farm_action_speed_rate": "MonsterFarmActionSpeedRate",
-    "auto_transfer_master_check_interval_seconds": "AutoTransferMasterCheckIntervalSeconds",
-    "auto_transfer_master_threshold_days": "AutoTransferMasterThresholdDays",
-    "max_guilds_per_frame": "MaxGuildsPerFrame",
-    "enable_voice_chat": "bEnableVoiceChat",
-    "voice_chat_max_volume_distance": "VoiceChatMaxVolumeDistance",
-    "voice_chat_zero_volume_distance": "VoiceChatZeroVolumeDistance",
-    "enable_building_player_uid_display": "bEnableBuildingPlayerUIdDisplay",
-    "building_name_display_cache_ttl_seconds": "BuildingNameDisplayCacheTTLSeconds",
-}
-
 def _get_settings_ini_path(config):
     """Resolve path to PalWorldSettings.ini from config."""
     working_dir = config.get("working_dir")
@@ -828,10 +686,11 @@ def _from_ini_list(value):
 
 def _apply_settings(props, settings):
     """saba-chan 설정 키를 INI 값으로 바꿔 `props`에 넣고, 바꾼 INI 키 목록을 돌려준다.
-    INI에 없는 키(데몬 내부 필드 등)는 건너뛴다"""
+    module.toml file_key가 없는 키(데몬 내부 필드 등)는 건너뛴다"""
+    keys = setting_file_keys(MODULE_DIR)
     updated_keys = []
     for key, value in (settings or {}).items():
-        ini_key = _PALWORLD_KEY_MAP.get(key)
+        ini_key = keys.get(key)
         if ini_key is None or value is None:
             continue
         if isinstance(value, bool):
@@ -895,8 +754,8 @@ def import_settings(config):
     if not ini_props:
         return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
 
-    # Build reverse map: INI key → saba-chan key
-    reverse_map = {v: k for k, v in _PALWORLD_KEY_MAP.items()}
+    # INI key → saba-chan key (module.toml file_key)
+    reverse_map = {v: k for k, v in setting_file_keys(MODULE_DIR).items()}
 
     from daemon_rcon import coerce_setting, load_setting_types
     types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))

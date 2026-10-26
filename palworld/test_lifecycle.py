@@ -7,8 +7,8 @@
 검증 축:
 1. module.toml 자체 파싱 & BOM 안전성
 2. [credential_map] 타겟이 실제 INI 키여야 함
-3. _PALWORLD_KEY_MAP.values() ⊆ DEFAULT_PALWORLD_SETTINGS.keys()
-4. settings.fields[].name (saba-chan 전용 그룹 제외) ⊆ _PALWORLD_KEY_MAP.keys()
+3. module.toml file_key 값 ⊆ DEFAULT_PALWORLD_SETTINGS.keys()
+4. settings.fields[].name (saba-chan 전용 그룹 제외)마다 file_key가 있다
 5. lifecycle.py 공개 API가 잘못된 config에 대해 우아하게 실패하는지
 """
 import json
@@ -44,6 +44,12 @@ def _load_module_toml():
     return tomllib.loads(raw.decode("utf-8"))
 
 
+def _file_keys():
+    """설정 이름 → PalWorldSettings.ini 키 (module.toml file_key)"""
+    from daemon_rcon import setting_file_keys
+    return setting_file_keys(os.path.dirname(MODULE_TOML))
+
+
 def test_module_toml_parses():
     cfg = _load_module_toml()
     assert cfg["module"]["name"] == "palworld"
@@ -63,7 +69,8 @@ def test_credential_map_targets_are_real_ini_keys():
     """credential_map 우측 값은 실제 PalWorldSettings.ini 키여야 한다.
     예: rest_password = "AdminPassword" → AdminPassword가 _PALWORLD_KEY_MAP의 값이거나
         DEFAULT_PALWORLD_SETTINGS의 키여야 한다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP, DEFAULT_PALWORLD_SETTINGS
+    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
+    _PALWORLD_KEY_MAP = _file_keys()
 
     cfg = _load_module_toml()
     cred_map = cfg.get("credential_map", {})
@@ -89,7 +96,8 @@ def test_credential_map_rest_password_binds_admin_password():
 def test_key_map_values_subset_of_defaults():
     """_PALWORLD_KEY_MAP의 모든 INI 키는 DEFAULT_PALWORLD_SETTINGS에 존재해야 한다.
     이 대응이 깨지면 '설정을 저장했는데 서버에는 반영 안됨' 버그가 된다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP, DEFAULT_PALWORLD_SETTINGS
+    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
+    _PALWORLD_KEY_MAP = _file_keys()
 
     missing = [
         (friendly, ini_key)
@@ -105,19 +113,13 @@ def test_key_map_values_subset_of_defaults():
 def test_key_map_no_duplicate_targets():
     """두 개 이상의 friendly name이 같은 INI 키에 매핑되면
     configure() 호출 시 덮어쓰기 순서에 따라 값이 소실된다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
+    _PALWORLD_KEY_MAP = _file_keys()
 
     reverse = {}
     for friendly, ini_key in _PALWORLD_KEY_MAP.items():
         reverse.setdefault(ini_key, []).append(friendly)
     dupes = {k: v for k, v in reverse.items() if len(v) > 1}
     assert not dupes, f"중복 매핑된 INI 키: {dupes}"
-
-
-def test_key_map_no_duplicate_friendly_names():
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
-    # dict이므로 구조적으로 중복 불가능하지만, 동치성은 강제한다.
-    assert len(_PALWORLD_KEY_MAP) == len(set(_PALWORLD_KEY_MAP.keys()))
 
 
 # ─── 4. settings.fields ↔ KEY_MAP 계약 ──────────────────────
@@ -136,7 +138,7 @@ def _ini_bound_field_names(cfg):
 def test_ini_bound_fields_are_mapped():
     """INI에 써야 하는 모든 UI 필드가 _PALWORLD_KEY_MAP에 등록되어 있어야 한다.
     누락되면 사용자가 GUI에서 값을 바꿔도 서버에 반영되지 않는다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
+    _PALWORLD_KEY_MAP = _file_keys()
 
     cfg = _load_module_toml()
     unmapped = [n for n in _ini_bound_field_names(cfg) if n not in _PALWORLD_KEY_MAP]
@@ -188,7 +190,7 @@ def test_default_settings_matches_sample_ini():
 def test_key_map_covers_all_ini_keys_except_internal():
     """_PALWORLD_KEY_MAP은 RCON/REST 강제관리 키를 제외한 모든 INI 키를 커버해야 한다.
     최신 업데이트로 추가된 옵션이 매핑 없이 방치되는 사고를 방지한다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
+    _PALWORLD_KEY_MAP = _file_keys()
 
     ini_keys = set(_load_default_ini_props().keys())
     mapped_keys = set(_PALWORLD_KEY_MAP.values())
@@ -199,7 +201,7 @@ def test_key_map_covers_all_ini_keys_except_internal():
 def test_all_ini_keys_exposed_in_gui_except_internal():
     """요구사항: '기본적으로 모든 옵션을 GUI에 노출'. RCON/REST 강제관리 키를 제외한
     모든 INI 키가 module.toml의 settings.fields에 노출되어야 한다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
+    _PALWORLD_KEY_MAP = _file_keys()
 
     cfg = _load_module_toml()
     ui_field_names = {f["name"] for f in cfg.get("settings", {}).get("fields", [])}
@@ -409,7 +411,8 @@ def test_deny_technology_list_is_written_as_a_quoted_list(tmp_path):
 def test_rcon_stays_off_and_has_no_command_path(tmp_path):
     """RCON은 보안 정책으로 막는다: 설정으로 켤 수 없고, 손으로 켠 INI도 저장 때 꺼지며, 명령은 REST로만 간다"""
     from palworld import lifecycle
-    assert "rcon_enabled" not in lifecycle._PALWORLD_KEY_MAP
+    # 설정으로 RCON을 켜거나 REST를 끌 수 없다
+    assert not {"RCONEnabled", "RESTAPIEnabled"} & set(_file_keys().values())
     assert not hasattr(lifecycle, "execute_command_via_rcon")
     written = {}
     with mock.patch.object(lifecycle, "_parse_option_settings", return_value={"RCONEnabled": "True"}), \

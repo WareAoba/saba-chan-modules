@@ -914,6 +914,8 @@ def _playing(monkeypatch, lc, response):
 def test_player_count_does_not_write_to_the_console_every_minute(lc, monkeypatch):
     sent = _playing(monkeypatch, lc, "")
     assert lc.player_count({"instance_id": "inst-1"}) == {"success": True}
+    # 수는 데몬이 접속·퇴장 줄로 센다. 최대 인원만 알려 준다
+    assert lc.player_count({"instance_id": "inst-1", "max_players": 16}) == {"success": True, "max": 16}
     assert sent == []
 
 
@@ -968,3 +970,10 @@ def test_player_list_console_failure_is_a_failure(lc, monkeypatch):
 def test_player_count_is_the_status_function(lc, toml):
     assert toml["status"]["players"] == "player_count"
     assert "player_count" in lc.FUNCTIONS and "config_files" in lc.FUNCTIONS
+
+
+def test_module_has_an_icon():
+    import struct
+    head = (MODULE_DIR / "icon.png").read_bytes()[:24]
+    width, height = struct.unpack(">II", head[16:24])
+    assert head[:8] == b"\x89PNG\r\n\x1a\n" and width == height >= 256

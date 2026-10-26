@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "Send Chat Message",
+      "label": "Announce",
       "description": "Send a message to all players",
       "inputs": { "message": { "label": "Message", "placeholder": "Enter message to send" } }
     },
@@ -163,7 +163,7 @@
       "inputs": { "action": { "label": "Action" }, "player": { "label": "Player Name" } }
     },
     "seed": { "label": "Show Seed", "description": "Display the world seed", "done": "World seed: {{seed}}" },
-    "stop": { "label": "Stop Server", "description": "Gracefully stop the server" }
+    "stop": { "label": "Stop", "description": "Gracefully stop the server" }
   },
   "errors": {
     "graceful_stop_unavailable": "There is no way to ask the server to save and exit (no console or REST). It was not stopped. Force stop it only if you accept losing unsaved progress.",

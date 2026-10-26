@@ -195,7 +195,7 @@
       "description": "Lista los comandos del servidor"
     },
     "playing": {
-      "label": "Jugadores",
+      "label": "Lista de jugadores",
       "description": "Lista los jugadores conectados"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "Guarda el mundo"
     },
     "say": {
-      "label": "Decir",
+      "label": "Anunciar",
       "description": "Envía un mensaje a todos",
       "inputs": {
         "message": {
@@ -278,11 +278,11 @@
       }
     },
     "exit-nosave": {
-      "label": "Apagar sin guardar",
+      "label": "Detener sin guardar",
       "description": "Apaga el servidor sin guardar"
     },
     "seed": {
-      "label": "Semilla del mundo",
+      "label": "Mostrar semilla",
       "description": "Muestra la semilla actual del mundo"
     }
   },

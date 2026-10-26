@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "Chat-Nachricht senden",
+      "label": "Ankündigen",
       "description": "Nachricht an alle Spieler senden",
       "inputs": { "message": { "label": "Nachricht", "placeholder": "Nachricht zum Senden eingeben" } }
     },
@@ -159,7 +159,7 @@
       "inputs": { "action": { "label": "Aktion" }, "player": { "label": "Spielername" } }
     },
     "seed": { "label": "Seed anzeigen", "description": "Welt-Seed anzeigen", "done": "Welt-Seed: {{seed}}" },
-    "stop": { "label": "Server stoppen", "description": "Server ordnungsgemäß stoppen" }
+    "stop": { "label": "Stoppen", "description": "Server ordnungsgemäß stoppen" }
   },
   "errors": {
     "graceful_stop_unavailable": "Es gibt keinen Weg, den Server zum Speichern und Beenden aufzufordern (keine Konsole oder REST). Er wurde nicht gestoppt. Erzwinge das Stoppen nur, wenn du ungespeicherten Fortschritt verlieren darfst.",

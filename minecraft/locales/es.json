@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "Enviar mensaje de chat",
+      "label": "Anunciar",
       "description": "Enviar un mensaje a todos los jugadores",
       "inputs": { "message": { "label": "Mensaje", "placeholder": "Ingrese el mensaje a enviar" } }
     },
@@ -159,7 +159,7 @@
       "inputs": { "action": { "label": "Acción" }, "player": { "label": "Nombre del jugador" } }
     },
     "seed": { "label": "Mostrar semilla", "description": "Mostrar la semilla del mundo", "done": "Semilla del mundo: {{seed}}" },
-    "stop": { "label": "Detener servidor", "description": "Detener el servidor correctamente" }
+    "stop": { "label": "Detener", "description": "Detener el servidor correctamente" }
   },
   "errors": {
     "graceful_stop_unavailable": "No hay forma de pedir al servidor que guarde y se cierre (sin consola ni REST). No se detuvo. Fuérzalo solo si aceptas perder el progreso no guardado.",

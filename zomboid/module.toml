@@ -141,7 +141,7 @@ group = "saba-chan"
 name = "graceful_stop"
 type = "boolean"
 label = "Graceful Stop"
-description = "Send the 'save' and 'quit' commands and wait for the server to shut down. If you turn this off, saba-chan ends the server process at once."
+description = "Send the 'quit' command (saves the world, then exits) and wait for the server to stop. If you turn this off, saba-chan ends the server process at once."
 default = true
 group = "saba-chan"
 
@@ -1255,7 +1255,7 @@ group = "advanced"
 [[commands.fields]]
 name = "servermsg"
 risk = "safe"
-label = "Broadcast Message"
+label = "Announce"
 description = "Broadcast a message to all connected players"
 method = "console"
 console_template = "servermsg \"{message}\""
@@ -1466,7 +1466,7 @@ inputs = [
 [[commands.fields]]
 name = "showoptions"
 risk = "safe"
-label = "Show Server Options"
+label = "Show Options"
 description = "Display current server option values"
 method = "console"
 console_template = "showoptions"
@@ -1496,7 +1496,7 @@ inputs = [
 [[commands.fields]]
 name = "quit"
 risk = "danger"
-label = "Shutdown Server"
+label = "Stop"
 description = "Save and gracefully shut down the server"
 method = "console"
 console_template = "quit"

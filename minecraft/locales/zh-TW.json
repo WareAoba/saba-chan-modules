@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "傳送聊天訊息",
+      "label": "公告",
       "description": "向所有玩家傳送訊息",
       "inputs": { "message": { "label": "訊息", "placeholder": "輸入要傳送的訊息" } }
     },
@@ -159,7 +159,7 @@
       "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名稱" } }
     },
     "seed": { "label": "顯示種子", "description": "顯示世界種子", "done": "世界種子：{{seed}}" },
-    "stop": { "label": "停止伺服器", "description": "正常停止伺服器" }
+    "stop": { "label": "停止", "description": "正常停止伺服器" }
   },
   "errors": {
     "graceful_stop_unavailable": "無法請求伺服器儲存並結束(沒有主控台或 REST)。伺服器未停止。只有在可以接受遺失未儲存進度時才強制停止。",

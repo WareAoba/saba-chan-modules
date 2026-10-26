@@ -186,7 +186,7 @@
     },
     "graceful_stop": {
       "label": "Безопасная остановка",
-      "description": "Отправляет команды 'save' и 'quit' и ждёт, пока сервер завершит работу. Если выключить эту опцию, saba-chan сразу завершит процесс сервера."
+      "description": "Отправляет команду 'quit' (сохраняет мир и завершает работу) и ждёт остановки сервера. Если выключить эту опцию, saba-chan сразу завершит процесс сервера."
     },
     "server_welcome_message": {
       "label": "Приветственное сообщение",
@@ -491,7 +491,7 @@
   },
   "commands": {
     "servermsg": {
-      "label": "Отправить сообщение",
+      "label": "Объявление",
       "description": "Отправить сообщение всем",
       "inputs": {
         "message": {
@@ -537,7 +537,7 @@
       }
     },
     "unbanuser": {
-      "label": "Разбанить",
+      "label": "Разбанить игрока",
       "description": "Снять бан с игрока",
       "inputs": {
         "player": {
@@ -547,7 +547,7 @@
       }
     },
     "quit": {
-      "label": "Выключить сервер",
+      "label": "Остановить",
       "description": "Сохранить и безопасно выключить"
     },
     "adduser": {
@@ -641,11 +641,11 @@
       }
     },
     "startrain": {
-      "label": "Start Rain",
+      "label": "Включить дождь",
       "description": "Start raining on the server"
     },
     "stoprain": {
-      "label": "Stop Rain",
+      "label": "Выключить дождь",
       "description": "Stop raining on the server"
     },
     "chopper": {
@@ -691,7 +691,7 @@
       }
     },
     "showoptions": {
-      "label": "Show Server Options",
+      "label": "Показать параметры",
       "description": "Display current server settings"
     },
     "reloadoptions": {

@@ -186,7 +186,7 @@
     },
     "graceful_stop": {
       "label": "安全停止",
-      "description": "「save」と「quit」コマンドを送り、サーバーが終了するまで待ちます。オフにすると、saba-chanはサーバープロセスをすぐに終了します。"
+      "description": "「quit」コマンド（ワールドを保存して終了）を送り、サーバーが停止するまで待ちます。オフにすると、saba-chanはサーバープロセスをすぐに終了します。"
     },
     "server_welcome_message": {
       "label": "ウェルカムメッセージ",
@@ -491,7 +491,7 @@
   },
   "commands": {
     "servermsg": {
-      "label": "全体メッセージ送信",
+      "label": "お知らせ",
       "description": "全プレイヤーにメッセージを送信",
       "inputs": {
         "message": {
@@ -637,11 +637,11 @@
       }
     },
     "startrain": {
-      "label": "雨開始",
+      "label": "雨を降らせる",
       "description": "サーバーで雨を開始"
     },
     "stoprain": {
-      "label": "雨停止",
+      "label": "雨を止める",
       "description": "サーバーの雨を停止"
     },
     "chopper": {
@@ -687,7 +687,7 @@
       }
     },
     "showoptions": {
-      "label": "サーバーオプション表示",
+      "label": "オプション表示",
       "description": "現在のサーバー設定を表示"
     },
     "reloadoptions": {
@@ -709,7 +709,7 @@
       }
     },
     "quit": {
-      "label": "サーバーシャットダウン",
+      "label": "停止",
       "description": "保存して安全にシャットダウン"
     }
   },

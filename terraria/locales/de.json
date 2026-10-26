@@ -195,7 +195,7 @@
       "description": "Serverbefehle auflisten"
     },
     "playing": {
-      "label": "Spieler",
+      "label": "Spielerliste",
       "description": "Verbundene Spieler auflisten"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "Welt speichern"
     },
     "say": {
-      "label": "Sagen",
+      "label": "Ankündigen",
       "description": "Nachricht an alle Spieler",
       "inputs": {
         "message": {
@@ -278,11 +278,11 @@
       }
     },
     "exit-nosave": {
-      "label": "Ohne Speichern beenden",
+      "label": "Ohne Speichern stoppen",
       "description": "Server ohne Speichern beenden"
     },
     "seed": {
-      "label": "Welt-Seed",
+      "label": "Seed anzeigen",
       "description": "Aktuellen Welt-Seed anzeigen"
     }
   },

@@ -125,15 +125,15 @@
   },
   "commands": {
     "announce": {
-      "label": "Enviar anúncio",
+      "label": "Anunciar",
       "description": "Enviar uma mensagem a todos os jogadores",
       "inputs": { "message": { "label": "Mensagem de anúncio", "placeholder": "Digite a mensagem de anúncio" } }
     },
-    "info": { "label": "Informações do servidor", "description": "Visualizar informações do servidor" },
+    "info": { "label": "Informações", "description": "Visualizar informações do servidor" },
     "players": { "label": "Lista de jogadores", "description": "Listar jogadores conectados atualmente" },
     "save": { "label": "Salvar mundo", "description": "Salvar o mundo do jogo" },
     "shutdown": {
-      "label": "Desligar servidor",
+      "label": "Parar",
       "description": "Desligar o servidor (com atraso opcional)",
       "inputs": { "waittime": { "label": "Atraso de desligamento (segundos)" }, "message": { "label": "Mensagem de desligamento", "placeholder": "Anúncio de desligamento do servidor" } }
     },
@@ -158,7 +158,7 @@
       "description": "Desbanir um jogador banido",
       "inputs": { "userid": { "label": "Jogador (apelido ou SteamID)", "placeholder": "Apelido do jogador ou steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "Métricas do servidor", "description": "Ver FPS, jogadores e tempo de atividade" },
+    "metrics": { "label": "Métricas", "description": "Ver FPS, jogadores e tempo de atividade" },
     "settings": { "label": "Ver configurações", "description": "Ver as configurações atuais do servidor" }
   },
   "errors": {

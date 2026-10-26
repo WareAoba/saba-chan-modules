@@ -195,7 +195,7 @@
       "description": "Liste les commandes du serveur"
     },
     "playing": {
-      "label": "Joueurs",
+      "label": "Liste des joueurs",
       "description": "Liste les joueurs connectés"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "Sauvegarde le monde"
     },
     "say": {
-      "label": "Dire",
+      "label": "Annoncer",
       "description": "Envoie un message à tous",
       "inputs": {
         "message": {
@@ -282,7 +282,7 @@
       "description": "Arrête le serveur sans sauvegarder"
     },
     "seed": {
-      "label": "Graine du monde",
+      "label": "Afficher la graine",
       "description": "Affiche la graine actuelle du monde"
     }
   },

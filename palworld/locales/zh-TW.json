@@ -125,15 +125,15 @@
   },
   "commands": {
     "announce": {
-      "label": "發送公告",
+      "label": "公告",
       "description": "向所有玩家傳送訊息",
       "inputs": { "message": { "label": "公告內容", "placeholder": "輸入公告內容" } }
     },
-    "info": { "label": "伺服器資訊", "description": "查看伺服器資訊" },
+    "info": { "label": "資訊", "description": "查看伺服器資訊" },
     "players": { "label": "玩家列表", "description": "列出目前連線的玩家" },
     "save": { "label": "儲存世界", "description": "儲存遊戲世界" },
     "shutdown": {
-      "label": "關閉伺服器",
+      "label": "停止",
       "description": "關閉伺服器（可選延遲）",
       "inputs": { "waittime": { "label": "關閉延遲（秒）" }, "message": { "label": "關閉訊息", "placeholder": "伺服器關閉公告" } }
     },
@@ -152,7 +152,7 @@
       "description": "解除已封鎖玩家",
       "inputs": { "userid": { "label": "玩家（暱稱或 SteamID）", "placeholder": "玩家暱稱或 steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "伺服器指標", "description": "檢視伺服器FPS、玩家數量與運行時間" },
+    "metrics": { "label": "指標", "description": "檢視伺服器FPS、玩家數量與運行時間" },
     "settings": { "label": "檢視設定", "description": "檢視目前的伺服器設定" }
   },
   "errors": {

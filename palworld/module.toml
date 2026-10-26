@@ -1292,7 +1292,7 @@ max = 1440
 [[commands.fields]]
 name = "announce"
 risk = "safe"
-label = "Send Announcement"
+label = "Announce"
 description = "Send a message to all players"
 method = "rest"
 http_method = "POST"
@@ -1304,7 +1304,7 @@ inputs = [
 [[commands.fields]]
 name = "info"
 risk = "safe"
-label = "Server Info"
+label = "Info"
 description = "View server information"
 method = "rest"
 http_method = "GET"
@@ -1326,7 +1326,7 @@ remote = false
 [[commands.fields]]
 name = "metrics"
 risk = "safe"
-label = "Server Metrics"
+label = "Metrics"
 description = "View server FPS, player count and uptime"
 method = "rest"
 http_method = "GET"
@@ -1356,7 +1356,7 @@ inputs = []
 [[commands.fields]]
 name = "shutdown"
 risk = "danger"
-label = "Shutdown Server"
+label = "Stop"
 description = "Shutdown the server (with optional delay)"
 method = "rest"
 http_method = "POST"

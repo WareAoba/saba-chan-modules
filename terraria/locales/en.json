@@ -195,7 +195,7 @@
       "description": "List the server commands"
     },
     "playing": {
-      "label": "Players",
+      "label": "Player List",
       "description": "List the connected players"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "Save the world"
     },
     "say": {
-      "label": "Say",
+      "label": "Announce",
       "description": "Send a message to all players",
       "inputs": {
         "message": {
@@ -278,11 +278,11 @@
       }
     },
     "exit-nosave": {
-      "label": "Shut Down Without Saving",
+      "label": "Stop Without Saving",
       "description": "Shut down the server without saving the world"
     },
     "seed": {
-      "label": "World Seed",
+      "label": "Show Seed",
       "description": "Print the current world seed"
     }
   },

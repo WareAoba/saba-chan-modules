@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "Envoyer un message",
+      "label": "Annoncer",
       "description": "Envoyer un message à tous les joueurs",
       "inputs": { "message": { "label": "Message", "placeholder": "Entrez le message à envoyer" } }
     },
@@ -159,7 +159,7 @@
       "inputs": { "action": { "label": "Action" }, "player": { "label": "Nom du joueur" } }
     },
     "seed": { "label": "Afficher la graine", "description": "Afficher la graine du monde", "done": "Graine du monde : {{seed}}" },
-    "stop": { "label": "Arrêter le serveur", "description": "Arrêter le serveur proprement" }
+    "stop": { "label": "Arrêter", "description": "Arrêter le serveur proprement" }
   },
   "errors": {
     "graceful_stop_unavailable": "Impossible de demander au serveur d'enregistrer et de quitter (ni console ni REST). Il n'a pas été arrêté. Forcez l'arrêt uniquement si vous acceptez de perdre la progression non enregistrée.",

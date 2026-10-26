@@ -186,7 +186,7 @@
     },
     "graceful_stop": {
       "label": "安全停止",
-      "description": "发送 'save' 和 'quit' 命令，并等待服务器关闭。关闭此选项后，saba-chan 会立即结束服务器进程。"
+      "description": "发送 'quit' 命令（保存世界后退出），并等待服务器停止。关闭此选项后，saba-chan 会立即结束服务器进程。"
     },
     "server_welcome_message": {
       "label": "欢迎消息",
@@ -491,7 +491,7 @@
   },
   "commands": {
     "servermsg": {
-      "label": "发送消息",
+      "label": "公告",
       "description": "发送全体消息",
       "inputs": {
         "message": {
@@ -537,7 +537,7 @@
       }
     },
     "unbanuser": {
-      "label": "解封",
+      "label": "解除封禁",
       "description": "解除玩家封禁",
       "inputs": {
         "player": {
@@ -687,7 +687,7 @@
       }
     },
     "showoptions": {
-      "label": "查看服务器选项",
+      "label": "查看选项",
       "description": "显示当前服务器设置"
     },
     "reloadoptions": {
@@ -709,7 +709,7 @@
       }
     },
     "quit": {
-      "label": "关闭服务器",
+      "label": "停止",
       "description": "保存并安全关闭"
     }
   },

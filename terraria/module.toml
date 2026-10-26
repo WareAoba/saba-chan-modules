@@ -523,7 +523,7 @@ inputs = []
 [[commands.fields]]
 name = "playing"
 risk = "safe"
-label = "Players"
+label = "Player List"
 description = "List the connected players"
 method = "console"
 console_template = "playing"
@@ -553,7 +553,7 @@ inputs = []
 [[commands.fields]]
 name = "say"
 risk = "safe"
-label = "Say"
+label = "Announce"
 description = "Send a message to all players"
 method = "console"
 console_template = "say {message}"
@@ -662,7 +662,7 @@ inputs = []
 [[commands.fields]]
 name = "seed"
 risk = "safe"
-label = "World Seed"
+label = "Show Seed"
 description = "Print the current world seed"
 method = "console"
 console_template = "seed"
@@ -689,7 +689,7 @@ inputs = [{ name = "player", type = "text", label = "Player Name", required = tr
 [[commands.fields]]
 name = "exit-nosave"
 risk = "danger"
-label = "Shut Down Without Saving"
+label = "Stop Without Saving"
 description = "Shut down the server without saving the world"
 method = "console"
 console_template = "exit-nosave"

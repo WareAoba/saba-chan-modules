@@ -125,20 +125,20 @@
   },
   "commands": {
     "announce": {
-      "label": "공지사항 전송",
+      "label": "공지",
       "description": "서버의 모든 플레이어에게 메시지 보내기",
       "inputs": { "message": { "label": "공지 메시지", "placeholder": "공지할 내용을 입력하세요" } }
     },
-    "info": { "label": "서버 정보", "description": "서버 정보 조회" },
+    "info": { "label": "정보", "description": "서버 정보 조회" },
     "players": { "label": "플레이어 목록", "description": "현재 접속 중인 플레이어 목록" },
     "save": { "label": "월드 저장", "description": "게임 월드 저장" },
     "shutdown": {
-      "label": "서버 종료",
-      "description": "서버 종료 (대기 시간 설정 가능)",
-      "inputs": { "waittime": { "label": "종료까지 대기 시간 (초)" }, "message": { "label": "종료 메시지", "placeholder": "서버 종료 공지 메시지" } }
+      "label": "정지",
+      "description": "월드를 저장하고 서버를 정지합니다 (대기 시간 설정 가능)",
+      "inputs": { "waittime": { "label": "정지까지 대기 시간 (초)" }, "message": { "label": "정지 메시지", "placeholder": "서버 정지 공지 메시지" } }
     },
     "kick": {
-      "label": "플레이어 강제 퇴장",
+      "label": "플레이어 추방",
       "description": "플레이어를 서버에서 강제 퇴장",
       "inputs": { "userid": { "label": "플레이어 (닉네임 또는 SteamID)", "placeholder": "플레이어 닉네임 또는 steam_xxxxxxxxx" }, "message": { "label": "퇴장 메시지", "placeholder": "선택사항: 퇴장 메시지" } }
     },
@@ -148,11 +148,11 @@
       "inputs": { "userid": { "label": "플레이어 (닉네임 또는 SteamID)", "placeholder": "플레이어 닉네임 또는 steam_xxxxxxxxx" }, "message": { "label": "차단 메시지", "placeholder": "선택사항: 차단 메시지" } }
     },
     "unban": {
-      "label": "플레이어 차단 해제",
+      "label": "차단 해제",
       "description": "차단된 플레이어 해제",
       "inputs": { "userid": { "label": "플레이어 (닉네임 또는 SteamID)", "placeholder": "플레이어 닉네임 또는 steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "서버 지표", "description": "서버 FPS, 접속자 수, 가동 시간 조회" },
+    "metrics": { "label": "지표", "description": "서버 FPS, 접속자 수, 가동 시간 조회" },
     "settings": { "label": "설정 보기", "description": "현재 서버 설정 조회" }
   },
   "errors": {
@@ -168,8 +168,8 @@
     "failed_to_start": "시작 실패: {{error}}",
     "no_pid_provided": "PID가 제공되지 않았습니다",
     "failed_to_kill": "프로세스 종료 실패: {{error}}",
-    "failed_to_stop": "중지 실패: {{error}}",
-    "failed_to_stop_process": "프로세스 중지 실패: {{error}}",
+    "failed_to_stop": "정지 실패: {{error}}",
+    "failed_to_stop_process": "프로세스 종료 실패: {{error}}",
     "daemon_connection_error": "데몬 연결 오류: {{error}}",
     "invalid_json_response": "데몬의 잘못된 JSON 응답: {{error}}",
     "daemon_error": "데몬 오류: {{error}}",
@@ -209,7 +209,7 @@
     "daemon_rcon_response": "데몬 RCON 응답: {{result}}",
     "broadcast_message": "브로드캐스트 메시지: {{message}}",
     "save_triggered": "서버 저장 실행됨",
-    "shutdown_initiated": "서버 종료 시작됨 ({{seconds}}초 카운트다운)",
+    "shutdown_initiated": "서버 정지 시작됨 ({{seconds}}초 카운트다운)",
     "rest_api_forced_on": "[정책] REST API가 강제 활성화되었습니다",
     "rcon_forced_off": "[정책] RCON이 강제 비활성화되었습니다 (지원 중단)",
     "admin_password_generated": "[정책] REST API 인증용 AdminPassword가 자동 생성되었습니다",

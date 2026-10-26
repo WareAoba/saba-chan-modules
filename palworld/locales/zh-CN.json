@@ -125,15 +125,15 @@
   },
   "commands": {
     "announce": {
-      "label": "发送公告",
+      "label": "公告",
       "description": "向所有玩家发送消息",
       "inputs": { "message": { "label": "公告内容", "placeholder": "输入公告内容" } }
     },
-    "info": { "label": "服务器信息", "description": "查看服务器信息" },
+    "info": { "label": "信息", "description": "查看服务器信息" },
     "players": { "label": "玩家列表", "description": "列出当前连接的玩家" },
     "save": { "label": "保存世界", "description": "保存游戏世界" },
     "shutdown": {
-      "label": "关闭服务器",
+      "label": "停止",
       "description": "关闭服务器（可选延迟）",
       "inputs": { "waittime": { "label": "关闭延迟（秒）" }, "message": { "label": "关闭提示消息", "placeholder": "服务器关闭公告" } }
     },
@@ -148,11 +148,11 @@
       "inputs": { "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" }, "message": { "label": "封禁消息", "placeholder": "可选：封禁消息" } }
     },
     "unban": {
-      "label": "解除封禁玩家",
+      "label": "解除封禁",
       "description": "解除已封禁玩家",
       "inputs": { "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "服务器指标", "description": "查看服务器FPS、玩家数量和运行时间" },
+    "metrics": { "label": "指标", "description": "查看服务器FPS、玩家数量和运行时间" },
     "settings": { "label": "查看设置", "description": "查看当前服务器设置" }
   },
   "errors": {

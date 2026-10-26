@@ -125,15 +125,15 @@
   },
   "commands": {
     "announce": {
-      "label": "Ankündigung senden",
+      "label": "Ankündigen",
       "description": "Nachricht an alle Spieler senden",
       "inputs": { "message": { "label": "Ankündigungsnachricht", "placeholder": "Ankündigungsnachricht eingeben" } }
     },
-    "info": { "label": "Serverinformationen", "description": "Serverinformationen anzeigen" },
+    "info": { "label": "Informationen", "description": "Serverinformationen anzeigen" },
     "players": { "label": "Spielerliste", "description": "Aktuell verbundene Spieler auflisten" },
     "save": { "label": "Welt speichern", "description": "Die Spielwelt speichern" },
     "shutdown": {
-      "label": "Server herunterfahren",
+      "label": "Stoppen",
       "description": "Server herunterfahren (mit optionaler Verzögerung)",
       "inputs": { "waittime": { "label": "Abschaltverzögerung (Sekunden)" }, "message": { "label": "Abschaltnachricht", "placeholder": "Server-Abschaltankündigung" } }
     },
@@ -152,7 +152,7 @@
       "description": "Einen gebannten Spieler entbannen",
       "inputs": { "userid": { "label": "Spieler (Nickname oder SteamID)", "placeholder": "Spieler-Nickname oder steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "Server-Metriken", "description": "Server-FPS, Spielerzahl und Laufzeit anzeigen" },
+    "metrics": { "label": "Metriken", "description": "Server-FPS, Spielerzahl und Laufzeit anzeigen" },
     "settings": { "label": "Einstellungen anzeigen", "description": "Aktuelle Servereinstellungen anzeigen" }
   },
   "errors": {

@@ -815,7 +815,7 @@ failure_patterns = [
 [[commands.fields]]
 name = "say"
 risk = "safe"
-label = "Send Chat Message"
+label = "Announce"
 description = "Send a message to all players"
 method = "console"
 console_template = "say {message}"
@@ -1018,7 +1018,7 @@ reply_pattern = 'Seed: \[(?P<seed>-?\d+)\]'
 [[commands.fields]]
 name = "stop"
 risk = "danger"
-label = "Stop Server"
+label = "Stop"
 description = "Gracefully stop the server"
 method = "console"
 console_template = "stop"

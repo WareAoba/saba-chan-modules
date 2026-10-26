@@ -125,15 +125,15 @@
   },
   "commands": {
     "announce": {
-      "label": "Envoyer une annonce",
+      "label": "Annoncer",
       "description": "Envoyer un message à tous les joueurs",
       "inputs": { "message": { "label": "Message d'annonce", "placeholder": "Saisissez le message d'annonce" } }
     },
-    "info": { "label": "Informations du serveur", "description": "Afficher les informations du serveur" },
+    "info": { "label": "Informations", "description": "Afficher les informations du serveur" },
     "players": { "label": "Liste des joueurs", "description": "Lister les joueurs actuellement connectés" },
     "save": { "label": "Sauvegarder le monde", "description": "Sauvegarder le monde du jeu" },
     "shutdown": {
-      "label": "Arrêter le serveur",
+      "label": "Arrêter",
       "description": "Arrêter le serveur (avec délai optionnel)",
       "inputs": { "waittime": { "label": "Délai d'arrêt (secondes)" }, "message": { "label": "Message d'arrêt", "placeholder": "Annonce d'arrêt du serveur" } }
     },
@@ -158,7 +158,7 @@
       "description": "Débannir un joueur banni",
       "inputs": { "userid": { "label": "Joueur (pseudo ou SteamID)", "placeholder": "Pseudo du joueur ou steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "Métriques du serveur", "description": "Voir les FPS, le nombre de joueurs et la disponibilité" },
+    "metrics": { "label": "Métriques", "description": "Voir les FPS, le nombre de joueurs et la disponibilité" },
     "settings": { "label": "Voir les paramètres", "description": "Voir les paramètres actuels du serveur" }
   },
   "errors": {

@@ -186,7 +186,7 @@
     },
     "graceful_stop": {
       "label": "Sicheres Beenden",
-      "description": "Sendet die Befehle 'save' und 'quit' und wartet, bis der Server heruntergefahren ist. Wenn Sie diese Option ausschalten, beendet saba-chan den Serverprozess sofort."
+      "description": "Sendet den Befehl 'quit' (speichert die Welt und beendet sich) und wartet, bis der Server gestoppt ist. Wenn Sie diese Option ausschalten, beendet saba-chan den Serverprozess sofort."
     },
     "server_welcome_message": {
       "label": "Willkommensnachricht",
@@ -491,7 +491,7 @@
   },
   "commands": {
     "servermsg": {
-      "label": "Nachricht senden",
+      "label": "Ankündigen",
       "description": "Nachricht an alle senden",
       "inputs": {
         "message": {
@@ -547,7 +547,7 @@
       }
     },
     "quit": {
-      "label": "Server herunterfahren",
+      "label": "Stoppen",
       "description": "Speichern und sicher herunterfahren"
     },
     "adduser": {
@@ -641,11 +641,11 @@
       }
     },
     "startrain": {
-      "label": "Start Rain",
+      "label": "Regen starten",
       "description": "Start raining on the server"
     },
     "stoprain": {
-      "label": "Stop Rain",
+      "label": "Regen stoppen",
       "description": "Stop raining on the server"
     },
     "chopper": {
@@ -691,7 +691,7 @@
       }
     },
     "showoptions": {
-      "label": "Show Server Options",
+      "label": "Optionen anzeigen",
       "description": "Display current server settings"
     },
     "reloadoptions": {

@@ -195,7 +195,7 @@
       "description": "서버 명령 목록을 봅니다"
     },
     "playing": {
-      "label": "접속자",
+      "label": "플레이어 목록",
       "description": "접속한 플레이어 목록을 봅니다"
     },
     "clear": {
@@ -278,11 +278,11 @@
       }
     },
     "exit-nosave": {
-      "label": "저장 없이 종료",
+      "label": "저장 없이 정지",
       "description": "월드를 저장하지 않고 서버를 끕니다"
     },
     "seed": {
-      "label": "월드 시드",
+      "label": "시드 확인",
       "description": "현재 월드 시드를 출력합니다"
     }
   },

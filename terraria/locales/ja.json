@@ -195,7 +195,7 @@
       "description": "サーバーコマンドの一覧"
     },
     "playing": {
-      "label": "プレイヤー",
+      "label": "プレイヤー一覧",
       "description": "接続中のプレイヤー一覧"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "ワールドを保存"
     },
     "say": {
-      "label": "発言",
+      "label": "お知らせ",
       "description": "全プレイヤーにメッセージを送信",
       "inputs": {
         "message": {
@@ -278,11 +278,11 @@
       }
     },
     "exit-nosave": {
-      "label": "保存せず終了",
+      "label": "保存せず停止",
       "description": "ワールドを保存せずにサーバーを終了"
     },
     "seed": {
-      "label": "ワールドシード",
+      "label": "シード表示",
       "description": "現在のワールドシードを表示します"
     }
   },

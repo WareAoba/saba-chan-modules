@@ -28,7 +28,7 @@
     "max_world_size": { "label": "최대 월드 크기", "description": "최대 월드 경계 반경" },
     "use_aikar_flags": { "label": "Aikar 플래그", "description": "서버를 더 부드럽게 돌리는 권장 Java 실행 옵션 사용" },
     "managed_start": { "label": "관리형 시작 (콘솔)", "description": "saba-runner로 서버를 시작해 사바쨩이 콘솔을 쓸 수 있게 합니다. RCON은 어떤 모드에서도 꺼져 있습니다. 끄면 사바쨩이 서버에 명령을 보낼 수 없습니다." },
-    "graceful_stop": { "label": "안전 종료", "description": "'stop' 명령을 보내고 서버가 저장한 뒤 종료할 때까지 기다립니다. 끄면 사바쨩이 서버 프로세스를 바로 종료합니다." },
+    "graceful_stop": { "label": "안전 정지", "description": "'stop' 명령을 보내고 서버가 저장한 뒤 종료할 때까지 기다립니다. 끄면 사바쨩이 서버 프로세스를 바로 종료합니다." },
     "enforce_whitelist": { "label": "화이트리스트 강제 적용", "description": "화이트리스트를 다시 불러올 때 목록에 없는 플레이어를 추방함" },
     "generate_structures": { "label": "구조물 생성", "description": "마을, 폐광 같은 구조물을 생성함" },
     "accepts_transfers": { "label": "서버 이전 허용", "description": "다른 서버가 플레이어를 이 서버로 넘겨 보내는 것을 허용" },
@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "채팅 메시지 전송",
+      "label": "공지",
       "description": "서버의 모든 플레이어에게 메시지를 보냅니다",
       "inputs": { "message": { "label": "메시지", "placeholder": "전송할 메시지를 입력하세요" } }
     },
@@ -163,7 +163,7 @@
       "inputs": { "action": { "label": "작업" }, "player": { "label": "플레이어 이름" } }
     },
     "seed": { "label": "시드 확인", "description": "월드 시드를 표시합니다", "done": "월드 시드: {{seed}}" },
-    "stop": { "label": "서버 중지", "description": "서버를 안전하게 종료합니다" }
+    "stop": { "label": "정지", "description": "월드를 저장하고 서버를 정지합니다" }
   },
   "errors": {
     "graceful_stop_unavailable": "서버에 저장 후 종료를 요청할 방법이 없습니다(콘솔·REST 없음). 서버를 끄지 않았습니다. 저장하지 않은 진행이 사라져도 괜찮을 때만 강제 종료하세요.",
@@ -179,7 +179,7 @@
     "failed_to_start": "시작 실패: {{error}}",
     "no_pid_provided": "PID가 제공되지 않았습니다",
     "failed_to_kill": "프로세스 종료 실패: {{error}}",
-    "failed_to_stop": "중지 실패: {{error}}",
+    "failed_to_stop": "정지 실패: {{error}}",
     "daemon_connection_error": "데몬 연결 오류: {{error}}",
     "invalid_json_response": "데몬의 잘못된 JSON 응답: {{error}}",
     "daemon_error": "데몬 오류: {{error}}",

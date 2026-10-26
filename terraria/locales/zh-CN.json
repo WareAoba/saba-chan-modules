@@ -195,7 +195,7 @@
       "description": "列出服务器命令"
     },
     "playing": {
-      "label": "玩家",
+      "label": "玩家列表",
       "description": "列出在线玩家"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "保存世界"
     },
     "say": {
-      "label": "发言",
+      "label": "公告",
       "description": "向所有玩家发送消息",
       "inputs": {
         "message": {
@@ -278,11 +278,11 @@
       }
     },
     "exit-nosave": {
-      "label": "不保存关闭",
+      "label": "不保存停止",
       "description": "不保存世界直接关闭服务器"
     },
     "seed": {
-      "label": "世界种子",
+      "label": "显示种子",
       "description": "显示当前世界种子"
     }
   },

@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "发送聊天消息",
+      "label": "公告",
       "description": "向所有玩家发送消息",
       "inputs": { "message": { "label": "消息", "placeholder": "输入要发送的消息" } }
     },
@@ -159,7 +159,7 @@
       "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名称" } }
     },
     "seed": { "label": "显示种子", "description": "显示世界种子", "done": "世界种子：{{seed}}" },
-    "stop": { "label": "停止服务器", "description": "正常停止服务器" }
+    "stop": { "label": "停止", "description": "正常停止服务器" }
   },
   "errors": {
     "graceful_stop_unavailable": "无法请求服务器保存并退出(没有控制台或 REST)。服务器未停止。只有在可以接受丢失未保存进度时才强制停止。",

@@ -125,15 +125,15 @@
   },
   "commands": {
     "announce": {
-      "label": "Enviar anuncio",
+      "label": "Anunciar",
       "description": "Enviar un mensaje a todos los jugadores",
       "inputs": { "message": { "label": "Mensaje de anuncio", "placeholder": "Ingrese el mensaje de anuncio" } }
     },
-    "info": { "label": "Información del servidor", "description": "Ver información del servidor" },
+    "info": { "label": "Información", "description": "Ver información del servidor" },
     "players": { "label": "Lista de jugadores", "description": "Listar jugadores conectados actualmente" },
     "save": { "label": "Guardar mundo", "description": "Guardar el mundo del juego" },
     "shutdown": {
-      "label": "Apagar servidor",
+      "label": "Detener",
       "description": "Apagar el servidor (con retraso opcional)",
       "inputs": { "waittime": { "label": "Retraso de apagado (segundos)" }, "message": { "label": "Mensaje de apagado", "placeholder": "Anuncio de apagado del servidor" } }
     },
@@ -155,7 +155,7 @@
       "description": "Desbanear a un jugador baneado",
       "inputs": { "userid": { "label": "Jugador (apodo o SteamID)", "placeholder": "Apodo del jugador o steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "Métricas del servidor", "description": "Ver FPS, jugadores y tiempo de actividad" },
+    "metrics": { "label": "Métricas", "description": "Ver FPS, jugadores y tiempo de actividad" },
     "settings": { "label": "Ver configuración", "description": "Ver la configuración actual del servidor" }
   },
   "errors": {

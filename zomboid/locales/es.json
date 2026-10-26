@@ -186,7 +186,7 @@
     },
     "graceful_stop": {
       "label": "Parada segura",
-      "description": "Envía los comandos 'save' y 'quit' y espera a que el servidor se apague. Si lo desactivas, saba-chan finaliza el proceso del servidor de inmediato."
+      "description": "Envía el comando 'quit' (guarda el mundo y sale) y espera a que el servidor se detenga. Si lo desactivas, saba-chan finaliza el proceso del servidor de inmediato."
     },
     "server_welcome_message": {
       "label": "Mensaje de bienvenida",
@@ -491,7 +491,7 @@
   },
   "commands": {
     "servermsg": {
-      "label": "Mensaje global",
+      "label": "Anunciar",
       "description": "Enviar mensaje a todos",
       "inputs": {
         "message": {
@@ -537,7 +537,7 @@
       }
     },
     "unbanuser": {
-      "label": "Desbanear",
+      "label": "Desbanear jugador",
       "description": "Quitar el ban de un jugador",
       "inputs": {
         "player": {
@@ -547,7 +547,7 @@
       }
     },
     "quit": {
-      "label": "Apagar servidor",
+      "label": "Detener",
       "description": "Guardar y apagar el servidor"
     },
     "adduser": {
@@ -641,11 +641,11 @@
       }
     },
     "startrain": {
-      "label": "Start Rain",
+      "label": "Iniciar lluvia",
       "description": "Start raining on the server"
     },
     "stoprain": {
-      "label": "Stop Rain",
+      "label": "Detener lluvia",
       "description": "Stop raining on the server"
     },
     "chopper": {
@@ -691,7 +691,7 @@
       }
     },
     "showoptions": {
-      "label": "Show Server Options",
+      "label": "Ver opciones",
       "description": "Display current server settings"
     },
     "reloadoptions": {

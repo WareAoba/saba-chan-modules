@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "Enviar mensagem de chat",
+      "label": "Anunciar",
       "description": "Enviar uma mensagem a todos os jogadores",
       "inputs": { "message": { "label": "Mensagem", "placeholder": "Digite a mensagem para enviar" } }
     },
@@ -159,7 +159,7 @@
       "inputs": { "action": { "label": "Ação" }, "player": { "label": "Nome do jogador" } }
     },
     "seed": { "label": "Mostrar semente", "description": "Exibir a semente do mundo", "done": "Semente do mundo: {{seed}}" },
-    "stop": { "label": "Parar servidor", "description": "Parar o servidor corretamente" }
+    "stop": { "label": "Parar", "description": "Parar o servidor corretamente" }
   },
   "errors": {
     "graceful_stop_unavailable": "Não há como pedir ao servidor que salve e encerre (sem console nem REST). Ele não foi parado. Force a parada só se aceitar perder o progresso não salvo.",

@@ -90,7 +90,7 @@
   },
   "commands": {
     "say": {
-      "label": "チャットメッセージ送信",
+      "label": "お知らせ",
       "description": "サーバーのすべてのプレイヤーにメッセージを送信します",
       "inputs": { "message": { "label": "メッセージ", "placeholder": "送信するメッセージを入力" } }
     },
@@ -159,7 +159,7 @@
       "inputs": { "action": { "label": "操作" }, "player": { "label": "プレイヤー名" } }
     },
     "seed": { "label": "シード表示", "description": "ワールドのシード値を表示します", "done": "ワールドシード: {{seed}}" },
-    "stop": { "label": "サーバー停止", "description": "サーバーを正常に停止します" }
+    "stop": { "label": "停止", "description": "サーバーを正常に停止します" }
   },
   "errors": {
     "graceful_stop_unavailable": "サーバーに保存して終了するよう頼む方法がありません(コンソール・REST なし)。サーバーは止めていません。保存していない進行が失われてもよい場合だけ強制終了してください。",

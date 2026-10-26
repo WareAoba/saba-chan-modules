@@ -125,15 +125,15 @@
   },
   "commands": {
     "announce": {
-      "label": "Send Announcement",
+      "label": "Announce",
       "description": "Send a message to all players",
       "inputs": { "message": { "label": "Announcement Message", "placeholder": "Enter announcement message" } }
     },
-    "info": { "label": "Server Info", "description": "View server information" },
+    "info": { "label": "Info", "description": "View server information" },
     "players": { "label": "Player List", "description": "List currently connected players" },
     "save": { "label": "Save World", "description": "Save the game world" },
     "shutdown": {
-      "label": "Shutdown Server",
+      "label": "Stop",
       "description": "Shutdown the server (with optional delay)",
       "inputs": { "waittime": { "label": "Shutdown Delay (seconds)" }, "message": { "label": "Shutdown Message", "placeholder": "Server shutdown announcement" } }
     },
@@ -152,7 +152,7 @@
       "description": "Unban a banned player",
       "inputs": { "userid": { "label": "Player (Nickname or SteamID)", "placeholder": "Player nickname or steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "Server Metrics", "description": "View server FPS, player count and uptime" },
+    "metrics": { "label": "Metrics", "description": "View server FPS, player count and uptime" },
     "settings": { "label": "View Settings", "description": "View current server settings" }
   },
   "errors": {

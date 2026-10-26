@@ -125,20 +125,20 @@
   },
   "commands": {
     "announce": {
-      "label": "お知らせ送信",
+      "label": "お知らせ",
       "description": "全プレイヤーにメッセージを送信",
       "inputs": { "message": { "label": "お知らせメッセージ", "placeholder": "お知らせ内容を入力" } }
     },
-    "info": { "label": "サーバー情報", "description": "サーバー情報を表示" },
+    "info": { "label": "情報", "description": "サーバー情報を表示" },
     "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧" },
     "save": { "label": "ワールド保存", "description": "ゲームワールドを保存" },
     "shutdown": {
-      "label": "サーバーシャットダウン",
+      "label": "停止",
       "description": "サーバーをシャットダウン（遅延設定可能）",
       "inputs": { "waittime": { "label": "シャットダウン遅延（秒）" }, "message": { "label": "シャットダウンメッセージ", "placeholder": "サーバーシャットダウンのお知らせ" } }
     },
     "kick": {
-      "label": "プレイヤーキック",
+      "label": "プレイヤーをキック",
       "description": "プレイヤーをサーバーから退出させる",
       "inputs": { "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" }, "message": { "label": "キックメッセージ", "placeholder": "任意：キックメッセージ" } }
     },
@@ -148,11 +148,11 @@
       "inputs": { "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" }, "message": { "label": "BANメッセージ", "placeholder": "任意：BANメッセージ" } }
     },
     "unban": {
-      "label": "プレイヤーBAN解除",
+      "label": "BAN解除",
       "description": "BANされたプレイヤーを解除",
       "inputs": { "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "サーバー指標", "description": "サーバーFPS、プレイヤー数、稼働時間を表示" },
+    "metrics": { "label": "指標", "description": "サーバーFPS、プレイヤー数、稼働時間を表示" },
     "settings": { "label": "設定を表示", "description": "現在のサーバー設定を表示" }
   },
   "errors": {

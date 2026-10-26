@@ -48,6 +48,9 @@ dir_signatures = ["TerrariaServer.exe|TerrariaServer.bin.x86_64"]
 # 월드 폴더는 사용자가 서버 폴더 밖으로 고를 수 있다(가져온 서버의 Documents\My Games\Terraria\Worlds 등)
 [extensions.saba-core]
 data_roots = ["{world_dir}"]
+# 진행 줄: 서버가 갱신마다 새 줄로 쓴다(실측: 파이프 원래 바이트도 CRLF, 일반 콘솔 창에서도 쌓인다). 월드 생성 한 번에 수만 줄이라
+# 데몬이 단계마다 접는다 (saba-chan #605, 0.1.10은 모르는 키 경고로 무시)
+progress_patterns = ['^\d+(?:\.\d+)?% - .+ - \d+(?:\.\d+)?%$', '^(?::\s*)?(?:Resetting game objects|Loading world data:|Saving world data:|Validating world save:|Settling liquids) \d+%$']
 ready_patterns = ["^(?:: )?(?:Server started|Server gestartet|Server avviato|Serveur démarré|Servidor iniciado|Сервер запущен|服务器已启动|Servidor inicializado\\.|Serwer uruchomiony|サーバーが開始しました|서버 시작|伺服器已啟動)\\s*$"]
 
 [backup]

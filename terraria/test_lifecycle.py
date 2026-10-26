@@ -791,3 +791,15 @@ def test_ready_and_exit_highlight_follow_the_detection_patterns(toml):
         return p[start:p.rindex(")")]
     assert alternation(rules["server_started"]) == alternation(toml["extensions"]["saba-core"]["ready_patterns"][0])
     assert alternation(rules["saving_before_exit"]) == alternation(toml["detection"]["graceful_exit_patterns"][0])
+
+
+def test_progress_patterns_fold_only_measured_progress_lines(toml):
+    """데몬이 접을 진행 줄 (saba-chan #605 progress_patterns). 실측 진행 줄은 맞고 준비·채팅·저장 알림 줄은 맞지 않는다"""
+    patterns = [re.compile(p) for p in toml["extensions"]["saba-core"]["progress_patterns"]]
+    folds = lambda line: any(p.search(line) for p in patterns)
+    for line in ("60.3% - Smoothing the world - 0.2%", "0.0% - Generating world terrain - 0.3%",
+                 "Resetting game objects 24%", "Loading world data: 1%", "Saving world data: 27%",
+                 "Validating world save: 64%", "Settling liquids 50%", ": Saving world data: 2%"):
+        assert folds(line), line
+    for line in ("Server started", ": Backing up world file", "<Server> 50% done", "Time: 4:30 AM"):
+        assert not folds(line), line

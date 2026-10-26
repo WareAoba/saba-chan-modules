@@ -1106,9 +1106,10 @@ def _portable_java(config, server_jar, required):
 
 def _fetch_portable_java(config):
     """가져온 서버에 맞는 포터블 JRE를 인스턴스 폴더에 받는다 (PC에 깔린 Java에 기대지 않고, 서버 폴더에는 더하지 않는다).
-    이미 있으면 받지 않는다. 받지 못하면 {java_warning} (가져오기는 계속하고 시작할 때 Java 문제로 안내한다)"""
+    이미 있으면 받지 않는다. 받지 못하면 {java_warning} (가져오기는 계속하고 시작할 때 Java 문제로 안내한다).
+    데몬이 가져오기 표시(`migration_import`)를 실은 호출에서만 받는다: 그 호출만 설치와 같은 시간 한도와 인스턴스 폴더 쓰기를 받는다"""
     instance_dir = config.get("instance_dir")
-    if not instance_dir or (config.get("java_path") or "java") != "java":
+    if not instance_dir or config.get("migration_import") is not True or (config.get("java_path") or "java") != "java":
         return {}
     server_jar = _resolve_server_jar(config)
     required = _required_java_for(config, server_jar)

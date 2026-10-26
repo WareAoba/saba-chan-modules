@@ -11,7 +11,7 @@
     {"name": "geyser-help", "label": "Help", "description": "Shows help for all registered commands.", "risk": "safe", "console_template": "geyser help", "inputs": []},
     {"name": "geyser-list", "label": "List Bedrock players", "description": "List all players connected through Geyser.", "risk": "safe", "console_template": "geyser list", "inputs": []},
     {"name": "geyser-version", "label": "Version", "description": "Shows the current Geyser version and checks for updates.", "risk": "safe", "console_template": "geyser version", "inputs": []},
-    {"name": "geyser-dump", "label": "Debug dump", "description": "Dumps Geyser debug information for bug reports.", "risk": "safe", "console_template": "geyser dump {options}", "inputs": [
+    {"name": "geyser-dump", "label": "Debug dump", "description": "Dumps Geyser debug information for bug reports.", "risk": "caution", "console_template": "geyser dump {options}", "inputs": [
       {"name": "options", "type": "text", "label": "Options", "required": false, "placeholder": "Any of: full, offline, logs"}
     ]},
     {"name": "geyser-connectiontest", "label": "Connection test", "description": "Tests whether Bedrock players from other networks can reach Geyser at the given address and port.", "risk": "safe", "console_template": "geyser connectiontest {address} {port}", "inputs": [
@@ -25,7 +25,7 @@
     {"name": "geyser-nethernet-status-set", "label": "Set NetherNet status", "description": "Queues a complete server status snapshot for the NetherNet signaling provider.", "risk": "caution", "console_template": "geyser nethernet status set {snapshot}", "inputs": [
       {"name": "snapshot", "type": "text", "label": "Snapshot", "required": true, "placeholder": "base64url-encoded JSON snapshot"}
     ]},
-    {"name": "geyser-nethernet-action", "label": "NetherNet operator link", "description": "Shows the signaling provider's current link for the operator, such as one to claim this server.", "risk": "safe", "console_template": "geyser nethernet action", "inputs": []},
+    {"name": "geyser-nethernet-action", "label": "NetherNet operator link", "description": "Shows the signaling provider's current link for the operator, such as one to claim this server.", "risk": "caution", "console_template": "geyser nethernet action", "inputs": []},
     {"name": "geyser-nethernet-diagnostics", "label": "NetherNet diagnostics", "description": "Shows NetherNet signaling status and diagnostics, for use with external signaling.", "risk": "safe", "console_template": "geyser nethernet diagnostics", "inputs": []}
   ]
 }

@@ -374,7 +374,7 @@
       "name": "mvinv-playerdata-import",
       "label": "Import player data",
       "description": "Imports player data from the world's playerdata folder.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mvinv playerdata import {world}",
       "inputs": [
         {

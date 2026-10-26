@@ -265,6 +265,57 @@ def test_backup_paths_follow_cache_dir(tmp_path):
 
 
 
+def _pz_backup(path, server, world=True, when="2026-10-26 at 01:27:36 JST"):
+    """PZ 42.21 서버가 만든 백업 zip과 같은 모양 (test-zomboid 실측, 2026-10-26)"""
+    import zipfile
+    path.parent.mkdir(parents=True, exist_ok=True)
+    version = "249" if world else "World isn't exist"
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("readme.txt", f"Backup time: {when}\nServerName: {server}\nCurrent server version:42.21\n"
+                                 f"Current world version:249\nWorld version in this backup is:{version}\n")
+        z.writestr("options.ini", "x")
+        z.writestr(f"db/{server}.db", "db")
+        for name in (f"{server}.ini", f"{server}_SandboxVars.lua", f"{server}_spawnpoints.lua", f"{server}_spawnregions.lua"):
+            z.writestr(f"Server/{name}", "cfg")
+        if world:
+            z.writestr(f"Saves/Multiplayer/{server}/map_meta.bin", "w")
+            z.writestr(f"Saves/Multiplayer/{server}/players.db", "p")
+
+
+def test_backup_snapshots_list_the_servers_own_backup_zips(tmp_path):
+    """BackupsOnStart·BackupsOnVersionChange가 만든 `backups/<종류>/backup_N.zip`(1이 가장 새것)을 zip 스냅샷으로 알려 준다.
+    zip 안의 이 서버 세이브·DB·설정만 데이터 폴더의 같은 자리로 돌아가고, 월드가 없던 때의 백업과 다른 서버 이름의 백업은 뺀다"""
+    import time
+    from zomboid.lifecycle import backup_snapshots
+    home = tmp_path
+    _pz_backup(home / "backups" / "startup" / "backup_1.zip", "myserver")
+    _pz_backup(home / "backups" / "startup" / "backup_2.zip", "myserver", world=False, when="2026-10-26 at 01:25:16 JST")
+    _pz_backup(home / "backups" / "version" / "backup_1.zip", "other")
+    old = time.time() - 3600
+    os.utime(home / "backups" / "startup" / "backup_1.zip", (old, old))
+    result = backup_snapshots({"cache_dir": str(home), "server_name": "myserver"})
+    assert result["success"] is True, result
+    assert [s["id"] for s in result["snapshots"]] == ["startup/backup_1"]
+    snap = result["snapshots"][0]
+    assert snap["archive"] == str(home / "backups" / "startup" / "backup_1.zip")
+    assert snap["created"] == int(old)
+    assert sorted((p["from"], p["to"]) for p in snap["paths"]) == sorted([
+        ("Saves/Multiplayer/myserver", os.path.join(str(home), "Saves", "Multiplayer", "myserver")),
+        ("db/myserver.db", os.path.join(str(home), "db", "myserver.db")),
+        ("Server/myserver.ini", os.path.join(str(home), "Server", "myserver.ini")),
+        ("Server/myserver_SandboxVars.lua", os.path.join(str(home), "Server", "myserver_SandboxVars.lua")),
+        ("Server/myserver_spawnpoints.lua", os.path.join(str(home), "Server", "myserver_spawnpoints.lua")),
+        ("Server/myserver_spawnregions.lua", os.path.join(str(home), "Server", "myserver_spawnregions.lua")),
+    ])
+    assert backup_snapshots({"cache_dir": str(tmp_path / "none"), "server_name": "myserver"}) == {"success": True, "snapshots": []}
+
+
+def test_backup_snapshots_are_declared():
+    from zomboid.lifecycle import FUNCTIONS
+    assert _load_module_toml()["backup"].get("snapshots") is True
+    assert "backup_snapshots" in FUNCTIONS
+
+
 def test_backup_paths_let_older_whole_server_folder_backups_restore(tmp_path):
     """0.1.8 이전 백업은 Server/ 폴더를 통째로 담았다. 그 폴더를 restore_roots로 내야 데몬이 그 백업을 복원한다.
     restore_roots는 백업 대상이 아니므로 paths에는 여전히 이 서버 것만 든다 (MA3)"""
@@ -499,6 +550,36 @@ def test_the_declared_udp_port_reaches_the_server(tmp_path):
     assert lifecycle._INI_KEY_MAP["udp_port"] == "UDPPort"
 
 
+@pytest.mark.parametrize(("has_db", "include_password"), [(False, True), (True, False)])
+def test_admin_password_is_only_passed_before_the_server_database_exists(tmp_path, monkeypatch, has_db, include_password):
+    from unittest import mock
+    from zomboid import lifecycle
+
+    parsed = {"java_exe_abs": "java", "classpath": "a.jar", "jvm_flags": [],
+              "main_class": "zombie.network.GameServer", "extra_args": []}
+    monkeypatch.setattr(lifecycle, "_has_server_db", lambda _config: has_db)
+    with mock.patch.object(lifecycle, "_find_server_dir", return_value=str(tmp_path)), \
+         mock.patch.object(lifecycle, "_parse_launch_info", return_value=parsed):
+        args = lifecycle.get_launch_command({"admin_password": "private", "preview": True})["args"]
+
+    assert ("-adminpassword" in args) is include_password
+    assert ("private" in args) is include_password
+
+
+def test_steamcmd_extension_import_failure_does_not_search_for_an_executable(monkeypatch):
+    from zomboid import lifecycle
+    import extensions.steamcmd
+
+    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
+    monkeypatch.delattr(extensions.steamcmd, "SteamCMD", raising=False)
+    monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
+
+    result = lifecycle.install_server({"install_dir": "server", "settings": {}})
+
+    assert result["success"] is False
+    assert result["message"]
+
+
 def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(tmp_path, monkeypatch):
     """만들 때 고른 접속 암호·인원·포트는 첫 설치에서 서버 ini에 들어간다 (암호 없이 열리지 않게). 업데이트는 덮지 않는다"""
     from unittest import mock
@@ -652,9 +733,7 @@ def test_the_compatibility_data_root_can_be_loaded_without_legacy_config(tmp_pat
     assert str(tmp_path / "db" / "srv.db") in lifecycle.backup_paths(config)["paths"]
 
 
-@pytest.mark.parametrize("fallback", [False, True])
-def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_path, monkeypatch, fallback):
-    from types import SimpleNamespace
+def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_path, monkeypatch):
     from zomboid import lifecycle
     import extensions.steamcmd
 
@@ -667,11 +746,6 @@ def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_pa
 
     monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
     monkeypatch.setattr(extensions.steamcmd, "SteamCMD", FakeSteam)
-    if fallback:
-        monkeypatch.delattr(extensions.steamcmd, "SteamCMD")
-        monkeypatch.setattr(lifecycle, "_find_steamcmd", lambda: "steamcmd")
-        monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: SimpleNamespace(returncode=0, stdout="Success", stderr=""))
-
     def denied(*args, **kwargs):
         raise PermissionError("denied")
 

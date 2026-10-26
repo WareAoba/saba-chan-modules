@@ -1,7 +1,7 @@
 [module]
 schema_version = 1
 name = "palworld"
-version = "0.1.4"
+version = "0.1.5"
 description = "Palworld server management module"
 author = "WareAoba"
 game_name = "Palworld"
@@ -11,6 +11,8 @@ icon = "icon.png"
 log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
 
 [module.dependencies]
+# [launch] line_start·[backup] snapshots는 0.1.10 발행본이 모르는 키다. 발행 전 main 데몬도 0.1.10으로 보고하므로
+# 0.1.11을 발행할 때 ">=0.1.11-0"으로 올린다 (-0이 있어야 0.1.11-beta.N·rc.N 데몬도 받는다)
 saba-core = ">=0.1.10"
 ext-steamcmd = ">=0.1.0"
 ext-ue4-ini = ">=0.1.0"
@@ -43,11 +45,16 @@ announce_command = "announce"
 paths = ["Pal/Saved/Config"]
 hook = true
 save_command = "save"
+# 게임 자동 백업(bIsUseBackupSaveData, backup/world/<시각>/)을 사바쨩 백업 목록에 보이고 보관·복원한다 (lifecycle backup_snapshots)
+snapshots = true
 
 # Shipping-Cmd는 stdout이 파이프면 끝날 때까지 모아 둔다(2026-10-16 실측). 의사 콘솔로 띄워 줄마다 받는다.
 # Pal/Saved/Logs에는 .log가 생기지 않아 log_files는 쓰지 않는다.
+# REST 접근 로그는 줄바꿈 없이 이어 써서(`... /v1/api/save OK[2026-10-26 01:20:26] [LOG] ...`, 2026-10-25 실측)
+# 시각이 붙은 줄 머리마다 나눈다. `[LOG]`만으로 나누면 시각이 앞 줄에 남는다.
 [launch]
 console = "pty"
+line_start = '\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\]'
 
 [install]
 method = "steamcmd"
@@ -1190,7 +1197,7 @@ inputs = []
 
 [[commands.fields]]
 name = "players"
-risk = "safe"
+risk = "caution"
 label = "Player List"
 description = "List currently connected players"
 method = "rest"

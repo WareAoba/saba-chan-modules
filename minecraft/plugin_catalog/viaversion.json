@@ -9,11 +9,11 @@
   "commands": [
     {"name": "viaversion", "label": "Help", "description": "Shows ViaVersion Version and more.", "risk": "safe", "console_template": "viaversion", "inputs": []},
     {"name": "viaversion-list", "label": "Player versions", "description": "Shows lists of the versions from logged in players.", "risk": "safe", "console_template": "viaversion list", "inputs": []},
-    {"name": "viaversion-player", "label": "Player connection info", "description": "Shows connection information about one or all players.", "risk": "safe", "console_template": "viaversion player {player}", "inputs": [
+    {"name": "viaversion-player", "label": "Player connection info", "description": "Shows connection information about one or all players.", "risk": "caution", "console_template": "viaversion player {player}", "inputs": [
       {"name": "player", "type": "text", "label": "Player", "required": true, "placeholder": "Player name, or * for all"}
     ]},
     {"name": "viaversion-pps", "label": "Packets per second", "description": "Shows the packets per second of online players.", "risk": "safe", "console_template": "viaversion pps", "inputs": []},
-    {"name": "viaversion-dump", "label": "Dump", "description": "Dump information about your platform implementation, this is helpful if you report bugs.", "risk": "safe", "console_template": "viaversion dump", "inputs": []},
+    {"name": "viaversion-dump", "label": "Dump", "description": "Dump information about your platform implementation, this is helpful if you report bugs.", "risk": "caution", "console_template": "viaversion dump", "inputs": []},
     {"name": "viaversion-debug", "label": "Toggle debug", "description": "Toggles debug mode.", "risk": "caution", "console_template": "viaversion debug", "inputs": []},
     {"name": "viaversion-debug-clear", "label": "Clear debug packets", "description": "Clears the packet types to log in debug mode.", "risk": "caution", "console_template": "viaversion debug clear", "inputs": []},
     {"name": "viaversion-debug-pre", "label": "Toggle pre-transform logging", "description": "Toggles logging of packets before they are transformed.", "risk": "caution", "console_template": "viaversion debug pre", "inputs": []},

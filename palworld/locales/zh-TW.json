@@ -156,6 +156,8 @@
     "settings": { "label": "檢視設定", "description": "檢視目前的伺服器設定" }
   },
   "errors": {
+    "backup_paths_failed": "無法讀取要備份的存檔資料夾:{{error}}",
+    "graceful_stop_unavailable": "無法請求伺服器儲存並結束(沒有主控台或 REST)。伺服器未停止。只有在可以接受遺失未儲存進度時才強制停止。",
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
     "auth_failed": "驗證失敗。請檢查 REST API 使用者名稱與密碼。",
     "player_not_found": "找不到玩家。請檢查暱稱或 SteamID。",

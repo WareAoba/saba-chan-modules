@@ -162,6 +162,8 @@
     "stop": { "label": "Server stoppen", "description": "Server ordnungsgemäß stoppen" }
   },
   "errors": {
+    "graceful_stop_unavailable": "Es gibt keinen Weg, den Server zum Speichern und Beenden aufzufordern (keine Konsole oder REST). Er wurde nicht gestoppt. Erzwinge das Stoppen nur, wenn du ungespeicherten Fortschritt verlieren darfst.",
+    "backup_paths_failed": "Der Plugin-Ordner für die Sicherung konnte nicht gelesen werden: {{error}}",
     "server_not_running": "Der Server läuft nicht. Bitte starte zuerst den Server.",
     "timeout": "Zeitüberschreitung bei der Serverantwort. Bitte prüfe den Serverstatus.",
     "internal_server_error": "Ein interner Serverfehler ist aufgetreten.",

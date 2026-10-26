@@ -15,7 +15,7 @@
       "name": "chunky-start",
       "label": "Start generation",
       "description": "Starts a new chunk generation task, using the existing selection or one defined in the command itself.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "chunky start {args}",
       "inputs": [
         {
@@ -47,7 +47,7 @@
       "name": "chunky-continue",
       "label": "Continue generation",
       "description": "Continues current or saved tasks.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "chunky continue {world}",
       "inputs": [
         {
@@ -79,7 +79,7 @@
       "name": "chunky-world",
       "label": "Select world",
       "description": "Sets the target world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "chunky world {world}",
       "inputs": [
         {
@@ -122,7 +122,7 @@
       "name": "chunky-center",
       "label": "Set center",
       "description": "Sets the center block location.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "chunky center {x} {z}",
       "inputs": [
         {
@@ -168,7 +168,7 @@
       "name": "chunky-worldborder",
       "label": "Use world border",
       "description": "Sets the center and radius to match the world border of the selected or given world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "chunky worldborder {world}",
       "inputs": [
         {
@@ -184,7 +184,7 @@
       "name": "chunky-spawn",
       "label": "Center on spawn",
       "description": "Sets the center to the default vanilla spawn point in the currently selected world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "chunky spawn",
       "inputs": []
     },
@@ -192,7 +192,7 @@
       "name": "chunky-corners",
       "label": "Select by corners",
       "description": "Sets the center and radius automatically based on the two XZ corner coordinates provided.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "chunky corners {x1} {z1} {x2} {z2}",
       "inputs": [
         {

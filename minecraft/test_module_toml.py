@@ -44,3 +44,29 @@ def test_seed_reply_reads_the_number():
     field = next(f for f in MANIFEST["commands"]["fields"] if f["name"] == "seed")
     m = re.search(field["reply_pattern"], "[12:00:00] [Server thread/INFO]: Seed: [-4172144997902289642]")
     assert m and m.group("seed") == "-4172144997902289642"
+
+
+GRACEFUL = [re.compile(p) for p in MANIFEST["detection"]["graceful_exit_patterns"]]
+
+
+def graceful(line):
+    return any(p.search(line) for p in GRACEFUL)
+
+
+def test_stop_command_answer_is_a_graceful_exit():
+    for line in [
+        "[12:00:00] [Server thread/INFO]: Stopping the server",
+        # 26.x는 명령 답 앞에 `System chat: `을 붙인다 (PC 정규 설치 26.3 파이프 실측의 stop 답)
+        "[12:00:00] [Server thread/INFO]: System chat: Stopping the server",
+        "[12:00:00 INFO]: Stopping the server",
+    ]:
+        assert graceful(line), line
+
+
+def test_chat_with_the_stop_words_is_not_a_graceful_exit():
+    for line in [
+        "[12:00:00] [Server thread/INFO]: <Steve> Stopping the server",
+        "[12:00:00] [Server thread/INFO]: [Server] Stopping the server",
+        "[12:00:00] [Server thread/INFO]: System chat: <Steve> Stopping the server",
+    ]:
+        assert not graceful(line), line

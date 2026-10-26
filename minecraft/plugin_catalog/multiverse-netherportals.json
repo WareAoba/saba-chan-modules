@@ -32,7 +32,7 @@
       "name": "mvnp-link",
       "label": "Link portals",
       "description": "Sets the destination world for Nether or End portals.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mvnp link {type} {from_world} {to_world} {flags}",
       "inputs": [
         {
@@ -73,7 +73,7 @@
       "name": "mvnp-unlink",
       "label": "Unlink portals",
       "description": "Removes a Nether or End portal link from a world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "mvnp unlink {type} {from_world} {flags}",
       "inputs": [
         {

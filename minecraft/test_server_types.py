@@ -450,8 +450,10 @@ def test_commands_that_change_access_or_grant_things_are_danger():
             risks[(os.path.basename(path), cmd["name"])] = cmd["risk"]
     wrong = [key for file, names in GRANTING_COMMANDS.items() for key in ((file, n) for n in names)
              if risks.get(key) != "danger"]
-    # 권한 플러그인은 조회 말고는 전부 권한을 바꾼다
-    wrong += [key for key, risk in risks.items() if key[0] == "luckperms.json" and risk == "caution"]
+    # 웹 편집기 생성은 권한 데이터를 외부 사이트에 올리므로 최소 caution이다.
+    external_editors = {"lp-editor", "lp-user-editor", "lp-group-editor", "lp-track-editor"}
+    wrong += [key for key, risk in risks.items()
+              if key[0] == "luckperms.json" and risk == "caution" and key[1] not in external_editors]
     assert not wrong, wrong
 
 

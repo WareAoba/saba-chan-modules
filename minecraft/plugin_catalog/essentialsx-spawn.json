@@ -16,7 +16,7 @@
       "name": "spawn",
       "label": "Send player to spawn",
       "description": "Teleports the specified player to the spawn point.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "spawn {player}",
       "inputs": [
         {

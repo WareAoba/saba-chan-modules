@@ -156,6 +156,8 @@
     "settings": { "label": "設定を表示", "description": "現在のサーバー設定を表示" }
   },
   "errors": {
+    "backup_paths_failed": "バックアップするセーブフォルダーを読み込めませんでした: {{error}}",
+    "graceful_stop_unavailable": "サーバーに保存して終了するよう頼む方法がありません(コンソール・REST なし)。サーバーは止めていません。保存していない進行が失われてもよい場合だけ強制終了してください。",
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
     "auth_failed": "認証に失敗しました。REST API のユーザー名とパスワードを確認してください。",
     "player_not_found": "プレイヤーが見つかりません。ニックネームまたは SteamID を確認してください。",

@@ -102,7 +102,7 @@
       "name": "back",
       "label": "Send player back",
       "description": "Teleports the specified player to their prior location.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "back {player}",
       "inputs": [
         {
@@ -241,7 +241,7 @@
       "name": "burn",
       "label": "Burn player",
       "description": "Sets the specified player on fire for the specified amount of seconds.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "burn {player} {seconds}",
       "inputs": [
         {
@@ -656,7 +656,7 @@
       "name": "getpos",
       "label": "Get player position",
       "description": "Gets the coordinates of the specified player.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "getpos {player}",
       "inputs": [
         {
@@ -973,7 +973,7 @@
       "name": "lightning",
       "label": "Strike lightning",
       "description": "Strikes lightning at the target player with an optional power.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "lightning {player} {power}",
       "inputs": [
         {
@@ -1278,7 +1278,7 @@
       "name": "near",
       "label": "Nearby players",
       "description": "Lists all players within the default (or given) radius of the specified player.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "near {player} {radius}",
       "inputs": [
         {
@@ -1692,7 +1692,7 @@
       "name": "seen",
       "label": "Last seen",
       "description": "Shows the logout time, ban, mute, and UUID information of the specified player.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "seen {player}",
       "inputs": [
         {
@@ -1756,7 +1756,7 @@
       "name": "spawnmob",
       "label": "Spawn mob",
       "description": "Spawns the specified amount of the given mob at the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "spawnmob {mob} {amount} {player}",
       "inputs": [
         {
@@ -1911,7 +1911,7 @@
       "name": "ess-time-set",
       "label": "Set world time",
       "description": "Sets the time in all (or the specified) worlds to the given time.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "etime set {time} {world}",
       "inputs": [
         {
@@ -1934,7 +1934,7 @@
       "name": "ess-time-add",
       "label": "Add world time",
       "description": "Adds the given time to all (or the specified) worlds' time.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "etime add {time} {world}",
       "inputs": [
         {
@@ -1957,7 +1957,7 @@
       "name": "togglejail",
       "label": "Jail player",
       "description": "Jails the player and teleports them to the specified jail, optionally for a time.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "togglejail {player} {jail} {datediff}",
       "inputs": [
         {
@@ -2002,7 +2002,7 @@
       "name": "ess-tp",
       "label": "Teleport player to player",
       "description": "Teleports the first specified player to the second.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "etp {player} {target}",
       "inputs": [
         {
@@ -2041,7 +2041,7 @@
       "name": "tpall",
       "label": "Teleport all",
       "description": "Teleports all players to the specified player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "tpall {player}",
       "inputs": [
         {
@@ -2073,7 +2073,7 @@
       "name": "tppos",
       "label": "Teleport to coordinates",
       "description": "Teleports the specified player to the given coordinates, optionally in another world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "tppos {player} {x} {y} {z} {world}",
       "inputs": [
         {
@@ -2117,7 +2117,7 @@
       "name": "tppos-rotation",
       "label": "Teleport to coordinates with rotation",
       "description": "Teleports the specified player to the given coordinates with a yaw and pitch, optionally in another world.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "tppos {player} {x} {y} {z} {yaw} {pitch} {world}",
       "inputs": [
         {
@@ -2175,7 +2175,7 @@
       "name": "tpr",
       "label": "Random teleport player",
       "description": "Teleports the specified player to a random location in the specified location.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "tpr {location} {player}",
       "inputs": [
         {
@@ -2298,7 +2298,7 @@
       "name": "warp-player",
       "label": "Warp player",
       "description": "Teleports the specified player to the given warp.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "warp {warp} {player}",
       "inputs": [
         {
@@ -2335,7 +2335,7 @@
       "name": "ess-weather",
       "label": "Set weather",
       "description": "Sets the weather in the specified world to the given type for an optional duration.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "eweather {world} {weather} {duration}",
       "inputs": [
         {
@@ -2368,7 +2368,7 @@
       "name": "whois",
       "label": "Player info",
       "description": "Gives basic information about the specified player.",
-      "risk": "safe",
+      "risk": "caution",
       "console_template": "whois {player}",
       "inputs": [
         {
@@ -2503,7 +2503,7 @@
       "name": "essentials-dump",
       "label": "Server dump",
       "description": "Generates a server dump with the requested information.",
-      "risk": "safe",
+      "risk": "danger",
       "console_template": "essentials dump {options}",
       "inputs": [
         {

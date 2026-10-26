@@ -173,7 +173,7 @@
       "name": "npc-tpto",
       "label": "Teleport entity to entity",
       "description": "Teleports an NPC or player to another NPC or player.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "npc tpto {from} {to}",
       "inputs": [
         {

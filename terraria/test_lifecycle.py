@@ -726,3 +726,68 @@ def test_installed_version_comes_from_the_changelog(lc, tmp_path):
 def test_installed_version_without_a_changelog_is_unknown(lc, tmp_path):
     result = lc.get_installed_version(_config(_server(tmp_path, lc)))
     assert result["success"] is False
+
+
+# PC 실측(2026-10-26) 콘솔 원문 → (토큰, 칠할 글자). 데몬처럼 priority가 큰 규칙부터 본다
+_HIGHLIGHT_SAMPLES = [
+    ("Server started", "success", "Server started"),
+    (": Server started", "success", "Server started"),
+    ("서버 시작", "success", "서버 시작"),
+    ("Saving before exit...", "warn", "Saving before exit..."),
+    ("60.3% - Smoothing the world - 0.2%", "dim", "60.3% - Smoothing the world - 0.2%"),
+    ("Resetting game objects 24%", "dim", "Resetting game objects 24%"),
+    ("Loading world data: 1%", "dim", "Loading world data: 1%"),
+    ("Saving world data: 27%", "dim", "Saving world data: 27%"),
+    ("Validating world save: 64%", "dim", "Validating world save: 64%"),
+    ("Settling liquids 50%", "dim", "Settling liquids 50%"),
+    ("Error Logging Enabled.", "dim", "Error Logging Enabled."),
+    ("Terraria Server v1.4.5.8", "keyword", "v1.4.5.8"),
+    ("Listening on port 7777", "number", "7777"),
+    ("Port: 7777", "number", "7777"),
+    ("Player limit: 8", "number", "8"),
+    ("Time: 4:30 AM", "timestamp", "4:30 AM"),
+    ("World Seed: 0.1.1.0.pumpkinseason|949485760", "string", "0.1.1.0.pumpkinseason|949485760"),
+    ("Creating world - Seed: pumpkinseason|949485760, Width: 6400, Height: 1800, Evil: -1, Difficulty: 0",
+     "string", "pumpkinseason|949485760"),
+    ("<Server> hello from saba", "player", "<Server>"),
+    (": time", "command", "time"),
+    (":dawn", "command", "dawn"),
+    ("Invalid command.", "error", "Invalid command."),
+    (": Backing up world file", "info", "Backing up world file"),
+    ("No players connected.", "info", "No players connected."),
+    ("Forcing water to settle.", "info", "Forcing water to settle."),
+    ("Unhandled Exception: System.IO.FileNotFoundException: Could not load file or assembly",
+     "error", "System.IO.FileNotFoundException"),
+]
+
+
+def _first_highlight(toml, line):
+    """데몬 토큰화의 단순판: priority 큰 규칙(같으면 먼저 선언된 규칙)의 첫 일치와 그 글자"""
+    rules = toml["syntax_highlight"]["rules"]
+    order = sorted(range(len(rules)), key=lambda i: (-rules[i].get("priority", 0), i))
+    for i in order:
+        m = re.search(rules[i]["pattern"], line)
+        if m:
+            text = m.group("hl") if "hl" in m.groupdict() and m.group("hl") is not None else m.group(0)
+            return rules[i]["color"], text
+    return None, None
+
+
+@pytest.mark.parametrize("line,token,text", _HIGHLIGHT_SAMPLES)
+def test_console_highlight_uses_measured_lines(toml, line, token, text):
+    assert _first_highlight(toml, line) == (token, text)
+
+
+def test_console_highlight_does_not_color_chat_as_server_messages(toml):
+    assert _first_highlight(toml, "<Server> Server started") == ("player", "<Server>")
+
+
+def test_ready_and_exit_highlight_follow_the_detection_patterns(toml):
+    """준비·정상 종료 문구는 감지 패턴과 같은 목록이어야 한다 (언어를 더할 때 한쪽만 고치지 않게)"""
+    rules = {r["name"]: r["pattern"] for r in toml["syntax_highlight"]["rules"]}
+    def alternation(p):
+        """`^(?:: )?(?P<hl>A|B)\\s*$`와 `^(?:: )?(?:A|B)\\s*$`에서 A|B"""
+        start = p.index("(?P<hl>") + 7 if "(?P<hl>" in p else p.index("(?:", p.index(")?") + 2) + 3
+        return p[start:p.rindex(")")]
+    assert alternation(rules["server_started"]) == alternation(toml["extensions"]["saba-core"]["ready_patterns"][0])
+    assert alternation(rules["saving_before_exit"]) == alternation(toml["detection"]["graceful_exit_patterns"][0])

@@ -629,3 +629,105 @@ save = { aliases = ["저장"], description = "Save the world" }
 playing = { aliases = ["접속자", "플레이어", "목록"], description = "List players" }
 kick = { aliases = ["킥", "추방"], description = "Kick a player" }
 ban = { aliases = ["밴", "차단"], description = "Ban a player" }
+
+# ─── 콘솔 하이라이트 (PC 실측 2026-10-26, 저장 로그 6회분의 줄 모양을 분류) ───
+# 데몬 토큰화는 Rust regex(lookaround 없음)와 토큰 16개를 쓴다. priority가 큰 규칙이 이긴다.
+# 줄 앞의 ": "는 서버 프롬프트(줄바꿈 없이 찍힘)다. 의사 콘솔에서는 ":"만 따로 오기도 한다
+[syntax_highlight]
+
+# 준비 완료: 문구 목록은 [extensions.saba-core] ready_patterns와 같다 (테스트가 맞춘다)
+[[syntax_highlight.rules]]
+name = "server_started"
+pattern = '^(?:: )?(?P<hl>Server started|Server gestartet|Server avviato|Serveur démarré|Servidor iniciado|Сервер запущен|服务器已启动|Servidor inicializado\.|Serwer uruchomiony|サーバーが開始しました|서버 시작|伺服器已啟動)\s*$'
+color = "success"
+bold = true
+priority = 90
+
+# 정상 종료: 문구 목록은 [detection] graceful_exit_patterns와 같다
+[[syntax_highlight.rules]]
+name = "saving_before_exit"
+pattern = "^(?:: )?(?P<hl>Saving before exit\\.\\.\\.|Vor dem Verlassen speichern \\.\\.\\.|Salvataggio prima dell'uscita\\.\\.\\.|Enregistrement avant de quitter…|Guardando antes de salir\\.\\.\\.|Сохранение перед выходом\\.\\.\\.|正在进行退出前的保存……|Salvando antes de sair\\.\\.\\.|Zapisywanie przed wyjściem\\.\\.\\.|セーブ中…|종료 전에 저장하는 중\\.\\.\\.|離開前儲存中……)\\s*$"
+color = "warn"
+bold = true
+priority = 90
+
+# 채팅 "<이름> 말" (say는 <Server>). 채팅 안 낱말이 다른 규칙에 걸리지 않게 먼저 본다
+[[syntax_highlight.rules]]
+name = "chat_sender"
+pattern = '^(?::\s*)?(?P<hl><[^>]+>)\s'
+color = "player"
+priority = 95
+
+# .NET 예외 (XNA가 없을 때 FileNotFoundException 등)
+[[syntax_highlight.rules]]
+name = "exception"
+pattern = '(?P<hl>\b[A-Za-z_][\w.]*Exception\b)'
+color = "error"
+bold = true
+priority = 85
+
+[[syntax_highlight.rules]]
+name = "invalid_command"
+pattern = '^(?::\s*)?(?P<hl>Invalid command\.)\s*$'
+color = "error"
+priority = 80
+
+# 월드 생성 진행 "60.3% - Smoothing the world - 0.2%" (한 번에 수천 줄): 흐리게
+[[syntax_highlight.rules]]
+name = "worldgen_progress"
+pattern = '^\d+(?:\.\d+)?% - .+ - \d+(?:\.\d+)?%$'
+color = "dim"
+priority = 70
+
+# 불러오기·저장·검사 진행 줄
+[[syntax_highlight.rules]]
+name = "progress"
+pattern = '^(?::\s*)?(?:Resetting game objects|Loading world data:|Saving world data:|Validating world save:|Settling liquids) \d+%$'
+color = "dim"
+priority = 70
+
+[[syntax_highlight.rules]]
+name = "error_logging_notice"
+pattern = '^Error Logging Enabled\.$'
+color = "dim"
+priority = 60
+
+[[syntax_highlight.rules]]
+name = "server_version"
+pattern = '^Terraria Server (?P<hl>v\d+(?:\.\d+)+)'
+color = "keyword"
+bold = true
+priority = 60
+
+# 포트·인원 ("Listening on port 7777", "Port: 7777", "Player limit: 8")
+[[syntax_highlight.rules]]
+name = "port_and_limit"
+pattern = '^(?:Listening on port |Port: |Player limit: )(?P<hl>\d+)'
+color = "number"
+priority = 60
+
+[[syntax_highlight.rules]]
+name = "game_time"
+pattern = '^Time: (?P<hl>\d{1,2}:\d{2} [AP]M)'
+color = "timestamp"
+priority = 60
+
+[[syntax_highlight.rules]]
+name = "world_seed"
+pattern = '(?:^World Seed: |Seed: )(?P<hl>[^,]+)'
+color = "string"
+priority = 60
+
+# 서버 상태 알림
+[[syntax_highlight.rules]]
+name = "server_notice"
+pattern = '^(?::\s*)?(?P<hl>Backing up world file|No players connected\.|Forcing water to settle\.)\s*$'
+color = "info"
+priority = 55
+
+# 입력한 명령이 프롬프트 뒤에 다시 찍힌 줄 (": time", 의사 콘솔은 ":dawn")
+[[syntax_highlight.rules]]
+name = "echoed_command"
+pattern = '^: ?(?P<hl>[a-z][a-z-]*)\b'
+color = "command"
+priority = 50

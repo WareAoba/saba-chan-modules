@@ -308,7 +308,8 @@
     "version_list_failed": "Serverversionen von terraria.org konnten nicht geladen werden: {{error}}",
     "xna_framework_missing": "Im Serverordner fehlen die Dateien von XNA Framework 4.0. Installiere den Server neu, um sie hinzuzufügen.",
     "xna_install_failed": "XNA Framework 4.0 konnte nicht in den Serverordner gelegt werden: {{error}}",
-    "xna_checksum_mismatch": "Das heruntergeladene XNA-Installationspaket stimmt nicht mit der offiziellen Datei überein."
+    "xna_extension_missing": "Für den Terraria-Server unter Windows wird die XNA-Erweiterung benötigt. Installiere und aktiviere die Erweiterung \"XNA Framework 4.0 (portable)\".",
+    "version_unknown": "Die installierte Serverversion wurde nicht gefunden."
   },
   "messages": {
     "downloading": "Terraria-Server wird heruntergeladen",

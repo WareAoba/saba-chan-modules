@@ -116,10 +116,9 @@
 | zh-Hant | `伺服器已啟動` | `離開前儲存中……` |
 - `exit` 저장 때 `<월드>.wld.bak`, `<월드>.wld.bak2`가 만들어졌다. `worldrollbackstokeep=0`이면 `.bak`만 남았다.
 - Windows PC에 XNA Framework 4.0이 없으면 `TerrariaServer.exe`가 `System.IO.FileNotFoundException`으로 종료됐다. 참조 어셈블리는 `Microsoft.Xna.Framework` 4.0.0.0 및 `Graphics`, `Game`, `Xact`이며 zip에는 포함되지 않는다.
-- 모듈은 어디서나 같은 실행 환경을 위해(사용자 지정) PC에 XNA가 있어도 고정 판을 서버 폴더에 둔다. 출처는 Microsoft 공식 [XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598) `xnafx40_redist.msi`(7,059,456바이트, Microsoft Corporation Authenticode 서명 유효, SHA-256 `2b03c130…0a83b27`). 공식 체크섬은 없어서 서명을 확인한 파일의 SHA-256을 고정했다.
-- 필요한 파일은 XNA 4개(`Microsoft.Xna.Framework`, `.Game`, `.Graphics`, `.Xact`)와 `XnaNative.dll`, `msvcr100.dll`, `msvcp100.dll`이다(실측: 이 7개만 둔 폴더에서 XNA 없는 PC가 월드 생성과 `Server started`까지 갔다). 모듈이 꺼낸 바이트는 `msiexec /a`가 푼 파일과 같다.
-- 격리 실행에서는 `msiexec /a`가 Windows Installer 서비스에 닿지 못해 1601로 실패한다. 그래서 MSI(OLE 복합 문서)의 CAB(MSZIP 폴더 하나)을 Python으로 직접 읽는다.
-- 한계: .NET Framework는 같은 이름·버전의 어셈블리가 GAC에 있으면 GAC 쪽을 먼저 쓴다. 두 판은 같은 4.0 Refresh라 동작은 같다. 네이티브 DLL(`XnaNative`, VC++ 2010)은 서버 폴더 것이 먼저 쓰인다.
+- 모듈은 어디서나 같은 실행 환경을 위해(사용자 지정) PC에 XNA가 있어도 고정 판을 서버 폴더에 둔다. 이 일은 XNA 익스텐션(`saba-chan-extensions/xna`)이 맡고, 모듈은 `[install] requires_extensions = ["xna"]`로 선언해 Windows에서만 부른다. 출처는 Microsoft 공식 [XNA Framework Redistributable 4.0 Refresh](https://www.microsoft.com/en-us/download/details.aspx?id=27598) `xnafx40_redist.msi`(7,059,456바이트, Microsoft Corporation Authenticode 서명 유효, SHA-256 `2b03c130…0a83b27`). 공식 체크섬은 없어서 서명을 확인한 파일과 그 안 파일 7개의 SHA-256을 익스텐션에 고정했다.
+- 필요한 파일은 XNA 4개(`Microsoft.Xna.Framework`, `.Game`, `.Graphics`, `.Xact`)와 `XnaNative.dll`, `msvcr100.dll`, `msvcp100.dll`이다(실측: 이 7개만 둔 폴더에서 XNA 없는 PC가 월드 생성과 `Server started`까지 갔다). 익스텐션이 꺼낸 바이트는 `msiexec /a`가 푼 파일과 같다.
+- 격리 실행에서는 `msiexec /a`가 Windows Installer 서비스에 닿지 못해 1601로 실패한다. 그래서 익스텐션이 MSI(OLE 복합 문서)의 CAB(MSZIP 폴더 하나)을 Python으로 직접 읽는다. 확인한 파일은 익스텐션 데이터 폴더에 두어 다음 인스턴스는 다시 받지 않는다.
 - Windows 서버는 stdin이 파이프면 콘솔 입력을 읽지 않았다(help·seed·exit에 답 없음, 정지가 60초 뒤 강제 종료). 의사 콘솔(`[launch] console = "pty"`)에서는 명령이 동작하고 `exit`가 저장 뒤 2초 안에 끝났다. 의사 콘솔에서는 프롬프트 `:`와 `Server started`가 다른 줄로 나왔다.
 - 서버는 인스턴스 바깥의 `~/.local/share/Terraria/favorites.json`에 쓴다. Windows에서는 `Documents\\My Games\\Terraria` 아래다. 현재 모듈은 이 파일을 격리하지 않는다.
 
@@ -161,3 +160,28 @@
 | 실행 중 인증·포트 변경 | 관리 경로가 콘솔이라 해당 없음 |
 | 저장 명령 + sleep 후 종료 | `exit`만 보냄(저장 포함) |
 | 공용 홈 폴더로 되돌아가기 | 월드 폴더 기본값이 인스턴스 폴더 |
+
+## PC 실사용 점검 (2026-10-26, 정식 설치 0.1.10, 격리 실행)
+
+모듈과 XNA 익스텐션은 "확인 안 됨"으로 AppContainer 안에서 돌았다.
+
+| 항목 | 결과 |
+|---|---|
+| 인스턴스 만들기(서버 zip 내려받기, Windows 폴더만 풀기, XNA 7개 배치) | 4초. 두 번째 인스턴스는 XNA 캐시를 써서 다시 받지 않았다 |
+| 기동 | 월드 자동 생성 포함 약 19초에 `Server started`, 데몬이 실행 중으로 표시 |
+| 명령 22개 | help, playing, clear, save, say, version, time, port, maxplayers, motd, password, dawn·noon·dusk·midnight(time으로 바뀐 시각 확인), settle, seed, kick·ban(없는 대상: 답 없음) 모두 응답. exit-nosave는 위험 확인(`--yes`) 뒤 실행 |
+| 설정 변경 뒤 재시작 | max_players 5, password, motd가 서버에 반영(`maxplayers`·`password`·`motd`로 확인) |
+| 백업·복원 | 켜진 서버에서 백업 전 저장이 돌고 월드·설정이 담김. 복원 뒤 월드 시각이 백업 때로 돌아감 |
+| 정상 정지 | `exit` 저장 뒤 2초, `user_stop`, 종료 코드 0 |
+| 강제 종료 | 실행 70초 뒤 프로세스를 죽이면 `unknown_exit`(크래시 흔적 파일이 없다). 자동 재시작은 기본값이 꺼져 있어 하지 않음 |
+| 월드 초기화 | `world.wld`, `.bak`, `.bak2`만 지우고 서버 파일·XNA·설정은 남김. 다음 시작에 새 월드 |
+| 두 인스턴스 동시 실행 | 두 번째 포트가 7787로 옮겨지고 둘 다 실행 |
+| 설치된 버전 | `changelog.txt` 첫 줄로 1.4.5.8 |
+| XNA 익스텐션이 꺼졌을 때 | 시작 전 확인이 익스텐션이 필요하다고 막음. 서버 만들기는 데몬이 익스텐션을 켜고 진행 |
+
+남은 한계:
+- 접속자 수·목록(`[status] players`)과 접속·퇴장 패턴: 게임 클라이언트가 없어 `playing` 출력 모양을 재지 못했다.
+- 의사 콘솔에서 `help`의 명령 이름과 설명 사이 칸이 사라져 붙어 보인다(서버가 커서 이동으로 줄을 맞추고, 러너가 터미널 제어 문자를 지운다).
+- 실행 직후 `exit-nosave`나 강제 종료는 데몬이 "시작 실패"로 분류한다(데몬의 시작 직후 종료 판정).
+- Linux zip에는 `changelog.txt`가 없어 Linux에서는 설치된 버전을 알 수 없다.
+

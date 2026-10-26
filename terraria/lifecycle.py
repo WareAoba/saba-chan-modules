@@ -10,16 +10,13 @@ Terraria 공식 데디케이티드 서버(TerrariaServer)를 다룬다.
 조사 근거는 RESEARCH.md.
 """
 
-import hashlib
 import json
 import os
 import re
 import shutil
-import struct
 import sys
 import tempfile
 import zipfile
-import zlib
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,20 +39,6 @@ STOP_COMMAND = "exit"
 
 SERVER_NAMES_URL = "https://terraria.org/api/get/dedicated-servers-names"
 DOWNLOAD_URL = "https://terraria.org/api/download/pc-dedicated-server/{name}"
-# Windows 서버는 XNA Framework 4.0이 있어야 뜬다(zip에 없음). PC에 XNA가 있어도 공식 재배포 MSI에서
-# 필요한 DLL만 꺼내 서버 폴더에 둔다(관리자 권한 없음, PC에 설치하지 않음). 공식 체크섬이 없어 Microsoft 서명을
-# 확인한 2011년 고정 파일의 SHA-256을 쓴다 (RESEARCH.md)
-XNA_MSI_URL = "https://download.microsoft.com/download/5/3/a/53a804c8-ec78-43cd-a0f0-2fb4d45603d3/xnafx40_redist.msi"
-XNA_MSI_SHA256 = "2b03c130c4bb5f106b9619bea8150201f7e982709cfe9a0cc8bde75ff0a83b27"
-# (MSI 안 CAB 항목 이름, 파일): TerrariaServer.exe가 참조하는 XNA 4개와 그 네이티브 의존
-_XNA_FILES = [
-    *[(f"Microsoft_Xna_Framework{part}_dll_GAC", f"Microsoft.Xna.Framework{part.replace('_', '.')}.dll")
-      for part in ("", "_Game", "_Graphics", "_Xact")],
-    ("XnaNative_dll_File", "XnaNative.dll"),
-    ("F_CENTRAL_msvcr100_x86.DF495DFD_79F6_34DF_BB1E_E58DB5BDCF2C", "msvcr100.dll"),
-    ("F_CENTRAL_msvcp100_x86.DF495DFD_79F6_34DF_BB1E_E58DB5BDCF2C", "msvcp100.dll"),
-]
-
 # 설정 이름 → serverconfig.txt 키 (configure·import_settings·read_properties·install_server가 함께 쓴다)
 _JOURNEY_KEYS = [
     "journeypermission_time_setfrozen",
@@ -137,9 +120,13 @@ def _is_windows():
     return os.name == "nt"
 
 
-def _xna_present(server_dir):
-    """서버 폴더에 고정 판 XNA DLL이 모두 있다. PC에 설치된 XNA는 보지 않는다(어디서나 같은 실행 환경)"""
-    return all(os.path.isfile(os.path.join(server_dir, name)) for _, name in _XNA_FILES)
+def _xna():
+    """XNA 익스텐션(Windows 서버의 실행 전제). 없거나 꺼져 있으면 None (데몬이 import를 막는다)"""
+    try:
+        import extensions.xna as xna
+    except ImportError:
+        return None
+    return xna
 
 
 def _working_dir(config):
@@ -302,9 +289,14 @@ def validate(config):
     if not _executable(config):
         issues.append({"severity": "critical", "code": "executable_not_found",
                        "message": i18n.t("errors.executable_not_found")})
-    if _is_windows() and not _xna_present(_working_dir(config)):
-        issues.append({"severity": "critical", "code": "xna_framework_missing",
-                       "message": i18n.t("errors.xna_framework_missing")})
+    if _is_windows():
+        xna = _xna()
+        if xna is None:
+            issues.append({"severity": "critical", "code": "extension_required",
+                           "message": i18n.t("errors.xna_extension_missing")})
+        elif not xna.present(_working_dir(config)):
+            issues.append({"severity": "critical", "code": "xna_framework_missing",
+                           "message": i18n.t("errors.xna_framework_missing")})
     try:
         _world(config)
     except PathOutside:
@@ -616,95 +608,20 @@ def _extract_server(archive, install_dir):
     return exe
 
 
-def _msi_cabinet(data):
-    """MSI(OLE 복합 문서)에서 CAB 스트림을 꺼낸다. CAB은 커서 미니 스트림이 아니라 FAT 사슬에 있다"""
-    if data[:8] != b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1":
-        raise ValueError("not an MSI file")
-    size = 1 << struct.unpack_from("<H", data, 0x1E)[0]
-    fat_count, dir_start = struct.unpack_from("<II", data, 0x2C)
-    cutoff = struct.unpack_from("<I", data, 0x38)[0]
-    difat_start, difat_count = struct.unpack_from("<II", data, 0x44)
-    difat = list(struct.unpack_from("<109I", data, 0x4C))
-    for _ in range(difat_count):
-        entries = struct.unpack_from(f"<{size // 4}I", data, size + difat_start * size)
-        difat += entries[:-1]
-        difat_start = entries[-1]
-    fat = []
-    for sector in difat[:fat_count]:
-        fat += struct.unpack_from(f"<{size // 4}I", data, size + sector * size)
-
-    def read(sector, length):
-        out = bytearray()
-        while sector < 0xFFFFFFFA and len(out) < length:
-            out += data[size + sector * size:size + (sector + 1) * size]
-            sector = fat[sector]
-        return bytes(out[:length])
-    directory = read(dir_start, len(data))
-    for i in range(0, len(directory) - 127, 128):
-        if directory[i + 66] != 2:  # 스트림만
-            continue
-        start, length = struct.unpack_from("<IQ", directory, i + 116)
-        if length >= cutoff:
-            stream = read(start, length)
-            if stream[:4] == b"MSCF":
-                return stream
-    raise ValueError("no cabinet in MSI")
+_CHANGELOG_RE = re.compile(r"^Version (\d+(?:\.\d+)+) Changes")
 
 
-def _cab_files(cab):
-    """MSZIP 폴더 하나짜리 CAB → {항목 이름: 바이트}. MSZIP 블록은 앞 블록 출력을 사전으로 쓴다"""
-    cab_size, files_at = struct.unpack_from("<I4xI", cab, 8)
-    folders, count, flags = struct.unpack_from("<HHH", cab, 26)
-    if flags or folders != 1 or cab_size > len(cab):
-        raise ValueError("unsupported cabinet")
-    data_at, blocks, kind = struct.unpack_from("<IHH", cab, 36)
-    if kind & 0xF != 1:
-        raise ValueError("unsupported cabinet compression")
-    body, prev, pos = bytearray(), b"", data_at
-    for _ in range(blocks):
-        packed, plain = struct.unpack_from("<4xHH", cab, pos)
-        block = cab[pos + 8:pos + 8 + packed]
-        pos += 8 + packed
-        if block[:2] != b"CK":
-            raise ValueError("broken cabinet block")
-        inflate = zlib.decompressobj(-15, zdict=prev) if prev else zlib.decompressobj(-15)
-        prev = inflate.decompress(block[2:]) + inflate.flush()
-        if len(prev) != plain:
-            raise ValueError("broken cabinet block")
-        body += prev
-    files, pos = {}, files_at
-    for _ in range(count):
-        length, offset = struct.unpack_from("<II", cab, pos)
-        end = cab.index(b"\0", pos + 16)
-        files[cab[pos + 16:end].decode("ascii")] = bytes(body[offset:offset + length])
-        pos = end + 1
-    return files
-
-
-def _xna_files_from_msi(data):
-    """XNA MSI에서 _XNA_FILES만 {파일 이름: 바이트}로. 관리 설치(msiexec /a)는 격리 실행에서
-    Windows Installer 서비스에 닿지 못해(1601) 쓰지 않는다"""
+def get_installed_version(config):
+    """설치된 서버 버전: 공식 zip의 changelog.txt 첫 줄 "Version 1.4.5.8 Changes" (실측, Windows zip)"""
     try:
-        files = _cab_files(_msi_cabinet(data))
-        return {name: files[key] for key, name in _XNA_FILES}
-    except (struct.error, KeyError, IndexError, zlib.error) as e:
-        raise ValueError(f"XNA installer: {e!r}") from None
-
-
-def _install_xna(install_dir):
-    """공식 XNA MSI를 받아 체크섬을 확인하고, 필요한 DLL만 꺼내 install_dir에 둔다. 받은 파일은 지운다"""
-    fd, msi = tempfile.mkstemp(prefix=".xna-", suffix=".download", dir=install_dir)
-    os.close(fd)
-    try:
-        _download(XNA_MSI_URL, msi)
-        with open(msi, "rb") as f:
-            data = f.read()
-    finally:
-        os.remove(msi)
-    if hashlib.sha256(data).hexdigest() != XNA_MSI_SHA256:
-        raise ValueError(i18n.t("errors.xna_checksum_mismatch"))
-    for name, content in _xna_files_from_msi(data).items():
-        atomic_write(safe_join(install_dir, name), content)
+        with open(os.path.join(_working_dir(config), "changelog.txt"), "rb") as f:
+            first = f.readline().decode("utf-8", "replace")
+    except OSError:
+        first = ""
+    match = _CHANGELOG_RE.match(first)
+    if not match:
+        return {"success": False, "message": i18n.t("errors.version_unknown")}
+    return {"success": True, "version": match.group(1)}
 
 
 def install_server(config):
@@ -739,13 +656,15 @@ def install_server(config):
         except OSError:
             pass
 
-    if _is_windows() and not _xna_present(install_dir):
+    if _is_windows():
+        xna = _xna()
+        if xna is None:
+            return {"success": False, "error_code": "extension_required", "missing_extensions": ["xna"],
+                    "message": i18n.t("errors.xna_extension_missing")}
         _progress(90, i18n.t("messages.installing_xna"))
         try:
-            _install_xna(install_dir)
-        except PathOutside:
-            raise
-        except (OSError, ValueError) as e:
+            xna.install(install_dir)
+        except xna.XnaError as e:
             return {"success": False, "error_code": "xna_install_failed",
                     "message": i18n.t("errors.xna_install_failed", error=str(e))}
 
@@ -780,6 +699,7 @@ FUNCTIONS = {
     "reset_server":       reset_server,
     "list_versions":      list_versions,
     "install_server":     install_server,
+    "get_installed_version": get_installed_version,
 }
 # 데몬이 지원 기능을 묻는 예약 함수: 표의 함수 이름을 돌려준다
 FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}

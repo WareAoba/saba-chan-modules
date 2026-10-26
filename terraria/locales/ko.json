@@ -308,7 +308,8 @@
     "version_list_failed": "terraria.org에서 서버 버전 목록을 받지 못했습니다: {{error}}",
     "xna_framework_missing": "서버 폴더에 XNA Framework 4.0 파일이 없습니다. 서버를 다시 설치하면 넣습니다.",
     "xna_install_failed": "서버 폴더에 XNA Framework 4.0을 넣지 못했습니다: {{error}}",
-    "xna_checksum_mismatch": "내려받은 XNA 설치 파일이 공식 파일과 다릅니다."
+    "xna_extension_missing": "Windows에서 테라리아 서버를 실행하려면 XNA 익스텐션이 필요합니다. \"XNA Framework 4.0 (portable)\" 익스텐션을 설치하고 켜세요.",
+    "version_unknown": "설치된 서버 버전을 찾지 못했습니다."
   },
   "messages": {
     "downloading": "테라리아 서버를 내려받는 중",

@@ -308,7 +308,8 @@
     "version_list_failed": "No se pudo obtener la lista de versiones de terraria.org: {{error}}",
     "xna_framework_missing": "Faltan los archivos de XNA Framework 4.0 en la carpeta del servidor. Reinstala el servidor para añadirlos.",
     "xna_install_failed": "No se pudo añadir XNA Framework 4.0 a la carpeta del servidor: {{error}}",
-    "xna_checksum_mismatch": "El instalador de XNA descargado no coincide con el archivo oficial."
+    "xna_extension_missing": "Se necesita la extensión XNA para ejecutar el servidor de Terraria en Windows. Instala y activa la extensión \"XNA Framework 4.0 (portable)\".",
+    "version_unknown": "No se encontró la versión del servidor instalada."
   },
   "messages": {
     "downloading": "Descargando el servidor de Terraria",

@@ -157,6 +157,7 @@ arg = "-announcementboxrange {value}"
 
 [[settings.fields]]
 name = "world_name"
+file_key = "worldname"
 type = "text"
 label = "World Name"
 description = "World file name (<name>.wld) and the name of a new world"
@@ -165,6 +166,7 @@ pattern = '[^\\/:*?"<>|]*[^\\/:*?"<>|. ]'
 
 [[settings.fields]]
 name = "world_dir"
+file_key = "worldpath"
 type = "text"
 label = "World Folder"
 description = "Folder where world files are kept (worldpath)"
@@ -174,6 +176,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "autocreate"
+file_key = "autocreate"
 type = "select"
 label = "New World Size"
 description = "Size of the world created when none exists: 1 small, 2 medium, 3 large (autocreate)"
@@ -183,6 +186,7 @@ install = true
 
 [[settings.fields]]
 name = "difficulty"
+file_key = "difficulty"
 type = "select"
 label = "New World Difficulty"
 description = "Difficulty of a newly created world: 0 Classic, 1 Expert, 2 Master, 3 Journey"
@@ -190,12 +194,14 @@ options = ["0", "1", "2", "3"]
 
 [[settings.fields]]
 name = "seed"
+file_key = "seed"
 type = "text"
 label = "New World Seed"
 description = "Seed for a newly created world"
 
 [[settings.fields]]
 name = "seed_celebration"
+file_key = "seed_celebration"
 type = "boolean"
 label = "Celebration Seed"
 description = "Enable special world seed: 0 disabled, 1 enabled"
@@ -203,6 +209,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_theconstant"
+file_key = "seed_theconstant"
 type = "boolean"
 label = "The Constant"
 description = "Enable special world seed: 0 disabled, 1 enabled"
@@ -210,6 +217,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_notthebees"
+file_key = "seed_notthebees"
 type = "boolean"
 label = "Not the Bees!"
 description = "Enable special world seed: 0 disabled, 1 enabled"
@@ -217,6 +225,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_notraps"
+file_key = "seed_notraps"
 type = "boolean"
 label = "No Traps"
 description = "Enable special world seed: 0 disabled, 1 enabled"
@@ -224,6 +233,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_fortheworthy"
+file_key = "seed_fortheworthy"
 type = "boolean"
 label = "For the Worthy"
 description = "Enable special world seed: 0 disabled, 1 enabled"
@@ -231,6 +241,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_remix"
+file_key = "seed_remix"
 type = "boolean"
 label = "Remix"
 description = "Enable special world seed: 0 disabled, 1 enabled"
@@ -238,6 +249,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_drunk"
+file_key = "seed_drunk"
 type = "boolean"
 label = "Drunk"
 description = "Enable special world seed: 0 disabled, 1 enabled"
@@ -245,6 +257,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_zenith"
+file_key = "seed_zenith"
 type = "boolean"
 label = "Zenith"
 description = "Enable special world seed: 0 disabled, 1 enabled"
@@ -254,6 +267,7 @@ install = true
 
 [[settings.fields]]
 name = "port"
+file_key = "port"
 type = "number"
 label = "Port"
 description = "TCP port the server listens on"
@@ -265,6 +279,7 @@ format = "port"
 
 [[settings.fields]]
 name = "max_players"
+file_key = "maxplayers"
 type = "number"
 label = "Max Players"
 description = "Maximum number of players (1-255)"
@@ -274,24 +289,28 @@ max = 255
 
 [[settings.fields]]
 name = "password"
+file_key = "password"
 type = "password"
 label = "Server Password"
 description = "Password to join (empty = none)"
 
 [[settings.fields]]
 name = "motd"
+file_key = "motd"
 type = "text"
 label = "Message of the Day"
 description = "Message shown to joining players"
 
 [[settings.fields]]
 name = "secure"
+file_key = "secure"
 type = "boolean"
 label = "Cheat Protection"
 description = "Additional cheat protection (secure)"
 
 [[settings.fields]]
 name = "language"
+file_key = "language"
 type = "select"
 label = "Server Language"
 description = "Language of server messages"
@@ -299,12 +318,14 @@ options = ["en-US", "de-DE", "it-IT", "fr-FR", "es-ES", "ru-RU", "zh-Hans", "pt-
 
 [[settings.fields]]
 name = "upnp"
+file_key = "upnp"
 type = "boolean"
 label = "UPnP Port Forwarding"
 description = "Forward the port automatically with UPnP"
 
 [[settings.fields]]
 name = "banlist"
+file_key = "banlist"
 type = "text"
 label = "Ban List File"
 description = "Ban list file name in the server folder"
@@ -314,6 +335,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "npcstream"
+file_key = "npcstream"
 type = "number"
 label = "NPC Stream"
 description = "Enemy sync rate: lower skips less but uses more bandwidth. 0 = off"
@@ -322,6 +344,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "worldrollbackstokeep"
+file_key = "worldrollbackstokeep"
 type = "number"
 label = "World Rollbacks to Keep"
 description = "Number of world rollback backups to keep"
@@ -330,6 +353,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "slowliquids"
+file_key = "slowliquids"
 type = "boolean"
 label = "Slow Liquids"
 description = "Enable slow liquid updates"
@@ -337,6 +361,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "priority"
+file_key = "priority"
 type = "select"
 label = "Process Priority"
 description = "0 Realtime, 1 High, 2 AboveNormal, 3 Normal, 4 BelowNormal, 5 Idle"
@@ -348,6 +373,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setfrozen"
+file_key = "journeypermission_time_setfrozen"
 type = "select"
 label = "Journey: Freeze Time"
 description = "0 locked, 1 host only, 2 everyone"
@@ -356,6 +382,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setdawn"
+file_key = "journeypermission_time_setdawn"
 type = "select"
 label = "Journey: Set Dawn"
 description = "0 locked, 1 host only, 2 everyone"
@@ -364,6 +391,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setnoon"
+file_key = "journeypermission_time_setnoon"
 type = "select"
 label = "Journey: Set Noon"
 description = "0 locked, 1 host only, 2 everyone"
@@ -372,6 +400,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setdusk"
+file_key = "journeypermission_time_setdusk"
 type = "select"
 label = "Journey: Set Dusk"
 description = "0 locked, 1 host only, 2 everyone"
@@ -380,6 +409,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setmidnight"
+file_key = "journeypermission_time_setmidnight"
 type = "select"
 label = "Journey: Set Midnight"
 description = "0 locked, 1 host only, 2 everyone"
@@ -388,6 +418,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_godmode"
+file_key = "journeypermission_godmode"
 type = "select"
 label = "Journey: God Mode"
 description = "0 locked, 1 host only, 2 everyone"
@@ -396,6 +427,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_wind_setstrength"
+file_key = "journeypermission_wind_setstrength"
 type = "select"
 label = "Journey: Wind Strength"
 description = "0 locked, 1 host only, 2 everyone"
@@ -404,6 +436,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_rain_setstrength"
+file_key = "journeypermission_rain_setstrength"
 type = "select"
 label = "Journey: Rain Strength"
 description = "0 locked, 1 host only, 2 everyone"
@@ -412,6 +445,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setspeed"
+file_key = "journeypermission_time_setspeed"
 type = "select"
 label = "Journey: Time Speed"
 description = "0 locked, 1 host only, 2 everyone"
@@ -420,6 +454,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_rain_setfrozen"
+file_key = "journeypermission_rain_setfrozen"
 type = "select"
 label = "Journey: Freeze Rain"
 description = "0 locked, 1 host only, 2 everyone"
@@ -428,6 +463,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_wind_setfrozen"
+file_key = "journeypermission_wind_setfrozen"
 type = "select"
 label = "Journey: Freeze Wind"
 description = "0 locked, 1 host only, 2 everyone"
@@ -436,6 +472,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_increaseplacementrange"
+file_key = "journeypermission_increaseplacementrange"
 type = "select"
 label = "Journey: Placement Range"
 description = "0 locked, 1 host only, 2 everyone"
@@ -444,6 +481,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_setdifficulty"
+file_key = "journeypermission_setdifficulty"
 type = "select"
 label = "Journey: Difficulty"
 description = "0 locked, 1 host only, 2 everyone"
@@ -452,6 +490,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_biomespread_setfrozen"
+file_key = "journeypermission_biomespread_setfrozen"
 type = "select"
 label = "Journey: Freeze Biome Spread"
 description = "0 locked, 1 host only, 2 everyone"
@@ -460,6 +499,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_setspawnrate"
+file_key = "journeypermission_setspawnrate"
 type = "select"
 label = "Journey: Spawn Rate"
 description = "0 locked, 1 host only, 2 everyone"

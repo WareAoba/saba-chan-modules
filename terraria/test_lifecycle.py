@@ -16,6 +16,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
+from daemon_rcon import setting_file_keys
 
 try:
     import tomllib
@@ -71,13 +72,13 @@ def _read(path):
 
 def test_every_game_setting_maps_to_a_config_key(lc, toml):
     game = [f["name"] for f in toml["settings"]["fields"] if f.get("group") != "saba-chan"]
-    assert sorted(game) == sorted(lc._KEY_MAP), "설정 이름과 serverconfig 키 표가 어긋났다"
+    assert sorted(game) == sorted(setting_file_keys(lc.MODULE_DIR)), "게임 설정마다 serverconfig 키(file_key)가 있어야 한다"
 
 
 def test_launch_only_settings_are_not_written_to_the_game_file(lc, toml):
     launch_only = [f["name"] for f in toml["settings"]["fields"] if f.get("group") == "saba-chan"]
     assert launch_only
-    assert not set(launch_only) & set(lc._KEY_MAP)
+    assert not set(launch_only) & set(setting_file_keys(lc.MODULE_DIR))
 
 
 def test_every_command_declares_risk_and_description(toml):

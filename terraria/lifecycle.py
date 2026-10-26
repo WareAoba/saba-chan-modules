@@ -22,8 +22,9 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, atomic_write, coerce_setting, config_value, daemon_stdin_command,
-                         graceful_stop, is_process_alive, load_setting_types, request_console, safe_join)
+from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, graceful_stop,
+                         is_process_alive, read_key_values, request_console, safe_join, setting_file_keys,
+                         settings_from_file, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
@@ -39,57 +40,6 @@ STOP_COMMAND = "exit"
 
 SERVER_NAMES_URL = "https://terraria.org/api/get/dedicated-servers-names"
 DOWNLOAD_URL = "https://terraria.org/api/download/pc-dedicated-server/{name}"
-# 설정 이름 → serverconfig.txt 키 (configure·import_settings·read_properties·install_server가 함께 쓴다)
-_JOURNEY_KEYS = [
-    "journeypermission_time_setfrozen",
-    "journeypermission_time_setdawn",
-    "journeypermission_time_setnoon",
-    "journeypermission_time_setdusk",
-    "journeypermission_time_setmidnight",
-    "journeypermission_godmode",
-    "journeypermission_wind_setstrength",
-    "journeypermission_rain_setstrength",
-    "journeypermission_time_setspeed",
-    "journeypermission_rain_setfrozen",
-    "journeypermission_wind_setfrozen",
-    "journeypermission_increaseplacementrange",
-    "journeypermission_setdifficulty",
-    "journeypermission_biomespread_setfrozen",
-    "journeypermission_setspawnrate",
-]
-_KEY_MAP = {
-    "world_name": "worldname",
-    "world_dir": "worldpath",
-    "autocreate": "autocreate",
-    "seed": "seed",
-    "difficulty": "difficulty",
-    "max_players": "maxplayers",
-    "port": "port",
-    "password": "password",
-    "motd": "motd",
-    "banlist": "banlist",
-    "secure": "secure",
-    "language": "language",
-    "upnp": "upnp",
-    "npcstream": "npcstream",
-    "worldrollbackstokeep": "worldrollbackstokeep",
-    "slowliquids": "slowliquids",
-    "seed_celebration": "seed_celebration",
-    "seed_theconstant": "seed_theconstant",
-    "seed_notthebees": "seed_notthebees",
-    "seed_notraps": "seed_notraps",
-    "seed_fortheworthy": "seed_fortheworthy",
-    "seed_remix": "seed_remix",
-    "seed_drunk": "seed_drunk",
-    "seed_zenith": "seed_zenith",
-    "priority": "priority",
-    **{key: key for key in _JOURNEY_KEYS},
-}
-_KEY_MAP_REV = {v: k for k, v in _KEY_MAP.items()}
-# 위키: secure·upnp는 "1 to enable"
-_BOOL_KEYS = {"secure", "upnp", "slowliquids", "seed_celebration", "seed_theconstant", "seed_notthebees",
-              "seed_notraps", "seed_fortheworthy", "seed_remix", "seed_drunk", "seed_zenith"}
-
 # 서버 파일의 `playing` 답 마지막 줄(CLI.NoPlayers·OnePlayerConnected·PlayersConnected, 1.4.5.8 TerrariaServer.exe 12개 언어).
 # 0명·1명 문구는 숫자를 그대로 적는다
 _PLAYING_COUNT = [
@@ -205,92 +155,32 @@ def _format_value(key, value):
 
 # ─── serverconfig.txt ────────────────────────────────────
 
-def _read_lines(path):
-    """파일의 줄, 줄바꿈, 인코딩. 없으면 빈 UTF-8 파일로 취급한다.
-    (못 읽은 파일을 빈 설정으로 보고 덮어쓰지 않는다)"""
-    try:
-        with open(path, "rb") as f:
-            raw = f.read()
-    except FileNotFoundError:
-        return [], "\n", "utf-8"
-    encoding = "utf-8-sig" if raw.startswith(b"\xef\xbb\xbf") else "utf-8"
-    try:
-        text = raw.decode(encoding)
-    except UnicodeDecodeError:
-        encoding = "cp1252"
-        text = raw.decode(encoding)
-    newline = "\r\n" if "\r\n" in text else "\n"
-    return text.splitlines(), newline, encoding
-
-
-def _parse_line(line):
-    """`key=value` → (소문자 키, 값). 주석(#)·빈 줄·`=` 없는 줄은 None. 값은 첫 `=` 뒤 전부"""
-    stripped = line.strip()
-    if not stripped or stripped.startswith("#") or "=" not in stripped:
-        return None
-    key, value = line.split("=", 1)
-    return key.strip().lower(), value
+# 공식 예시 파일은 cp1252지만 서버는 UTF-8로 읽는다(PC 실측). cp1252로 못 쓰는 값(한국어 MOTD·경로)이면 UTF-8로 쓴다.
+# 키는 대소문자를 가리지 않는다
+_FILE_FORMAT = {"encodings": ("utf-8", "cp1252"), "case_insensitive": True}
 
 
 def _read_config_file(path):
-    """serverconfig.txt → {키: 값}. 같은 키가 여러 번이면 첫 줄 (쓰기도 첫 줄만 남긴다)"""
-    lines, _, _ = _read_lines(path)
-    props = {}
-    for line in lines:
-        parsed = _parse_line(line)
-        if parsed and parsed[0] not in props:
-            props[parsed[0]] = parsed[1]
-    return props
+    """serverconfig.txt → {소문자 키: 값}. 같은 키가 여러 번이면 첫 줄 (쓰기도 첫 줄만 남긴다)"""
+    return read_key_values(path, first_wins=True, **_FILE_FORMAT)
 
 
 def _update_config_file(path, updates):
-    """바뀐 키만 고친다. 주석·다른 키·순서·줄바꿈 표기는 그대로. 값이 None·""이면 그 키 줄을 지운다(게임 기본값).
-    같은 키의 둘째 줄부터는 지운다(어느 줄을 읽을지 애매하지 않게)"""
-    lines, newline, encoding = _read_lines(path)
-    pending = {key: (None if value in (None, "") else _format_value(key, value)) for key, value in updates.items()}
-    out, seen = [], set()
-    for line in lines:
-        parsed = _parse_line(line)
-        if parsed and parsed[0] in pending:
-            key = parsed[0]
-            if key in seen or pending[key] is None:
-                seen.add(key)
-                continue
-            seen.add(key)
-            out.append(f"{key}={pending[key]}")
-        else:
-            out.append(line)
-    for key, value in pending.items():
-        if key not in seen and value is not None:
-            out.append(f"{key}={value}")
-    data = (newline.join(out) + newline) if out else ""
+    """바뀐 키만 고친다. 주석·다른 키·순서·줄바꿈 표기는 그대로. 값이 None·""이면 그 키 줄을 지운다(게임 기본값)"""
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    try:
-        encoded = data.encode(encoding)
-    except UnicodeEncodeError:
-        # 공식 예시 파일은 cp1252지만 서버는 UTF-8로 읽는다(PC 실측). cp1252로 못 쓰는 값(한국어 MOTD·경로)이면 UTF-8로 쓴다
-        encoded = data.encode("utf-8")
-    atomic_write(path, encoded)
+    values = {key: value if value is None or value == "" else _format_value(key, value) for key, value in updates.items()}
+    update_key_values(path, values, delete_empty=True, **_FILE_FORMAT)
 
 
 def _file_updates(settings):
-    """설정 이름 → serverconfig 키 값 (표에 없는 키는 뺀다)"""
-    return {_KEY_MAP[k]: v for k, v in (settings or {}).items() if k in _KEY_MAP}
+    """설정 이름 → serverconfig 키 값 (module.toml file_key가 없는 설정은 뺀다)"""
+    keys = setting_file_keys(MODULE_DIR)
+    return {keys[k]: v for k, v in (settings or {}).items() if k in keys}
 
 
 def _settings_from_file(props):
-    """serverconfig 값 → 설정 이름과 화면 형식. world=가 있으면 월드 폴더·이름은 그 경로에서 얻는다"""
-    types = load_setting_types(MODULE_DIR)
-    settings = {}
-    for key, raw in props.items():
-        name = _KEY_MAP_REV.get(key)
-        if not name:
-            continue
-        if key in _BOOL_KEYS:
-            if raw.strip() in ("0", "1"):
-                settings[name] = raw.strip() == "1"
-            continue
-        settings[name] = coerce_setting(raw, types.get(name))
+    """serverconfig 값 → 설정 이름과 화면 형식(위키: 켜기·끄기는 1·0). world=가 있으면 월드 폴더·이름은 그 경로에서 얻는다"""
+    settings = settings_from_file(MODULE_DIR, props, true="1", false="0", case_insensitive=True)
     world = (props.get("world") or "").strip()
     if world:
         settings["world_dir"] = os.path.dirname(world)

@@ -714,6 +714,7 @@
     }
   },
   "errors": {
+    "data_home_unavailable": "Impossible de créer ou d'ouvrir le dossier de données du serveur. Vérifiez l'emplacement et les autorisations du dossier.",
     "settings_write_failed": "Les fichiers du serveur sont installés, mais les paramètres choisis n’ont pas pu être enregistrés : {{error}}",
     "player_not_found": "Joueur introuvable. Vérifiez le nom d'utilisateur.",
     "connection_refused": "Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et que le port est correct.",

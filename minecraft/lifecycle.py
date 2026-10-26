@@ -1076,20 +1076,48 @@ def _launch_java(config, server_jar, jar_info=None):
 
 
 def _launch_java_info(config, server_jar, jar_info=None):
-    """실제로 띄울 Java와 그 버전: 사용자가 정한 java_path, <working_dir>/java/의 번들 Java, 시스템 Java 순이다.
+    """실제로 띄울 Java와 그 버전: 사용자가 정한 java_path, 포터블 Java(<working_dir>/java/, <instance_dir>/java/), 시스템 Java 순이다.
     시스템 Java는 이 서버에 필요한 주 버전 이상인 것을 고른다. 번들과 데몬이 찾은 런타임은 `-version`을 돌리지 않는다
     (격리 안에서는 돌지 않을 수 있다). 찾지 못하면 None"""
     java_path = config.get("java_path") or "java"
     if java_path != "java":
         return JavaDetector.get_java_info(java_path)
-    wd = config.get("working_dir") or (os.path.dirname(os.path.abspath(server_jar)) if server_jar else "")
     required = _required_java_for(config, server_jar, jar_info)
-    bundled = JavaDownloader._find_bundled_java(os.path.join(wd, "java")) if wd else None
-    # 예전 버전용으로 받아 둔 번들 Java가 이 서버에 낮으면 쓰지 않는다
-    major = JavaDownloader.bundled_major(os.path.join(wd, "java"), bundled) if bundled else 0
-    if bundled and major >= required:
-        return {"path": bundled, "version": str(major), "major_version": major, "bits64": True}
+    bundled = _portable_java(config, server_jar, required)
+    if bundled:
+        return bundled
     return JavaDetector.find_java(java_path, min_major=required)
+
+
+def _portable_java(config, server_jar, required):
+    """이 서버에 맞는 포터블 Java: <working_dir>/java/(새로 설치한 서버), <instance_dir>/java/(가져온 서버) 순. 없으면 None.
+    예전 버전용으로 받아 둔 것이 이 서버에 낮으면 쓰지 않는다"""
+    wd = config.get("working_dir") or (os.path.dirname(os.path.abspath(server_jar)) if server_jar else "")
+    for base in (wd, config.get("instance_dir")):
+        if not base:
+            continue
+        java_dir = os.path.join(base, "java")
+        bundled = JavaDownloader._find_bundled_java(java_dir)
+        major = JavaDownloader.bundled_major(java_dir, bundled) if bundled else 0
+        if bundled and major >= required:
+            return {"path": bundled, "version": str(major), "major_version": major, "bits64": True}
+    return None
+
+
+def _fetch_portable_java(config):
+    """가져온 서버에 맞는 포터블 JRE를 인스턴스 폴더에 받는다 (PC에 깔린 Java에 기대지 않고, 서버 폴더에는 더하지 않는다).
+    이미 있으면 받지 않는다. 받지 못하면 {java_warning} (가져오기는 계속하고 시작할 때 Java 문제로 안내한다)"""
+    instance_dir = config.get("instance_dir")
+    if not instance_dir or (config.get("java_path") or "java") != "java":
+        return {}
+    server_jar = _resolve_server_jar(config)
+    required = _required_java_for(config, server_jar)
+    if not required or _portable_java(config, server_jar, required):
+        return {}
+    result = JavaDownloader.download_jre(required, instance_dir)
+    if result.get("success"):
+        return {}
+    return {"java_warning": i18n.t("errors.java_download_warning", version=str(required), error=result.get("message", ""))}
 
 
 def validate(config):
@@ -1314,6 +1342,27 @@ def configure(config):
     }
 
 
+# 가져온 서버가 쓰던 실행 스크립트 (Forge·NeoForge 설치기는 메모리를 user_jvm_args.txt에 둔다)
+_START_SCRIPTS = ("user_jvm_args.txt", "run.bat", "start.bat", "run.sh", "start.sh")
+
+
+def _script_memory(working_dir):
+    """쓰던 실행 스크립트의 -Xmx ("10G", "3072M"). 없으면 None (모듈 기본값 그대로)"""
+    for name in _START_SCRIPTS:
+        try:
+            with open(os.path.join(working_dir, name), encoding="utf-8", errors="replace") as f:
+                text = f.read()
+        except OSError:
+            continue
+        for line in text.splitlines():
+            if line.lstrip().startswith(("#", "rem ", "REM ", "::")):
+                continue
+            m = re.search(r"(?<!\S)-Xmx(\d+[KMGkmg])(?!\S)", line)
+            if m:
+                return m.group(1).upper()
+    return None
+
+
 def import_settings(config):
     """Read server.properties and return settings in saba-chan key format.
 
@@ -1334,6 +1383,11 @@ def import_settings(config):
     }}
     if detected.get("jar"):
         extra["executable_path"] = detected["jar"]
+
+    ram = _script_memory(working_dir)
+    if ram:
+        found["ram"] = ram
+    extra.update(_fetch_portable_java(config))
 
     result = read_properties(config)
     if not result.get("success"):
@@ -1356,6 +1410,14 @@ def import_settings(config):
     settings.update(found)
 
     return {"success": True, "settings": settings, **extra}
+
+
+def config_files(config):
+    """사바쨩이 고칠 수 있는 게임 설정 파일 (가져온 서버를 해제할 때 데몬이 가져오기 전 내용으로 되돌린다)"""
+    working_dir = config.get("working_dir")
+    if not working_dir:
+        return {"success": False, "message": i18n.t("errors.no_working_dir")}
+    return {"success": True, "files": [os.path.join(working_dir, "server.properties"), os.path.join(working_dir, "eula.txt")]}
 
 
 def instance_commands(config):
@@ -1415,7 +1477,7 @@ _RESET_KEEP = {
     "eula.txt", "user_jvm_args.txt", "run.bat", "run.sh",
     "fabric-server-launcher.properties", "quilt-server-launcher.properties",
     "java", "libraries", "versions", ".fabric", ".quilt",
-    "instance.json", "settings.json", "settings.json.tmp", "managed.pid", "run", "backups", "rcon.json", "rcon.json.tmp",
+    "instance.json", "settings.json", "settings.json.tmp", "managed.pid", "run", "backups", "rcon.json", "rcon.json.tmp", "migration",
 }
 
 
@@ -2370,6 +2432,7 @@ FUNCTIONS = {
     "configure": configure,
     "read_properties": read_properties,
     "import_settings": import_settings,
+    "config_files": config_files,
     "reset_properties": reset_properties,
     "reset_server": reset_server,
     "accept_agreements": accept_agreements,

@@ -714,6 +714,7 @@
     }
   },
   "errors": {
+    "data_home_unavailable": "Der Server-Datenordner konnte nicht erstellt oder geöffnet werden. Prüfe den Speicherort und die Berechtigungen.",
     "settings_write_failed": "Die Serverdateien wurden installiert, aber die gewählten Einstellungen konnten nicht gespeichert werden: {{error}}",
     "player_not_found": "Spieler nicht gefunden. Bitte prüfe den Benutzernamen.",
     "connection_refused": "Keine Verbindung zum Server. Bitte prüfe, ob der Server läuft und der Port stimmt.",

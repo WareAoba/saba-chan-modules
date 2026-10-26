@@ -714,6 +714,7 @@
     }
   },
   "errors": {
+    "data_home_unavailable": "无法创建或打开服务器数据文件夹。请检查文件夹位置和权限。",
     "settings_write_failed": "服务器文件已安装，但无法保存所选设置：{{error}}",
     "player_not_found": "找不到玩家。请检查用户名。",
     "connection_refused": "无法连接到服务器。请确认服务器正在运行且端口正确。",

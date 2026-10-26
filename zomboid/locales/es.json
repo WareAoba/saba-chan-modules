@@ -714,6 +714,7 @@
     }
   },
   "errors": {
+    "data_home_unavailable": "No se pudo crear ni abrir la carpeta de datos del servidor. Revisa la ubicación y los permisos de la carpeta.",
     "settings_write_failed": "Los archivos del servidor se instalaron, pero no se pudo guardar la configuración elegida: {{error}}",
     "player_not_found": "Jugador no encontrado. Comprueba el nombre de usuario.",
     "connection_refused": "No se puede conectar con el servidor. Comprueba que el servidor esté en ejecución y que el puerto sea correcto.",

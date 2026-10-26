@@ -1468,3 +1468,97 @@ def test_managed_stop_leaves_the_wait_to_the_daemon():
     assert result["success"] is True
     wait.assert_not_called()
     kill.assert_not_called()
+
+
+@pytest.mark.parametrize("name,content,expected", [
+    ("start.bat", "@echo off\njava -Xms2G -Xmx10G -jar server.jar nogui\npause\n", "10G"),
+    ("run.sh", "#!/bin/sh\nexec java -Xmx3072M -jar paper.jar --nogui\n", "3072M"),
+    ("user_jvm_args.txt", "# Forge\n-Xmx6G\n", "6G"),
+])
+def test_import_keeps_the_memory_of_the_existing_start_script(tmp_path, name, content, expected):
+    """가져온 서버는 쓰던 실행 스크립트의 -Xmx를 그대로 쓴다 (모듈 기본값 4G로 줄지 않게)"""
+    from minecraft.lifecycle import import_settings, ServerPropertiesManager
+    ServerPropertiesManager(str(tmp_path)).write({"motd": "kept"})
+    (tmp_path / name).write_text(content, encoding="utf-8")
+
+    settings = import_settings({"working_dir": str(tmp_path)})["settings"]
+
+    assert settings["ram"] == expected
+    assert settings["motd"] == "kept"
+
+
+def test_import_without_a_start_script_leaves_the_memory_setting_alone(tmp_path):
+    from minecraft.lifecycle import import_settings, ServerPropertiesManager
+    ServerPropertiesManager(str(tmp_path)).write({"motd": "kept"})
+    assert "ram" not in import_settings({"working_dir": str(tmp_path)})["settings"]
+
+
+def test_config_files_lists_the_files_saba_chan_may_change(tmp_path):
+    """가져오기를 해제할 때 되돌릴 파일: 사바쨩이 쓰는 server.properties와 eula.txt (있든 없든 경로는 알린다)"""
+    from minecraft.lifecycle import FUNCTIONS
+    files = FUNCTIONS["config_files"]({"working_dir": str(tmp_path)})
+    assert files["success"] is True
+    assert sorted(files["files"]) == sorted([str(tmp_path / "server.properties"), str(tmp_path / "eula.txt")])
+
+
+def _portable_java(java_dir, major):
+    """다운로드한 것처럼 둔 포터블 JRE (`release` 파일로 주 버전을 읽는다)"""
+    exe = "java.exe" if os.name == "nt" else "java"
+    os.makedirs(os.path.join(java_dir, "bin"), exist_ok=True)
+    open(os.path.join(java_dir, "bin", exe), "w").close()
+    with open(os.path.join(java_dir, "release"), "w", encoding="utf-8") as f:
+        f.write(f'JAVA_VERSION="{major}.0.1"\n')
+    return os.path.join(java_dir, "bin", exe)
+
+
+def test_import_fetches_a_portable_java_into_the_instance_folder(tmp_path, monkeypatch):
+    """가져온 서버는 PC에 깔린 Java(낮을 수 있다)를 쓰지 않고, 필요한 버전의 포터블 JRE를 인스턴스 폴더에 받는다.
+    서버 폴더에는 아무것도 더하지 않는다 (해제할 때 흔적이 남지 않게)"""
+    from minecraft import lifecycle
+    server, instance = tmp_path / "server", tmp_path / "instance"
+    server.mkdir()
+    instance.mkdir()
+    lifecycle.ServerPropertiesManager(str(server)).write({"motd": "kept"})
+    monkeypatch.setattr(lifecycle, "_required_java_for", lambda *a, **k: 25)
+    monkeypatch.setattr(lifecycle.JavaDetector, "find_java", lambda *a, **k: {"path": "java", "major_version": 25, "version": "25"})
+    calls = []
+    def fake_download(major, install_dir):
+        calls.append((major, install_dir))
+        return {"success": True, "java_path": _portable_java(os.path.join(install_dir, "java"), major)}
+    monkeypatch.setattr(lifecycle.JavaDownloader, "download_jre", fake_download)
+
+    result = lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance)})
+
+    assert result["success"] is True
+    assert calls == [(25, str(instance))]
+    assert not (server / "java").exists()
+    info = lifecycle._launch_java_info({"working_dir": str(server), "instance_dir": str(instance)}, None)
+    assert info["path"].startswith(str(instance)) and info["major_version"] == 25
+
+
+def test_import_keeps_a_portable_java_the_server_folder_already_has(tmp_path, monkeypatch):
+    from minecraft import lifecycle
+    server, instance = tmp_path / "server", tmp_path / "instance"
+    instance.mkdir()
+    _portable_java(str(server / "java"), 25)
+    lifecycle.ServerPropertiesManager(str(server)).write({"motd": "kept"})
+    monkeypatch.setattr(lifecycle, "_required_java_for", lambda *a, **k: 21)
+    monkeypatch.setattr(lifecycle.JavaDownloader, "download_jre", lambda *a: pytest.fail("no download when the folder has one"))
+
+    assert lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance)})["success"] is True
+
+
+def test_a_failed_java_download_does_not_fail_the_import(tmp_path, monkeypatch):
+    """받지 못해도 가져오기는 된다 (시작할 때 Java 문제로 안내한다)"""
+    from minecraft import lifecycle
+    server, instance = tmp_path / "server", tmp_path / "instance"
+    server.mkdir()
+    instance.mkdir()
+    lifecycle.ServerPropertiesManager(str(server)).write({"motd": "kept"})
+    monkeypatch.setattr(lifecycle, "_required_java_for", lambda *a, **k: 25)
+    monkeypatch.setattr(lifecycle.JavaDownloader, "download_jre", lambda *a: {"success": False, "message": "offline"})
+
+    result = lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance)})
+
+    assert result["success"] is True and result["settings"]["motd"] == "kept"
+    assert "offline" in result.get("java_warning", "")

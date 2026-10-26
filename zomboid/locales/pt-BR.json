@@ -714,6 +714,7 @@
     }
   },
   "errors": {
+    "data_home_unavailable": "Não foi possível criar ou abrir a pasta de dados do servidor. Verifique o local e as permissões da pasta.",
     "settings_write_failed": "Os arquivos do servidor foram instalados, mas não foi possível salvar as configurações escolhidas: {{error}}",
     "player_not_found": "Jogador não encontrado. Verifique o nome de usuário.",
     "connection_refused": "Não foi possível conectar ao servidor. Verifique se o servidor está em execução e se a porta está correta.",

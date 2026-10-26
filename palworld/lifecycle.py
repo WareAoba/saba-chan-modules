@@ -1018,6 +1018,14 @@ def import_settings(config):
     return {"success": True, "settings": settings}
 
 
+def config_files(config):
+    """사바쨩이 고칠 수 있는 게임 설정 파일 (가져온 서버를 해제할 때 데몬이 가져오기 전 내용으로 되돌린다)"""
+    ini_path = _get_settings_ini_path(config)
+    if not ini_path:
+        return {"success": False, "message": i18n.t("errors.no_server_dir")}
+    return {"success": True, "files": [ini_path]}
+
+
 def read_properties(config):
     """Read current PalWorldSettings.ini."""
     ini_path = _get_settings_ini_path(config)
@@ -1505,6 +1513,7 @@ FUNCTIONS = {
     "configure": configure,
     "read_properties": read_properties,
     "import_settings": import_settings,
+    "config_files": config_files,
     "reset_properties": reset_properties,
     "reset_server": reset_server,
     "diagnose_log": diagnose_log,

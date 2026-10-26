@@ -1,8 +1,8 @@
 {
-  "errors": {
-    "graceful_stop_unavailable": "No way to ask the server to save and exit"
-  },
-  "messages": {
-    "stop_requested": "Save and stop requested"
+  "settings": {
+    "server_name": {
+      "label": "Server Name",
+      "description": "Name displayed in the server browser"
+    }
   }
 }

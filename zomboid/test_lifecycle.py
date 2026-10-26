@@ -43,10 +43,12 @@ def test_module_toml_required_sections_present():
 # ─── 2. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
 
 def test_ini_key_map_values_mostly_in_defaults():
-    """_INI_KEY_MAP이 가리키는 INI 키의 상당수는 DEFAULT_INI_PROPERTIES에 있어야 한다.
+    """module.toml file_key가 가리키는 INI 키의 상당수는 DEFAULT_INI_PROPERTIES에 있어야 한다.
     모두 있어야 한다고 강제하진 않는다 (PZ는 기본값이 서버 최초 실행 시 생성되는
     필드도 있음). 단 coverage가 극도로 낮으면 매핑이 깨진 것."""
-    from zomboid.lifecycle import _INI_KEY_MAP, DEFAULT_INI_PROPERTIES
+    from zomboid.lifecycle import DEFAULT_INI_PROPERTIES, MODULE_DIR
+    from daemon_rcon import setting_file_keys
+    _INI_KEY_MAP = setting_file_keys(MODULE_DIR)
 
     covered = sum(1 for v in _INI_KEY_MAP.values() if v in DEFAULT_INI_PROPERTIES)
     ratio = covered / max(1, len(_INI_KEY_MAP))
@@ -58,20 +60,15 @@ def test_ini_key_map_values_mostly_in_defaults():
 
 def test_ini_key_map_no_duplicate_targets():
     """두 friendly name이 같은 INI 키에 매핑되면 설정이 소실된다."""
-    from zomboid.lifecycle import _INI_KEY_MAP
+    from zomboid.lifecycle import MODULE_DIR
+    from daemon_rcon import setting_file_keys
+    _INI_KEY_MAP = setting_file_keys(MODULE_DIR)
 
     reverse = {}
     for friendly, ini_key in _INI_KEY_MAP.items():
         reverse.setdefault(ini_key, []).append(friendly)
     dupes = {k: v for k, v in reverse.items() if len(v) > 1}
     assert not dupes, f"중복 매핑된 INI 키: {dupes}"
-
-
-def test_ini_key_map_reverse_is_bijective():
-    """_INI_KEY_MAP_REV는 _INI_KEY_MAP의 완전 역이어야 한다.
-    일방향만 수정되면 read_properties가 잘못된 필드를 반환한다."""
-    from zomboid.lifecycle import _INI_KEY_MAP, _INI_KEY_MAP_REV
-    assert _INI_KEY_MAP_REV == {v: k for k, v in _INI_KEY_MAP.items()}
 
 
 def test_default_ini_no_duplicate_keys_case_insensitive():
@@ -107,9 +104,11 @@ def _ini_bound_field_names(cfg):
 
 
 def test_ini_bound_fields_are_mapped():
-    """INI에 쓰여야 하는 UI 필드가 모두 _INI_KEY_MAP에 있어야 한다.
+    """INI에 쓰여야 하는 UI 필드가 모두 file_key를 가져야 한다.
     누락되면 GUI에서 바꾼 값이 서버에 반영되지 않는다. (RCON 칸은 없다: 보안상 늘 꺼 둔다)"""
-    from zomboid.lifecycle import _INI_KEY_MAP
+    from zomboid.lifecycle import MODULE_DIR
+    from daemon_rcon import setting_file_keys
+    _INI_KEY_MAP = setting_file_keys(MODULE_DIR)
 
     cfg = _load_module_toml()
     unmapped = [n for n in _ini_bound_field_names(cfg) if n not in _INI_KEY_MAP]
@@ -399,27 +398,6 @@ def test_launch_turns_rcon_off(tmp_path):
     assert IniManager.read(str(ini))["RCONPassword"] == ""
 
 
-def test_normal_stop_never_force_kills_first():
-    """RCON is off: a normal stop goes console save+quit (or SIGTERM) and waits; kill only after the wait"""
-    from unittest import mock
-    from zomboid import lifecycle
-    calls = []
-    with mock.patch.object(lifecycle, "_console_quit", side_effect=lambda iid: calls.append("quit") or True), \
-         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
-         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or True), \
-         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
-        assert lifecycle.stop({"pid": 7, "instance_id": "z"})["success"] is True
-    assert calls == ["quit", "wait"]
-
-    calls.clear()
-    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
-         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or False), \
-         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
-        lifecycle.stop({"pid": 7})
-    assert calls == ["term", "wait", "kill"]
-
-
 def test_commands_go_to_the_console():
     from unittest import mock
     from zomboid import lifecycle
@@ -494,7 +472,7 @@ def test_saving_one_setting_keeps_other_values_in_a_locale_encoded_ini(tmp_path,
     영문 Windows(cp1252)에서도 한글 값을 깨진 글자로 읽지 않는다"""
     from zomboid import lifecycle
     from zomboid.lifecycle import IniManager
-    monkeypatch.setattr(lifecycle.locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
+    monkeypatch.setattr(__import__("locale"), "getpreferredencoding", lambda do_setlocale=True: "cp1252")
     ini = tmp_path / "servertest.ini"
     ini.write_bytes("PublicName=우리 서버\nMaxPlayers=8\n".encode("cp949"))
     assert IniManager.read(str(ini))["PublicName"] == "우리 서버"
@@ -547,7 +525,8 @@ def test_the_declared_udp_port_reaches_the_server(tmp_path):
     assert args[args.index("-udpport") + 1] == "16300"
     # 마지막 포트도 -port로 넘긴다. port+1이 없으니 -udpport만 뺀다
     assert top[top.index("-port") + 1] == "65535" and "-udpport" not in top
-    assert lifecycle._INI_KEY_MAP["udp_port"] == "UDPPort"
+    from daemon_rcon import setting_file_keys
+    assert setting_file_keys(lifecycle.MODULE_DIR)["udp_port"] == "UDPPort"
 
 
 @pytest.mark.parametrize(("has_db", "include_password"), [(False, True), (True, False)])
@@ -570,14 +549,15 @@ def test_steamcmd_extension_import_failure_does_not_search_for_an_executable(mon
     from zomboid import lifecycle
     import extensions.steamcmd
 
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
-    monkeypatch.delattr(extensions.steamcmd, "SteamCMD", raising=False)
+    # 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하도록 extension_required로 답한다
+    monkeypatch.delattr(extensions.steamcmd, "install_for_module", raising=False)
     monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
 
     result = lifecycle.install_server({"install_dir": "server", "settings": {}})
 
     assert result["success"] is False
     assert result["message"]
+    assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]
 
 
 def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(tmp_path, monkeypatch):
@@ -585,17 +565,9 @@ def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(
     from unittest import mock
     from zomboid import lifecycle
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
-
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
     home = tmp_path / "data"
     settings = {"cache_dir": str(home), "server_name": "srv", "password": "pw", "max_players": 4, "port": 16300, "ram": 4}
-    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": settings})["success"]
         ini = home / "Server" / "srv.ini"
         values = lifecycle.IniManager.read(str(ini))
@@ -603,19 +575,6 @@ def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(
         lifecycle.IniManager.update(str(ini), {"Password": "changed"})
         assert lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": settings})["success"]
     assert lifecycle.IniManager.read(str(ini))["Password"] == "changed"
-
-
-def test_plain_stop_without_a_way_to_save_does_not_kill():
-    """콘솔도 SIGTERM도 없으면(Windows, 콘솔 없는 서버) 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
-    from unittest import mock
-    from zomboid import lifecycle
-    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
-            mock.patch.object(lifecycle, "_request_terminate", return_value=False), \
-            mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 4242, "instance_id": "x"})
-    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
-    assert result.get("message")
-    kill.assert_not_called()
 
 
 def test_backup_paths_fail_when_the_server_folder_cannot_be_read(tmp_path):
@@ -635,33 +594,6 @@ def test_commands_that_change_access_or_grant_things_are_danger():
         risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
     for name in ('unbanuser', 'adduser', 'setaccesslevel', 'banuser', 'additem', 'addxp', 'godmod', 'invisible', 'createhorde', 'changeoption', 'reloadoptions'):
         assert risks[name] == "danger", name
-
-
-def test_stop_waits_for_the_configured_stop_timeout():
-    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한(stop_call_limit)을 알려 주면 그 30초 앞까지, 모르면(0.1.8 데몬, 120초 제한) 90초까지 (MA2, 리뷰 526)"""
-    from unittest import mock
-    from zomboid import lifecycle
-    for config, expected in (({"stop_timeout": "75"}, 75), ({}, 90), ({"stop_timeout": 3600}, 90), ({"stop_timeout": 3600, "stop_call_limit": 3630}, 3600), ({"stop_call_limit": 150}, 120), ({"stop_timeout": 600, "stop_call_limit": "100"}, 70)):
-        waits = []
-        with mock.patch.object(lifecycle, "_console_quit", return_value=True), \
-             mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: waits.append(timeout) or True):
-            lifecycle.stop({"pid": 7, **config})
-        assert waits == [expected], config
-
-
-def test_managed_stop_leaves_the_wait_to_the_daemon():
-    """managed 정지는 저장 후 종료만 요청하고 바로 돌려준다: 기다림과 강제 종료는 데몬이 인스턴스 stop_timeout까지 맡는다.
-    여기서 기다리면 호출 제한(stop_call_limit - 30초)에 잘려 저장 중에 강제 종료한다 (02 §3.4, palworld와 같다)"""
-    from unittest import mock
-    from zomboid import lifecycle
-    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", return_value=True), \
-         mock.patch.object(lifecycle, "wait_for_exit") as wait, \
-         mock.patch.object(lifecycle, "_kill") as kill:
-        result = lifecycle.stop({"pid": 7, "managed": True, "stop_timeout": 300, "stop_call_limit": 120})
-    assert result["success"] is True
-    wait.assert_not_called()
-    kill.assert_not_called()
 
 
 def _worlds(home, *names):
@@ -737,15 +669,7 @@ def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_pa
     from zomboid import lifecycle
     import extensions.steamcmd
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
-
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
-    monkeypatch.setattr(extensions.steamcmd, "SteamCMD", FakeSteam)
+    monkeypatch.setattr(extensions.steamcmd, "install_for_module", lambda *args, **kwargs: {"success": True})
     def denied(*args, **kwargs):
         raise PermissionError("denied")
 
@@ -762,15 +686,7 @@ def test_install_does_not_hide_a_profile_path_escape(tmp_path, monkeypatch):
     from zomboid import lifecycle
     import extensions.steamcmd
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
-
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
-    monkeypatch.setattr(extensions.steamcmd, "SteamCMD", FakeSteam)
+    monkeypatch.setattr(extensions.steamcmd, "install_for_module", lambda *args, **kwargs: {"success": True})
     with pytest.raises(PathOutside):
         lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": {"cache_dir": str(tmp_path / "data"), "server_name": "../other", "password": "private"}})
 
@@ -778,7 +694,7 @@ def test_install_does_not_hide_a_profile_path_escape(tmp_path, monkeypatch):
 def test_manifest_declares_the_external_data_roots_and_the_sdk_boundary():
     cfg = _load_module_toml()
     assert cfg["extensions"]["saba-core"]["data_roots"] == ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
-    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.10"
+    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.11-0"
     field = next(field for field in cfg["settings"]["fields"] if field["name"] == "data_home")
     assert field["format"] == "path"
 
@@ -929,3 +845,57 @@ def test_a_data_folder_that_cannot_be_made_fails_with_a_plain_message(tmp_path):
     assert result["success"] is False
     assert result["message"] == lifecycle.i18n.t("errors.data_home_unavailable")
     assert "D:" not in result["message"]
+
+
+def test_stop_uses_the_shared_procedure_with_a_console_quit_then_sigterm():
+    """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. 모듈은 요청 방법만 정한다:
+    콘솔 `quit`(저장하고 끝난다) → (콘솔이 없으면) SIGTERM. quit 앞에 save와 5초 대기를 붙이지 않는다"""
+    from unittest import mock
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()) as shared, \
+         mock.patch.object(lifecycle, "request_console", return_value=True) as console, \
+         mock.patch.object(lifecycle, "request_terminate") as term:
+        assert lifecycle.stop({"pid": 7, "instance_id": "z"}) is True
+    assert shared.call_args.kwargs["module_dir"] == lifecycle.MODULE_DIR
+    console.assert_called_once_with({"pid": 7, "instance_id": "z"}, "quit")
+    term.assert_not_called()
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()), \
+         mock.patch.object(lifecycle, "request_console", return_value=False), \
+         mock.patch.object(lifecycle, "request_terminate", return_value=True) as term:
+        assert lifecycle.stop({"pid": 7}) is True
+    term.assert_called_once_with(7)
+
+
+def test_diagnose_reads_the_daemon_lines_then_the_server_console_but_not_the_client_log(tmp_path):
+    """진단 규칙은 module.toml [[diagnose]] (공용 diagnose_lines). 데몬이 준 콘솔 줄 → server-console.txt 순이고,
+    같은 PC의 게임 클라이언트 로그(console.txt)는 서버 문제가 아니라 보지 않는다 (MP20)"""
+    from zomboid import lifecycle
+    issues = lifecycle.diagnose_log({"log_lines": ["java.net.BindException: Address already in use"]})["issues"]
+    assert [(i["code"], i["severity"]) for i in issues] == [("PORT_IN_USE", "error")]
+    home = tmp_path / "Zomboid"
+    home.mkdir()
+    (home / "console.txt").write_text("java.lang.OutOfMemoryError\n", encoding="utf-8")
+    config = {"cache_dir": str(home)}
+    assert lifecycle.diagnose_log(config)["issues"] == []
+    (home / "server-console.txt").write_text("LuaException: boom\n", encoding="utf-8")
+    assert [i["code"] for i in lifecycle.diagnose_log(config)["issues"]] == ["MOD_ERROR"]
+
+
+def test_install_reads_the_steam_app_from_module_toml(tmp_path):
+    """Steam app_id는 module.toml [install] 한 곳에 둔다(steamcmd install_for_module). Build 42 unstable은 beta로"""
+    from unittest import mock
+    from zomboid import lifecycle
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
+        lifecycle.install_server({"install_dir": str(tmp_path / "server"), "use_beta": True})
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta="unstable")
+    assert _load_module_toml()["install"]["app_id"] == 380870
+
+
+def test_a_setting_with_a_line_break_is_a_write_failure(tmp_path, monkeypatch):
+    # 줄바꿈은 ini 한 줄을 깨뜨리므로 공용 settings_to_file이 거부한다. 모듈 예외가 아니라 저장 실패로 답해야 한다
+    from zomboid import lifecycle
+    ini_path = str(tmp_path / "servertest.ini")
+    monkeypatch.setattr(lifecycle.IniManager, "get_ini_path", staticmethod(lambda config: ini_path))
+    result = lifecycle.configure({"settings": {"public_name": "a\nb"}})
+    assert result["success"] is False and "properties_write_failed" not in result["message"]
+    assert lifecycle._write_initial_ini({"settings": {"public_name": "a\nb"}})["error_code"] == "settings_write_failed"

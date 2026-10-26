@@ -16,7 +16,6 @@ Always outputs JSON to stdout, logs to stderr.
 
 import sys
 import json
-import locale
 import subprocess
 import os
 import re
@@ -24,7 +23,6 @@ import shutil
 import socket
 import struct
 import time
-import hashlib
 import tempfile
 import zipfile
 from pathlib import Path
@@ -34,92 +32,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더�
 
 import plugins
 import server_types
-from daemon_rcon import PathOutside, atomic_write, force_kill, is_process_alive, safe_join, wait_for_exit
+from daemon_rcon import (ChecksumMismatch, PathOutside, atomic_write, diagnose_lines, download, graceful_stop,
+                         is_process_alive, load_diagnose_rules, progress, read_key_values, request_console,
+                         request_terminate, safe_extract, safe_join, setting_file_keys, settings_from_file,
+                         settings_to_file, tail_lines, update_key_values)
 
 # ─── Init ─────────────────────────────────────────────────────
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
-
-
-def _progress(percent, message):
-    """데몬이 읽는 진행률 줄 (stderr `PROGRESS:{json}`, GUI 설치 진행률)"""
-    print("PROGRESS:" + json.dumps({"percent": percent, "message": message}, ensure_ascii=True), file=sys.stderr, flush=True)
-
-# ─── Friendly name → server.properties key mapping ───────────
-# Used by configure() and install_server() to translate settings.
-_PROPERTY_KEY_MAP = {
-    "accepts_transfers": "accepts-transfers",
-    "allow_flight": "allow-flight",
-    "allow_nether": "allow-nether",
-    "broadcast_console_to_ops": "broadcast-console-to-ops",
-    "bug_report_link": "bug-report-link",
-    "difficulty": "difficulty",
-    "enable_command_block": "enable-command-block",
-    "enable_code_of_conduct": "enable-code-of-conduct",
-    "enable_jmx_monitoring": "enable-jmx-monitoring",
-    "enable_query": "enable-query",
-    "enable_status": "enable-status",
-    "enforce_secure_profile": "enforce-secure-profile",
-    "enforce_whitelist": "enforce-whitelist",
-    "entity_broadcast_range_percentage": "entity-broadcast-range-percentage",
-    "force_gamemode": "force-gamemode",
-    "function_permission_level": "function-permission-level",
-    "gamemode": "gamemode",
-    "generate_structures": "generate-structures",
-    "generator_settings": "generator-settings",
-    "hardcore": "hardcore",
-    "hide_online_players": "hide-online-players",
-    "initial_disabled_packs": "initial-disabled-packs",
-    "initial_enabled_packs": "initial-enabled-packs",
-    "level_name": "level-name",
-    "level_seed": "level-seed",
-    "level_type": "level-type",
-    "log_ips": "log-ips",
-    "max_chained_neighbor_updates": "max-chained-neighbor-updates",
-    "max_players": "max-players",
-    "max_tick_time": "max-tick-time",
-    "max_world_size": "max-world-size",
-    "motd": "motd",
-    "network_compression_threshold": "network-compression-threshold",
-    "online_mode": "online-mode",
-    "op_permission_level": "op-permission-level",
-    "player_idle_timeout": "player-idle-timeout",
-    "pause_when_empty_seconds": "pause-when-empty-seconds",
-    "port": "server-port",
-    "prevent_proxy_connections": "prevent-proxy-connections",
-    "pvp": "pvp",
-    "query_port": "query.port",
-    "debug": "debug",
-    "management_server_enabled": "management-server-enabled",
-    "management_server_host": "management-server-host",
-    "management_server_port": "management-server-port",
-    "management_server_secret": "management-server-secret",
-    "management_server_allowed_origins": "management-server-allowed-origins",
-    "management_server_tls_enabled": "management-server-tls-enabled",
-    "management_server_tls_keystore": "management-server-tls-keystore",
-    "management_server_tls_keystore_password": "management-server-tls-keystore-password",
-    "rate_limit": "rate-limit",
-    "region_file_compression": "region-file-compression",
-    "require_resource_pack": "require-resource-pack",
-    "resource_pack": "resource-pack",
-    "resource_pack_id": "resource-pack-id",
-    "resource_pack_prompt": "resource-pack-prompt",
-    "resource_pack_sha1": "resource-pack-sha1",
-    "server_ip": "server-ip",
-    "simulation_distance": "simulation-distance",
-    "spawn_animals": "spawn-animals",
-    "spawn_monsters": "spawn-monsters",
-    "spawn_npcs": "spawn-npcs",
-    "spawn_protection": "spawn-protection",
-    "status_heartbeat_interval": "status-heartbeat-interval",
-    "sync_chunk_writes": "sync-chunk-writes",
-    "text_filtering_config": "text-filtering-config",
-    "text_filtering_version": "text-filtering-version",
-    "use_native_transport": "use-native-transport",
-    "view_distance": "view-distance",
-    "white_list": "white-list",
-}
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -407,10 +328,6 @@ class JavaDownloader:
         Returns:
             dict with success, java_path, java_home, version
         """
-        import urllib.request
-        import tarfile
-        import zipfile
-
         os_name, arch = JavaDownloader._platform_info()
         java_dir = os.path.join(install_dir, "java")
 
@@ -441,35 +358,22 @@ class JavaDownloader:
         print(f"  URL: {url}", file=sys.stderr)
 
         tmp_file = os.path.join(install_dir, f"java-jre.{ext}")
+        message = i18n.t("messages.downloading_java", version=str(major_version))
+        shown = [-1]
+
+        def report(done, total):
+            pct = done * 100 // total if total else -1
+            if pct != shown[0] and pct >= 0:
+                shown[0] = pct
+                progress(pct, message)
 
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "saba-chan/1.0"})
-            with urllib.request.urlopen(req, timeout=300) as resp:
-                total = int(resp.headers.get("Content-Length", 0))
-                downloaded = 0
-                chunk_size = 256 * 1024
-                last_pct = -1
-                message = i18n.t("messages.downloading_java", version=str(major_version))
-
-                with open(tmp_file, "wb") as f:
-                    while True:
-                        chunk = resp.read(chunk_size)
-                        if not chunk:
-                            break
-                        f.write(chunk)
-                        downloaded += len(chunk)
-                        if total > 0:
-                            pct = downloaded * 100 // total
-                            if pct != last_pct:
-                                last_pct = pct
-                                _progress(pct, message)
-
+            download(url, tmp_file, on_progress=report, timeout=300, user_agent="saba-chan/1.0")
         except Exception as e:
-            if os.path.exists(tmp_file):
-                os.remove(tmp_file)
             return {"success": False, "message": i18n.t("errors.java_download_failed", error=str(e))}
 
-        # Extract: 임시 폴더에 다 푼 뒤에만 java/를 바꾼다 (중간 실패가 반쯤 풀린 Java를 남기지 않게)
+        # Extract: 임시 폴더에 다 푼 뒤에만 java/를 바꾼다 (중간 실패가 반쯤 풀린 Java를 남기지 않게).
+        # Adoptium 압축은 맨 위에 "jdk-21.0.2+13-jre" 같은 폴더 하나가 있다. 폴더 밖으로 나가는 항목·링크는 풀지 않는다
         final_dir = java_dir
         java_dir = final_dir + ".part"
         print(f"  Extracting to {final_dir}...", file=sys.stderr)
@@ -477,35 +381,7 @@ class JavaDownloader:
         os.makedirs(java_dir, exist_ok=True)
 
         try:
-            if ext == "zip":
-                with zipfile.ZipFile(tmp_file) as zf:
-                    # Adoptium zips have a top-level dir like "jdk-21.0.2+13-jre"
-                    top_dirs = {name.split("/")[0] for name in zf.namelist() if "/" in name}
-                    strip_prefix = top_dirs.pop() + "/" if len(top_dirs) == 1 else ""
-                    for member in zf.infolist():
-                        if member.is_dir():
-                            continue
-                        # Strip top-level directory
-                        rel_path = member.filename
-                        if strip_prefix and rel_path.startswith(strip_prefix):
-                            rel_path = rel_path[len(strip_prefix):]
-                        if not rel_path:
-                            continue
-                        dest = os.path.join(java_dir, rel_path)
-                        os.makedirs(os.path.dirname(dest), exist_ok=True)
-                        with zf.open(member) as src, open(dest, "wb") as dst:
-                            dst.write(src.read())
-            else:
-                with tarfile.open(tmp_file, "r:gz") as tf:
-                    # Same stripping for tar.gz
-                    members = tf.getmembers()
-                    if members:
-                        top_dir = members[0].name.split("/")[0]
-                        for member in members:
-                            if member.name.startswith(top_dir + "/"):
-                                member.name = member.name[len(top_dir) + 1:]
-                            if member.name:
-                                tf.extract(member, java_dir)
+            safe_extract(tmp_file, java_dir, strip_top=True)
         except Exception as e:
             shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
@@ -668,34 +544,14 @@ class ServerPropertiesManager:
     def exists(self):
         return os.path.isfile(self.path)
 
-    def _lines(self):
-        """파일의 줄. UTF-8이 아니면(ANSI 편집기로 저장한 cp949 등) cp949·시스템 로캘·latin-1 순서로 읽는다.
-        cp949가 로캘보다 먼저다: 영문 Windows의 cp1252는 거의 모든 바이트를 받아 한글을 깨진 글자로 읽는다"""
-        with open(self.path, "rb") as f:
-            raw = f.read()
-        for encoding in ("utf-8-sig", "cp949", locale.getpreferredencoding(False), "latin-1"):
-            try:
-                return raw.decode(encoding).splitlines(keepends=True)
-            except (UnicodeDecodeError, LookupError):
-                continue
-        return []
-
     def read(self):
-        """Parse server.properties into a dict."""
-        props = {}
+        """Parse server.properties into a dict. 인코딩 추측(UTF-8 → cp949 → 로캘)은 공용 read_key_values가 한다"""
         if not self.exists():
-            return props
+            return {}
         try:
-            for line in self._lines():
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                if "=" in line:
-                    key, _, value = line.partition("=")
-                    props[key.strip()] = value.strip()
+            return read_key_values(self.path, strip_values=True)
         except OSError:
-            pass
-        return props
+            return {}
 
     def write(self, properties):
         """Write a full properties dict (replaces entire file)."""
@@ -711,187 +567,19 @@ class ServerPropertiesManager:
             return False
 
     def update(self, changes):
-        """Merge changes into existing properties (preserves comments)."""
+        """Merge changes into existing properties (preserves comments). 서버는 UTF-8로 읽으므로 UTF-8로 쓴다"""
         if not self.exists():
             merged = dict(DEFAULT_PROPERTIES)
             merged.update(changes)
             return self.write(merged)
-
         try:
-            lines = []
-            updated_keys = set()
-            for line in self._lines():
-                stripped = line.strip()
-                if stripped and not stripped.startswith("#") and "=" in stripped:
-                    key = stripped.partition("=")[0].strip()
-                    if key in changes:
-                        lines.append(f"{key}={changes[key]}\n")
-                        updated_keys.add(key)
-                    else:
-                        lines.append(line)
-                else:
-                    lines.append(line)
-
-            for key, value in changes.items():
-                if key not in updated_keys:
-                    lines.append(f"{key}={value}\n")
-
-            atomic_write(self.path, "".join(lines).encode("utf-8"))
+            update_key_values(self.path, changes, write_encoding="utf-8")
             return True
         except OSError:
             return False
 
     def get_defaults(self):
         return dict(DEFAULT_PROPERTIES)
-
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                Error Detection                            ║
-# ╚═══════════════════════════════════════════════════════════╝
-
-ERROR_PATTERNS = [
-    {
-        "code": "JAVA_NOT_FOUND",
-        "patterns": [
-            r"'java' is not recognized",
-            r"java: not found",
-            r"No such file or directory.*java",
-            r"The system cannot find the file specified",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "JAVA_VERSION_TOO_OLD",
-        "patterns": [
-            r"UnsupportedClassVersionError",
-            r"class file version \d+\.\d+",
-            r"requires Java \d+",
-            r"has been compiled by a more recent version",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "EULA_NOT_ACCEPTED",
-        "patterns": [
-            r"You need to agree to the EULA",
-            r"Failed to load eula",
-            r"Go to eula\.txt",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "PORT_IN_USE",
-        "patterns": [
-            r"FAILED TO BIND TO PORT",
-            r"Address already in use",
-            r"Perhaps a server is already running on that port",
-            r"java\.net\.BindException",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "OUT_OF_MEMORY",
-        "patterns": [
-            r"java\.lang\.OutOfMemoryError",
-            r"There is insufficient memory",
-            r"Could not reserve enough space",
-            r"GC overhead limit exceeded",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "WORLD_CORRUPT",
-        "patterns": [
-            r"Failed to load.*level\.dat",
-            r"Caused by: java\.util\.zip\.ZipException",
-            r"Region file is truncated",
-        ],
-        "severity": "error",
-    },
-    {
-        "code": "INVALID_JAR",
-        "patterns": [
-            r"Invalid or corrupt jarfile",
-            r"Error: Unable to access jarfile",
-            r"Could not find or load main class",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "PERMISSION_DENIED",
-        "patterns": [
-            r"Permission denied",
-            r"Access is denied",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "SERVER_OVERLOADED",
-        "patterns": [
-            r"Can't keep up! Is the server overloaded\?",
-        ],
-        "severity": "warning",
-    },
-]
-
-
-class ErrorDetector:
-    """Detect and diagnose common Minecraft server errors in log output."""
-
-    @staticmethod
-    def diagnose(log_lines):
-        """Analyze log lines for known error patterns. Returns list of issues."""
-        issues = []
-        seen_codes = set()
-        if isinstance(log_lines, str):
-            log_lines = log_lines.splitlines()
-
-        for line in log_lines:
-            for pdef in ERROR_PATTERNS:
-                if pdef["code"] in seen_codes:
-                    continue
-                for regex in pdef["patterns"]:
-                    if re.search(regex, line, re.IGNORECASE):
-                        code = pdef["code"]
-                        seen_codes.add(code)
-                        issues.append({
-                            "code": code,
-                            "severity": pdef["severity"],
-                            "matched_line": line.strip()[:200],
-                            "message": i18n.t(f"errors.detect.{code.lower()}"),
-                            "solution": i18n.t(f"errors.solutions.{code.lower()}"),
-                        })
-                        break
-        return issues
-
-    @staticmethod
-    def diagnose_startup_failure(exit_code, stderr_text, working_dir):
-        """Diagnose why a server failed to start."""
-        issues = ErrorDetector.diagnose(stderr_text)
-
-        eula_accepted, _ = EulaManager.check_eula(working_dir)
-        if not eula_accepted:
-            if not any(i["code"] == "EULA_NOT_ACCEPTED" for i in issues):
-                issues.append({
-                    "code": "EULA_NOT_ACCEPTED",
-                    "severity": "critical",
-                    "matched_line": "",
-                    "message": i18n.t("errors.detect.eula_not_accepted"),
-                    "solution": i18n.t("errors.solutions.eula_not_accepted"),
-                })
-
-        log_path = os.path.join(working_dir, "logs", "latest.log")
-        if os.path.isfile(log_path):
-            try:
-                with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-                    recent = f.readlines()[-200:]
-                for issue in ErrorDetector.diagnose(recent):
-                    if not any(i["code"] == issue["code"] for i in issues):
-                        issues.append(issue)
-            except OSError:
-                pass
-
-        return issues
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1309,15 +997,11 @@ def configure(config):
 
     mgr = ServerPropertiesManager(working_dir)
 
-    props_changes = {}
-    for key, value in settings.items():
-        # server.properties 키가 아닌 것(ram, java_path 같은 사바쨩 설정)은 쓰지 않는다
-        prop_key = _PROPERTY_KEY_MAP.get(key)
-        if prop_key is None:
-            continue
-        if isinstance(value, bool):
-            value = "true" if value else "false"
-        props_changes[prop_key] = str(value)
+    # server.properties 키(module.toml file_key)가 없는 것(ram, java_path 같은 사바쨩 설정)은 쓰지 않는다
+    try:
+        props_changes = settings_to_file(MODULE_DIR, settings)
+    except ValueError:
+        return {"success": False, "message": i18n.t("errors.properties_write_failed")}
 
     success = mgr.update(props_changes)
     return {
@@ -1383,16 +1067,11 @@ def import_settings(config):
     if not raw_props:
         return {"success": True, "settings": found, "message": i18n.t("messages.no_properties_found"), **extra}
 
-    # Build reverse map: server.properties key → saba-chan key
-    reverse_map = {v: k for k, v in _PROPERTY_KEY_MAP.items()}
-
-    # 스키마 타입대로만 바꾼다: 숫자 같은 비밀번호("000123")나 이름은 문자열 그대로
-    from daemon_rcon import coerce_setting, load_setting_types
-    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
-    settings = {}
-    for prop_key, raw_value in raw_props.items():
-        saba_key = reverse_map.get(prop_key, prop_key)
-        settings[saba_key] = coerce_setting(raw_value, types.get(saba_key))
+    # 설정 화면에 없는 키는 이름 그대로 넘긴다. 있는 키는 스키마 타입대로만 바꾼다:
+    # 숫자 같은 비밀번호("000123")나 이름은 문자열 그대로
+    known = set(setting_file_keys(MODULE_DIR).values())
+    settings = {key: value for key, value in raw_props.items() if key not in known}
+    settings.update(settings_from_file(MODULE_DIR, raw_props))
     settings.update(found)
 
     return {"success": True, "settings": settings, **extra}
@@ -1578,7 +1257,7 @@ def accept_agreements(config):
 
 
 def diagnose_log(config):
-    """Diagnose errors from provided log lines or logs/latest.log."""
+    """Diagnose errors from provided log lines or logs/latest.log. 규칙은 module.toml [[diagnose]]"""
     log_lines = config.get("log_lines", [])
     working_dir = config.get("working_dir", "")
 
@@ -1586,105 +1265,25 @@ def diagnose_log(config):
         log_lines = log_lines.splitlines()
 
     if not log_lines and working_dir:
-        log_path = os.path.join(working_dir, "logs", "latest.log")
-        if os.path.isfile(log_path):
-            try:
-                with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-                    log_lines = f.readlines()[-500:]
-            except OSError:
-                pass
+        log_lines = tail_lines(os.path.join(working_dir, "logs", "latest.log"))
 
     return {
         "success": True,
-        "issues": ErrorDetector.diagnose(log_lines),
+        "issues": diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n),
         "lines_analyzed": len(log_lines),
     }
 
 
-# 데몬이 호출 제한을 알려 주지 않으면(0.1.8 데몬, 모듈 호출 120초) 강제 종료까지 그 안에 끝나도록 90초에서 멈춘다.
-# 알려 주면(stop_call_limit, 데몬 #480 이후) 그 30초 앞까지 기다린다
-STOP_TIMEOUT_MAX = 90
-STOP_CALL_MARGIN = 30
-
-
-def _stop_timeout(config):
-    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout. 상한은 데몬의 호출 제한 안이다"""
-    value = config.get("stop_timeout")
-    if value in (None, ""):
-        import tomllib
-        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
-    try:
-        value = int(value)
-    except (TypeError, ValueError):
-        value = 30
-    cap = STOP_TIMEOUT_MAX
-    try:
-        cap = int(config["stop_call_limit"]) - STOP_CALL_MARGIN
-    except (KeyError, TypeError, ValueError):
-        pass
-    return max(1, min(value, cap))
-
-
-def _send_console_stop(instance_id):
-    """데몬을 거쳐 서버 콘솔(stdin)에 `stop`을 보낸다. 콘솔이 없으면 False"""
-    if not instance_id:
-        return False
-    try:
-        from daemon_rcon import daemon_stdin_command
-        daemon_stdin_command(instance_id, "stop", timeout=5)
-        return True
-    except Exception as e:  # 콘솔 없음(409), 데몬 없음
-        print(f"[Minecraft] console stop unavailable: {e}", file=sys.stderr)
-        return False
-
-
-def _request_terminate(pid):
-    """POSIX: SIGTERM (서버가 월드를 저장하고 끝난다). Windows 콘솔 앱에는 보낼 정상 종료 신호가 없어 False"""
-    if os.name == "nt":
-        return False
-    import signal
-    try:
-        os.kill(int(pid), signal.SIGTERM)
-        return True
-    except (OSError, ValueError) as e:
-        print(f"[Minecraft] SIGTERM failed: {e}", file=sys.stderr)
-        return False
+def _request_stop(config):
+    """저장 후 종료 요청: 콘솔 `stop` → SIGTERM (RCON은 보안 정책으로 꺼져 있다)"""
+    return request_console(config, "stop") or request_terminate(config.get("pid"))
 
 
 def stop(config):
-    """서버 정지. 일반 정지는 콘솔 `stop` → SIGTERM 순서로 저장 후 종료를 기다리고,
-    force이거나 기다려도 안 끝날 때만 강제 종료한다 (RCON은 보안 정책으로 꺼져 있다).
-    둘 다 보낼 수 없으면 끝내지 않고 `graceful_stop_unavailable`로 답한다.
-
-    데몬은 콘솔이 있는 managed 서버를 직접 멈추므로, 이 함수는 콘솔이 없을 때 주로 불린다.
-    """
-    try:
-        pid = config.get("pid")
-        if not pid:
-            return {"success": False, "message": i18n.t("errors.no_pid_provided")}
-
-        if not config.get("force", False):
-            asked = _send_console_stop(config.get("instance_id")) or _request_terminate(pid)
-            if not asked:
-                # 저장 후 종료를 요청할 길이 없다(콘솔 없음, Windows): 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
-                return {"success": False, "error_code": "graceful_stop_unavailable",
-                        "message": i18n.t("errors.graceful_stop_unavailable")}
-            if config.get("managed"):
-                # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 호출 제한에 잘린다
-                return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
-            # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
-            if wait_for_exit(pid, timeout=_stop_timeout(config)):
-                return {"success": True,
-                        "message": i18n.t("messages.graceful_stop", pid=pid)}
-            print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-
-        ok, error = force_kill(pid)
-        if ok:
-            return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-        return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
-    except Exception as e:
-        return {"success": False, "message": i18n.t("errors.failed_to_stop", error=str(e))}
+    """서버 정지. 공용 절차(graceful_stop): 저장 후 종료를 요청하고, force이거나 기다려도 안 끝날 때만 강제 종료한다.
+    요청할 길이 없으면 끄지 않고 `graceful_stop_unavailable`로 답한다.
+    데몬은 콘솔이 있는 managed 서버를 직접 멈추므로, 이 함수는 콘솔이 없을 때 주로 불린다."""
+    return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
 def status(config):
@@ -2120,47 +1719,32 @@ class ServerInstaller:
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
 
         # Download with progress
-        import urllib.request
         print(f"Downloading Minecraft server {version_id}...", file=sys.stderr)
         print(f"  URL: {download_url}", file=sys.stderr)
         print(f"  Destination: {jar_path}", file=sys.stderr)
+        message = i18n.t("messages.downloading_server", version=version_id)
+        shown = [-1]
 
+        def report(done, total):
+            pct = done * 100 // total if total else -1
+            if pct != shown[0] and pct >= 0:
+                shown[0] = pct
+                progress(pct, message)
+
+        expected = {"sha1": expected_sha1, "sha256": expected_sha256, "md5": expected_md5}
         try:
-            req = urllib.request.Request(download_url, headers={"User-Agent": "saba-chan/1.0"})
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                total = int(resp.headers.get("Content-Length", 0))
-                sha1 = hashlib.sha1()
-                sha256 = hashlib.sha256()
-                md5 = hashlib.md5()
-                downloaded = 0
-                chunk_size = 65536
-                last_pct = -1
-                message = i18n.t("messages.downloading_server", version=version_id)
-
-                with open(part_path, "wb") as f:
-                    while True:
-                        chunk = resp.read(chunk_size)
-                        if not chunk:
-                            break
-                        f.write(chunk)
-                        sha1.update(chunk)
-                        sha256.update(chunk)
-                        md5.update(chunk)
-                        downloaded += len(chunk)
-                        if total > 0:
-                            pct = downloaded * 100 // total
-                            if pct != last_pct:
-                                last_pct = pct
-                                _progress(pct, message)
-                # 연결이 일찍 정상 종료되면 read()는 오류 없이 끝난다
-                if total > 0 and downloaded != total:
-                    raise IOError(f"incomplete download: {downloaded}/{total} bytes")
-            if not (expected_sha1 or expected_sha256 or expected_md5):
+            digests = download(download_url, part_path, on_progress=report, timeout=120,
+                               checksums=expected, user_agent="saba-chan/1.0")
+            if not any(expected.values()):
                 with zipfile.ZipFile(part_path) as z:
                     bad = z.testzip()
                 if bad is not None:
                     raise IOError(f"corrupt jar entry: {bad}")
-
+        except ChecksumMismatch as e:
+            _remove_quietly(part_path)
+            return {"success": False,
+                    "message": i18n.t("errors.checksum_mismatch", algorithm=e.algorithm,
+                                      expected=e.expected, actual=e.actual)}
         except Exception as e:
             # Clean up partial download
             _remove_quietly(part_path)
@@ -2168,23 +1752,8 @@ class ServerInstaller:
                 "success": False,
                 "message": i18n.t("errors.download_failed", error=str(e)),
             }
-
-        # Verify SHA1
-        actual_sha1 = sha1.hexdigest()
-        if expected_sha1 and actual_sha1 != expected_sha1:
-            _remove_quietly(part_path)
-            return {
-                "success": False,
-                "message": i18n.t("errors.checksum_mismatch", algorithm="SHA1",
-                                  expected=expected_sha1, actual=actual_sha1),
-            }
-
-        for name, expected, digest in (("SHA256", expected_sha256, sha256), ("MD5", expected_md5, md5)):
-            if expected and digest.hexdigest() != expected.lower():
-                _remove_quietly(part_path)
-                return {"success": False,
-                        "message": i18n.t("errors.checksum_mismatch", algorithm=name,
-                                          expected=expected, actual=digest.hexdigest())}
+        actual_sha1 = digests["sha1"]
+        downloaded = os.path.getsize(part_path)
 
         # mkstemp는 0600으로 만든다: 옛 jar 권한(없으면 umask 기본값)을 따른다.
         # 권한을 바꿀 수 없는 파일시스템이면 그대로 둔다
@@ -2228,20 +1797,22 @@ class ServerInstaller:
         # Apply initial server settings
         if initial_settings and isinstance(initial_settings, dict):
             mgr = ServerPropertiesManager(install_path)
-            props = {}
-            for k, v in initial_settings.items():
-                prop_key = _PROPERTY_KEY_MAP.get(k, k)
-                if isinstance(v, bool):
-                    v = "true" if v else "false"
-                props[prop_key] = str(v)
+            # 설정 이름은 server.properties 키로, 그 밖의 키(이미 파일 키인 것)는 그대로
+            keys = setting_file_keys(MODULE_DIR)
+            try:
+                props = {**{k: v for k, v in initial_settings.items() if k not in keys},
+                         **settings_to_file(MODULE_DIR, initial_settings)}
+            except ValueError:
+                # 줄바꿈이 든 값: 서버 파일은 깔렸으니 설치는 성공으로 두고 설정만 적용하지 않았다고 알린다
+                props = None
+            if props is not None:
+                props = {k: ("true" if v is True else "false" if v is False else str(v)) for k, v in props.items()}
 
-            # RCON is blocked for security (commands go through the console)
-            props["enable-rcon"] = "false"
+                # RCON is blocked for security (commands go through the console)
+                props["enable-rcon"] = "false"
 
-            if props:
                 mgr.update(props)
-
-            result["settings_applied"] = True
+            result["settings_applied"] = props is not None
 
         # Download bundled Java if needed
         java_req = details.get("java_major_version")
@@ -2348,7 +1919,8 @@ def install_server(config):
         do_eula = "eula" in (config.get("accepted_agreements") or [])
         settings = config.get("settings") or {}
         # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
-        initial_settings = {k: v for k, v in settings.items() if k in _PROPERTY_KEY_MAP and v is not None}
+        file_keys = setting_file_keys(MODULE_DIR)
+        initial_settings = {k: v for k, v in settings.items() if k in file_keys and v is not None}
         initial_settings.update(config.get("initial_settings") or {})
         # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다.
         # 없으면(GUI의 버전 설치) 폴더에 있는 서버의 종류를 따른다: Paper·Fabric을 바닐라로 덮지 않는다

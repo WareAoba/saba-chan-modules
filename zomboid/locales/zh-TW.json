@@ -186,7 +186,7 @@
     },
     "graceful_stop": {
       "label": "安全停止",
-      "description": "傳送 'save' 和 'quit' 指令，並等待伺服器關閉。關閉此選項後，saba-chan 會立即結束伺服器程序。"
+      "description": "傳送 'quit' 指令（儲存世界後結束），並等待伺服器停止。關閉此選項後，saba-chan 會立即結束伺服器程序。"
     },
     "server_welcome_message": {
       "label": "歡迎訊息",
@@ -491,7 +491,7 @@
   },
   "commands": {
     "servermsg": {
-      "label": "廣播訊息",
+      "label": "公告",
       "description": "向所有連線玩家廣播訊息",
       "inputs": {
         "message": {
@@ -687,7 +687,7 @@
       }
     },
     "showoptions": {
-      "label": "查看伺服器選項",
+      "label": "查看選項",
       "description": "顯示目前伺服器設定"
     },
     "reloadoptions": {
@@ -709,7 +709,7 @@
       }
     },
     "quit": {
-      "label": "關閉伺服器",
+      "label": "停止",
       "description": "儲存並安全關閉"
     }
   },
@@ -724,14 +724,7 @@
     "executable_not_found": "伺服器目錄中找不到伺服器可執行檔（StartServer64.bat 或 start-server.sh）。",
     "java_not_found": "找不到內建 Java 執行環境（jre64/bin/java）。伺服器安裝可能不完整。",
     "classpath_not_found": "伺服器目錄中找不到 Java 類別檔案（java/*.jar）。安裝可能不完整。",
-    "no_install_dir": "未指定安裝目錄。請設定工作目錄。",
-    "steamcmd_not_found": "找不到 SteamCMD。請安裝 SteamCMD 以下載伺服器。",
-    "install_failed": "伺服器安裝失敗：{{error}}",
-    "failed_to_start": "伺服器啟動失敗：{{error}}",
-    "install_timeout": "伺服器安裝未能在 10 分鐘內完成。",
-    "no_settings": "未提供設定",
     "properties_write_failed": "寫入設定檔失敗：{{error}}",
-    "failed_to_kill": "終止程序失敗：{{error}}",
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
     "server_reset_partial": "部分項目無法刪除：{{errors}}",
     "invalid_server_name": "無法使用此伺服器名稱：{{name}}。請使用不含資料夾分隔符號（/ \\）、「:」或「..」且不以空格或句點結尾的名稱",
@@ -760,31 +753,16 @@
       "save_status": "這是資訊性訊息。如果存檔失敗，請檢查磁碟空間和檔案權限。",
       "steamcmd_not_found": "從 https://developer.valvesoftware.com/wiki/SteamCMD 安裝 SteamCMD 並確保其在 PATH 中。"
     },
-    "no_command": "未指定指令",
     "command_send_failed": "傳送指令失敗：{{error}}",
-    "unknown_error": "未知錯誤",
-    "backup_paths_failed": "無法讀取要備份的存檔資料夾：{{error}}",
-    "graceful_stop_unavailable": "無法要求伺服器儲存並結束（沒有主控台，也沒有 REST）。伺服器尚未停止。只有在接受遺失未儲存進度的情況下，才強制停止。"
+    "backup_paths_failed": "無法讀取要備份的存檔資料夾：{{error}}"
   },
   "messages": {
-    "server_online": "伺服器在線並正在回應",
     "server_starting_no_response": "程序正在執行，但伺服器尚未回應 RCON 查詢",
-    "no_process_running": "沒有正在執行的程序",
-    "shutdown_signal_sent": "已向 PID {{pid}} 發送關閉訊號",
-    "force_killed": "已強制終止 PID {{pid}}",
-    "graceful_stop": "伺服器已正常停止（PID {{pid}}）",
-    "graceful_stop_timeout": "安全關閉逾時，將強制停止",
-    "save_before_quit": "關閉前正在儲存世界...",
     "properties_updated": "伺服器設定已更新",
     "properties_using_defaults": "設定檔不存在，顯示預設值",
     "no_mappable_settings": "給定的設定中沒有與伺服器設定對應的項目",
-    "install_complete": "Project Zomboid 伺服器已安裝",
     "server_reset_complete": "伺服器世界資料已重置",
-    "rcon_password_generated": "已自動產生 RCON 密碼（之前未設定密碼）",
-    "server_starting": "Server starting with PID {{pid}}",
-    "starting_server": "Starting server: {{command}}",
     "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
-    "no_properties_found": "找不到伺服器設定。",
     "command_sent": "已向主控台傳送指令：{{command}}",
     "no_log_files": "找不到記錄檔"
   },

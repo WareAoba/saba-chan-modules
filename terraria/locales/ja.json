@@ -195,7 +195,7 @@
       "description": "サーバーコマンドの一覧"
     },
     "playing": {
-      "label": "プレイヤー",
+      "label": "プレイヤー一覧",
       "description": "接続中のプレイヤー一覧"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "ワールドを保存"
     },
     "say": {
-      "label": "発言",
+      "label": "お知らせ",
       "description": "全プレイヤーにメッセージを送信",
       "inputs": {
         "message": {
@@ -278,26 +278,21 @@
       }
     },
     "exit-nosave": {
-      "label": "保存せず終了",
+      "label": "保存せず停止",
       "description": "ワールドを保存せずにサーバーを終了"
     },
     "seed": {
-      "label": "ワールドシード",
+      "label": "シード表示",
       "description": "現在のワールドシードを表示します"
     }
   },
   "errors": {
     "archive_corrupt": "サーバーアーカイブが壊れています({{file}})",
     "backup_paths_failed": "バックアップするファイルを決められませんでした: {{error}}",
-    "download_failed": "ダウンロードに失敗しました: {{error}}",
     "executable_not_found": "テラリアのサーバー実行ファイルがありません。先にサーバーをインストールしてください",
-    "failed_to_kill": "サーバープロセスを終了できませんでした: {{error}}",
-    "graceful_stop_unavailable": "サーバーコンソールが接続されていないため、保存して停止できません。未保存の進行が失われてもよければ強制終了してください",
-    "install_failed": "インストールに失敗しました: {{error}}",
     "invalid_banlist": "BANリスト名「{{name}}」は単純なファイル名ではありません",
     "invalid_world_name": "ワールド名「{{name}}」に / \\ : * ? \" < > | は使えず、空白や点で終われません",
     "line_break": "{{setting}} の値に改行は使えません",
-    "no_install_dir": "インストール先フォルダーがありません",
     "no_version": "サーバーバージョンを選んでください(例: 1.4.5.8)",
     "not_server_folder": "このフォルダーにテラリアのサーバーがないため、何も削除しませんでした",
     "properties_read_failed": "serverconfig.txt を読めませんでした: {{error}}",
@@ -310,21 +305,15 @@
     "xna_install_failed": "サーバーフォルダーに XNA Framework 4.0 を配置できませんでした: {{error}}",
     "xna_extension_missing": "Windows でテラリアサーバーを実行するには XNA エクステンションが必要です。「XNA Framework 4.0 (portable)」エクステンションをインストールして有効にしてください。",
     "version_unknown": "インストールされたサーバーのバージョンが見つかりません。",
-    "no_working_dir": "サーバーフォルダーが分かりません",
     "players_unavailable": "サーバーコンソールからプレイヤー一覧を読み取れませんでした"
   },
   "messages": {
     "downloading": "テラリアサーバーをダウンロード中",
     "extracting": "サーバーファイルを展開中",
-    "force_killed": "サーバープロセス {{pid}} を強制終了しました",
-    "graceful_stop": "サーバーはワールドを保存して停止しました",
-    "graceful_stop_timeout": "時間内に停止しなかったため強制終了します",
     "install_complete": "テラリアサーバーをインストールしました",
     "no_mappable_settings": "serverconfig.txt に書き込む値がありません",
-    "no_process_running": "サーバーは起動していません",
     "properties_updated": "serverconfig.txt に保存しました。サーバーを再起動すると反映されます",
     "server_reset_complete": "ワールドを削除しました。次回起動時に新しいワールドを作ります",
-    "stop_requested": "サーバーに保存して停止するよう要求しました",
     "installing_xna": "サーバーフォルダーに XNA Framework 4.0 を配置しています..."
   },
   "reset": {

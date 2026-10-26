@@ -1,8 +1,8 @@
 {
-  "errors": {
-    "graceful_stop_unavailable": "서버에 저장·종료를 요청할 수 없습니다."
-  },
-  "messages": {
-    "stop_requested": "서버에 저장·종료를 요청했습니다."
+  "settings": {
+    "server_name": {
+      "label": "서버 이름",
+      "description": "서버 목록에 보이는 이름"
+    }
   }
 }

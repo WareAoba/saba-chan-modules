@@ -195,7 +195,7 @@
       "description": "Serverbefehle auflisten"
     },
     "playing": {
-      "label": "Spieler",
+      "label": "Spielerliste",
       "description": "Verbundene Spieler auflisten"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "Welt speichern"
     },
     "say": {
-      "label": "Sagen",
+      "label": "Ankündigen",
       "description": "Nachricht an alle Spieler",
       "inputs": {
         "message": {
@@ -278,26 +278,21 @@
       }
     },
     "exit-nosave": {
-      "label": "Ohne Speichern beenden",
+      "label": "Ohne Speichern stoppen",
       "description": "Server ohne Speichern beenden"
     },
     "seed": {
-      "label": "Welt-Seed",
+      "label": "Seed anzeigen",
       "description": "Aktuellen Welt-Seed anzeigen"
     }
   },
   "errors": {
     "archive_corrupt": "Das Serverarchiv ist beschädigt ({{file}})",
     "backup_paths_failed": "Sicherungsdateien konnten nicht bestimmt werden: {{error}}",
-    "download_failed": "Download fehlgeschlagen: {{error}}",
     "executable_not_found": "Terraria-Serverdatei nicht gefunden. Installiere zuerst den Server",
-    "failed_to_kill": "Serverprozess konnte nicht beendet werden: {{error}}",
-    "graceful_stop_unavailable": "Die Serverkonsole ist nicht verbunden, daher kann vor dem Stoppen nicht gespeichert werden. Erzwinge das Beenden nur, wenn ungespeicherter Fortschritt verloren gehen darf",
-    "install_failed": "Installation fehlgeschlagen: {{error}}",
     "invalid_banlist": "Bannlisten-Name \"{{name}}\" ist kein einfacher Dateiname",
     "invalid_world_name": "Weltname \"{{name}}\" darf / \\ : * ? \" < > | nicht enthalten und nicht auf Leerzeichen oder Punkt enden",
     "line_break": "Der Wert von {{setting}} darf keinen Zeilenumbruch enthalten",
-    "no_install_dir": "Kein Installationsordner angegeben",
     "no_version": "Wähle eine Serverversion (z. B. 1.4.5.8)",
     "not_server_folder": "Dieser Ordner enthält keinen Terraria-Server, daher wurde nichts gelöscht",
     "properties_read_failed": "serverconfig.txt konnte nicht gelesen werden: {{error}}",
@@ -310,21 +305,15 @@
     "xna_install_failed": "XNA Framework 4.0 konnte nicht in den Serverordner gelegt werden: {{error}}",
     "xna_extension_missing": "Für den Terraria-Server unter Windows wird die XNA-Erweiterung benötigt. Installiere und aktiviere die Erweiterung \"XNA Framework 4.0 (portable)\".",
     "version_unknown": "Die installierte Serverversion wurde nicht gefunden.",
-    "no_working_dir": "Der Serverordner ist unbekannt",
     "players_unavailable": "Die Spielerliste konnte nicht aus der Serverkonsole gelesen werden"
   },
   "messages": {
     "downloading": "Terraria-Server wird heruntergeladen",
     "extracting": "Serverdateien werden entpackt",
-    "force_killed": "Serverprozess {{pid}} wurde erzwungen beendet",
-    "graceful_stop": "Der Server hat gespeichert und wurde beendet",
-    "graceful_stop_timeout": "Der Server wurde nicht rechtzeitig beendet; erzwinge Beenden",
     "install_complete": "Terraria-Server installiert",
     "no_mappable_settings": "Nichts in serverconfig.txt zu schreiben",
-    "no_process_running": "Der Server läuft nicht",
     "properties_updated": "In serverconfig.txt gespeichert. Server neu starten, um es anzuwenden",
     "server_reset_complete": "Die Welt wurde gelöscht. Beim nächsten Start wird eine neue erstellt",
-    "stop_requested": "Server wurde zum Speichern und Beenden aufgefordert",
     "installing_xna": "XNA Framework 4.0 wird neben dem Server installiert..."
   },
   "reset": {

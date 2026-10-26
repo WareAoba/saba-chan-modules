@@ -15,12 +15,10 @@ Project Zomboid is a Java-based game server (Steam App 380870) that:
 import sys
 import json
 import subprocess
-import locale
 import os
 import re
 import sqlite3
 import hashlib
-import time
 from pathlib import Path
 
 # ─── Path setup ──────────────────────────────────────────
@@ -34,143 +32,14 @@ if _root_dir not in sys.path:
 
 from i18n import I18n
 
-from daemon_rcon import PathOutside, atomic_write, safe_join, daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
+from daemon_rcon import (PathOutside, safe_join, daemon_stdin_command, diagnose_lines, graceful_stop, is_process_alive,
+                         load_diagnose_rules, read_key_values, request_console, request_terminate, setting_file_keys,
+                         settings_to_file, tail_lines, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
 
 # ─── Constants ───────────────────────────────────────────
-
-# Mapping: saba-chan internal key → servertest.ini key
-_INI_KEY_MAP = {
-    "public_name":           "PublicName",
-    "public_description":    "PublicDescription",
-    "password":              "Password",
-    "max_players":           "MaxPlayers",
-    "port":                  "DefaultPort",
-    "udp_port":              "UDPPort",
-    "pvp":                   "PVP",
-    "open":                  "Open",
-    "public":                "Public",
-    "pause_empty":           "PauseEmpty",
-    "global_chat":           "GlobalChat",
-    "map":                   "Map",
-    "mods":                  "Mods",
-    "workshop_items":        "WorkshopItems",
-    "announce_death":        "AnnounceDeath",
-    "safety_system":         "SafetySystem",
-    "sleep_allowed":         "SleepAllowed",
-    "sleep_needed":          "SleepNeeded",
-    "save_world_every_minutes": "SaveWorldEveryMinutes",
-    "ping_limit":            "PingLimit",
-    "hours_for_loot_respawn": "HoursForLootRespawn",
-    "max_items_for_loot_respawn": "MaxItemsForLootRespawn",
-    "no_fire":               "NoFire",
-    "player_safehouse":      "PlayerSafehouse",
-    "safehouse_allow_trespass": "SafehouseAllowTrepass",
-    "safehouse_allow_loot":  "SafehouseAllowLoot",
-    "safehouse_allow_respawn": "SafehouseAllowRespawn",
-    "faction":               "Faction",
-    "allow_destruction_by_sledgehammer": "AllowDestructionBySledgehammer",
-    "speed_limit":           "SpeedLimit",
-    "do_lua_checksum":       "DoLuaChecksum",
-    "steam_vac":             "SteamVAC",
-    "voice_enable":          "VoiceEnable",
-    "minutes_per_page":      "MinutesPerPage",
-    "spawn_point":           "SpawnPoint",
-    "max_accounts_per_user": "MaxAccountsPerUser",
-    "spawn_items":           "SpawnItems",
-    # ── Player / Display ──
-    "server_welcome_message":  "ServerWelcomeMessage",
-    "auto_create_user_in_whitelist": "AutoCreateUserInWhiteList",
-    "display_user_name":       "DisplayUserName",
-    "show_first_and_last_name": "ShowFirstAndLastName",
-    "chat_streams":            "ChatStreams",
-    "allow_non_ascii_username": "AllowNonAsciiUsername",
-    "mouse_over_to_see_display_name": "MouseOverToSeeDisplayName",
-    "hide_players_behind_you": "HidePlayersBehindYou",
-    "player_bump_player":      "PlayerBumpPlayer",
-    "player_respawn_with_self": "PlayerRespawnWithSelf",
-    "player_respawn_with_other": "PlayerRespawnWithOther",
-    "drop_off_whitelist_after_death": "DropOffWhiteListAfterDeath",
-    # ── Safety / PVP ──
-    "show_safety":             "ShowSafety",
-    "safety_toggle_timer":     "SafetyToggleTimer",
-    "safety_cooldown_timer":   "SafetyCooldownTimer",
-    "pvp_melee_while_hit_reaction": "PVPMeleeWhileHitReaction",
-    "pvp_melee_damage_modifier": "PVPMeleeDamageModifier",
-    "pvp_firearm_damage_modifier": "PVPFirearmDamageModifier",
-    # ── Safehouse (extended) ──
-    "admin_safehouse":         "AdminSafehouse",
-    "safehouse_allow_fire":    "SafehouseAllowFire",
-    "safehouse_day_survived_to_claim": "SafehouseDaySurvivedToClaim",
-    "safehouse_removal_time":  "SafeHouseRemovalTime",
-    "disable_safehouse_when_player_connected": "DisableSafehouseWhenPlayerConnected",
-    # ── Faction (extended) ──
-    "faction_day_survived_to_create": "FactionDaySurvivedToCreate",
-    "faction_players_required_for_tag": "FactionPlayersRequiredForTag",
-    "allow_trade_ui":          "AllowTradeUI",
-    # ── Loot / World ──
-    "construction_prevents_loot_respawn": "ConstructionPreventsLootRespawn",
-    "hours_for_world_item_removal": "HoursForWorldItemRemoval",
-    "world_item_removal_list": "WorldItemRemovalList",
-    "blood_splat_lifespan_days": "BloodSplatLifespanDays",
-    "item_numbers_limit_per_container": "ItemNumbersLimitPerContainer",
-    "trash_delete_all":        "TrashDeleteAll",
-    # ── Network / Steam ──
-    "ping_frequency":          "PingFrequency",
-    "deny_login_on_overloaded_server": "DenyLoginOnOverloadedServer",
-    "kick_fast_players":       "KickFastPlayers",
-    "steam_port1":             "SteamPort1",
-    "steam_port2":             "SteamPort2",
-    "steam_scoreboard":        "SteamScoreboard",
-    "upnp":                    "UPnP",
-    "upnp_lease_time":         "UPnPLeaseTime",
-    "upnp_zero_lease_time_fallback": "UPnPZeroLeaseTimeFallback",
-    "upnp_force":              "UPnPForce",
-    "server_browser_announced_ip": "server_browser_announced_ip",
-    "use_tcp_for_map_downloads": "UseTCPForMapDownloads",
-    "physics_delay":           "PhysicsDelay",
-    # ── Voice ──
-    "voice_complexity":        "VoiceComplexity",
-    "voice_period":            "VoicePeriod",
-    "voice_sample_rate":       "VoiceSampleRate",
-    "voice_buffering":         "VoiceBuffering",
-    "voice_min_distance":      "VoiceMinDistance",
-    "voice_max_distance":      "VoiceMaxDistance",
-    "voice_3d":                "Voice3D",
-    # ── Co-op ──
-    "coop_server_launch_timeout": "CoopServerLaunchTimeout",
-    "coop_master_ping_timeout": "CoopMasterPingTimeout",
-    # ── Gameplay misc ──
-    "fast_forward_multiplier": "FastForwardMultiplier",
-    "player_save_on_damage":   "PlayerSaveOnDamage",
-    "save_transaction_id":     "SaveTransactionID",
-    "car_engine_attraction_modifier": "CarEngineAttractionModifier",
-    "ban_kick_global_sound":   "BanKickGlobalSound",
-    "remove_player_corpses_on_corpse_removal": "RemovePlayerCorpsesOnCorpseRemoval",
-    "client_command_filter":   "ClientCommandFilter",
-    # ── Discord ──
-    "discord_enable":          "DiscordEnable",
-    "discord_token":           "DiscordToken",
-    "discord_channel":         "DiscordChannel",
-    "discord_channel_id":      "DiscordChannelID",
-    # ── Radio ──
-    "disable_radio_staff":     "DisableRadioStaff",
-    "disable_radio_admin":     "DisableRadioAdmin",
-    "disable_radio_gm":        "DisableRadioGM",
-    "disable_radio_overseer":  "DisableRadioOverseer",
-    "disable_radio_moderator": "DisableRadioModerator",
-    "disable_radio_invisible": "DisableRadioInvisible",
-    # ── Zombie performance ──
-    "zombie_update_max_high_priority": "ZombieUpdateMaxHighPriority",
-    "zombie_update_delta":     "ZombieUpdateDelta",
-    "zombie_update_radius_low_priority": "ZombieUpdateRadiusLowPriority",
-    "zombie_update_radius_high_priority": "ZombieUpdateRadiusHighPriority",
-}
-
-# Reverse mapping for read_properties
-_INI_KEY_MAP_REV = {v: k for k, v in _INI_KEY_MAP.items()}
 
 # Default servertest.ini values
 DEFAULT_INI_PROPERTIES = {
@@ -395,164 +264,24 @@ class IniManager:
         return str(safe_join(_zomboid_home(config), "Server", f"{server_name}.ini"))
 
     @staticmethod
-    def encoding_of(ini_path):
-        """ini의 인코딩: UTF-8이 아니면(PZ·메모장이 ANSI로 쓴 cp949 등) cp949·시스템 로캘·latin-1 순서
-        (영문 Windows의 cp1252는 거의 모든 바이트를 받아 한글을 깨진 글자로 읽으므로 cp949가 먼저다).
-        쓸 때도 같은 인코딩을 써서 건드리지 않은 키의 한글 값이 깨지지 않게 한다"""
-        try:
-            with open(ini_path, "rb") as f:
-                raw = f.read()
-        except OSError:
-            return "utf-8"
-        for encoding in ("utf-8", "cp949", locale.getpreferredencoding(False), "latin-1"):
-            try:
-                raw.decode(encoding)
-                return encoding
-            except (UnicodeDecodeError, LookupError):
-                continue
-        return "utf-8"
-
-    @staticmethod
     def read(ini_path):
-        """Read an INI file and return {key: value} dict."""
-        props = {}
+        """Read an INI file and return {key: value} dict. 값은 첫 "=" 뒤를 그대로 둔다(비밀번호의 앞뒤 공백도 값이다).
+        인코딩 추측(UTF-8 → cp949 → 로캘, PZ·메모장이 ANSI로 쓴 파일)은 공용 read_key_values가 한다"""
         if not os.path.exists(ini_path):
-            return props
-        
+            return {}
         try:
-            with open(ini_path, 'r', encoding=IniManager.encoding_of(ini_path), errors='replace') as f:
-                for raw in f:
-                    # 값은 첫 "=" 뒤를 그대로 둔다 (비밀번호의 앞뒤 공백도 값이다). 줄바꿈만 뗀다
-                    line = raw.rstrip('\r\n')
-                    if not line.strip() or line.lstrip().startswith('#'):
-                        continue
-                    if '=' in line:
-                        key, _, value = line.partition('=')
-                        props[key.strip()] = value
-        except (IOError, OSError) as e:
+            return read_key_values(ini_path)
+        except OSError as e:
             print(f"Warning: Could not read {ini_path}: {e}", file=sys.stderr)
-        
-        return props
-
-    @staticmethod
-    def write(ini_path, properties):
-        """Write properties to INI file, preserving comments and order.
-        
-        If the file exists, updates existing keys and appends new ones.
-        If it doesn't exist, creates it from scratch.
-        """
-        os.makedirs(os.path.dirname(ini_path), exist_ok=True)
-        
-        if os.path.exists(ini_path):
-            # Read existing file, update values in place
-            lines = []
-            updated_keys = set()
-            encoding = IniManager.encoding_of(ini_path)
-            
-            with open(ini_path, 'r', encoding=encoding, errors='replace') as f:
-                for line in f:
-                    stripped = line.strip()
-                    if stripped and not stripped.startswith('#') and '=' in stripped:
-                        key, _, old_val = stripped.partition('=')
-                        key = key.strip()
-                        if key in properties:
-                            lines.append(f"{key}={properties[key]}\n")
-                            updated_keys.add(key)
-                        else:
-                            lines.append(line)
-                    else:
-                        lines.append(line)
-            
-            # Append any new keys not already in the file
-            for key, value in properties.items():
-                if key not in updated_keys:
-                    lines.append(f"{key}={value}\n")
-            
-            text = "".join(lines)
-            try:
-                data = text.encode(encoding)
-            except UnicodeEncodeError:
-                # 원래 인코딩에 없는 글자를 새로 넣었다: UTF-8로 바꿔 쓴다
-                data = text.encode("utf-8")
-            atomic_write(ini_path, data)
-        else:
-            # Create new file
-            atomic_write(ini_path, "".join(f"{key}={value}\n" for key, value in properties.items()).encode("utf-8"))
+            return {}
 
     @staticmethod
     def update(ini_path, updates):
-        """Update specific keys in an INI file."""
-        existing = IniManager.read(ini_path) if os.path.exists(ini_path) else {}
-        existing.update(updates)
-        IniManager.write(ini_path, existing)
+        """주어진 키만 고친다. 주석·순서·다른 키·원래 인코딩은 그대로 두고, 없는 키는 끝에 붙이며, 파일이 없으면 만든다"""
+        os.makedirs(os.path.dirname(ini_path), exist_ok=True)
+        update_key_values(ini_path, updates)
 
-
-# ═══════════════════════════════════════════════════════════
-#                   Error Detector
-# ═══════════════════════════════════════════════════════════
-
-class ErrorDetector:
-    """Detect known error patterns in PZ server logs."""
-
-    PATTERNS = [
-        {
-            "pattern": re.compile(r"java\.lang\.OutOfMemoryError|unable to create new native thread", re.IGNORECASE),
-            "code": "out_of_memory",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"Address already in use|BindException", re.IGNORECASE),
-            "code": "port_in_use",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"Assertion Failed.*Illegal termination", re.IGNORECASE),
-            "code": "illegal_termination",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"java\.io\.FileNotFoundException|AccessDeniedException|Permission denied", re.IGNORECASE),
-            "code": "permission_denied",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"crash|EXCEPTION_ACCESS_VIOLATION|StackOverflowError", re.IGNORECASE),
-            "code": "server_crash",
-            "severity": "error",
-        },
-        {
-            "pattern": re.compile(r"mod.*error|lua.*error|LuaException", re.IGNORECASE),
-            "code": "mod_error",
-            "severity": "warning",
-        },
-        {
-            "pattern": re.compile(r"Save (complete|failed|error)", re.IGNORECASE),
-            "code": "save_status",
-            "severity": "info",
-        },
-    ]
-
-    @classmethod
-    def scan(cls, log_text):
-        """Scan log text and return list of detected issues."""
-        issues = []
-        seen_codes = set()
-
-        for entry in cls.PATTERNS:
-            if entry["code"] in seen_codes:
-                continue
-            match = entry["pattern"].search(log_text)
-            if match:
-                seen_codes.add(entry["code"])
-                issues.append({
-                    "severity": entry["severity"],
-                    "code": entry["code"],
-                    "message": i18n.t(f"errors.detect.{entry['code']}"),
-                    "solution": i18n.t(f"errors.solutions.{entry['code']}"),
-                    "matched_text": match.group(0)[:200],
-                })
-
-        return issues
+    write = update
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1096,107 +825,24 @@ def status(config):
 # ║                  Optional Functions                       ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-# 데몬이 호출 제한을 알려 주지 않으면(0.1.8 데몬, 모듈 호출 120초) 강제 종료까지 그 안에 끝나도록 90초에서 멈춘다.
-# 알려 주면(stop_call_limit, 데몬 #480 이후) 그 30초 앞까지 기다린다
-STOP_TIMEOUT_MAX = 90
-STOP_CALL_MARGIN = 30
-
-
-def _stop_timeout(config):
-    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout. 상한은 데몬의 호출 제한 안이다"""
-    value = config.get("stop_timeout")
-    if value in (None, ""):
-        import tomllib
-        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
-    try:
-        value = int(value)
-    except (TypeError, ValueError):
-        value = 30
-    cap = STOP_TIMEOUT_MAX
-    try:
-        cap = int(config["stop_call_limit"]) - STOP_CALL_MARGIN
-    except (KeyError, TypeError, ValueError):
-        pass
-    return max(1, min(value, cap))
-
-
-def _request_terminate(pid):
-    """POSIX: SIGTERM (서버가 저장하고 끝난다). Windows 콘솔 앱에는 보낼 정상 종료 신호가 없어 False"""
-    if os.name == "nt":
-        return False
-    import signal
-    try:
-        os.kill(int(pid), signal.SIGTERM)
-        return True
-    except (OSError, ValueError) as e:
-        print(f"[Zomboid] SIGTERM failed: {e}", file=sys.stderr)
-        return False
-
-
-def _console_quit(instance_id):
-    """콘솔(stdin)로 save 후 quit. 콘솔이 없으면(409, 데몬 없음) False"""
-    if not instance_id:
-        return False
-    try:
-        daemon_stdin_command(instance_id, "save")
-        print(i18n.t("messages.save_before_quit"), file=sys.stderr)
-        time.sleep(5)
-        daemon_stdin_command(instance_id, "quit")
-        return True
-    except PathOutside:
-        raise
-    except Exception as e:
-        print(f"[Zomboid] console stop unavailable: {e}", file=sys.stderr)
-        return False
-
-
-def _kill(pid):
-    ok, error = force_kill(pid)
-    if ok:
-        return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-    return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
+def _request_stop(config):
+    """저장 후 종료 요청: 콘솔 `quit`(서버가 저장하고 끝난다, PZ 위키 "Server commands") → SIGTERM"""
+    return request_console(config, "quit") or request_terminate(config.get("pid"))
 
 
 def stop(config):
     """Stop the server.
 
-    Normal stop: console `save` + `quit`, else SIGTERM, then wait for the exit.
-    Force kill only when force=true or the server did not exit in time (RCON is off by policy).
-    With neither a console nor SIGTERM, do not kill: answer `graceful_stop_unavailable`.
+    Ask for a save-and-exit (console `quit`, else SIGTERM); waiting, force kill, managed and
+    `graceful_stop_unavailable` are handled by the shared procedure (graceful_stop). RCON is off by policy.
     The daemon stops managed servers with a console itself, so this runs mostly without one.
     """
-    pid = config.get("pid")
-    if not pid:
-        return {"success": True, "message": i18n.t("messages.no_process_running")}
-    if config.get("force", False):
-        return _kill(pid)
-
-    if not (_console_quit(config.get("instance_id", "")) or _request_terminate(pid)):
-        # 저장 후 종료를 요청할 길이 없다(콘솔 없음, Windows): 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
-        return {"success": False, "error_code": "graceful_stop_unavailable",
-                "message": i18n.t("errors.graceful_stop_unavailable")}
-    print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-    if config.get("managed"):
-        # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 호출 제한에 잘린다
-        return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
-    if wait_for_exit(pid, timeout=_stop_timeout(config)):
-        return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
-    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-    return _kill(pid)
+    return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
 def _ini_updates(settings):
-    """saba-chan 설정 키를 ini 키·값으로 (ini에 없는 키는 뺀다)"""
-    updates = {}
-    for key, value in (settings or {}).items():
-        ini_key = _INI_KEY_MAP.get(key)
-        if ini_key and value is not None:
-            # Convert booleans to lowercase strings
-            if isinstance(value, bool):
-                value = "true" if value else "false"
-            updates[ini_key] = str(value)
-    return updates
+    """saba-chan 설정 키를 ini 키·값으로 (module.toml file_key가 없는 키는 뺀다)"""
+    return settings_to_file(MODULE_DIR, settings)
 
 
 def configure(config):
@@ -1209,7 +855,10 @@ def configure(config):
         return {"success": False, "message": i18n.t("errors.no_settings")}
     
     ini_path = IniManager.get_ini_path(config)
-    updates = _ini_updates(settings)
+    try:
+        updates = _ini_updates(settings)
+    except ValueError as e:
+        return {"success": False, "message": i18n.t("errors.properties_write_failed", error=str(e))}
     
     if not updates:
         return {"success": True, "updated_keys": [], "message": i18n.t("messages.no_mappable_settings")}
@@ -1327,12 +976,14 @@ def read_properties(config):
     Returns properties mapped back to saba-chan internal key names.
     """
     ini_path = IniManager.get_ini_path(config)
-    
+    # ini 키 → 설정 이름 (설정 화면에 없는 키는 이름 그대로)
+    names = {ini_key: name for name, ini_key in setting_file_keys(MODULE_DIR).items()}
+
     if not os.path.exists(ini_path):
         # Return defaults mapped to internal keys
         mapped_defaults = {}
         for ini_key, value in DEFAULT_INI_PROPERTIES.items():
-            internal_key = _INI_KEY_MAP_REV.get(ini_key, ini_key)
+            internal_key = names.get(ini_key, ini_key)
             mapped_defaults[internal_key] = value
         return {
             "success": True,
@@ -1343,7 +994,7 @@ def read_properties(config):
     raw_props = IniManager.read(ini_path)
     mapped = {}
     for ini_key, value in raw_props.items():
-        internal_key = _INI_KEY_MAP_REV.get(ini_key, ini_key)
+        internal_key = names.get(ini_key, ini_key)
         mapped[internal_key] = value
     
     return {"success": True, "properties": mapped}
@@ -1369,46 +1020,31 @@ def command(config):
 
 
 def diagnose_log(config):
-    """Analyze server log for known error patterns."""
-    working_dir = config.get("working_dir", "")
-    server_name = _server_name(config)
-    
-    # PZ console log locations
-    log_paths = []
-    if working_dir:
-        log_paths.append(os.path.join(working_dir, "server-console.txt"))
-    
-    zomboid_dir = _zomboid_home(config)
-    log_paths.append(os.path.join(zomboid_dir, "console.txt"))
-    log_paths.append(os.path.join(zomboid_dir, "server-console.txt"))
-    
-    log_text = ""
-    for log_path in log_paths:
-        if os.path.exists(log_path):
-            try:
-                with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
-                    # Read last 100KB
-                    f.seek(0, 2)
-                    size = f.tell()
-                    f.seek(max(0, size - 102400))
-                    log_text += f.read()
-            except (IOError, OSError):
-                continue
-    
-    if not log_text:
+    """Analyze server log for known error patterns (module.toml [[diagnose]]).
+    데몬이 준 이번 실행의 콘솔 줄을 먼저 보고, 없으면 서버 콘솔 로그(server-console.txt) 끝부분을 본다.
+    클라이언트 로그(console.txt)는 보지 않는다: 같은 PC에서 게임을 한 기록을 서버 문제로 보게 된다"""
+    log_lines = config.get("log_lines") or []
+    if isinstance(log_lines, str):
+        log_lines = log_lines.splitlines()
+    if not log_lines:
+        candidates = [os.path.join(_zomboid_home(config), "server-console.txt")]
+        if config.get("working_dir"):
+            candidates.insert(0, os.path.join(config["working_dir"], "server-console.txt"))
+        for path in candidates:
+            log_lines = tail_lines(path)
+            if log_lines:
+                break
+    if not log_lines:
         return {"success": True, "issues": [], "message": i18n.t("messages.no_log_files")}
-    
-    issues = ErrorDetector.scan(log_text)
-    return {"success": True, "issues": issues}
+    return {"success": True, "issues": diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n),
+            "lines_analyzed": len(log_lines)}
 
 
 def install_server(config):
     """Install/update the Project Zomboid dedicated server via SteamCMD.
 
-    Uses the saba-chan SteamCMD extension for portable, automatic download.
-
-    Steam App ID: 380870
-    Anonymous login: Yes
+    Uses the saba-chan SteamCMD extension for portable, automatic download
+    (Steam app and anonymous login come from module.toml [install]).
     Optionally use -beta unstable for Build 42 unstable.
     """
     install_dir = config.get("install_dir", "")
@@ -1422,53 +1058,32 @@ def install_server(config):
     os.makedirs(install_dir, exist_ok=True)
     use_beta = config.get("use_beta", False)
 
-    # ── SteamCMD extension 사용 시도 ──
-    # 먼저 익스텐션 활성화 상태 확인
-    enabled_exts = os.environ.get("SABA_ENABLED_EXTENSIONS", "").split(",")
-    if "steamcmd" not in enabled_exts:
-        return {
-            "success": False,
-            "message": i18n.t("errors.extension_not_enabled"),
-            "error_code": "extension_required",
-            "missing_extensions": ["steamcmd"],
-        }
-
+    # app_id는 module.toml [install]. 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하게 답한다
     try:
-        from extensions.steamcmd import SteamCMD
-
-        steam = SteamCMD()
-        steam.ensure_available()
-
-        result = steam.install(
-            app_id=380870,
-            install_dir=install_dir,
-            anonymous=True,
-            beta="unstable" if use_beta else None,
-        )
-
-        if result.get("success"):
-            if sys.platform == "win32":
-                exe = os.path.join(install_dir, "StartServer64.bat")
-            else:
-                exe = os.path.join(install_dir, "start-server.sh")
-            result["install_path"] = install_dir
-            result["executable_path"] = exe if os.path.exists(exe) else ""
-            settings_error = _write_initial_ini(config)
-            if settings_error:
-                return settings_error
-
-        return result
-
+        from extensions.steamcmd import install_for_module
     except ImportError:
-        return {
-            "success": False,
-            "message": i18n.t("errors.steamcmd_not_found"),
-        }
+        return {"success": False, "message": i18n.t("errors.extension_not_enabled"),
+                "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
+    try:
+        result = install_for_module(MODULE_DIR, install_dir, beta="unstable" if use_beta else None)
     except PathOutside:
         raise
     except Exception as e:
         print(f"[Zomboid] SteamCMD extension install failed: {e}", file=sys.stderr)
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
+
+    if result.get("success"):
+        if sys.platform == "win32":
+            exe = os.path.join(install_dir, "StartServer64.bat")
+        else:
+            exe = os.path.join(install_dir, "start-server.sh")
+        result["install_path"] = install_dir
+        result["executable_path"] = exe if os.path.exists(exe) else ""
+        settings_error = _write_initial_ini(config)
+        if settings_error:
+            return settings_error
+    return result
+
 
 def _write_initial_ini(config):
     """첫 설치: 만들 때 고른 설정(접속 암호·인원·포트 등)으로 서버 ini를 만든다. 서버는 첫 실행 때 나머지 키를
@@ -1477,10 +1092,10 @@ def _write_initial_ini(config):
     ini_path = IniManager.get_ini_path({**config, **settings})
     if os.path.exists(ini_path):
         return
-    updates = _ini_updates(settings)
-    if not updates:
-        return
     try:
+        updates = _ini_updates(settings)
+        if not updates:
+            return
         IniManager.write(ini_path, updates)
     except PathOutside:
         raise

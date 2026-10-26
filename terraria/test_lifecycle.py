@@ -16,6 +16,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
+from daemon_rcon import setting_file_keys
 
 try:
     import tomllib
@@ -71,13 +72,13 @@ def _read(path):
 
 def test_every_game_setting_maps_to_a_config_key(lc, toml):
     game = [f["name"] for f in toml["settings"]["fields"] if f.get("group") != "saba-chan"]
-    assert sorted(game) == sorted(lc._KEY_MAP), "설정 이름과 serverconfig 키 표가 어긋났다"
+    assert sorted(game) == sorted(setting_file_keys(lc.MODULE_DIR)), "게임 설정마다 serverconfig 키(file_key)가 있어야 한다"
 
 
 def test_launch_only_settings_are_not_written_to_the_game_file(lc, toml):
     launch_only = [f["name"] for f in toml["settings"]["fields"] if f.get("group") == "saba-chan"]
     assert launch_only
-    assert not set(launch_only) & set(lc._KEY_MAP)
+    assert not set(launch_only) & set(setting_file_keys(lc.MODULE_DIR))
 
 
 def test_every_command_declares_risk_and_description(toml):
@@ -307,50 +308,14 @@ def test_validate_flags_bad_world_name(lc, tmp_path):
 
 # ─── 정지 ────────────────────────────────────────────────
 
-def _no_kill(*args, **kwargs):
-    pytest.fail("정상 종료 요청 길이 있거나 managed면 죽이지 않는다")
-
-
-def test_managed_stop_requests_exit_and_returns(lc, monkeypatch):
-    sent = []
-    monkeypatch.setattr(lc, "daemon_stdin_command", lambda iid, line, **kw: sent.append((iid, line)))
-    monkeypatch.setattr(lc, "wait_for_exit", _no_kill)
-    monkeypatch.setattr(lc, "force_kill", _no_kill)
-    result = lc.stop({"managed": True, "instance_id": "inst-1", "pid": 42})
-    assert result["success"] is True
-    assert sent == [("inst-1", "exit")]
-
-
-def test_stop_without_console_does_not_kill(lc, monkeypatch):
-    def unavailable(*args, **kwargs):
-        raise ConnectionError("409 no_command_path")
-    monkeypatch.setattr(lc, "daemon_stdin_command", unavailable)
-    monkeypatch.setattr(lc, "wait_for_exit", _no_kill)
-    monkeypatch.setattr(lc, "force_kill", _no_kill)
-    for managed in (True, False):
-        result = lc.stop({"managed": managed, "instance_id": "inst-1", "pid": 42})
-        assert result["success"] is False
-        assert result["error_code"] == "graceful_stop_unavailable"
-
-
-def test_nonmanaged_stop_waits_then_kills(lc, monkeypatch):
-    waited, killed = [], []
-    monkeypatch.setattr(lc, "daemon_stdin_command", lambda *a, **k: None)
-    monkeypatch.setattr(lc, "wait_for_exit", lambda pid, timeout: waited.append(timeout) or False)
-    monkeypatch.setattr(lc, "force_kill", lambda pid: killed.append(pid) or (True, None))
-    result = lc.stop({"managed": False, "instance_id": "inst-1", "pid": 42,
-                      "stop_timeout": 50, "stop_call_limit": 80})
-    assert waited == [50]
-    assert killed == [42]
-    assert result["success"] is True
-
-
-def test_force_stop_kills(lc, monkeypatch):
-    killed = []
-    monkeypatch.setattr(lc, "daemon_stdin_command", _no_kill)
-    monkeypatch.setattr(lc, "force_kill", lambda pid: killed.append(pid) or (True, None))
-    assert lc.stop({"managed": False, "pid": 42, "force": True})["success"]
-    assert killed == [42]
+def test_stop_uses_the_shared_procedure_with_the_console_exit(lc, monkeypatch):
+    """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. 테라리아는 콘솔 `exit`로만 요청한다"""
+    asked, used = [], {}
+    monkeypatch.setattr(lc, "request_console", lambda config, command: asked.append(command) or True)
+    monkeypatch.setattr(lc, "graceful_stop", lambda config, request, i18n, module_dir: used.update(module_dir=module_dir) or request())
+    assert lc.stop({"instance_id": "inst-1", "pid": 42}) is True
+    assert asked == ["exit"]
+    assert used["module_dir"] == lc.MODULE_DIR
 
 
 # ─── 백업 ────────────────────────────────────────────────
@@ -516,19 +481,21 @@ def test_install_picks_platform_named_folder_only_and_refuses_ambiguous(lc, tmp_
         "1458/Windows/serverconfig.txt": b"priority=1\r\n",
         "1458/Mac/Terraria Server.app/Contents/Resources/TerrariaServer.exe": b"mac",
     }
-    archive = io.BytesIO(_zip_bytes(entries))
+    archive = tmp_path / "server.zip"
+    archive.write_bytes(_zip_bytes(entries))
     for os_name, exe, expected in (("nt", "TerrariaServer.exe", b"windows"),
                                    ("posix", "TerrariaServer.bin.x86_64", b"linux")):
         install = tmp_path / os_name
         monkeypatch.setattr(lc, "_server_exe_name", lambda exe=exe: exe)
-        lc._extract_server(archive, str(install))
+        lc._extract_server(str(archive), str(install))
         assert (install / exe).read_bytes() == expected
         assert sorted(p.name for p in install.iterdir()) == sorted(
             ["TerrariaServer.exe", "serverconfig.txt"] if os_name == "nt"
             else ["TerrariaServer.bin.x86_64", "mscorlib.dll"])
-    ambiguous = _zip_bytes({**entries, "1458/Other/Linux/TerrariaServer.bin.x86_64": b"other"})
+    ambiguous = tmp_path / "ambiguous.zip"
+    ambiguous.write_bytes(_zip_bytes({**entries, "1458/Other/Linux/TerrariaServer.bin.x86_64": b"other"}))
     with pytest.raises(ValueError):
-        lc._extract_server(io.BytesIO(ambiguous), str(tmp_path / "ambiguous"))
+        lc._extract_server(str(ambiguous), str(tmp_path / "ambiguous"))
 
 
 @pytest.fixture
@@ -674,7 +641,7 @@ def test_install_refuses_corrupt_zip(lc, tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("version", ["", "latest", "1.4/../x", "1..4"])
 def test_install_refuses_bad_version(lc, tmp_path, monkeypatch, version):
-    monkeypatch.setattr(lc, "_download", _no_kill)
+    monkeypatch.setattr(lc, "_download", lambda *a, **k: pytest.fail("잘못된 버전은 받지 않는다"))
     result = lc.install_server({"version": version, "install_dir": str(tmp_path / "inst")})
     assert result["success"] is False
 
@@ -978,3 +945,14 @@ def test_module_has_an_icon():
     head = (MODULE_DIR / "icon.png").read_bytes()[:24]
     width, height = struct.unpack(">II", head[16:24])
     assert head[:8] == b"\x89PNG\r\n\x1a\n" and width == height >= 256
+
+
+def test_a_damaged_zip_is_reported_in_the_users_language(lc, tmp_path, monkeypatch):
+    exe = lc._server_exe_name()
+    folder = "Windows" if exe.endswith(".exe") else "Linux"
+    data = bytearray(_zip_bytes({f"1458/{folder}/{exe}": b"X" * 64}))
+    data[data.index(b"X" * 64)] = ord("Y")
+    _fake_download(monkeypatch, lc, bytes(data))
+    result = lc.install_server({"version": "1.4.5.8", "install_dir": str(tmp_path / "inst")})
+    assert result["success"] is False
+    assert "The server archive is damaged" in result["message"]

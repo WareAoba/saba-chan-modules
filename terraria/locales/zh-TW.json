@@ -195,7 +195,7 @@
       "description": "列出伺服器指令"
     },
     "playing": {
-      "label": "玩家",
+      "label": "玩家清單",
       "description": "列出線上玩家"
     },
     "clear": {
@@ -207,7 +207,7 @@
       "description": "儲存世界"
     },
     "say": {
-      "label": "發言",
+      "label": "公告",
       "description": "向所有玩家傳送訊息",
       "inputs": {
         "message": {
@@ -278,26 +278,21 @@
       }
     },
     "exit-nosave": {
-      "label": "不儲存關閉",
+      "label": "不儲存停止",
       "description": "不儲存世界直接關閉伺服器"
     },
     "seed": {
-      "label": "世界種子",
+      "label": "顯示種子",
       "description": "顯示目前世界種子"
     }
   },
   "errors": {
     "archive_corrupt": "伺服器壓縮檔已損壞（{{file}}）",
     "backup_paths_failed": "無法確定要備份的檔案：{{error}}",
-    "download_failed": "下載失敗：{{error}}",
     "executable_not_found": "找不到泰拉瑞亞伺服器程式，請先安裝伺服器",
-    "failed_to_kill": "無法結束伺服器處理程序：{{error}}",
-    "graceful_stop_unavailable": "伺服器主控台未連接，無法儲存後停止。只有在可以接受遺失未儲存進度時才強制停止",
-    "install_failed": "安裝失敗：{{error}}",
     "invalid_banlist": "封鎖清單名「{{name}}」不是單純的檔名",
     "invalid_world_name": "世界名稱「{{name}}」不能包含 / \\ : * ? \" < > |，也不能以空格或點結尾",
     "line_break": "{{setting}} 的值不能包含換行",
-    "no_install_dir": "未指定安裝資料夾",
     "no_version": "請選擇伺服器版本（例如 1.4.5.8）",
     "not_server_folder": "此資料夾中沒有泰拉瑞亞伺服器，未刪除任何內容",
     "properties_read_failed": "無法讀取 serverconfig.txt：{{error}}",
@@ -310,21 +305,15 @@
     "xna_install_failed": "無法將 XNA Framework 4.0 放入伺服器資料夾：{{error}}",
     "xna_extension_missing": "在 Windows 上執行 Terraria 伺服器需要 XNA 擴充功能。請安裝並啟用「XNA Framework 4.0 (portable)」擴充功能。",
     "version_unknown": "找不到已安裝的伺服器版本。",
-    "no_working_dir": "無法確定伺服器資料夾",
     "players_unavailable": "無法從伺服器主控台讀取玩家清單"
   },
   "messages": {
     "downloading": "正在下載泰拉瑞亞伺服器",
     "extracting": "正在解壓縮伺服器檔案",
-    "force_killed": "已強制結束伺服器處理程序 {{pid}}",
-    "graceful_stop": "伺服器已儲存世界並停止",
-    "graceful_stop_timeout": "伺服器未及時停止，正在強制停止",
     "install_complete": "泰拉瑞亞伺服器已安裝",
     "no_mappable_settings": "沒有要寫入 serverconfig.txt 的內容",
-    "no_process_running": "伺服器未執行",
     "properties_updated": "已儲存至 serverconfig.txt，重新啟動伺服器後生效",
     "server_reset_complete": "世界已刪除，下次啟動時會建立新世界",
-    "stop_requested": "已要求伺服器儲存並停止",
     "installing_xna": "正在將 XNA Framework 4.0 放入伺服器資料夾..."
   },
   "reset": {

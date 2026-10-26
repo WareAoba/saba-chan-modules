@@ -7,8 +7,8 @@
 검증 축:
 1. module.toml 자체 파싱 & BOM 안전성
 2. [credential_map] 타겟이 실제 INI 키여야 함
-3. _PALWORLD_KEY_MAP.values() ⊆ DEFAULT_PALWORLD_SETTINGS.keys()
-4. settings.fields[].name (saba-chan 전용 그룹 제외) ⊆ _PALWORLD_KEY_MAP.keys()
+3. module.toml file_key 값 ⊆ DEFAULT_PALWORLD_SETTINGS.keys()
+4. settings.fields[].name (saba-chan 전용 그룹 제외)마다 file_key가 있다
 5. lifecycle.py 공개 API가 잘못된 config에 대해 우아하게 실패하는지
 """
 import json
@@ -44,6 +44,12 @@ def _load_module_toml():
     return tomllib.loads(raw.decode("utf-8"))
 
 
+def _file_keys():
+    """설정 이름 → PalWorldSettings.ini 키 (module.toml file_key)"""
+    from daemon_rcon import setting_file_keys
+    return setting_file_keys(os.path.dirname(MODULE_TOML))
+
+
 def test_module_toml_parses():
     cfg = _load_module_toml()
     assert cfg["module"]["name"] == "palworld"
@@ -63,7 +69,8 @@ def test_credential_map_targets_are_real_ini_keys():
     """credential_map 우측 값은 실제 PalWorldSettings.ini 키여야 한다.
     예: rest_password = "AdminPassword" → AdminPassword가 _PALWORLD_KEY_MAP의 값이거나
         DEFAULT_PALWORLD_SETTINGS의 키여야 한다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP, DEFAULT_PALWORLD_SETTINGS
+    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
+    _PALWORLD_KEY_MAP = _file_keys()
 
     cfg = _load_module_toml()
     cred_map = cfg.get("credential_map", {})
@@ -89,7 +96,8 @@ def test_credential_map_rest_password_binds_admin_password():
 def test_key_map_values_subset_of_defaults():
     """_PALWORLD_KEY_MAP의 모든 INI 키는 DEFAULT_PALWORLD_SETTINGS에 존재해야 한다.
     이 대응이 깨지면 '설정을 저장했는데 서버에는 반영 안됨' 버그가 된다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP, DEFAULT_PALWORLD_SETTINGS
+    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
+    _PALWORLD_KEY_MAP = _file_keys()
 
     missing = [
         (friendly, ini_key)
@@ -105,19 +113,13 @@ def test_key_map_values_subset_of_defaults():
 def test_key_map_no_duplicate_targets():
     """두 개 이상의 friendly name이 같은 INI 키에 매핑되면
     configure() 호출 시 덮어쓰기 순서에 따라 값이 소실된다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
+    _PALWORLD_KEY_MAP = _file_keys()
 
     reverse = {}
     for friendly, ini_key in _PALWORLD_KEY_MAP.items():
         reverse.setdefault(ini_key, []).append(friendly)
     dupes = {k: v for k, v in reverse.items() if len(v) > 1}
     assert not dupes, f"중복 매핑된 INI 키: {dupes}"
-
-
-def test_key_map_no_duplicate_friendly_names():
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
-    # dict이므로 구조적으로 중복 불가능하지만, 동치성은 강제한다.
-    assert len(_PALWORLD_KEY_MAP) == len(set(_PALWORLD_KEY_MAP.keys()))
 
 
 # ─── 4. settings.fields ↔ KEY_MAP 계약 ──────────────────────
@@ -136,7 +138,7 @@ def _ini_bound_field_names(cfg):
 def test_ini_bound_fields_are_mapped():
     """INI에 써야 하는 모든 UI 필드가 _PALWORLD_KEY_MAP에 등록되어 있어야 한다.
     누락되면 사용자가 GUI에서 값을 바꿔도 서버에 반영되지 않는다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
+    _PALWORLD_KEY_MAP = _file_keys()
 
     cfg = _load_module_toml()
     unmapped = [n for n in _ini_bound_field_names(cfg) if n not in _PALWORLD_KEY_MAP]
@@ -188,7 +190,7 @@ def test_default_settings_matches_sample_ini():
 def test_key_map_covers_all_ini_keys_except_internal():
     """_PALWORLD_KEY_MAP은 RCON/REST 강제관리 키를 제외한 모든 INI 키를 커버해야 한다.
     최신 업데이트로 추가된 옵션이 매핑 없이 방치되는 사고를 방지한다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
+    _PALWORLD_KEY_MAP = _file_keys()
 
     ini_keys = set(_load_default_ini_props().keys())
     mapped_keys = set(_PALWORLD_KEY_MAP.values())
@@ -199,7 +201,7 @@ def test_key_map_covers_all_ini_keys_except_internal():
 def test_all_ini_keys_exposed_in_gui_except_internal():
     """요구사항: '기본적으로 모든 옵션을 GUI에 노출'. RCON/REST 강제관리 키를 제외한
     모든 INI 키가 module.toml의 settings.fields에 노출되어야 한다."""
-    from palworld.lifecycle import _PALWORLD_KEY_MAP
+    _PALWORLD_KEY_MAP = _file_keys()
 
     cfg = _load_module_toml()
     ui_field_names = {f["name"] for f in cfg.get("settings", {}).get("fields", [])}
@@ -368,25 +370,6 @@ def test_validate_accepts_daemon_server_jar_key(tmp_path):
     assert "NO_EXECUTABLE" not in codes and "EXECUTABLE_NOT_FOUND" not in codes
 
 
-def test_stop_kills_only_given_pid():
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
-        result = lifecycle.stop({"pid": 4321, "force": True, "server_executable": "C:/x/PalServer.exe"})
-    assert result["success"] is True
-    kill.assert_called_once_with(4321)
-
-
-def test_plain_stop_without_rest_does_not_kill():
-    """REST로 저장 후 종료를 요청할 수 없으면 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "force_kill") as kill, \
-         mock.patch.object(lifecycle, "_rest_shutdown", return_value=False):
-        result = lifecycle.stop({"pid": 4321, "server_executable": "C:/x/PalServer.exe"})
-    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
-    assert result.get("message")
-    kill.assert_not_called()
-
-
 def test_status_uses_pid_liveness():
     from palworld import lifecycle
     with mock.patch.object(lifecycle, "is_process_alive", return_value=True):
@@ -428,7 +411,8 @@ def test_deny_technology_list_is_written_as_a_quoted_list(tmp_path):
 def test_rcon_stays_off_and_has_no_command_path(tmp_path):
     """RCON은 보안 정책으로 막는다: 설정으로 켤 수 없고, 손으로 켠 INI도 저장 때 꺼지며, 명령은 REST로만 간다"""
     from palworld import lifecycle
-    assert "rcon_enabled" not in lifecycle._PALWORLD_KEY_MAP
+    # 설정으로 RCON을 켜거나 REST를 끌 수 없다
+    assert not {"RCONEnabled", "RESTAPIEnabled"} & set(_file_keys().values())
     assert not hasattr(lifecycle, "execute_command_via_rcon")
     written = {}
     with mock.patch.object(lifecycle, "_parse_option_settings", return_value={"RCONEnabled": "True"}), \
@@ -529,16 +513,9 @@ def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypat
     서버 이름·비밀번호가 초기화되어 비공개 서버가 공개가 된다"""
     from palworld import lifecycle
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
 
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
     install = str(tmp_path / "server")
-    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": install})["success"]
         props = lifecycle.read_properties({"working_dir": install})["properties"]
         assert props["RESTAPIEnabled"] == "True", "a fresh install still gets the REST-enabled defaults"
@@ -553,17 +530,10 @@ def test_a_new_server_starts_with_the_settings_chosen_when_creating_it(tmp_path,
     """만들 때 고른 이름·비밀번호·인원은 첫 설치의 PalWorldSettings.ini에 들어간다 (비밀번호 없이 열리지 않게)"""
     from palworld import lifecycle
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
 
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
     install = str(tmp_path / "server")
     settings = {"server_name": "우리서버", "server_password": "secret", "max_players": 8, "managed_start": True}
-    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": install, "settings": settings})["success"]
     props = lifecycle.read_properties({"working_dir": install})["properties"]
     assert props["ServerName"] == "우리서버"
@@ -590,45 +560,6 @@ def test_commands_that_change_access_or_grant_things_are_danger():
         risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
     for name in ('unban', 'ban'):
         assert risks[name] == "danger", name
-
-
-def test_stop_waits_for_the_configured_stop_timeout():
-    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한(stop_call_limit)을 알려 주면 그 30초 앞까지, 모르면(0.1.8 데몬, 120초 제한) 90초까지 (MA2, 리뷰 526)"""
-    from palworld import lifecycle
-    for config, expected in (({"stop_timeout": "45"}, 45), ({}, 60), ({"stop_timeout": 600}, 90), ({"stop_timeout": 600, "stop_call_limit": 630}, 600), ({"stop_timeout": 600, "stop_call_limit": 100}, 70)):
-        with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
-             mock.patch.object(lifecycle, "wait_for_exit", return_value=False) as wait, \
-             mock.patch.object(lifecycle, "force_kill", return_value=(True, None)):
-            lifecycle.stop({"pid": 4321, **config})
-        assert wait.call_args.kwargs["timeout"] == expected, config
-
-
-def test_stop_reports_a_kill_that_did_not_work():
-    """강제 종료가 듣지 않으면(접근 거부 등) 정지됐다고 답하지 않는다: 데몬이 서버를 멈춘 것으로 표시한다 (MA4)"""
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "force_kill", return_value=(False, "Access is denied.")):
-        result = lifecycle.stop({"pid": 4321, "force": True})
-    assert result["success"] is False, result
-    assert "Access is denied." in result.get("message", "")
-
-
-def test_stop_uses_the_shared_process_helpers():
-    """PID 확인·종료는 공용 도우미로만 한다: 직접 만든 것은 POSIX에서 자식(PalServer.sh가 띄운 서버)을 남긴다"""
-    from palworld import lifecycle
-    assert not hasattr(lifecycle, "_pid_running") and not hasattr(lifecycle, "_kill")
-
-
-def test_managed_stop_leaves_the_wait_to_the_daemon():
-    """managed 정지는 데몬이 인스턴스 stop_timeout(최대 3600초)까지 기다린다: 모듈이 REST로 요청한 뒤 기다리거나 죽이면
-    90초 상한에 잘려 저장 중에 끝난다 (리뷰 514 P2-1)"""
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
-         mock.patch.object(lifecycle, "wait_for_exit") as wait, \
-         mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 4321, "managed": True, "stop_timeout": 600})
-    assert result["success"] is True, result
-    wait.assert_not_called()
-    kill.assert_not_called()
 
 
 def test_a_failed_rest_policy_write_does_not_sync_an_unwritten_password(tmp_path):
@@ -721,10 +652,8 @@ def test_rest_failure_keeps_the_daemon_error_code(monkeypatch):
 @pytest.mark.parametrize("failure", [False, OSError("쓰기 거부")])
 def test_first_install_fails_when_the_chosen_settings_cannot_be_written(tmp_path, monkeypatch, failure):
     from palworld import lifecycle
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
-    with mock.patch("extensions.steamcmd.SteamCMD") as steam, \
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}), \
          mock.patch.object(lifecycle, "_write_option_settings", side_effect=failure if isinstance(failure, Exception) else None, return_value=failure):
-        steam.return_value.install.return_value = {"success": True}
         result = lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": {"server_password": "private"}})
     assert result["success"] is False, result
     assert result["error_code"] == "settings_write_failed"
@@ -755,10 +684,8 @@ def test_path_boundary_errors_reach_the_shared_runner(tmp_path, monkeypatch, fun
     from daemon_rcon import PathOutside
     from palworld import lifecycle
     if function == "install_server":
-        monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
-        with mock.patch("extensions.steamcmd.SteamCMD") as steam, \
+        with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}), \
              mock.patch.object(lifecycle, "_write_option_settings", side_effect=PathOutside(tmp_path / "outside")):
-            steam.return_value.install.return_value = {"success": True}
             with pytest.raises(PathOutside):
                 lifecycle.install_server({"install_dir": str(tmp_path)})
     elif function == "command":
@@ -820,3 +747,41 @@ def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
         port = s.getsockname()[1]
         result = lifecycle.validate({"server_jar": str(exe), "port": port})
     assert "PORT_IN_USE" not in [i["code"] for i in result.get("issues", [])]
+
+
+def test_stop_uses_the_shared_procedure_with_a_rest_shutdown():
+    """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. Palworld는 REST로만 요청한다"""
+    from palworld import lifecycle
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()) as shared, \
+         mock.patch.object(lifecycle, "_rest_shutdown", return_value=False) as rest:
+        assert lifecycle.stop({"pid": 4321}) is False
+    rest.assert_called_once_with({"pid": 4321})
+    assert shared.call_args.kwargs["module_dir"] == lifecycle.MODULE_DIR
+
+
+def test_diagnose_rules_come_from_module_toml_with_their_phrases(tmp_path):
+    """진단 규칙은 module.toml [[diagnose]] 하나에 둔다(공용 diagnose_lines). 문구는 validate.log_<code>(_hint)"""
+    from daemon_rcon import load_diagnose_rules
+    from palworld import lifecycle
+    rules = load_diagnose_rules(os.path.dirname(MODULE_TOML))
+    with open(os.path.join(os.path.dirname(MODULE_TOML), "locales", "en.json"), encoding="utf-8") as f:
+        phrases = json.load(f)["validate"]
+    for rule in rules:
+        assert f"log_{rule['code'].lower()}" in phrases and f"log_{rule['code'].lower()}_hint" in phrases, rule["code"]
+    issues = lifecycle.diagnose_log({"log_lines": ["LogNet: Error: Address already in use"]})["issues"]
+    assert [(i["code"], i["severity"], i["message"]) for i in issues] == [
+        ("PORT_IN_USE", "critical", phrases["log_port_in_use"])]
+
+
+def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_extension(tmp_path, monkeypatch):
+    """Steam app_id는 module.toml [install] 한 곳에 둔다(steamcmd install_for_module). 익스텐션이 없거나 꺼져 있으면
+    (import 가드의 ModuleNotFoundError) 데몬이 켜기를 안내하도록 extension_required로 답한다"""
+    import extensions.steamcmd
+    from palworld import lifecycle
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
+        lifecycle.install_server({"install_dir": str(tmp_path / "server")})
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"))
+    assert _load_module_toml()["install"]["app_id"] == 2394010
+    monkeypatch.delattr(extensions.steamcmd, "install_for_module")
+    result = lifecycle.install_server({"install_dir": str(tmp_path / "server")})
+    assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]

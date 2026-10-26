@@ -22,8 +22,9 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, atomic_write, coerce_setting, config_value, daemon_stdin_command,
-                         force_kill, is_process_alive, load_setting_types, safe_join, wait_for_exit)
+from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, download, graceful_stop,
+                         is_process_alive, progress, read_key_values, request_console, safe_extract, safe_join,
+                         setting_file_keys, settings_from_file, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
@@ -39,57 +40,6 @@ STOP_COMMAND = "exit"
 
 SERVER_NAMES_URL = "https://terraria.org/api/get/dedicated-servers-names"
 DOWNLOAD_URL = "https://terraria.org/api/download/pc-dedicated-server/{name}"
-# 설정 이름 → serverconfig.txt 키 (configure·import_settings·read_properties·install_server가 함께 쓴다)
-_JOURNEY_KEYS = [
-    "journeypermission_time_setfrozen",
-    "journeypermission_time_setdawn",
-    "journeypermission_time_setnoon",
-    "journeypermission_time_setdusk",
-    "journeypermission_time_setmidnight",
-    "journeypermission_godmode",
-    "journeypermission_wind_setstrength",
-    "journeypermission_rain_setstrength",
-    "journeypermission_time_setspeed",
-    "journeypermission_rain_setfrozen",
-    "journeypermission_wind_setfrozen",
-    "journeypermission_increaseplacementrange",
-    "journeypermission_setdifficulty",
-    "journeypermission_biomespread_setfrozen",
-    "journeypermission_setspawnrate",
-]
-_KEY_MAP = {
-    "world_name": "worldname",
-    "world_dir": "worldpath",
-    "autocreate": "autocreate",
-    "seed": "seed",
-    "difficulty": "difficulty",
-    "max_players": "maxplayers",
-    "port": "port",
-    "password": "password",
-    "motd": "motd",
-    "banlist": "banlist",
-    "secure": "secure",
-    "language": "language",
-    "upnp": "upnp",
-    "npcstream": "npcstream",
-    "worldrollbackstokeep": "worldrollbackstokeep",
-    "slowliquids": "slowliquids",
-    "seed_celebration": "seed_celebration",
-    "seed_theconstant": "seed_theconstant",
-    "seed_notthebees": "seed_notthebees",
-    "seed_notraps": "seed_notraps",
-    "seed_fortheworthy": "seed_fortheworthy",
-    "seed_remix": "seed_remix",
-    "seed_drunk": "seed_drunk",
-    "seed_zenith": "seed_zenith",
-    "priority": "priority",
-    **{key: key for key in _JOURNEY_KEYS},
-}
-_KEY_MAP_REV = {v: k for k, v in _KEY_MAP.items()}
-# 위키: secure·upnp는 "1 to enable"
-_BOOL_KEYS = {"secure", "upnp", "slowliquids", "seed_celebration", "seed_theconstant", "seed_notthebees",
-              "seed_notraps", "seed_fortheworthy", "seed_remix", "seed_drunk", "seed_zenith"}
-
 # 서버 파일의 `playing` 답 마지막 줄(CLI.NoPlayers·OnePlayerConnected·PlayersConnected, 1.4.5.8 TerrariaServer.exe 12개 언어).
 # 0명·1명 문구는 숫자를 그대로 적는다
 _PLAYING_COUNT = [
@@ -116,12 +66,6 @@ _BAD_NAME_CHARS = set('/\\:*?"<>|')
 
 
 # ─── Helpers ─────────────────────────────────────────────
-
-def _progress(percent, message):
-    """데몬이 읽는 진행률 줄 (stderr `PROGRESS:{json}`)"""
-    print("PROGRESS:" + json.dumps({"percent": percent, "message": message}, ensure_ascii=True),
-          file=sys.stderr, flush=True)
-
 
 def _server_exe_name():
     """이 OS의 공식 서버 실행 파일 이름 (zip의 Windows/Linux 폴더)"""
@@ -205,92 +149,32 @@ def _format_value(key, value):
 
 # ─── serverconfig.txt ────────────────────────────────────
 
-def _read_lines(path):
-    """파일의 줄, 줄바꿈, 인코딩. 없으면 빈 UTF-8 파일로 취급한다.
-    (못 읽은 파일을 빈 설정으로 보고 덮어쓰지 않는다)"""
-    try:
-        with open(path, "rb") as f:
-            raw = f.read()
-    except FileNotFoundError:
-        return [], "\n", "utf-8"
-    encoding = "utf-8-sig" if raw.startswith(b"\xef\xbb\xbf") else "utf-8"
-    try:
-        text = raw.decode(encoding)
-    except UnicodeDecodeError:
-        encoding = "cp1252"
-        text = raw.decode(encoding)
-    newline = "\r\n" if "\r\n" in text else "\n"
-    return text.splitlines(), newline, encoding
-
-
-def _parse_line(line):
-    """`key=value` → (소문자 키, 값). 주석(#)·빈 줄·`=` 없는 줄은 None. 값은 첫 `=` 뒤 전부"""
-    stripped = line.strip()
-    if not stripped or stripped.startswith("#") or "=" not in stripped:
-        return None
-    key, value = line.split("=", 1)
-    return key.strip().lower(), value
+# 공식 예시 파일은 cp1252지만 서버는 UTF-8로 읽는다(PC 실측). cp1252로 못 쓰는 값(한국어 MOTD·경로)이면 UTF-8로 쓴다.
+# 키는 대소문자를 가리지 않는다
+_FILE_FORMAT = {"encodings": ("utf-8", "cp1252"), "case_insensitive": True}
 
 
 def _read_config_file(path):
-    """serverconfig.txt → {키: 값}. 같은 키가 여러 번이면 첫 줄 (쓰기도 첫 줄만 남긴다)"""
-    lines, _, _ = _read_lines(path)
-    props = {}
-    for line in lines:
-        parsed = _parse_line(line)
-        if parsed and parsed[0] not in props:
-            props[parsed[0]] = parsed[1]
-    return props
+    """serverconfig.txt → {소문자 키: 값}. 같은 키가 여러 번이면 첫 줄 (쓰기도 첫 줄만 남긴다)"""
+    return read_key_values(path, first_wins=True, **_FILE_FORMAT)
 
 
 def _update_config_file(path, updates):
-    """바뀐 키만 고친다. 주석·다른 키·순서·줄바꿈 표기는 그대로. 값이 None·""이면 그 키 줄을 지운다(게임 기본값).
-    같은 키의 둘째 줄부터는 지운다(어느 줄을 읽을지 애매하지 않게)"""
-    lines, newline, encoding = _read_lines(path)
-    pending = {key: (None if value in (None, "") else _format_value(key, value)) for key, value in updates.items()}
-    out, seen = [], set()
-    for line in lines:
-        parsed = _parse_line(line)
-        if parsed and parsed[0] in pending:
-            key = parsed[0]
-            if key in seen or pending[key] is None:
-                seen.add(key)
-                continue
-            seen.add(key)
-            out.append(f"{key}={pending[key]}")
-        else:
-            out.append(line)
-    for key, value in pending.items():
-        if key not in seen and value is not None:
-            out.append(f"{key}={value}")
-    data = (newline.join(out) + newline) if out else ""
+    """바뀐 키만 고친다. 주석·다른 키·순서·줄바꿈 표기는 그대로. 값이 None·""이면 그 키 줄을 지운다(게임 기본값)"""
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    try:
-        encoded = data.encode(encoding)
-    except UnicodeEncodeError:
-        # 공식 예시 파일은 cp1252지만 서버는 UTF-8로 읽는다(PC 실측). cp1252로 못 쓰는 값(한국어 MOTD·경로)이면 UTF-8로 쓴다
-        encoded = data.encode("utf-8")
-    atomic_write(path, encoded)
+    values = {key: value if value is None or value == "" else _format_value(key, value) for key, value in updates.items()}
+    update_key_values(path, values, delete_empty=True, **_FILE_FORMAT)
 
 
 def _file_updates(settings):
-    """설정 이름 → serverconfig 키 값 (표에 없는 키는 뺀다)"""
-    return {_KEY_MAP[k]: v for k, v in (settings or {}).items() if k in _KEY_MAP}
+    """설정 이름 → serverconfig 키 값 (module.toml file_key가 없는 설정은 뺀다)"""
+    keys = setting_file_keys(MODULE_DIR)
+    return {keys[k]: v for k, v in (settings or {}).items() if k in keys}
 
 
 def _settings_from_file(props):
-    """serverconfig 값 → 설정 이름과 화면 형식. world=가 있으면 월드 폴더·이름은 그 경로에서 얻는다"""
-    types = load_setting_types(MODULE_DIR)
-    settings = {}
-    for key, raw in props.items():
-        name = _KEY_MAP_REV.get(key)
-        if not name:
-            continue
-        if key in _BOOL_KEYS:
-            if raw.strip() in ("0", "1"):
-                settings[name] = raw.strip() == "1"
-            continue
-        settings[name] = coerce_setting(raw, types.get(name))
+    """serverconfig 값 → 설정 이름과 화면 형식(위키: 켜기·끄기는 1·0). world=가 있으면 월드 폴더·이름은 그 경로에서 얻는다"""
+    settings = settings_from_file(MODULE_DIR, props, true="1", false="0", case_insensitive=True)
     world = (props.get("world") or "").strip()
     if world:
         settings["world_dir"] = os.path.dirname(world)
@@ -412,54 +296,11 @@ def status(config):
     return {"success": True, "status": "stopped"}
 
 
-# 데몬이 호출 제한을 알려 주지 않으면(0.1.8 데몬, 모듈 호출 120초) 강제 종료까지 그 안에 끝나도록 90초에서 멈춘다
-STOP_TIMEOUT_MAX = 90
-STOP_CALL_MARGIN = 30
-
-
-def _stop_timeout(config):
-    try:
-        value = int(config.get("stop_timeout") or 60)
-    except (TypeError, ValueError):
-        value = 60
-    cap = STOP_TIMEOUT_MAX
-    try:
-        cap = int(config["stop_call_limit"]) - STOP_CALL_MARGIN
-    except (KeyError, TypeError, ValueError):
-        pass
-    return max(1, min(value, cap))
-
-
-def _kill(pid):
-    ok, error = force_kill(pid)
-    if ok:
-        return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-    return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
-
-
 def stop(config):
     """정지. 공식 `exit`는 월드를 저장하고 끝낸다(위키), 그래서 앞에 save를 붙이지 않는다.
-    managed: 요청만 보내고 반환(대기·강제 종료는 데몬). non-managed: stop_timeout만큼 기다린 뒤 강제 종료.
+    기다림·강제 종료·managed·요청 불가는 공용 절차(graceful_stop)가 맡는다.
     콘솔이 없으면 저장 없이 죽이지 않고 graceful_stop_unavailable (SIGTERM이 저장하는지는 공식 근거가 없어 쓰지 않는다)."""
-    pid = config.get("pid")
-    if config.get("force"):
-        if not pid:
-            return {"success": True, "message": i18n.t("messages.no_process_running")}
-        return _kill(pid)
-    try:
-        daemon_stdin_command(config.get("instance_id", ""), STOP_COMMAND)
-    except PathOutside:
-        raise
-    except Exception as e:
-        print(f"[Terraria] console stop unavailable: {e}", file=sys.stderr)
-        return {"success": False, "error_code": "graceful_stop_unavailable",
-                "message": i18n.t("errors.graceful_stop_unavailable")}
-    if config.get("managed") or not pid:
-        return {"success": True, "message": i18n.t("messages.stop_requested")}
-    if wait_for_exit(pid, timeout=_stop_timeout(config)):
-        return {"success": True, "message": i18n.t("messages.graceful_stop")}
-    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-    return _kill(pid)
+    return graceful_stop(config, lambda: request_console(config, STOP_COMMAND), i18n, module_dir=MODULE_DIR)
 
 
 def configure(config):
@@ -658,46 +499,21 @@ def list_versions(config):
 
 
 def _download(url, dest):
-    import urllib.request
-    req = urllib.request.Request(url, headers={"User-Agent": "saba-chan"})
-    with urllib.request.urlopen(req, timeout=60) as resp, open(dest, "wb") as out:
-        total = int(resp.headers.get("Content-Length") or 0)
-        done = 0
-        while True:
-            chunk = resp.read(1 << 20)
-            if not chunk:
-                break
-            out.write(chunk)
-            done += len(chunk)
-            if total:
-                _progress(5 + int(done * 75 / total), i18n.t("messages.downloading"))
+    message = i18n.t("messages.downloading")
+    download(url, dest, on_progress=lambda done, total: total and progress(5 + int(done * 75 / total), message))
 
 
 def _extract_server(archive, install_dir):
-    """zip에서 이 OS 서버 실행 파일이 든 폴더만 install_dir에 푼다. 기존 serverconfig.txt는 덮지 않는다.
+    """zip에서 이 OS 서버 실행 파일이 든 폴더만 install_dir에 푼다(공용 safe_extract). 기존 serverconfig.txt는 덮지 않는다.
     zip에 체크섬이 없으므로(공식 제공 없음) CRC 검사와 실행 파일 존재로 확인한다"""
     exe_name = _server_exe_name()
     platform_dir = "Windows" if exe_name.endswith(".exe") else "Linux"
     with zipfile.ZipFile(archive) as z:
-        bad = z.testzip()
-        if bad is not None:
-            raise ValueError(i18n.t("errors.archive_corrupt", file=bad))
-        entries = [i for i in z.infolist() if not i.is_dir()]
-        exes = [i.filename for i in entries if i.filename.rsplit("/", 1)[-1] == exe_name
-                and i.filename.rsplit("/", 1)[0].rsplit("/", 1)[-1] == platform_dir]
-        if len(exes) != 1:
-            raise ValueError(i18n.t("errors.server_not_in_archive", file=exe_name))
-        prefix = exes[0].rsplit("/", 1)[0] + "/"
-        members = [i for i in entries if i.filename.startswith(prefix)]
-        # 먼저 모두 검사하고 나서 쓴다: 바깥으로 나가는 항목이 하나라도 있으면 아무것도 풀지 않는다
-        planned = [(i, safe_join(install_dir, *i.filename[len(prefix):].split("/"))) for i in members]
-        for info, dest in planned:
-            rel = info.filename[len(prefix):]
-            if rel == CONFIG_FILE and dest.exists():
-                continue
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            with z.open(info) as src, open(dest, "wb") as out:
-                shutil.copyfileobj(src, out)
+        names = [i.filename for i in z.infolist() if not i.is_dir()]
+    exes = [n for n in names if n.rsplit("/", 1)[-1] == exe_name and n.rsplit("/", 1)[0].rsplit("/", 1)[-1] == platform_dir]
+    if len(exes) != 1:
+        raise ValueError(i18n.t("errors.server_not_in_archive", file=exe_name))
+    safe_extract(archive, install_dir, prefix=exes[0].rsplit("/", 1)[0], keep_existing={CONFIG_FILE})
     exe = os.path.join(install_dir, exe_name)
     if os.name != "nt":
         os.chmod(exe, 0o755)
@@ -734,17 +550,19 @@ def install_server(config):
     fd, archive = tempfile.mkstemp(prefix=".terraria-server-", suffix=".download", dir=install_dir)
     os.close(fd)
     try:
-        _progress(5, i18n.t("messages.downloading"))
+        progress(5, i18n.t("messages.downloading"))
         try:
             _download(url, archive)
         except Exception as e:
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
-        _progress(85, i18n.t("messages.extracting"))
+        progress(85, i18n.t("messages.extracting"))
         try:
             exe = _extract_server(archive, install_dir)
         except PathOutside:
             raise
-        except (zipfile.BadZipFile, ValueError, OSError) as e:
+        except zipfile.BadZipFile:
+            return {"success": False, "message": i18n.t("errors.archive_corrupt", file=url.rsplit("/", 1)[-1])}
+        except (ValueError, OSError) as e:
             return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
     finally:
         try:
@@ -757,7 +575,7 @@ def install_server(config):
         if xna is None:
             return {"success": False, "error_code": "extension_required", "missing_extensions": ["xna"],
                     "message": i18n.t("errors.xna_extension_missing")}
-        _progress(90, i18n.t("messages.installing_xna"))
+        progress(90, i18n.t("messages.installing_xna"))
         try:
             xna.install(install_dir)
         except xna.XnaError as e:
@@ -774,7 +592,7 @@ def install_server(config):
         except (OSError, UnicodeDecodeError, ValueError) as e:
             return {"success": False, "error_code": "settings_write_failed",
                     "message": i18n.t("errors.settings_write_failed", error=str(e))}
-    _progress(100, i18n.t("messages.install_complete"))
+    progress(100, i18n.t("messages.install_complete"))
     return {"success": True, "version": version, "executable_path": exe, "install_path": install_dir,
             "message": i18n.t("messages.install_complete")}
 

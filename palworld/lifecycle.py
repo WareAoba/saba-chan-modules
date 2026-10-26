@@ -15,7 +15,8 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-from daemon_rcon import PathOutside, daemon_rest, force_kill, is_process_alive, safe_join, wait_for_exit
+from daemon_rcon import (PathOutside, daemon_rest, diagnose_lines, graceful_stop, is_process_alive, load_diagnose_rules,
+                         safe_join, setting_file_keys, tail_lines)
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -351,68 +352,13 @@ def _rest_shutdown(config):
         return False
 
 
-# 데몬이 호출 제한을 알려 주지 않으면(0.1.8 데몬, 모듈 호출 120초) 강제 종료까지 그 안에 끝나도록 90초에서 멈춘다.
-# 알려 주면(stop_call_limit, 데몬 #480 이후) 그 30초 앞까지 기다린다
-STOP_TIMEOUT_MAX = 90
-STOP_CALL_MARGIN = 30
-
-
-def _stop_timeout(config):
-    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout. 상한은 데몬의 호출 제한 안이다"""
-    value = config.get("stop_timeout")
-    if value in (None, ""):
-        import tomllib
-        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
-    try:
-        value = int(value)
-    except (TypeError, ValueError):
-        value = 30
-    cap = STOP_TIMEOUT_MAX
-    try:
-        cap = int(config["stop_call_limit"]) - STOP_CALL_MARGIN
-    except (KeyError, TypeError, ValueError):
-        pass
-    return max(1, min(value, cap))
-
-
 def stop(config):
     """Stop Palworld server.
 
-    Palworld는 콘솔(stdin) 명령을 받지 않으므로 REST로 저장·종료를 요청하고,
-    시간 안에 끝나지 않으면 강제 종료한다. REST를 쓸 수 없으면 끝내지 않고 `graceful_stop_unavailable`로 답한다. 데몬이 PID를 주면(managed) 그 프로세스만 다룬다.
+    Palworld는 콘솔(stdin) 명령을 받지 않으므로 REST로 저장·종료를 요청한다. 기다림·강제 종료·managed·
+    요청 불가(`graceful_stop_unavailable`)는 공용 절차(graceful_stop)가 맡는다. 데몬이 준 PID(와 자식)만 다룬다.
     """
-    try:
-        pid = config.get("pid")
-        force = config.get("force", False)
-        exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
-        if not pid:
-            # 데몬이 PID를 모르면 이 인스턴스의 서버가 아니다(또는 안 돌고 있다)
-            return {"success": True, "message": i18n.t("messages.process_not_running", name=exe_name)}
-
-        if not force and not _rest_shutdown(config):
-            # REST가 없어 저장 후 종료를 요청할 수 없다: 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
-            return {"success": False, "error_code": "graceful_stop_unavailable",
-                    "message": i18n.t("errors.graceful_stop_unavailable")}
-        if not force and config.get("managed"):
-            # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 90초 상한에 잘린다
-            return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
-        if not force:
-            if wait_for_exit(pid, timeout=_stop_timeout(config)):
-                return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
-            print("[Palworld] Server did not exit after REST shutdown, force killing", file=sys.stderr)
-
-        # 그 PID(와 자식)만 끝낸다. 실행 파일 이름으로는 끝내지 않는다: 같은 게임의 다른 인스턴스까지 죽는다
-        ok, error = force_kill(pid)
-        if not ok:
-            return {"success": False, "message": i18n.t("errors.failed_to_stop_process", error=error or f"PID {pid}")}
-        return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
-    except PathOutside:
-        raise
-    except Exception as e:
-        error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
-        print(error_msg, file=sys.stderr)
-        return {"success": False, "message": error_msg}
+    return graceful_stop(config, lambda: _rest_shutdown(config), i18n, module_dir=MODULE_DIR)
 
 
 def get_credentials(config):
@@ -575,148 +521,6 @@ DEFAULT_PALWORLD_SETTINGS = {
     "BuildingNameDisplayCacheTTLSeconds": "60",
 }
 
-# saba-chan key → PalWorldSettings.ini key (full mapping)
-_PALWORLD_KEY_MAP = {
-    # Server identity
-    "port": "PublicPort",
-    "public_ip": "PublicIP",
-    "max_players": "ServerPlayerMaxNum",
-    "coop_max_players": "CoopPlayerMaxNum",
-    "server_name": "ServerName",
-    "server_description": "ServerDescription",
-    "server_password": "ServerPassword",
-    "admin_password": "AdminPassword",
-    "region": "Region",
-    # Connectivity / Auth (RCONEnabled는 보안 정책상 항상 False라 설정 키가 없다)
-    "rest_api_enabled": "RESTAPIEnabled",
-    "rest_port": "RESTAPIPort",
-    "use_auth": "bUseAuth",
-    "allow_client_mod": "bAllowClientMod",
-    "ban_list_url": "BanListURL",
-    "show_player_list": "bShowPlayerList",
-    "crossplay_platforms": "CrossplayPlatforms",
-    # Difficulty / Game mode
-    "difficulty": "Difficulty",
-    "randomizer_type": "RandomizerType",
-    "randomizer_seed": "RandomizerSeed",
-    "randomizer_pal_level_random": "bIsRandomizerPalLevelRandom",
-    "hardcore": "bHardcore",
-    "pal_lost": "bPalLost",
-    "character_recreate_in_hardcore": "bCharacterRecreateInHardcore",
-    "is_pvp": "bIsPvP",
-    "is_multiplay": "bIsMultiplay",
-    "death_penalty": "DeathPenalty",
-    "enable_player_to_player_damage": "bEnablePlayerToPlayerDamage",
-    "enable_friendly_fire": "bEnableFriendlyFire",
-    "enable_invader_enemy": "bEnableInvaderEnemy",
-    "enable_predator_boss_pal": "EnablePredatorBossPal",
-    # Rates
-    "day_time_speed_rate": "DayTimeSpeedRate",
-    "night_time_speed_rate": "NightTimeSpeedRate",
-    "exp_rate": "ExpRate",
-    "pal_capture_rate": "PalCaptureRate",
-    "pal_spawn_num_rate": "PalSpawnNumRate",
-    "pal_damage_rate_attack": "PalDamageRateAttack",
-    "pal_damage_rate_defense": "PalDamageRateDefense",
-    "player_damage_rate_attack": "PlayerDamageRateAttack",
-    "player_damage_rate_defense": "PlayerDamageRateDefense",
-    "player_stomach_decrease_rate": "PlayerStomachDecreaceRate",
-    "player_stamina_decrease_rate": "PlayerStaminaDecreaceRate",
-    "player_auto_hp_regen_rate": "PlayerAutoHPRegeneRate",
-    "player_auto_hp_regen_rate_in_sleep": "PlayerAutoHpRegeneRateInSleep",
-    "pal_stomach_decrease_rate": "PalStomachDecreaceRate",
-    "pal_stamina_decrease_rate": "PalStaminaDecreaceRate",
-    "pal_auto_hp_regen_rate": "PalAutoHPRegeneRate",
-    "pal_auto_hp_regen_rate_in_sleep": "PalAutoHpRegeneRateInSleep",
-    "work_speed_rate": "WorkSpeedRate",
-    "collection_drop_rate": "CollectionDropRate",
-    "collection_object_hp_rate": "CollectionObjectHpRate",
-    "collection_object_respawn_speed_rate": "CollectionObjectRespawnSpeedRate",
-    "enemy_drop_item_rate": "EnemyDropItemRate",
-    "item_weight_rate": "ItemWeightRate",
-    "equipment_durability_damage_rate": "EquipmentDurabilityDamageRate",
-    "item_corruption_multiplier": "ItemCorruptionMultiplier",
-    # Building
-    "build_object_hp_rate": "BuildObjectHpRate",
-    "build_object_damage_rate": "BuildObjectDamageRate",
-    "build_object_deterioration_damage_rate": "BuildObjectDeteriorationDamageRate",
-    "build_area_limit": "bBuildAreaLimit",
-    "max_building_limit_num": "MaxBuildingLimitNum",
-    # Base camp
-    "base_camp_max_num": "BaseCampMaxNum",
-    "base_camp_worker_max_num": "BaseCampWorkerMaxNum",
-    "base_camp_max_num_in_guild": "BaseCampMaxNumInGuild",
-    # Items / Drops
-    "drop_item_max_num": "DropItemMaxNum",
-    "drop_item_max_num_unko": "DropItemMaxNum_UNKO",
-    "drop_item_alive_max_hours": "DropItemAliveMaxHours",
-    "active_unko": "bActiveUNKO",
-    # Guild
-    "guild_player_max_num": "GuildPlayerMaxNum",
-    "auto_reset_guild_no_online_players": "bAutoResetGuildNoOnlinePlayers",
-    "auto_reset_guild_time_no_online_players": "AutoResetGuildTimeNoOnlinePlayers",
-    "guild_rejoin_cooldown_minutes": "GuildRejoinCooldownMinutes",
-    "can_pickup_other_guild_death_penalty_drop": "bCanPickupOtherGuildDeathPenaltyDrop",
-    "enable_defense_other_guild_player": "bEnableDefenseOtherGuildPlayer",
-    "invisible_other_guild_base_camp_area_fx": "bInvisibleOtherGuildBaseCampAreaFX",
-    # Travel / Spawn
-    "enable_fast_travel": "bEnableFastTravel",
-    "enable_fast_travel_only_base_camp": "bEnableFastTravelOnlyBaseCamp",
-    "is_start_location_select_by_map": "bIsStartLocationSelectByMap",
-    "exist_player_after_logout": "bExistPlayerAfterLogout",
-    "enable_non_login_penalty": "bEnableNonLoginPenalty",
-    # Pal / Egg
-    "pal_egg_default_hatching_time": "PalEggDefaultHatchingTime",
-    # Aim assist
-    "enable_aim_assist_pad": "bEnableAimAssistPad",
-    "enable_aim_assist_keyboard": "bEnableAimAssistKeyboard",
-    # Auto-save / Backup
-    "auto_save_span": "AutoSaveSpan",
-    "is_use_backup_save_data": "bIsUseBackupSaveData",
-    # Supply drop
-    "supply_drop_span": "SupplyDropSpan",
-    # Logging / Chat
-    "log_format_type": "LogFormatType",
-    "is_show_join_left_message": "bIsShowJoinLeftMessage",
-    "chat_post_limit_per_minute": "ChatPostLimitPerMinute",
-    # Network / Performance
-    "server_replicate_pawn_cull_distance": "ServerReplicatePawnCullDistance",
-    # Palbox
-    "allow_global_palbox_export": "bAllowGlobalPalboxExport",
-    "allow_global_palbox_import": "bAllowGlobalPalboxImport",
-    # Technology
-    "deny_technology_list": "DenyTechnologyList",
-    # Respawn
-    "block_respawn_time": "BlockRespawnTime",
-    "respawn_penalty_duration_threshold": "RespawnPenaltyDurationThreshold",
-    "respawn_penalty_time_scale": "RespawnPenaltyTimeScale",
-    # PvP specifics
-    "display_pvp_item_num_on_world_map_base_camp": "bDisplayPvPItemNumOnWorldMap_BaseCamp",
-    "display_pvp_item_num_on_world_map_player": "bDisplayPvPItemNumOnWorldMap_Player",
-    "additional_drop_item_when_player_killing_in_pvp_mode": "AdditionalDropItemWhenPlayerKillingInPvPMode",
-    "additional_drop_item_num_when_player_killing_in_pvp_mode": "AdditionalDropItemNumWhenPlayerKillingInPvPMode",
-    "additional_drop_item_when_player_killing_in_pvp_mode_enabled": "bAdditionalDropItemWhenPlayerKillingInPvPMode",
-    # Enhance stat
-    "allow_enhance_stat_health": "bAllowEnhanceStat_Health",
-    "allow_enhance_stat_attack": "bAllowEnhanceStat_Attack",
-    "allow_enhance_stat_stamina": "bAllowEnhanceStat_Stamina",
-    "allow_enhance_stat_weight": "bAllowEnhanceStat_Weight",
-    "allow_enhance_stat_work_speed": "bAllowEnhanceStat_WorkSpeed",
-    "item_container_force_mark_dirty_interval": "ItemContainerForceMarkDirtyInterval",
-    # 2026-07 업데이트로 추가된 옵션
-    "physics_active_drop_item_max_num": "PhysicsActiveDropItemMaxNum",
-    "player_data_pal_storage_update_check_tick_interval": "PlayerDataPalStorageUpdateCheckTickInterval",
-    "monster_farm_action_speed_rate": "MonsterFarmActionSpeedRate",
-    "auto_transfer_master_check_interval_seconds": "AutoTransferMasterCheckIntervalSeconds",
-    "auto_transfer_master_threshold_days": "AutoTransferMasterThresholdDays",
-    "max_guilds_per_frame": "MaxGuildsPerFrame",
-    "enable_voice_chat": "bEnableVoiceChat",
-    "voice_chat_max_volume_distance": "VoiceChatMaxVolumeDistance",
-    "voice_chat_zero_volume_distance": "VoiceChatZeroVolumeDistance",
-    "enable_building_player_uid_display": "bEnableBuildingPlayerUIdDisplay",
-    "building_name_display_cache_ttl_seconds": "BuildingNameDisplayCacheTTLSeconds",
-}
-
 def _get_settings_ini_path(config):
     """Resolve path to PalWorldSettings.ini from config."""
     working_dir = config.get("working_dir")
@@ -750,60 +554,6 @@ def _write_option_settings(ini_path, props):
     if write_option_settings is None:
         raise ExtensionMissing("ue4-ini")
     return write_option_settings(ini_path, props)
-
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║            Error Detection (Palworld)                     ║
-# ╚═══════════════════════════════════════════════════════════╝
-
-PALWORLD_ERROR_PATTERNS = [
-    {
-        "code": "PORT_IN_USE",
-        "patterns": [
-            r"Address already in use",
-            r"Failed.*bind.*port",
-            r"Only one usage of each socket address",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "OUT_OF_MEMORY",
-        "patterns": [
-            r"OutOfMemory",
-            r"Ran out of memory",
-            r"Could not allocate memory",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "EXECUTABLE_CRASH",
-        "patterns": [
-            r"Unhandled Exception",
-            r"Fatal error",
-            r"Assertion failed",
-            r"appError called",
-        ],
-        "severity": "critical",
-    },
-    {
-        "code": "SAVE_CORRUPT",
-        "patterns": [
-            r"Failed to load.*SaveData",
-            r"Corrupted save",
-            r"Failed to read save file",
-        ],
-        "severity": "error",
-    },
-    {
-        "code": "STEAM_AUTH_FAILED",
-        "patterns": [
-            r"LogOnline.*Warning.*Steam",
-            r"SteamAPI.*failed",
-            r"Steam must be running",
-        ],
-        "severity": "error",
-    },
-]
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -883,10 +633,11 @@ def _from_ini_list(value):
 
 def _apply_settings(props, settings):
     """saba-chan 설정 키를 INI 값으로 바꿔 `props`에 넣고, 바꾼 INI 키 목록을 돌려준다.
-    INI에 없는 키(데몬 내부 필드 등)는 건너뛴다"""
+    module.toml file_key가 없는 키(데몬 내부 필드 등)는 건너뛴다"""
+    keys = setting_file_keys(MODULE_DIR)
     updated_keys = []
     for key, value in (settings or {}).items():
-        ini_key = _PALWORLD_KEY_MAP.get(key)
+        ini_key = keys.get(key)
         if ini_key is None or value is None:
             continue
         if isinstance(value, bool):
@@ -950,8 +701,8 @@ def import_settings(config):
     if not ini_props:
         return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
 
-    # Build reverse map: INI key → saba-chan key
-    reverse_map = {v: k for k, v in _PALWORLD_KEY_MAP.items()}
+    # INI key → saba-chan key (module.toml file_key)
+    reverse_map = {v: k for k, v in setting_file_keys(MODULE_DIR).items()}
 
     from daemon_rcon import coerce_setting, load_setting_types
     types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
@@ -1118,9 +869,7 @@ def _save_entries(saves):
 
 
 def diagnose_log(config):
-    """Diagnose errors from provided log lines or server log files."""
-    import re as _re
-
+    """Diagnose errors from provided log lines or server log files. 규칙은 module.toml [[diagnose]]"""
     log_lines = config.get("log_lines", [])
     working_dir = config.get("working_dir", "")
 
@@ -1129,32 +878,10 @@ def diagnose_log(config):
 
     # If no lines provided, try to read from Palworld log file
     if not log_lines and working_dir:
-        log_path = safe_join(working_dir, "Pal", "Saved", "Logs", "Pal.log")
-        if os.path.isfile(log_path):
-            try:
-                with open(log_path, "r", encoding="utf-8", errors="replace") as f:
-                    log_lines = f.readlines()[-500:]
-            except OSError:
-                pass
+        log_lines = tail_lines(safe_join(working_dir, "Pal", "Saved", "Logs", "Pal.log"))
 
-    issues = []
-    seen_codes = set()
-    for line in log_lines:
-        for pdef in PALWORLD_ERROR_PATTERNS:
-            if pdef["code"] in seen_codes:
-                continue
-            for regex in pdef["patterns"]:
-                if _re.search(regex, line, _re.IGNORECASE):
-                    code = pdef["code"]
-                    seen_codes.add(code)
-                    issues.append({
-                        "code": code,
-                        "severity": pdef["severity"],
-                        "matched_line": line.strip()[:200],
-                        "message": i18n.t(f"validate.log_{code.lower()}"),
-                        "solution": i18n.t(f"validate.log_{code.lower()}_hint"),
-                    })
-                    break
+    issues = diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n,
+                            message="validate.log_{code}", solution="validate.log_{code}_hint")
 
     return {
         "success": True,
@@ -1185,11 +912,9 @@ def get_version_details(config):
 
 
 def install_server(config):
-    """Install Palworld dedicated server via SteamCMD extension.
+    """Install Palworld dedicated server via the SteamCMD extension (app_id는 module.toml [install]).
 
-    Uses the saba-chan SteamCMD extension for portable, automatic
-    download.  Falls back to manual instructions when the extension
-    is unavailable.
+    익스텐션이 없거나 꺼져 있으면(import 가드) `extension_required`로 답해 데몬이 켜기를 안내한다.
     """
     install_dir = config.get("install_dir", "")
     if not install_dir:
@@ -1201,101 +926,68 @@ def install_server(config):
 
     os.makedirs(install_dir, exist_ok=True)
 
-    # ── SteamCMD extension 사용 시도 ──
-    # 먼저 익스텐션 활성화 상태 확인
-    enabled_exts = os.environ.get("SABA_ENABLED_EXTENSIONS", "").split(",")
-    if "steamcmd" not in enabled_exts:
-        return {
-            "success": False,
-            "message": i18n.t("messages.extension_not_enabled"),
-            "error_code": "extension_required",
-            "missing_extensions": ["steamcmd"],
-        }
-
     try:
-        from extensions.steamcmd import SteamCMD
-
-        steam = SteamCMD()
-        steam.ensure_available()
-
-        result = steam.install(
-            app_id=2394010,
-            install_dir=install_dir,
-            anonymous=True,
-        )
-
-        if result.get("success"):
-            exe_name = "PalServer.exe" if sys.platform == "win32" else "PalServer.sh"
-            exe_path = str(safe_join(install_dir, exe_name))
-            result["install_path"] = install_dir
-            result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
-
-            # ── 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성 ──
-            # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
-            # 기본 값 + RESTAPIEnabled=True, RCONEnabled=False 로 미리 기록한다.
-            try:
-                if sys.platform == "win32":
-                    platform_dir = "WindowsServer"
-                else:
-                    platform_dir = "LinuxServer"
-                ini_dir = safe_join(
-                    install_dir, "Pal", "Saved", "Config", platform_dir
-                )
-                os.makedirs(ini_dir, exist_ok=True)
-                ini_path = safe_join(ini_dir, "PalWorldSettings.ini")
-
-                # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
-                if os.path.isfile(ini_path) and _parse_option_settings(ini_path):
-                    print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
-                else:
-                    defaults = dict(DEFAULT_PALWORLD_SETTINGS)
-                    defaults["RESTAPIEnabled"] = "True"
-                    # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
-                    _apply_settings(defaults, config.get("settings"))
-                    defaults["RCONEnabled"] = "False"
-                    if _write_option_settings(ini_path, defaults):
-                        print(
-                            f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
-                            file=sys.stderr,
-                        )
-                    else:
-                        print("[Palworld] Provisioning: failed to write default INI", file=sys.stderr)
-                        return {"success": False, "error_code": "settings_write_failed",
-                                "message": i18n.t("errors.settings_write_failed")}
-            except PathOutside:
-                raise
-            except Exception as e:
-                print(
-                    f"[Palworld] Provisioning: failed to write default INI: {e}",
-                    file=sys.stderr,
-                )
-                return {"success": False, "error_code": "settings_write_failed",
-                        "message": i18n.t("errors.settings_write_failed")}
-
-        return result
-
+        from extensions.steamcmd import install_for_module
     except ImportError:
-        print("[Palworld] SteamCMD extension not available, returning instructions", file=sys.stderr)
+        return {"success": False, "message": i18n.t("messages.extension_not_enabled"),
+                "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
+    try:
+        result = install_for_module(MODULE_DIR, install_dir)
     except PathOutside:
         raise
     except Exception as e:
         print(f"[Palworld] SteamCMD install failed: {e}", file=sys.stderr)
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
 
-    # ── Fallback: 수동 설치 안내 ──
-    return {
-        "success": False,
-        "message": i18n.t("messages.install_via_steamcmd"),
-        "install_method": "steamcmd",
-        "steam_app_id": "2394010",
-        "instructions": [
-            i18n.t("messages.install_step_download"),
-            i18n.t("messages.install_step_run",
-                   command='steamcmd +force_install_dir "{}" +login anonymous +app_update 2394010 validate +quit'.format(
-                       install_dir or "<install_directory>")),
-            i18n.t("messages.install_step_set_path"),
-        ],
-    }
+    if result.get("success"):
+        exe_name = "PalServer.exe" if sys.platform == "win32" else "PalServer.sh"
+        exe_path = str(safe_join(install_dir, exe_name))
+        result["install_path"] = install_dir
+        result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
+
+        # ── 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성 ──
+        # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
+        # 기본 값 + RESTAPIEnabled=True, RCONEnabled=False 로 미리 기록한다.
+        try:
+            if sys.platform == "win32":
+                platform_dir = "WindowsServer"
+            else:
+                platform_dir = "LinuxServer"
+            ini_dir = safe_join(
+                install_dir, "Pal", "Saved", "Config", platform_dir
+            )
+            os.makedirs(ini_dir, exist_ok=True)
+            ini_path = safe_join(ini_dir, "PalWorldSettings.ini")
+
+            # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
+            if os.path.isfile(ini_path) and _parse_option_settings(ini_path):
+                print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
+            else:
+                defaults = dict(DEFAULT_PALWORLD_SETTINGS)
+                defaults["RESTAPIEnabled"] = "True"
+                # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
+                _apply_settings(defaults, config.get("settings"))
+                defaults["RCONEnabled"] = "False"
+                if _write_option_settings(ini_path, defaults):
+                    print(
+                        f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
+                        file=sys.stderr,
+                    )
+                else:
+                    print("[Palworld] Provisioning: failed to write default INI", file=sys.stderr)
+                    return {"success": False, "error_code": "settings_write_failed",
+                            "message": i18n.t("errors.settings_write_failed")}
+        except PathOutside:
+            raise
+        except Exception as e:
+            print(
+                f"[Palworld] Provisioning: failed to write default INI: {e}",
+                file=sys.stderr,
+            )
+            return {"success": False, "error_code": "settings_write_failed",
+                    "message": i18n.t("errors.settings_write_failed")}
+
+    return result
 
 
 def command(config):

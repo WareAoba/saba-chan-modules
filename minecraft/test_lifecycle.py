@@ -39,9 +39,9 @@ def test_default_properties_no_empty_keys():
 
 
 def test_property_key_map_coverage():
-    """_PROPERTY_KEY_MAP values should reference valid server.properties keys."""
-    from minecraft.lifecycle import _PROPERTY_KEY_MAP
-    for friendly_name, prop_key in _PROPERTY_KEY_MAP.items():
+    """module.toml file_key values should reference valid server.properties keys."""
+    from daemon_rcon import setting_file_keys
+    for friendly_name, prop_key in setting_file_keys(MODULE_DIR).items():
         # Most mapped keys should exist in DEFAULT_PROPERTIES
         # (some might be saba-chan-specific, so we just check format)
         assert "-" in prop_key or "." in prop_key or prop_key.isalpha(), \
@@ -321,8 +321,10 @@ def test_launch_turns_rcon_off_in_every_mode(managed):
 
 
 def test_rcon_cannot_be_turned_on_from_settings():
-    from minecraft.lifecycle import _PROPERTY_KEY_MAP
-    assert not {"enable_rcon", "rcon_password", "rcon_port", "broadcast_rcon_to_ops"} & set(_PROPERTY_KEY_MAP)
+    from daemon_rcon import setting_file_keys
+    keys = setting_file_keys(MODULE_DIR)
+    assert not {"enable_rcon", "rcon_password", "rcon_port", "broadcast_rcon_to_ops"} & set(keys)
+    assert not {"enable-rcon", "rcon.password", "rcon.port", "broadcast-rcon-to-ops"} & set(keys.values())
 
 
 def test_build_launch_info_working_dir_from_jar():
@@ -452,59 +454,6 @@ def test_status_does_not_signal_process():
         result = lifecycle.status({"pid": 1234, "port": 25565})
     assert result["status"] == "starting"
     alive.assert_called_once_with(1234)
-
-
-def test_stop_graceful_then_reports_success():
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=True) as console, \
-         mock.patch.object(lifecycle, "wait_for_exit", return_value=True), \
-         mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 99, "instance_id": "abc"})
-    assert result["success"] is True
-    console.assert_called_once_with("abc")
-    kill.assert_not_called()
-
-
-def test_normal_stop_without_console_terminates_before_any_kill():
-    """RCON is off and there is no console: a normal stop asks the server to exit (SIGTERM) and waits,
-    so it can save; it only force-kills after the wait runs out"""
-    from minecraft import lifecycle
-    calls = []
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
-         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or True), \
-         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
-        result = lifecycle.stop({"pid": 99})
-    assert result["success"] is True
-    assert calls == ["term", "wait"]
-
-    calls.clear()
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
-         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or False), \
-         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
-        lifecycle.stop({"pid": 99})
-    assert calls == ["term", "wait", "kill"]
-
-
-@pytest.mark.skipif(os.name == "nt", reason="SIGTERM is POSIX only")
-def test_request_terminate_sends_sigterm_not_sigkill():
-    import signal
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle.os, "kill") as kill:
-        assert lifecycle._request_terminate(4321) is True
-    kill.assert_called_once_with(4321, signal.SIGTERM)
-
-
-def test_force_stop_kills_without_asking():
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle, "_send_console_stop") as console, \
-         mock.patch.object(lifecycle, "_request_terminate") as term, \
-         mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
-        lifecycle.stop({"pid": 99, "force": True})
-    console.assert_not_called()
-    term.assert_not_called()
-    kill.assert_called_once_with(99)
 
 
 def test_ping_closes_socket_on_error():
@@ -1141,15 +1090,17 @@ def test_reset_server_refuses_a_world_name_that_is_a_kept_item(tmp_path):
 def test_server_properties_saved_in_the_windows_locale_are_read(tmp_path, monkeypatch):
     """ANSI(cp949) 편집기로 한글 MOTD를 저장한 server.properties 때문에 시작이 UnicodeDecodeError로 막혔다.
     영문 Windows(cp1252)에서도 cp949 파일을 깨진 글자로 읽어 MOTD를 망가뜨리지 않는다"""
-    from minecraft import lifecycle
+    import locale
     from minecraft.lifecycle import ServerPropertiesManager
-    monkeypatch.setattr(lifecycle.locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
+    monkeypatch.setattr(locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
     (tmp_path / "server.properties").write_bytes("motd=우리 서버\nserver-port=25565\n".encode("cp949"))
     manager = ServerPropertiesManager(str(tmp_path))
     assert manager.read()["motd"] == "우리 서버"
     assert manager.update({"server-port": "25570"})
     props = manager.read()
     assert (props["motd"], props["server-port"]) == ("우리 서버", "25570")
+    # 서버는 UTF-8로 읽으므로 고쳐 쓸 때 UTF-8로 바꾼다
+    assert (tmp_path / "server.properties").read_text(encoding="utf-8").startswith("motd=우리 서버")
 
 
 def _jar_with_version(path, version):
@@ -1242,21 +1193,6 @@ def test_backup_keeps_permissions_and_settings():
         assert name in paths, name
 
 
-def test_plain_stop_without_a_way_to_save_does_not_kill():
-    """콘솔도 SIGTERM도 없으면(Windows, 콘솔 없는 서버) 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
-            mock.patch.object(lifecycle, "_request_terminate", return_value=False), \
-            mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 4242, "instance_id": "x"})
-    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
-    assert result.get("message")
-    kill.assert_not_called()
-    with mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
-        assert lifecycle.stop({"pid": 4242, "force": True})["success"] is True
-    kill.assert_called_once()
-
-
 def test_backup_keeps_plugin_mod_and_server_type_configs():
     """Paper·Spigot·모드 서버는 플러그인·모드와 그 설정이 플레이 데이터다 (MK18, PaperMC 문서 "Configuration").
     사바쨩이 다시 받아 주지 않는 것이라 복원 때 같이 돌아와야 한다. 다시 만들 수 있는 캐시(.paper-remapped, libraries, logs)는 넣지 않는다"""
@@ -1279,17 +1215,6 @@ def test_commands_that_change_access_or_grant_things_are_danger():
         risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
     for name in ("give", "gamemode", "pardon", "op", "deop", "whitelist", "ban", "difficulty"):
         assert risks[name] == "danger", name
-
-
-def test_stop_waits_for_the_configured_stop_timeout():
-    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한(stop_call_limit)을 알려 주면 그 30초 앞까지, 모르면(0.1.8 데몬, 120초 제한) 90초까지 (MA2, 리뷰 526)"""
-    from minecraft import lifecycle
-    for config, expected in (({"stop_timeout": "75"}, 75), ({}, 90), ({"stop_timeout": 3600}, 90), ({"stop_timeout": 3600, "stop_call_limit": 3630}, 3600), ({"stop_call_limit": 150}, 120), ({"stop_timeout": 600, "stop_call_limit": "100"}, 70), ({"stop_timeout": 600, "stop_call_limit": "x"}, 90)):
-        waits = []
-        with mock.patch.object(lifecycle, "_send_console_stop", return_value=True), \
-             mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: waits.append(timeout) or True):
-            lifecycle.stop({"pid": 99, **config})
-        assert waits == [expected], config
 
 
 def test_backup_leaves_out_rendered_map_tiles(tmp_path):
@@ -1408,8 +1333,8 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     # 채팅에 머리 흉내("]: ")를 넣어도 줄 처음의 로그 머리부터 맞춰야 한다 (리뷰 544)
     assert not any(p.search('[20:08:00] [Server thread/INFO]: <Steve> ]: Done (1.0s)! For help, type "help"') for p in patterns)
     assert "ready_patterns" not in toml["detection"]
-    # 설정 파일 저장이 공용 atomic_write(saba-core 0.1.10부터)를 쓴다
-    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.10"
+    # 정지·설정 파일이 공용 도우미(graceful_stop·update_key_values, saba-core 0.1.11부터)를 쓴다
+    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.11-0"
 
 
 def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():
@@ -1454,20 +1379,6 @@ def test_player_patterns_name_who_joined_or_left():
                   "<Steve> ]: Notch joined the game", "<Steve> ]: Notch left the game",
                   "[Not Secure] <Steve> ]: Notch joined the game"]:
         assert name(join, head + spoof) is None and name(leave, head + spoof) is None, spoof
-
-
-def test_managed_stop_leaves_the_wait_to_the_daemon():
-    """managed 정지는 저장 후 종료만 요청하고 바로 돌려준다: 기다림과 강제 종료는 데몬이 인스턴스 stop_timeout까지 맡는다.
-    여기서 기다리면 호출 제한(stop_call_limit - 30초)에 잘려 저장 중에 강제 종료한다 (02 §3.4, palworld와 같다)"""
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", return_value=True), \
-         mock.patch.object(lifecycle, "wait_for_exit") as wait, \
-         mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 99, "managed": True, "stop_timeout": 300, "stop_call_limit": 120})
-    assert result["success"] is True
-    wait.assert_not_called()
-    kill.assert_not_called()
 
 
 @pytest.mark.parametrize("name,content,expected", [
@@ -1591,3 +1502,66 @@ def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
         port = s.getsockname()[1]
         result = lifecycle.validate({"working_dir": str(tmp_path), "port": port})
     assert "PORT_IN_USE" not in [i["code"] for i in result.get("issues", [])]
+
+
+def test_stop_uses_the_shared_procedure_with_console_then_sigterm():
+    """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. 모듈은 요청 방법만 정한다:
+    콘솔 `stop` → (콘솔이 없으면) SIGTERM"""
+    from minecraft import lifecycle
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()) as shared, \
+         mock.patch.object(lifecycle, "request_console", return_value=True) as console, \
+         mock.patch.object(lifecycle, "request_terminate") as term:
+        assert lifecycle.stop({"pid": 99, "instance_id": "abc"}) is True
+    assert shared.call_args.kwargs["module_dir"] == lifecycle.MODULE_DIR
+    console.assert_called_once_with({"pid": 99, "instance_id": "abc"}, "stop")
+    term.assert_not_called()
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()), \
+         mock.patch.object(lifecycle, "request_console", return_value=False), \
+         mock.patch.object(lifecycle, "request_terminate", return_value=True) as term:
+        assert lifecycle.stop({"pid": 99}) is True
+    term.assert_called_once_with(99)
+
+
+def test_diagnose_rules_come_from_module_toml_and_read_the_latest_log(tmp_path):
+    """진단 규칙은 module.toml [[diagnose]] 하나에 둔다(공용 diagnose_lines). 규칙마다 문제·해결 문구가 있다"""
+    from daemon_rcon import load_diagnose_rules
+    from minecraft import lifecycle
+    rules = load_diagnose_rules(MODULE_DIR)
+    assert {"JAVA_NOT_FOUND", "EULA_NOT_ACCEPTED", "PORT_IN_USE", "SERVER_OVERLOADED"} <= {r["code"] for r in rules}
+    with open(os.path.join(MODULE_DIR, "locales", "ko.json"), encoding="utf-8") as f:
+        errors = json.load(f)["errors"]
+    for rule in rules:
+        assert rule["code"].lower() in errors["detect"] and rule["code"].lower() in errors["solutions"], rule["code"]
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs" / "latest.log").write_text("[12:00:00] [main/INFO]: You need to agree to the EULA\n", encoding="utf-8")
+    issues = lifecycle.diagnose_log({"working_dir": str(tmp_path)})["issues"]
+    assert [(i["code"], i["severity"]) for i in issues] == [("EULA_NOT_ACCEPTED", "critical")]
+
+
+def test_a_jre_archive_that_reaches_outside_the_java_folder_is_not_extracted(tmp_path):
+    """받은 JRE 압축은 공용 safe_extract로 푼다: java/ 밖을 가리키는 항목이 하나라도 있으면 아무것도 쓰지 않는다"""
+    import zipfile
+    from minecraft import lifecycle
+
+    def fake_download(url, dest, **kwargs):
+        with zipfile.ZipFile(dest, "w") as z:
+            z.writestr("jdk-21-jre/bin/java", "x")
+            z.writestr("jdk-21-jre/../../evil.txt", "x")
+        return {}
+
+    with mock.patch.object(lifecycle, "download", side_effect=fake_download), \
+         mock.patch.object(lifecycle.JavaDownloader, "_find_bundled_java", return_value=None):
+        result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
+    assert result["success"] is False
+    assert not (tmp_path.parent / "evil.txt").exists()
+    assert sorted(p.name for p in tmp_path.iterdir()) == []
+
+
+def test_a_setting_with_a_line_break_is_a_write_failure():
+    # 줄바꿈은 server.properties 한 줄을 깨뜨리므로 공용 settings_to_file이 거부한다. 모듈 예외가 아니라 저장 실패로 답해야 한다
+    from minecraft.lifecycle import configure, ServerPropertiesManager
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ServerPropertiesManager(tmpdir).write({"motd": "old"})
+        result = configure({"working_dir": tmpdir, "settings": {"motd": "a\nb"}})
+        assert result["success"] is False
+        assert ServerPropertiesManager(tmpdir).read()["motd"] == "old"

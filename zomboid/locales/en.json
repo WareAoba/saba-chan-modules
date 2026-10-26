@@ -49,7 +49,7 @@
     "spawn_point": { "label": "Spawn Point", "description": "Custom spawn coordinates" },
     "max_accounts_per_user": { "label": "Max Accounts Per User", "description": "Account limit per Steam user" },
     "managed_start": { "label": "Managed Start (Console)", "description": "Start the server through saba-runner so saba-chan can use its console. RCON stays off in every mode. If you turn this off, saba-chan cannot send commands to the server." },
-    "graceful_stop": { "label": "Graceful Stop", "description": "Send the 'save' and 'quit' commands and wait for the server to shut down. If you turn this off, saba-chan ends the server process at once." },
+    "graceful_stop": { "label": "Graceful Stop", "description": "Send the 'quit' command (saves the world, then exits) and wait for the server to stop. If you turn this off, saba-chan ends the server process at once." },
     "server_welcome_message": { "label": "Welcome Message", "description": "Welcome message displayed to players after connecting (use <LINE> for line breaks)" },
     "auto_create_user_in_whitelist": { "label": "Auto-Add to Whitelist", "description": "Automatically add new players to the whitelist when they join" },
     "display_user_name": { "label": "Display Username", "description": "Show player usernames above their heads and in local chat" },
@@ -128,7 +128,7 @@
   },
   "commands": {
     "servermsg": {
-      "label": "Broadcast Message",
+      "label": "Announce",
       "description": "Broadcast a message to all connected players",
       "inputs": { "message": { "label": "Message", "placeholder": "Enter message to broadcast" } }
     },
@@ -230,7 +230,7 @@
         "amount": { "label": "XP Amount" }
       }
     },
-    "showoptions": { "label": "Show Server Options", "description": "Display current server settings" },
+    "showoptions": { "label": "Show Options", "description": "Display current server settings" },
     "reloadoptions": { "label": "Reload Options", "description": "Reload server options from INI" },
     "changeoption": {
       "label": "Change Option",
@@ -240,13 +240,12 @@
         "value": { "label": "New Value", "placeholder": "New value" }
       }
     },
-    "quit": { "label": "Shutdown Server", "description": "Save and gracefully shut down" }
+    "quit": { "label": "Stop", "description": "Save and gracefully shut down" }
   },
   "errors": {
     "data_home_unavailable": "Couldn't create or open the server data folder. Check the folder location and permissions.",
     "settings_write_failed": "The server files were installed, but the selected settings could not be saved: {{error}}",
     "backup_paths_failed": "Could not read the save folder for backup: {{error}}",
-    "graceful_stop_unavailable": "There is no way to ask the server to save and exit (no console or REST). It was not stopped. Force stop it only if you accept losing unsaved progress.",
     "player_not_found": "Player not found. Please check the username.",
     "connection_refused": "Cannot connect to the server. Please check that the server is running and the port is correct.",
     "timeout": "Server response timed out. Please check the server status.",
@@ -255,14 +254,7 @@
     "executable_not_found": "Server executable (StartServer64.bat or start-server.sh) not found in the server directory.",
     "java_not_found": "Could not find bundled Java (jre64/bin/java). The server installation may be incomplete.",
     "classpath_not_found": "Could not find Java class files (java/*.jar) in the server directory. The installation may be incomplete.",
-    "no_install_dir": "No installation directory specified. Please set a working directory.",
-    "steamcmd_not_found": "SteamCMD not found. Please install SteamCMD to download the server.",
-    "install_failed": "Server installation failed: {{error}}",
-    "failed_to_start": "Failed to start server: {{error}}",
-    "install_timeout": "Server installation did not finish within 10 minutes.",
-    "no_settings": "No settings provided",
     "properties_write_failed": "Failed to write configuration: {{error}}",
-    "failed_to_kill": "Failed to kill process: {{error}}",
     "server_not_running": "Server is not running. Please start the server first.",
     "server_reset_partial": "Some items could not be deleted: {{errors}}",
     "invalid_server_name": "This server name cannot be used: {{name}}. Use a name without folder separators (/ \\), ':' or '..' that does not end with a space or dot",
@@ -291,29 +283,15 @@
       "save_status": "This is informational. If saves are failing, check disk space and file permissions.",
       "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
     },
-    "no_command": "No command specified",
-    "command_send_failed": "Failed to send command: {{error}}",
-    "unknown_error": "Unknown error"
+    "command_send_failed": "Failed to send command: {{error}}"
   },
   "messages": {
-    "server_online": "Server is online and responding",
-    "server_starting": "Server starting with PID {{pid}}",
-    "starting_server": "Starting server: {{command}}",
     "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",
-    "no_process_running": "No process running",
-    "shutdown_signal_sent": "Sent shutdown signal to PID {{pid}}",
-    "force_killed": "Force killed PID {{pid}}",
-    "graceful_stop": "Server stopped gracefully (PID {{pid}})",
-    "graceful_stop_timeout": "Graceful shutdown timed out, proceeding to force stop",
-    "save_before_quit": "Saving world before shutdown...",
     "properties_updated": "Server configuration updated",
     "properties_using_defaults": "Configuration file does not exist. Showing defaults",
     "no_mappable_settings": "None of the given settings match a server setting",
-    "install_complete": "Project Zomboid server installed",
     "server_reset_complete": "Server world data reset complete",
-    "rcon_password_generated": "Auto-generated RCON password (none was set)",
     "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
-    "no_properties_found": "No properties found.",
     "command_sent": "Command sent to the console: {{command}}",
     "no_log_files": "No log files found"
   },

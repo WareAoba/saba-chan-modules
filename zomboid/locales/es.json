@@ -186,7 +186,7 @@
     },
     "graceful_stop": {
       "label": "Parada segura",
-      "description": "Envía los comandos 'save' y 'quit' y espera a que el servidor se apague. Si lo desactivas, saba-chan finaliza el proceso del servidor de inmediato."
+      "description": "Envía el comando 'quit' (guarda el mundo y sale) y espera a que el servidor se detenga. Si lo desactivas, saba-chan finaliza el proceso del servidor de inmediato."
     },
     "server_welcome_message": {
       "label": "Mensaje de bienvenida",
@@ -491,7 +491,7 @@
   },
   "commands": {
     "servermsg": {
-      "label": "Mensaje global",
+      "label": "Anunciar",
       "description": "Enviar mensaje a todos",
       "inputs": {
         "message": {
@@ -537,7 +537,7 @@
       }
     },
     "unbanuser": {
-      "label": "Desbanear",
+      "label": "Desbanear jugador",
       "description": "Quitar el ban de un jugador",
       "inputs": {
         "player": {
@@ -547,7 +547,7 @@
       }
     },
     "quit": {
-      "label": "Apagar servidor",
+      "label": "Detener",
       "description": "Guardar y apagar el servidor"
     },
     "adduser": {
@@ -641,11 +641,11 @@
       }
     },
     "startrain": {
-      "label": "Start Rain",
+      "label": "Iniciar lluvia",
       "description": "Start raining on the server"
     },
     "stoprain": {
-      "label": "Stop Rain",
+      "label": "Detener lluvia",
       "description": "Stop raining on the server"
     },
     "chopper": {
@@ -691,7 +691,7 @@
       }
     },
     "showoptions": {
-      "label": "Show Server Options",
+      "label": "Ver opciones",
       "description": "Display current server settings"
     },
     "reloadoptions": {
@@ -725,14 +725,7 @@
     "java_not_found": "Java incluido no encontrado.",
     "server_not_running": "El servidor no está en ejecución.",
     "classpath_not_found": "Could not find Java class files (java/*.jar) in the server directory. The installation may be incomplete.",
-    "no_install_dir": "No installation directory specified. Please set a working directory.",
-    "steamcmd_not_found": "SteamCMD not found. Please install SteamCMD to download the server.",
-    "install_failed": "Server installation failed: {{error}}",
-    "failed_to_start": "No se pudo iniciar el servidor: {{error}}",
-    "install_timeout": "La instalación del servidor no terminó en 10 minutos.",
-    "no_settings": "No settings provided",
     "properties_write_failed": "Failed to write configuration: {{error}}",
-    "failed_to_kill": "Failed to kill process: {{error}}",
     "server_reset_partial": "Some items could not be deleted: {{errors}}",
     "invalid_server_name": "No se puede usar este nombre de servidor: {{name}}. Usa un nombre sin separadores de carpeta (/ \\), ':' ni '..', que no termine en espacio ni punto",
     "extension_not_enabled": "La extensión de SteamCMD no está activada. Actívala primero en Ajustes → Extensiones.",
@@ -760,31 +753,16 @@
       "save_status": "No es un error, solo un aviso. Si falla el guardado, revisa el espacio en disco y los permisos de archivos.",
       "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
     },
-    "no_command": "No se especificó ningún comando",
     "command_send_failed": "No se pudo enviar el comando: {{error}}",
-    "unknown_error": "Error desconocido",
-    "backup_paths_failed": "No se pudo leer la carpeta de guardado para la copia de seguridad: {{error}}",
-    "graceful_stop_unavailable": "No hay forma de pedirle al servidor que guarde y se cierre (sin consola ni REST). No se detuvo. Fuerza la detención solo si aceptas perder el progreso sin guardar."
+    "backup_paths_failed": "No se pudo leer la carpeta de guardado para la copia de seguridad: {{error}}"
   },
   "messages": {
-    "server_online": "El servidor está en línea y respondiendo",
-    "graceful_stop": "El servidor se detuvo correctamente (PID {{pid}})",
-    "install_complete": "Servidor de Project Zomboid instalado",
     "server_reset_complete": "Datos del mundo del servidor reiniciados",
-    "server_starting": "Server starting with PID {{pid}}",
-    "starting_server": "Starting server: {{command}}",
     "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",
-    "no_process_running": "No process running",
-    "shutdown_signal_sent": "Sent shutdown signal to PID {{pid}}",
-    "force_killed": "Force killed PID {{pid}}",
-    "graceful_stop_timeout": "Graceful shutdown timed out, proceeding to force stop",
-    "save_before_quit": "Saving world before shutdown...",
     "properties_updated": "Configuración del servidor actualizada",
     "properties_using_defaults": "El archivo de configuración no existe. Se muestran los valores predeterminados",
     "no_mappable_settings": "Ninguno de los ajustes indicados corresponde a un ajuste del servidor",
-    "rcon_password_generated": "Auto-generated RCON password (none was set)",
     "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
-    "no_properties_found": "No se encontraron ajustes del servidor.",
     "command_sent": "Comando enviado a la consola: {{command}}",
     "no_log_files": "No se encontraron archivos de registro"
   },

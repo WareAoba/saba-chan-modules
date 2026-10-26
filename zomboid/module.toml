@@ -11,7 +11,7 @@ icon = "icon.png"
 log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
-saba-core = ">=0.1.10"
+saba-core = ">=0.1.11-0"
 ext-steamcmd = ">=0.1.0"
 
 [permissions]
@@ -141,7 +141,7 @@ group = "saba-chan"
 name = "graceful_stop"
 type = "boolean"
 label = "Graceful Stop"
-description = "Send the 'save' and 'quit' commands and wait for the server to shut down. If you turn this off, saba-chan ends the server process at once."
+description = "Send the 'quit' command (saves the world, then exits) and wait for the server to stop. If you turn this off, saba-chan ends the server process at once."
 default = true
 group = "saba-chan"
 
@@ -149,6 +149,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "public_name"
+file_key = "PublicName"
 type = "text"
 label = "Server Name"
 description = "Name displayed in the server browser"
@@ -156,6 +157,7 @@ default = "My PZ Server"
 
 [[settings.fields]]
 name = "public_description"
+file_key = "PublicDescription"
 type = "text"
 label = "Server Description"
 description = "Server description visible in the browser"
@@ -163,6 +165,7 @@ default = ""
 
 [[settings.fields]]
 name = "password"
+file_key = "Password"
 type = "password"
 label = "Server Password"
 description = "Password required to join the server (leave empty for no password)"
@@ -170,6 +173,7 @@ default = ""
 
 [[settings.fields]]
 name = "max_players"
+file_key = "MaxPlayers"
 type = "number"
 label = "Max Players"
 description = "Maximum number of players allowed (1-100)"
@@ -179,6 +183,7 @@ max = 100
 
 [[settings.fields]]
 name = "port"
+file_key = "DefaultPort"
 type = "number"
 port = true
 label = "Game Port"
@@ -189,6 +194,7 @@ max = 65535
 
 [[settings.fields]]
 name = "udp_port"
+file_key = "UDPPort"
 type = "number"
 port = true
 label = "Second UDP Port"
@@ -199,6 +205,7 @@ max = 65535
 
 [[settings.fields]]
 name = "pvp"
+file_key = "PVP"
 type = "boolean"
 label = "PVP"
 description = "Allow player vs player combat"
@@ -206,6 +213,7 @@ default = true
 
 [[settings.fields]]
 name = "open"
+file_key = "Open"
 type = "boolean"
 label = "Open Server"
 description = "Open to all players (no whitelist required)"
@@ -213,6 +221,7 @@ default = true
 
 [[settings.fields]]
 name = "public"
+file_key = "Public"
 type = "boolean"
 label = "Public Visibility"
 description = "Show server in the public Steam server browser"
@@ -220,6 +229,7 @@ default = false
 
 [[settings.fields]]
 name = "pause_empty"
+file_key = "PauseEmpty"
 type = "boolean"
 label = "Pause When Empty"
 description = "Pause the game world when no players are connected"
@@ -227,6 +237,7 @@ default = true
 
 [[settings.fields]]
 name = "global_chat"
+file_key = "GlobalChat"
 type = "boolean"
 label = "Global Chat"
 description = "Enable global chat (/all command)"
@@ -234,6 +245,7 @@ default = true
 
 [[settings.fields]]
 name = "map"
+file_key = "Map"
 type = "text"
 label = "Map"
 description = "Map data to load (default: 'Muldraugh, KY' loads the full Knox Country map). Add mod maps with semicolons (e.g. 'Muldraugh, KY;Bedford Falls')"
@@ -241,6 +253,7 @@ default = "Muldraugh, KY"
 
 [[settings.fields]]
 name = "mods"
+file_key = "Mods"
 type = "text"
 label = "Mods"
 description = "Semicolon-separated list of mod IDs to enable"
@@ -248,6 +261,7 @@ default = ""
 
 [[settings.fields]]
 name = "workshop_items"
+file_key = "WorkshopItems"
 type = "text"
 label = "Workshop Items"
 description = "Semicolon-separated list of Steam Workshop item IDs"
@@ -255,6 +269,7 @@ default = ""
 
 [[settings.fields]]
 name = "announce_death"
+file_key = "AnnounceDeath"
 type = "boolean"
 label = "Announce Death"
 description = "Server-wide announcement when a character dies"
@@ -262,6 +277,7 @@ default = false
 
 [[settings.fields]]
 name = "server_welcome_message"
+file_key = "ServerWelcomeMessage"
 type = "text"
 label = "Welcome Message"
 description = "Welcome message displayed to players after connecting (use <LINE> for line breaks)"
@@ -269,6 +285,7 @@ default = "Welcome to Project Zomboid Multiplayer!"
 
 [[settings.fields]]
 name = "auto_create_user_in_whitelist"
+file_key = "AutoCreateUserInWhiteList"
 type = "boolean"
 label = "Auto-Add to Whitelist"
 description = "Automatically add new players to the whitelist when they join"
@@ -276,6 +293,7 @@ default = false
 
 [[settings.fields]]
 name = "display_user_name"
+file_key = "DisplayUserName"
 type = "boolean"
 label = "Display Username"
 description = "Show player usernames above their heads and in local chat"
@@ -283,6 +301,7 @@ default = true
 
 [[settings.fields]]
 name = "show_first_and_last_name"
+file_key = "ShowFirstAndLastName"
 type = "boolean"
 label = "Show Character Name"
 description = "Display character's first and last name instead of username"
@@ -290,6 +309,7 @@ default = false
 
 [[settings.fields]]
 name = "safety_system"
+file_key = "SafetySystem"
 type = "boolean"
 label = "Safety System"
 description = "Let each player turn PvP on or off (requires PVP enabled)"
@@ -297,6 +317,7 @@ default = true
 
 [[settings.fields]]
 name = "sleep_allowed"
+file_key = "SleepAllowed"
 type = "boolean"
 label = "Sleep Allowed"
 description = "Allow players to sleep"
@@ -304,6 +325,7 @@ default = false
 
 [[settings.fields]]
 name = "sleep_needed"
+file_key = "SleepNeeded"
 type = "boolean"
 label = "Sleep Needed"
 description = "Players will need to sleep when exhausted"
@@ -313,6 +335,7 @@ default = false
 
 [[settings.fields]]
 name = "save_world_every_minutes"
+file_key = "SaveWorldEveryMinutes"
 type = "number"
 label = "Auto-Save Interval"
 description = "Save world every N minutes (0 = disabled)"
@@ -323,6 +346,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "ping_limit"
+file_key = "PingLimit"
 type = "number"
 label = "Ping Limit"
 description = "Players with a ping above this value (ms) are kicked (100 = disabled)"
@@ -333,6 +357,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hours_for_loot_respawn"
+file_key = "HoursForLootRespawn"
 type = "number"
 label = "Loot Respawn Hours"
 description = "In-game hours before loot can respawn (0 = never)"
@@ -343,6 +368,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_items_for_loot_respawn"
+file_key = "MaxItemsForLootRespawn"
 type = "number"
 label = "Loot Respawn Threshold"
 description = "Max items in container before loot can respawn"
@@ -353,6 +379,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "no_fire"
+file_key = "NoFire"
 type = "boolean"
 label = "Disable Fire"
 description = "Disable all fire except campfires"
@@ -361,6 +388,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_safehouse"
+file_key = "PlayerSafehouse"
 type = "boolean"
 label = "Player Safehouses"
 description = "Allow players to claim safehouses"
@@ -369,6 +397,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_allow_trespass"
+file_key = "SafehouseAllowTrepass"
 type = "boolean"
 label = "Safehouse Trespassing"
 description = "Allow players who are not safehouse members to enter"
@@ -377,6 +406,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_allow_loot"
+file_key = "SafehouseAllowLoot"
 type = "boolean"
 label = "Safehouse Looting"
 description = "Allow players who are not safehouse members to loot"
@@ -385,6 +415,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_allow_respawn"
+file_key = "SafehouseAllowRespawn"
 type = "boolean"
 label = "Safehouse Respawn"
 description = "Players respawn in their safehouse after death"
@@ -393,6 +424,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "faction"
+file_key = "Faction"
 type = "boolean"
 label = "Factions"
 description = "Allow creation and use of factions"
@@ -401,6 +433,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_destruction_by_sledgehammer"
+file_key = "AllowDestructionBySledgehammer"
 type = "boolean"
 label = "Sledgehammer Destruction"
 description = "Allow players to destroy world objects with sledgehammer"
@@ -409,6 +442,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "speed_limit"
+file_key = "SpeedLimit"
 type = "number"
 label = "Speed Limit"
 description = "Vehicle speed limit"
@@ -420,6 +454,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "do_lua_checksum"
+file_key = "DoLuaChecksum"
 type = "boolean"
 label = "Lua Checksum"
 description = "Check that connected players' Lua files match the server's (disable if using client-side mods)"
@@ -428,6 +463,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "steam_vac"
+file_key = "SteamVAC"
 type = "boolean"
 label = "Steam VAC"
 description = "Enable Valve Anti-Cheat"
@@ -436,6 +472,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_enable"
+file_key = "VoiceEnable"
 type = "boolean"
 label = "Voice Chat"
 description = "Enable in-game voice chat"
@@ -444,6 +481,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "minutes_per_page"
+file_key = "MinutesPerPage"
 type = "number"
 label = "Minutes Per Page"
 description = "In-game minutes needed to read a single page"
@@ -455,6 +493,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "spawn_point"
+file_key = "SpawnPoint"
 type = "text"
 label = "Spawn Point"
 description = "Force all players to spawn at specific coordinates (x,y,z). Leave as 0,0,0 to use the Lua-based spawn regions (spawnregions.lua)"
@@ -463,6 +502,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_accounts_per_user"
+file_key = "MaxAccountsPerUser"
 type = "number"
 label = "Max Accounts Per User"
 description = "Maximum accounts a single Steam user may create (0 = unlimited)"
@@ -475,6 +515,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "show_safety"
+file_key = "ShowSafety"
 type = "boolean"
 label = "Show Safety Icon"
 description = "Show skull icon when a player has PvP safety toggled off"
@@ -483,6 +524,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safety_toggle_timer"
+file_key = "SafetyToggleTimer"
 type = "number"
 label = "Safety Toggle Timer"
 description = "Time in minutes to switch between PvP on and off"
@@ -493,6 +535,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safety_cooldown_timer"
+file_key = "SafetyCooldownTimer"
 type = "number"
 label = "Safety Cooldown Timer"
 description = "Time in minutes before PvP safety can be toggled again"
@@ -503,6 +546,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pvp_melee_while_hit_reaction"
+file_key = "PVPMeleeWhileHitReaction"
 type = "boolean"
 label = "PVP Melee While Hit Reaction"
 description = "Allow melee attacks during hit reaction in PVP"
@@ -511,6 +555,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pvp_melee_damage_modifier"
+file_key = "PVPMeleeDamageModifier"
 type = "number"
 label = "PVP Melee Damage %"
 description = "PVP melee damage modifier percentage"
@@ -522,6 +567,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pvp_firearm_damage_modifier"
+file_key = "PVPFirearmDamageModifier"
 type = "number"
 label = "PVP Firearm Damage %"
 description = "PVP firearm damage modifier percentage"
@@ -535,6 +581,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "mouse_over_to_see_display_name"
+file_key = "MouseOverToSeeDisplayName"
 type = "boolean"
 label = "Mouse Over to See Name"
 description = "Require mouse hover to see player display names"
@@ -543,6 +590,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hide_players_behind_you"
+file_key = "HidePlayersBehindYou"
 type = "boolean"
 label = "Hide Players Behind You"
 description = "Hide players that are behind your character"
@@ -551,6 +599,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_bump_player"
+file_key = "PlayerBumpPlayer"
 type = "boolean"
 label = "Player Collision"
 description = "Enable physical collision between players"
@@ -559,6 +608,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_respawn_with_self"
+file_key = "PlayerRespawnWithSelf"
 type = "boolean"
 label = "Respawn at Death"
 description = "Allow players to respawn at their place of death"
@@ -567,6 +617,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_respawn_with_other"
+file_key = "PlayerRespawnWithOther"
 type = "boolean"
 label = "Respawn at Partner"
 description = "Allow spawning at a splitscreen partner's location"
@@ -575,6 +626,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "drop_off_whitelist_after_death"
+file_key = "DropOffWhiteListAfterDeath"
 type = "boolean"
 label = "Remove from Whitelist on Death"
 description = "Remove a player from the whitelist if their character dies"
@@ -583,6 +635,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_non_ascii_username"
+file_key = "AllowNonAsciiUsername"
 type = "boolean"
 label = "Allow Non-ASCII Usernames"
 description = "Allow usernames with non-ASCII characters"
@@ -591,6 +644,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "chat_streams"
+file_key = "ChatStreams"
 type = "text"
 label = "Chat Streams"
 description = "Comma-separated list of enabled chat streams: s,r,a,w,y,sh,f,all"
@@ -599,6 +653,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_save_on_damage"
+file_key = "PlayerSaveOnDamage"
 type = "boolean"
 label = "Save on Damage"
 description = "Auto-save when a player takes damage"
@@ -609,6 +664,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "admin_safehouse"
+file_key = "AdminSafehouse"
 type = "boolean"
 label = "Admin Safehouses"
 description = "Allow admins to claim safehouses"
@@ -617,6 +673,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_allow_fire"
+file_key = "SafehouseAllowFire"
 type = "boolean"
 label = "Safehouse Fire Damage"
 description = "Allow fire to damage safehouses"
@@ -625,6 +682,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_day_survived_to_claim"
+file_key = "SafehouseDaySurvivedToClaim"
 type = "number"
 label = "Days to Claim Safehouse"
 description = "Game-world days a player must survive before claiming a safehouse"
@@ -635,6 +693,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_removal_time"
+file_key = "SafeHouseRemovalTime"
 type = "number"
 label = "Safehouse Removal Hours"
 description = "Real-time hours before inactive members are removed from safehouse"
@@ -645,6 +704,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_safehouse_when_player_connected"
+file_key = "DisableSafehouseWhenPlayerConnected"
 type = "boolean"
 label = "Disable Safehouse When Online"
 description = "Disable safehouse protection when any member is connected"
@@ -655,6 +715,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "faction_day_survived_to_create"
+file_key = "FactionDaySurvivedToCreate"
 type = "number"
 label = "Days to Create Faction"
 description = "Game-world days a player must survive to create a faction"
@@ -665,6 +726,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "faction_players_required_for_tag"
+file_key = "FactionPlayersRequiredForTag"
 type = "number"
 label = "Players for Faction Tag"
 description = "Number of members required to display a faction tag"
@@ -675,6 +737,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_trade_ui"
+file_key = "AllowTradeUI"
 type = "boolean"
 label = "Allow Trading"
 description = "Allow direct player-to-player trading"
@@ -685,6 +748,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "construction_prevents_loot_respawn"
+file_key = "ConstructionPreventsLootRespawn"
 type = "boolean"
 label = "Construction Blocks Loot Respawn"
 description = "Player constructions near containers prevent loot respawn"
@@ -693,6 +757,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hours_for_world_item_removal"
+file_key = "HoursForWorldItemRemoval"
 type = "number"
 label = "World Item Removal Hours"
 description = "In-game hours before dropped items/corpses disappear (0 = never)"
@@ -704,6 +769,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "world_item_removal_list"
+file_key = "WorldItemRemovalList"
 type = "text"
 label = "World Item Removal List"
 description = "Comma-separated list of items to auto-remove when placed on ground"
@@ -712,6 +778,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "blood_splat_lifespan_days"
+file_key = "BloodSplatLifespanDays"
 type = "number"
 label = "Blood Splat Lifespan"
 description = "Days before blood splats fade away (0 = never)"
@@ -722,6 +789,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "item_numbers_limit_per_container"
+file_key = "ItemNumbersLimitPerContainer"
 type = "number"
 label = "Item Limit Per Container"
 description = "Maximum items allowed per container (0 = unlimited)"
@@ -732,6 +800,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "trash_delete_all"
+file_key = "TrashDeleteAll"
 type = "boolean"
 label = "Delete All Trash"
 description = "Delete all trash items immediately"
@@ -740,6 +809,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "remove_player_corpses_on_corpse_removal"
+file_key = "RemovePlayerCorpsesOnCorpseRemoval"
 type = "boolean"
 label = "Remove Player Corpses"
 description = "Remove player corpses when corpse cleanup occurs"
@@ -750,6 +820,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "ping_frequency"
+file_key = "PingFrequency"
 type = "number"
 label = "Ping Frequency"
 description = "How often the server checks connection to players (seconds)"
@@ -760,6 +831,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "deny_login_on_overloaded_server"
+file_key = "DenyLoginOnOverloadedServer"
 type = "boolean"
 label = "Deny Login When Overloaded"
 description = "Prevent new connections when server is overloaded"
@@ -768,6 +840,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "kick_fast_players"
+file_key = "KickFastPlayers"
 type = "boolean"
 label = "Kick Speed Hackers"
 description = "Kick players moving faster than possible (may be buggy)"
@@ -776,6 +849,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "steam_port1"
+file_key = "SteamPort1"
 type = "number"
 port = true
 label = "Steam Port 1"
@@ -787,6 +861,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "steam_port2"
+file_key = "SteamPort2"
 type = "number"
 port = true
 label = "Steam Port 2"
@@ -798,6 +873,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "steam_scoreboard"
+file_key = "SteamScoreboard"
 type = "text"
 label = "Steam Scoreboard"
 description = "Show Steam names/avatars in player list (true/false/admin)"
@@ -806,6 +882,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "upnp"
+file_key = "UPnP"
 type = "boolean"
 label = "UPnP"
 description = "Enable UPnP for automatic port forwarding"
@@ -814,6 +891,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "upnp_lease_time"
+file_key = "UPnPLeaseTime"
 type = "number"
 label = "UPnP Lease Time"
 description = "UPnP port mapping lease time in seconds"
@@ -824,6 +902,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "upnp_zero_lease_time_fallback"
+file_key = "UPnPZeroLeaseTimeFallback"
 type = "boolean"
 label = "UPnP Zero Lease Fallback"
 description = "Fall back to zero lease time if specific lease fails"
@@ -832,6 +911,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "upnp_force"
+file_key = "UPnPForce"
 type = "boolean"
 label = "Force UPnP"
 description = "Force UPnP even if the router doesn't support it well"
@@ -840,6 +920,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "server_browser_announced_ip"
+file_key = "server_browser_announced_ip"
 type = "text"
 label = "Announced IP"
 description = "Custom IP to announce in the server browser (leave empty for auto)"
@@ -848,6 +929,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "use_tcp_for_map_downloads"
+file_key = "UseTCPForMapDownloads"
 type = "boolean"
 label = "TCP Map Downloads"
 description = "Use TCP instead of UDP for map data downloads"
@@ -856,6 +938,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "physics_delay"
+file_key = "PhysicsDelay"
 type = "number"
 label = "Physics Delay"
 description = "Physics simulation delay in milliseconds"
@@ -866,6 +949,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "fast_forward_multiplier"
+file_key = "FastForwardMultiplier"
 type = "number"
 label = "Fast Forward Multiplier"
 description = "Speed multiplier when fast-forwarding time"
@@ -877,6 +961,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "car_engine_attraction_modifier"
+file_key = "CarEngineAttractionModifier"
 type = "number"
 label = "Car Engine Attraction"
 description = "How much car engines attract zombies (multiplier)"
@@ -890,6 +975,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "coop_server_launch_timeout"
+file_key = "CoopServerLaunchTimeout"
 type = "number"
 label = "Co-op Launch Timeout"
 description = "Timeout in seconds for co-op server launch"
@@ -900,6 +986,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "coop_master_ping_timeout"
+file_key = "CoopMasterPingTimeout"
 type = "number"
 label = "Co-op Ping Timeout"
 description = "Timeout in seconds for co-op master ping"
@@ -912,6 +999,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_complexity"
+file_key = "VoiceComplexity"
 type = "number"
 label = "Voice Complexity"
 description = "Opus voice codec complexity (1-10, higher = better quality)"
@@ -922,6 +1010,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_period"
+file_key = "VoicePeriod"
 type = "number"
 label = "Voice Period"
 description = "Voice frame period in milliseconds"
@@ -932,6 +1021,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_sample_rate"
+file_key = "VoiceSampleRate"
 type = "number"
 label = "Voice Sample Rate"
 description = "Voice sample rate in Hz"
@@ -942,6 +1032,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_buffering"
+file_key = "VoiceBuffering"
 type = "number"
 label = "Voice Buffering"
 description = "Voice buffering in milliseconds"
@@ -952,6 +1043,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_min_distance"
+file_key = "VoiceMinDistance"
 type = "number"
 label = "Voice Min Distance"
 description = "Minimum distance for voice attenuation"
@@ -963,6 +1055,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_max_distance"
+file_key = "VoiceMaxDistance"
 type = "number"
 label = "Voice Max Distance"
 description = "Maximum distance for hearing voice chat"
@@ -974,6 +1067,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_3d"
+file_key = "Voice3D"
 type = "boolean"
 label = "3D Voice"
 description = "Enable 3D positional voice chat"
@@ -984,6 +1078,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "discord_enable"
+file_key = "DiscordEnable"
 type = "boolean"
 label = "Discord Integration"
 description = "Enable built-in Discord bot integration"
@@ -992,6 +1087,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "discord_token"
+file_key = "DiscordToken"
 type = "password"
 label = "Discord Token"
 description = "Discord bot token for integration"
@@ -1000,6 +1096,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "discord_channel"
+file_key = "DiscordChannel"
 type = "text"
 label = "Discord Channel"
 description = "Discord channel name for server messages"
@@ -1008,6 +1105,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "discord_channel_id"
+file_key = "DiscordChannelID"
 type = "text"
 label = "Discord Channel ID"
 description = "Discord channel ID for server messages"
@@ -1018,6 +1116,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_staff"
+file_key = "DisableRadioStaff"
 type = "boolean"
 label = "Disable Radio (Staff)"
 description = "Hide radio frequency for staff members"
@@ -1026,6 +1125,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_admin"
+file_key = "DisableRadioAdmin"
 type = "boolean"
 label = "Disable Radio (Admin)"
 description = "Hide radio frequency for admins"
@@ -1034,6 +1134,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_gm"
+file_key = "DisableRadioGM"
 type = "boolean"
 label = "Disable Radio (GM)"
 description = "Hide radio frequency for game masters"
@@ -1042,6 +1143,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_overseer"
+file_key = "DisableRadioOverseer"
 type = "boolean"
 label = "Disable Radio (Overseer)"
 description = "Hide radio frequency for overseers"
@@ -1050,6 +1152,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_moderator"
+file_key = "DisableRadioModerator"
 type = "boolean"
 label = "Disable Radio (Moderator)"
 description = "Hide radio frequency for moderators"
@@ -1058,6 +1161,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_invisible"
+file_key = "DisableRadioInvisible"
 type = "boolean"
 label = "Disable Radio (Invisible)"
 description = "Hide radio frequency for invisible players"
@@ -1068,6 +1172,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "client_command_filter"
+file_key = "ClientCommandFilter"
 type = "text"
 label = "Client Command Filter"
 description = "Filter rules for client commands (prefix + to allow, - to deny)"
@@ -1078,6 +1183,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "zombie_update_max_high_priority"
+file_key = "ZombieUpdateMaxHighPriority"
 type = "number"
 label = "Zombie Max High Priority Updates"
 description = "Maximum number of high-priority zombie updates per tick"
@@ -1088,6 +1194,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "zombie_update_delta"
+file_key = "ZombieUpdateDelta"
 type = "number"
 label = "Zombie Update Delta"
 description = "Time delta between zombie updates"
@@ -1099,6 +1206,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "zombie_update_radius_low_priority"
+file_key = "ZombieUpdateRadiusLowPriority"
 type = "number"
 label = "Zombie Low Priority Radius"
 description = "Radius for low-priority zombie updates"
@@ -1110,6 +1218,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "zombie_update_radius_high_priority"
+file_key = "ZombieUpdateRadiusHighPriority"
 type = "number"
 label = "Zombie High Priority Radius"
 description = "Radius for high-priority zombie updates"
@@ -1121,6 +1230,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "ban_kick_global_sound"
+file_key = "BanKickGlobalSound"
 type = "boolean"
 label = "Ban/Kick Sound"
 description = "Play a global sound when a player is banned or kicked"
@@ -1129,6 +1239,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "save_transaction_id"
+file_key = "SaveTransactionID"
 type = "boolean"
 label = "Save Transaction ID"
 description = "Save transaction ID for debugging"
@@ -1144,7 +1255,7 @@ group = "advanced"
 [[commands.fields]]
 name = "servermsg"
 risk = "safe"
-label = "Broadcast Message"
+label = "Announce"
 description = "Broadcast a message to all connected players"
 method = "console"
 console_template = "servermsg \"{message}\""
@@ -1355,7 +1466,7 @@ inputs = [
 [[commands.fields]]
 name = "showoptions"
 risk = "safe"
-label = "Show Server Options"
+label = "Show Options"
 description = "Display current server option values"
 method = "console"
 console_template = "showoptions"
@@ -1385,7 +1496,7 @@ inputs = [
 [[commands.fields]]
 name = "quit"
 risk = "danger"
-label = "Shutdown Server"
+label = "Stop"
 description = "Save and gracefully shut down the server"
 method = "console"
 console_template = "quit"
@@ -1594,3 +1705,49 @@ pattern = '(?P<hl>/[a-z][a-zA-Z0-9_]+)'
 color = "command"
 bold = true
 priority = 15
+
+# ── [[diagnose]] 서버 로그 진단 (diagnose_log가 공용 diagnose_lines로 읽는다. 문구: errors.detect.<code>·errors.solutions.<code>) ──
+
+[[diagnose]]
+code = "OUT_OF_MEMORY"
+patterns = [
+    'java\.lang\.OutOfMemoryError|unable to create new native thread',
+]
+
+[[diagnose]]
+code = "PORT_IN_USE"
+patterns = [
+    'Address already in use|BindException',
+]
+
+[[diagnose]]
+code = "ILLEGAL_TERMINATION"
+patterns = [
+    'Assertion Failed.*Illegal termination',
+]
+
+[[diagnose]]
+code = "PERMISSION_DENIED"
+patterns = [
+    'java\.io\.FileNotFoundException|AccessDeniedException|Permission denied',
+]
+
+[[diagnose]]
+code = "SERVER_CRASH"
+patterns = [
+    'crash|EXCEPTION_ACCESS_VIOLATION|StackOverflowError',
+]
+
+[[diagnose]]
+code = "MOD_ERROR"
+severity = "warning"
+patterns = [
+    'mod.*error|lua.*error|LuaException',
+]
+
+[[diagnose]]
+code = "SAVE_STATUS"
+severity = "info"
+patterns = [
+    'Save (complete|failed|error)',
+]

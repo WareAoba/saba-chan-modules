@@ -1,7 +1,6 @@
-"""템플릿의 managed 정지 책임 경계를 검사한다."""
+"""템플릿의 정지 요청 방법을 검사한다. 정지 절차(대기·강제 종료·managed)는 공용 graceful_stop이 맡는다."""
 import importlib.util
 from pathlib import Path
-from types import SimpleNamespace
 
 import pytest
 
@@ -15,56 +14,18 @@ def lifecycle():
     return module
 
 
-def test_managed_stop_returns_after_request_without_waiting_or_killing(lifecycle, monkeypatch):
-    requests = []
-
-    def request(instance_id, command, *, timeout):
-        requests.append((instance_id, command, timeout))
-        return {"success": True}
-
-    def unexpected(*args, **kwargs):
-        pytest.fail("managed 정지의 대기·강제 종료는 데몬이 맡는다")
-
-    monkeypatch.setattr(lifecycle, "daemon_stdin_command", request)
-    monkeypatch.setattr(lifecycle, "wait_for_exit", unexpected)
-    monkeypatch.setattr(lifecycle, "force_kill", unexpected)
-
-    result = lifecycle.stop({"managed": True, "instance_id": "example", "pid": 1234})
-
-    assert result["success"] is True
-    assert requests == [("example", "quit", 5)]
+def _asked(lifecycle, monkeypatch, config, console):
+    asked = []
+    monkeypatch.setattr(lifecycle, "request_console", lambda config, command: asked.append(command) or console)
+    monkeypatch.setattr(lifecycle, "request_terminate", lambda pid: asked.append("SIGTERM") or True)
+    monkeypatch.setattr(lifecycle, "graceful_stop", lambda config, request, i18n, module_dir: request())
+    return lifecycle.stop(config), asked
 
 
-def test_managed_stop_without_request_path_does_not_signal_server(lifecycle, monkeypatch):
-    def unavailable(*args, **kwargs):
-        raise ConnectionError("no console")
-
-    def unexpected(*args, **kwargs):
-        pytest.fail("managed 정지는 로컬 프로세스에 신호를 보내지 않는다")
-
-    monkeypatch.setattr(lifecycle, "daemon_stdin_command", unavailable)
-    monkeypatch.setattr(lifecycle, "os", SimpleNamespace(name="posix", kill=unexpected))
-    monkeypatch.setattr(lifecycle, "wait_for_exit", unexpected)
-    monkeypatch.setattr(lifecycle, "force_kill", unexpected)
-
-    result = lifecycle.stop({"managed": True, "instance_id": "example", "pid": 1234})
-
-    assert result["success"] is False
-    assert result["error_code"] == "graceful_stop_unavailable"
+def test_stop_asks_the_console_first(lifecycle, monkeypatch):
+    assert _asked(lifecycle, monkeypatch, {"instance_id": "example", "pid": 1234}, True) == (True, ["quit"])
 
 
-def test_nonmanaged_stop_uses_daemon_timeout(lifecycle, monkeypatch):
-    timeouts = []
-
-    def exited(pid, *, timeout):
-        timeouts.append(timeout)
-        return True
-
-    monkeypatch.setattr(lifecycle, "daemon_stdin_command", lambda *args, **kwargs: {"success": True})
-    monkeypatch.setattr(lifecycle, "wait_for_exit", exited)
-
-    result = lifecycle.stop({"managed": False, "instance_id": "example", "pid": 1234,
-                             "stop_timeout": 75, "stop_call_limit": 105})
-
-    assert result["success"] is True
-    assert timeouts == [75]
+def test_without_a_console_only_an_unmanaged_server_gets_sigterm(lifecycle, monkeypatch):
+    assert _asked(lifecycle, monkeypatch, {"pid": 1234}, False) == (True, ["quit", "SIGTERM"])
+    assert _asked(lifecycle, monkeypatch, {"pid": 1234, "managed": True}, False) == (False, ["quit"])

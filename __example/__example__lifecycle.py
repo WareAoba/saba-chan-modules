@@ -22,7 +22,7 @@
         daemon_post(f"/api/instance/{instance_id}/rcon", {"command": "<정지 명령>"})로 데몬에 보냅니다
 
    4. configure()에 설정 파일 쓰기 로직 구현
-      → _KEY_MAP에 saba-chan 키 → 게임 키 매핑 추가
+      → module.toml [[settings.fields]]에 file_key = "게임 설정 파일 키" 추가 (이름 표를 코드에 따로 두지 않습니다)
 
    5. 나머지 함수는 필요할 때 하나씩 구현
 
@@ -98,30 +98,16 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
 #   daemon_stdin_command(instance_id, line): 데몬이 관리하는 서버 콘솔(stdin)에 한 줄 보내기
 #   is_process_alive / wait_for_exit / force_kill: OS별 프로세스 처리 (직접 만들지 마세요)
-from daemon_rcon import atomic_write, daemon_stdin_command, force_kill, is_process_alive, run_lifecycle, wait_for_exit
+#   graceful_stop / request_console / request_terminate: stop()의 공용 절차 (saba-core 0.1.11부터)
+#   settings_to_file / settings_from_file: 설정 이름 ↔ 게임 설정 파일 키 (module.toml file_key, 0.1.11부터)
+#   read_key_values / update_key_values: `키=값` 설정 파일 읽기·바뀐 키만 쓰기 (인코딩·주석·순서 유지, 0.1.11부터)
+#   load_diagnose_rules / diagnose_lines / tail_lines: module.toml [[diagnose]]로 로그 진단 (0.1.11부터)
+from daemon_rcon import (atomic_write, daemon_stdin_command, diagnose_lines, graceful_stop, is_process_alive,
+                         load_diagnose_rules, read_key_values, request_console, request_terminate, run_lifecycle,
+                         settings_from_file, settings_to_file, tail_lines, update_key_values)
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
-
-
-# ═══════════════════════════════════════════════════════════════════
-#  설정 키 매핑: saba-chan 내부 키 → 게임 설정 파일 키
-# ═══════════════════════════════════════════════════════════════════
-#
-#  module.toml [[settings.fields]] 의 name  →  게임 설정 파일의 실제 키
-#  configure()와 import_settings()에서 사용합니다.
-#
-_KEY_MAP = {
-    # saba-chan 키          # 게임 설정 파일 키
-    "server_name":          "ServerName",
-    "max_players":          "MaxPlayers",
-    "port":                 "ServerPort",
-    "server_password":      "Password",
-    "pvp":                  "PVP",
-    "difficulty":           "Difficulty",
-    "tick_rate":            "TickRate",
-    # ... 게임 설정 파일의 키에 맞춰 확장
-}
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -235,52 +221,28 @@ def get_launch_command(config):
 # ═══════════════════════════════════════════════════════════════════
 #  서버를 종료합니다.
 #
-#  ── 종료 전략 (우선순위) ──
-#   managed: 저장·종료 요청 뒤 바로 반환. 대기와 강제 종료는 데몬이 합니다.
-#   non-managed: 저장·종료 요청 → stop_timeout 동안 대기 → 필요하면 강제 종료
+#  ── 종료 전략 ──
+#   모듈은 "저장 후 종료를 어떻게 요청하는지"만 정하고, 나머지는 공용 graceful_stop이 합니다:
+#   force면 그 PID만 강제 종료 / 요청할 길이 없으면 끄지 않고 graceful_stop_unavailable (데몬이 사용자에게 묻습니다) /
+#   managed면 요청 뒤 바로 반환 (대기·강제 종료는 데몬) / 아니면 stop_timeout 동안 기다린 뒤에만 강제 종료.
 #   graceful 단계 없이 바로 force_kill 하면 저장이 날아갑니다.
+#   문구(messages.graceful_stop 등)는 공용 문구에 있어 locales에 다시 쓰지 않아도 됩니다.
 #
 #  config["pid"]: 데몬이 알려주는 프로세스 PID
 #  config["force"]: non-managed 강제 종료 플래그
 #
+STOP_COMMAND = "quit"  # 게임의 실제 저장 후 종료 명령어로 바꾸세요
+
+
+def _request_stop(config):
+    # 콘솔에 종료 명령, 안 되면 POSIX SIGTERM (managed 서버는 데몬의 프로세스라 신호를 보내지 않습니다)
+    if request_console(config, STOP_COMMAND):
+        return True
+    return not config.get("managed") and request_terminate(config.get("pid"))
+
+
 def stop(config):
-    pid = config.get("pid")
-    force = config.get("force", False)
-    managed = config.get("managed", False)
-    instance_id = config.get("instance_id", "")
-    if not pid:
-        return {"success": False, "message": "No PID available to stop the server"}
-
-    if not force or managed:
-        # 1) Graceful: 데몬을 거쳐 콘솔에 종료 명령 (게임의 실제 명령어로 바꾸세요), 안 되면 POSIX SIGTERM
-        asked = False
-        try:
-            daemon_stdin_command(instance_id, config.get("stop_command", "quit"), timeout=5)
-            asked = True
-        except Exception as e:
-            print(f"[STOP] Graceful stop command failed: {e}", file=sys.stderr)
-        if not asked and not managed and os.name != "nt":
-            import signal
-            try:
-                os.kill(int(pid), signal.SIGTERM)
-                asked = True
-            except (OSError, ValueError) as e:
-                print(f"[STOP] SIGTERM failed: {e}", file=sys.stderr)
-        if not asked:
-            # 저장 후 종료를 요청할 길이 없다: 저장 없이 죽이지 말고 이렇게 답한다.
-            # 데몬이 사용자에게 알리고, 사용자가 고르면 force=true로 다시 부른다
-            return {"success": False, "error_code": "graceful_stop_unavailable",
-                    "message": i18n.t("errors.graceful_stop_unavailable")}
-        if managed:
-            return {"success": True, "message": i18n.t("messages.stop_requested")}
-        if wait_for_exit(pid, timeout=config.get("stop_timeout", 30)):
-            return {"success": True, "message": "Server stopped gracefully"}
-
-    # 2) Force kill
-    ok, error = force_kill(pid)
-    if ok:
-        return {"success": True, "message": "Server force-killed"}
-    return {"success": False, "message": f"Force kill failed: {error}"}
+    return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -314,7 +276,7 @@ def status(config):
 #  사용자 설정을 게임 설정 파일에 적용합니다.
 #
 #  config["settings"]: { "server_name": "My Server", ... }
-#  → _KEY_MAP으로 게임 키 변환 후 설정 파일에 기록
+#  → module.toml file_key로 게임 키로 바꿔 설정 파일에 기록 (바뀐 키만)
 #
 def configure(config):
     settings = config.get("settings", {})
@@ -325,19 +287,10 @@ def configure(config):
     config_file = os.path.join(working_dir, "server.cfg")  # ← 게임별 설정 파일 경로
 
     try:
-        # 1) 기존 설정 파일 읽기 (없으면 빈 dict)
-        current = _read_config_file(config_file)
-
-        # 2) 키 매핑 적용
-        for saba_key, value in settings.items():
-            game_key = _KEY_MAP.get(saba_key)
-            if game_key:
-                current[game_key] = value
-
-        # 3) 설정 파일 쓰기
-        _write_config_file(config_file, current)
-
-        return {"success": True, "message": f"Applied {len(settings)} settings"}
+        # file_key가 없는 설정(데몬 전용 group="saba-chan")은 빠집니다. 불리언 표기는 게임에 맞추세요(true=/false=)
+        updates = settings_to_file(MODULE_DIR, settings)
+        update_key_values(config_file, updates)  # `키=값`이 아닌 형식(JSON 등)이면 직접 쓰되 atomic_write로
+        return {"success": True, "updated_keys": sorted(updates)}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -356,21 +309,8 @@ def import_settings(config):
         return {"success": False, "message": "Config file not found"}
 
     try:
-        current = _read_config_file(config_file)
-
-        # 파일 값은 문자열이다. module.toml 형식(number·boolean)으로 바꿔야 앱 값과 같아진다
-        from daemon_rcon import coerce_setting, load_setting_types
-        types = load_setting_types(MODULE_DIR)
-
-        # 역매핑: 게임 키 → saba-chan 키
-        reverse_map = {v: k for k, v in _KEY_MAP.items()}
-        imported = {}
-        for game_key, value in current.items():
-            saba_key = reverse_map.get(game_key)
-            if saba_key:
-                imported[saba_key] = coerce_setting(value, types.get(saba_key))
-
-        return {"success": True, "settings": imported}
+        # 파일 값은 문자열이다. settings_from_file이 module.toml 형식(number·boolean)으로 바꿉니다
+        return {"success": True, "settings": settings_from_file(MODULE_DIR, read_key_values(config_file, strip_values=True))}
     except Exception as e:
         return {"success": False, "message": str(e)}
 
@@ -420,22 +360,16 @@ def install_server(config):
     if not install_dir:
         return {"success": False, "message": "install_dir not specified"}
 
-    # SteamCMD 예시
+    # SteamCMD 예시: app_id·beta는 module.toml [install]에 한 번만 적습니다 (install_for_module이 읽습니다)
     try:
-        from extensions.steamcmd import SteamCMD
-        steam = SteamCMD()
-        steam.ensure_available()
-        result = steam.install(
-            app_id=123456,
-            install_dir=install_dir,
-            anonymous=True,
-        )
-        if result.get("success"):
-            # 설치 후 초기 설정 적용
-            configure(config)
-        return result
+        from extensions.steamcmd import install_for_module
     except ImportError:
-        return {"success": False, "message": "steamcmd extension not installed"}
+        return {"success": False, "error_code": "extension_required", "message": "steamcmd extension not installed"}
+    result = install_for_module(MODULE_DIR, install_dir)
+    if result.get("success"):
+        # 설치 후 초기 설정 적용
+        configure(config)
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -444,35 +378,15 @@ def install_server(config):
 #  서버 로그를 분석하여 에러와 해결책을 제시합니다.
 #
 def diagnose_log(config):
-    # 구현 예시: 로그 파일 읽기 → 패턴 매칭 → 진단 결과 반환
-    return {
-        "success": True,
-        "diagnostics": [],  # [{ "level": "error", "message": "...", "solution": "..." }]
-    }
+    # 규칙은 module.toml [[diagnose]] (code, severity, patterns)에 둡니다. 문구는 locales의
+    # errors.detect.<소문자 code>·errors.solutions.<소문자 code>. 데몬이 준 이번 실행의 콘솔 줄을 먼저 봅니다
+    lines = config.get("log_lines") or tail_lines(os.path.join(config.get("working_dir", ""), "logs", "latest.log"))
+    return {"success": True, "issues": diagnose_lines(lines, load_diagnose_rules(MODULE_DIR), i18n)}
 
 
 # ═══════════════════════════════════════════════════════════════════
 #  내부 헬퍼 함수들
 # ═══════════════════════════════════════════════════════════════════
-
-def _read_config_file(path):
-    """게임 설정 파일 읽기 (게임별로 구현)"""
-    # 예: INI 파서, properties 파서, JSON 등
-    config = {}
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if '=' in line and not line.startswith('#'):
-                    key, _, value = line.partition('=')
-                    config[key.strip()] = value.strip()
-    return config
-
-
-def _write_config_file(path, config):
-    """게임 설정 파일 쓰기 (게임별로 구현). 늘 atomic_write로 통째로 바꾼다: 쓰다 끊겨도 파일이 비지 않고 원래 권한이 남는다"""
-    atomic_write(path, "".join(f"{key}={value}\n" for key, value in config.items()).encode("utf-8"))
-
 
 def _do_backup(config):
     """커스텀 백업 명령어 예시"""

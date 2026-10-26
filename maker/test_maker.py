@@ -300,7 +300,7 @@ def finished_module(repo):
         if lang not in ("en", "ko"):
             locale = folder / "locales" / f"{lang}.json"
             data = json.loads(locale.read_text(encoding="utf-8"))
-            data["messages"]["stop_requested"] = f"[{lang}] stop"
+            data["settings"]["server_name"]["label"] = f"[{lang}] name"
             locale.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     (folder / "RESEARCH.md").write_text("# 조사\n\n| 항목 | 값 | 출처 |\n|---|---|---|\n| 포트 | 1 | https://example.com 문서 |\n", encoding="utf-8")
     # 실측 로그에서 만든 하이라이트 규칙 하나 (틀의 예시 규칙만 두면 관문이 막는다)
@@ -372,14 +372,14 @@ def test_check_static_flags_missing_languages_and_untranslated_korean(repo):
     folder = finished_module(repo)
     (folder / "locales" / "ja.json").unlink()
     ko = json.loads((folder / "locales" / "ko.json").read_text(encoding="utf-8"))
-    ko["messages"].pop("stop_requested")
+    ko["settings"]["server_name"].pop("label")
     (folder / "locales" / "ko.json").write_text(json.dumps(ko, ensure_ascii=False), encoding="utf-8")
 
     details = {r["gate"]: r for r in check.static_gates(folder, repo)}
 
     assert details["locales"]["status"] == "fail"
     assert "ja.json" in details["locales"]["detail"]
-    assert "messages.stop_requested" in details["locales"]["detail"]
+    assert "settings.server_name.label" in details["locales"]["detail"]
 
 
 def test_check_static_flags_languages_left_as_english_copies(repo):

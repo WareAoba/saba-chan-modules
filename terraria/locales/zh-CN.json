@@ -287,17 +287,11 @@
     }
   },
   "errors": {
-    "archive_corrupt": "服务器压缩包已损坏（{{file}}）",
     "backup_paths_failed": "无法确定要备份的文件：{{error}}",
-    "download_failed": "下载失败：{{error}}",
     "executable_not_found": "找不到泰拉瑞亚服务器程序，请先安装服务器",
-    "failed_to_kill": "无法结束服务器进程：{{error}}",
-    "graceful_stop_unavailable": "服务器控制台未连接，无法保存后停止。只有在可以接受丢失未保存进度时才强制停止",
-    "install_failed": "安装失败：{{error}}",
     "invalid_banlist": "封禁列表名“{{name}}”不是简单的文件名",
     "invalid_world_name": "世界名称“{{name}}”不能包含 / \\ : * ? \" < > |，也不能以空格或点结尾",
     "line_break": "{{setting}} 的值不能包含换行",
-    "no_install_dir": "未指定安装文件夹",
     "no_version": "请选择服务器版本（例如 1.4.5.8）",
     "not_server_folder": "此文件夹中没有泰拉瑞亚服务器，未删除任何内容",
     "properties_read_failed": "无法读取 serverconfig.txt：{{error}}",
@@ -310,21 +304,15 @@
     "xna_install_failed": "无法将 XNA Framework 4.0 放入服务器文件夹：{{error}}",
     "xna_extension_missing": "在 Windows 上运行 Terraria 服务器需要 XNA 扩展。请安装并启用“XNA Framework 4.0 (portable)”扩展。",
     "version_unknown": "找不到已安装的服务器版本。",
-    "no_working_dir": "无法确定服务器文件夹",
     "players_unavailable": "无法从服务器控制台读取玩家列表"
   },
   "messages": {
     "downloading": "正在下载泰拉瑞亚服务器",
     "extracting": "正在解压服务器文件",
-    "force_killed": "已强制结束服务器进程 {{pid}}",
-    "graceful_stop": "服务器已保存世界并停止",
-    "graceful_stop_timeout": "服务器未及时停止，正在强制停止",
     "install_complete": "泰拉瑞亚服务器已安装",
     "no_mappable_settings": "没有要写入 serverconfig.txt 的内容",
-    "no_process_running": "服务器未运行",
     "properties_updated": "已保存到 serverconfig.txt，重启服务器后生效",
     "server_reset_complete": "世界已删除，下次启动时会创建新世界",
-    "stop_requested": "已请求服务器保存并停止",
     "installing_xna": "正在将 XNA Framework 4.0 放入服务器文件夹..."
   },
   "reset": {

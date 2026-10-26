@@ -287,17 +287,11 @@
     }
   },
   "errors": {
-    "archive_corrupt": "Архив сервера повреждён ({{file}})",
     "backup_paths_failed": "Не удалось определить файлы для копии: {{error}}",
-    "download_failed": "Ошибка загрузки: {{error}}",
     "executable_not_found": "Исполняемый файл сервера не найден. Сначала установите сервер",
-    "failed_to_kill": "Не удалось завершить процесс: {{error}}",
-    "graceful_stop_unavailable": "Консоль сервера не подключена, сохранить мир перед остановкой нельзя. Принудительно останавливайте, только если готовы потерять несохранённое",
-    "install_failed": "Ошибка установки: {{error}}",
     "invalid_banlist": "Имя «{{name}}» не является простым именем файла",
     "invalid_world_name": "Имя мира «{{name}}» не может содержать / \\ : * ? \" < > | и заканчиваться пробелом или точкой",
     "line_break": "Значение {{setting}} не может содержать перенос строки",
-    "no_install_dir": "Не указана папка установки",
     "no_version": "Выберите версию сервера (например 1.4.5.8)",
     "not_server_folder": "В этой папке нет сервера Terraria, ничего не удалено",
     "properties_read_failed": "Не удалось прочитать serverconfig.txt: {{error}}",
@@ -310,21 +304,15 @@
     "xna_install_failed": "Не удалось добавить XNA Framework 4.0 в папку сервера: {{error}}",
     "xna_extension_missing": "Для запуска сервера Terraria в Windows нужно расширение XNA. Установите и включите расширение «XNA Framework 4.0 (portable)».",
     "version_unknown": "Не удалось определить установленную версию сервера.",
-    "no_working_dir": "Папка сервера неизвестна",
     "players_unavailable": "Не удалось прочитать список игроков из консоли сервера"
   },
   "messages": {
     "downloading": "Загрузка сервера Terraria",
     "extracting": "Распаковка файлов сервера",
-    "force_killed": "Процесс {{pid}} принудительно остановлен",
-    "graceful_stop": "Сервер сохранил мир и остановился",
-    "graceful_stop_timeout": "Сервер не остановился вовремя; принудительная остановка",
     "install_complete": "Сервер Terraria установлен",
     "no_mappable_settings": "Нечего записывать в serverconfig.txt",
-    "no_process_running": "Сервер не запущен",
     "properties_updated": "Сохранено в serverconfig.txt. Перезапустите сервер",
     "server_reset_complete": "Мир удалён. Новый будет создан при следующем запуске",
-    "stop_requested": "Серверу отправлен запрос на сохранение и остановку",
     "installing_xna": "Установка XNA Framework 4.0 рядом с сервером..."
   },
   "reset": {

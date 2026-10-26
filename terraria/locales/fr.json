@@ -287,17 +287,11 @@
     }
   },
   "errors": {
-    "archive_corrupt": "L'archive du serveur est endommagée ({{file}})",
     "backup_paths_failed": "Impossible de déterminer les fichiers à sauvegarder : {{error}}",
-    "download_failed": "Échec du téléchargement : {{error}}",
     "executable_not_found": "Exécutable du serveur introuvable. Installez d'abord le serveur",
-    "failed_to_kill": "Impossible d'arrêter le processus : {{error}}",
-    "graceful_stop_unavailable": "La console n'est pas connectée : impossible de sauvegarder avant l'arrêt. Forcez l'arrêt seulement si vous acceptez de perdre la progression non sauvegardée",
-    "install_failed": "Échec de l'installation : {{error}}",
     "invalid_banlist": "Le nom \"{{name}}\" n'est pas un simple nom de fichier",
     "invalid_world_name": "Le nom \"{{name}}\" ne peut pas contenir / \\ : * ? \" < > | ni finir par une espace ou un point",
     "line_break": "La valeur de {{setting}} ne peut pas contenir de saut de ligne",
-    "no_install_dir": "Aucun dossier d'installation indiqué",
     "no_version": "Choisissez une version du serveur (ex. 1.4.5.8)",
     "not_server_folder": "Ce dossier ne contient pas de serveur Terraria : rien n'a été supprimé",
     "properties_read_failed": "Impossible de lire serverconfig.txt : {{error}}",
@@ -310,21 +304,15 @@
     "xna_install_failed": "Impossible d'ajouter XNA Framework 4.0 au dossier du serveur : {{error}}",
     "xna_extension_missing": "L'extension XNA est nécessaire pour exécuter le serveur Terraria sous Windows. Installez et activez l'extension « XNA Framework 4.0 (portable) ».",
     "version_unknown": "Version du serveur installée introuvable.",
-    "no_working_dir": "Le dossier du serveur est inconnu",
     "players_unavailable": "Impossible de lire la liste des joueurs depuis la console du serveur"
   },
   "messages": {
     "downloading": "Téléchargement du serveur Terraria",
     "extracting": "Extraction des fichiers du serveur",
-    "force_killed": "Le processus {{pid}} a été arrêté de force",
-    "graceful_stop": "Le serveur a sauvegardé et s'est arrêté",
-    "graceful_stop_timeout": "Le serveur ne s'est pas arrêté à temps ; arrêt forcé",
     "install_complete": "Serveur Terraria installé",
     "no_mappable_settings": "Rien à écrire dans serverconfig.txt",
-    "no_process_running": "Le serveur ne tourne pas",
     "properties_updated": "Enregistré dans serverconfig.txt. Redémarrez le serveur pour l'appliquer",
     "server_reset_complete": "Le monde a été supprimé. Un nouveau sera créé au prochain démarrage",
-    "stop_requested": "Demande de sauvegarde et d'arrêt envoyée",
     "installing_xna": "Installation de XNA Framework 4.0 à côté du serveur..."
   },
   "reset": {

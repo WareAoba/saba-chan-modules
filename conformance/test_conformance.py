@@ -821,7 +821,7 @@ def test_path_errors_are_not_swallowed(module):
 
 # ── 5. 번역 ─────────────────────────────────────────────
 
-def test_translation_keys(module):
+def test_translation_keys(module, shared_libs):
     locales = module.dir / "locales"
     if not locales.is_dir():
         pytest.skip("locales 없음")
@@ -835,7 +835,10 @@ def test_translation_keys(module):
         if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "t"
                 and n.args and isinstance(n.args[0], ast.Constant) and isinstance(n.args[0].value, str)):
             used.add(n.args[0].value)
-    assert not (used - en), f"코드가 쓰는데 en.json에 없는 키: {sorted(used - en)}"
+    # 공용 문구(saba-core 0.1.11, common_locales.json)는 모듈 locales에 다시 쓰지 않아도 된다
+    common_file = shared_libs / "common_locales.json"
+    common = flat_keys(json.loads(common_file.read_text(encoding="utf-8"))["en"]) if common_file.is_file() else set()
+    assert not (used - en - common), f"코드가 쓰는데 en.json(과 공용 문구)에 없는 키: {sorted(used - en - common)}"
 
     problems = []
     for f in sorted(locales.glob("*.json")):

@@ -287,17 +287,11 @@
     }
   },
   "errors": {
-    "archive_corrupt": "The server archive is damaged ({{file}})",
     "backup_paths_failed": "Could not work out the backup files: {{error}}",
-    "download_failed": "Download failed: {{error}}",
     "executable_not_found": "Terraria server executable not found. Install the server first",
-    "failed_to_kill": "Could not end the server process: {{error}}",
-    "graceful_stop_unavailable": "The server console is not connected, so the world cannot be saved before stopping. Force stop only if you accept losing unsaved progress",
-    "install_failed": "Installation failed: {{error}}",
     "invalid_banlist": "Ban list name \"{{name}}\" is not a plain file name",
     "invalid_world_name": "World name \"{{name}}\" cannot contain / \\ : * ? \" < > | or end with a space or dot",
     "line_break": "The value of {{setting}} cannot contain a line break",
-    "no_install_dir": "No install folder was given",
     "no_version": "Choose a server version (for example 1.4.5.8)",
     "not_server_folder": "This folder has no Terraria server, so nothing was deleted",
     "properties_read_failed": "Could not read serverconfig.txt: {{error}}",
@@ -310,21 +304,15 @@
     "xna_install_failed": "Could not add XNA Framework 4.0 to the server folder: {{error}}",
     "xna_extension_missing": "The XNA extension is needed to run the Terraria server on Windows. Install and enable the \"XNA Framework 4.0 (portable)\" extension.",
     "version_unknown": "Could not find the installed server version.",
-    "no_working_dir": "The server folder is not known",
     "players_unavailable": "Could not read the player list from the server console"
   },
   "messages": {
     "downloading": "Downloading the Terraria server",
     "extracting": "Extracting server files",
-    "force_killed": "Server process {{pid}} was force stopped",
-    "graceful_stop": "The server saved the world and stopped",
-    "graceful_stop_timeout": "The server did not stop in time; force stopping",
     "install_complete": "Terraria server installed",
     "no_mappable_settings": "Nothing to write to serverconfig.txt",
-    "no_process_running": "The server is not running",
     "properties_updated": "Saved to serverconfig.txt. Restart the server to apply",
     "server_reset_complete": "The world was deleted. A new world is created on the next start",
-    "stop_requested": "Asked the server to save and stop",
     "installing_xna": "Installing XNA Framework 4.0 next to the server..."
   },
   "reset": {

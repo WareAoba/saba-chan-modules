@@ -963,6 +963,14 @@
           "description": "네트워크 포트 값이면 true. 인스턴스를 만들 때 다른 인스턴스와 겹치지 않게 옮겨진다",
           "type": "boolean"
         },
+        "public": {
+          "default": null,
+          "description": "밖에서 붙는 포트의 프로토콜 `tcp`·`udp`·`both` (`SettingField::public`). `port = true`인 필드만",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "required": {
           "default": null,
           "type": [

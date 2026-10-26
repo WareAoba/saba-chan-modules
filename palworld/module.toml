@@ -158,6 +158,7 @@ name = "port"
 file_key = "PublicPort"
 type = "number"
 port = true
+public = "udp"
 format = "port"
 arg = "--port={value}"
 label = "Server Port"

@@ -101,9 +101,10 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 #   graceful_stop / request_console / request_terminate: stop()의 공용 절차 (saba-core 0.1.11부터)
 #   settings_to_file / settings_from_file: 설정 이름 ↔ 게임 설정 파일 키 (module.toml file_key, 0.1.11부터)
 #   read_key_values / update_key_values: `키=값` 설정 파일 읽기·바뀐 키만 쓰기 (인코딩·주석·순서 유지, 0.1.11부터)
-from daemon_rcon import (atomic_write, daemon_stdin_command, graceful_stop, is_process_alive, read_key_values,
-                         request_console, request_terminate, run_lifecycle, settings_from_file, settings_to_file,
-                         update_key_values)
+#   load_diagnose_rules / diagnose_lines / tail_lines: module.toml [[diagnose]]로 로그 진단 (0.1.11부터)
+from daemon_rcon import (atomic_write, daemon_stdin_command, diagnose_lines, graceful_stop, is_process_alive,
+                         load_diagnose_rules, read_key_values, request_console, request_terminate, run_lifecycle,
+                         settings_from_file, settings_to_file, tail_lines, update_key_values)
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
@@ -359,22 +360,16 @@ def install_server(config):
     if not install_dir:
         return {"success": False, "message": "install_dir not specified"}
 
-    # SteamCMD 예시
+    # SteamCMD 예시: app_id·beta는 module.toml [install]에 한 번만 적습니다 (install_for_module이 읽습니다)
     try:
-        from extensions.steamcmd import SteamCMD
-        steam = SteamCMD()
-        steam.ensure_available()
-        result = steam.install(
-            app_id=123456,
-            install_dir=install_dir,
-            anonymous=True,
-        )
-        if result.get("success"):
-            # 설치 후 초기 설정 적용
-            configure(config)
-        return result
+        from extensions.steamcmd import install_for_module
     except ImportError:
-        return {"success": False, "message": "steamcmd extension not installed"}
+        return {"success": False, "error_code": "extension_required", "message": "steamcmd extension not installed"}
+    result = install_for_module(MODULE_DIR, install_dir)
+    if result.get("success"):
+        # 설치 후 초기 설정 적용
+        configure(config)
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -383,11 +378,10 @@ def install_server(config):
 #  서버 로그를 분석하여 에러와 해결책을 제시합니다.
 #
 def diagnose_log(config):
-    # 구현 예시: 로그 파일 읽기 → 패턴 매칭 → 진단 결과 반환
-    return {
-        "success": True,
-        "diagnostics": [],  # [{ "level": "error", "message": "...", "solution": "..." }]
-    }
+    # 규칙은 module.toml [[diagnose]] (code, severity, patterns)에 둡니다. 문구는 locales의
+    # errors.detect.<소문자 code>·errors.solutions.<소문자 code>. 데몬이 준 이번 실행의 콘솔 줄을 먼저 봅니다
+    lines = config.get("log_lines") or tail_lines(os.path.join(config.get("working_dir", ""), "logs", "latest.log"))
+    return {"success": True, "issues": diagnose_lines(lines, load_diagnose_rules(MODULE_DIR), i18n)}
 
 
 # ═══════════════════════════════════════════════════════════════════

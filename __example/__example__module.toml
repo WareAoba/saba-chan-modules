@@ -122,7 +122,7 @@ install_subdir = "server"               # 설치 하위 폴더
 platform = "windows"                    # "windows" | "linux"
 requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
 # download_url = "https://..."          # method="download"일 때 사용
-# beta_branch = "experimental"          # 베타 브랜치 이름 (선택)
+# beta = "experimental"                 # 베타 브랜치 이름 (선택)
 
 # ── [detection] 자동 감지 ────────────────────────────────────────
 #  이미 실행 중인 서버를 자동으로 찾기 위한 패턴입니다.

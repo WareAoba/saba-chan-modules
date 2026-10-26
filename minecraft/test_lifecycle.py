@@ -599,6 +599,8 @@ def test_a_failed_update_download_keeps_the_running_jar(tmp_path):
                 raise ConnectionResetError("reset")
             return super().read(min(n, 1000))
 
+        read1 = read  # 공용 download는 read1로 받는다
+
     jar = tmp_path / "fabric-server-launch.jar"
     source = {"url": "https://example.invalid/fabric.jar", "sha256": hashlib.sha256(body).hexdigest(), "build": "x"}
     details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": None}

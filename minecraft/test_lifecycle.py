@@ -1586,3 +1586,16 @@ def test_server_properties_values_use_java_escapes():
     with tempfile.TemporaryDirectory() as tmpdir:
         ServerPropertiesManager(tmpdir).write(ServerPropertiesManager(tmpdir).get_defaults())
         assert "level-type=minecraft\\:normal\n" in open(os.path.join(tmpdir, "server.properties"), encoding="utf-8").read()
+
+
+def test_an_escaped_line_break_survives_import_and_save():
+    """motd=a\\nb(두 줄 MOTD)는 가져온 값 그대로 다시 저장할 수 있다. 진짜 줄바꿈으로 풀면 공용 도우미가 거부한다"""
+    from minecraft.lifecycle import ServerPropertiesManager, configure, import_settings
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "server.properties")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("motd=a\\nb\n")
+        motd = import_settings({"working_dir": tmpdir})["settings"]["motd"]
+        assert configure({"working_dir": tmpdir, "settings": {"motd": motd}})["success"] is True
+        with open(path, encoding="utf-8") as f:
+            assert "motd=a\\nb\n" in f.read()

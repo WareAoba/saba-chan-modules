@@ -509,12 +509,15 @@ class EulaManager:
 # ╚═══════════════════════════════════════════════════════════╝
 
 def _unescape_property(value):
-    """Java .properties 값의 이스케이프를 푼다 (\\uXXXX, \\:, \\= 등)"""
+    """Java .properties 값의 이스케이프를 푼다 (\\uXXXX, \\:, \\= 등).
+    줄바꿈 \\n·\\r은 이스케이프 모양 그대로 둔다: 한 줄 값만 저장할 수 있어 진짜 줄바꿈으로 풀면 다시 저장하지 못한다"""
     def repl(m):
         s = m.group(1)
         if len(s) == 5:
             return chr(int(s[1:], 16))
-        return {"t": "\t", "n": "\n", "r": "\r", "f": "\f"}.get(s, s)
+        if s in "nr":
+            return "\\" + s
+        return {"t": "\t", "f": "\f"}.get(s, s)
     return re.sub(r"\\(u[0-9a-fA-F]{4}|.)", repl, value)
 
 
@@ -547,9 +550,10 @@ DEFAULT_PROPERTIES = _load_default_properties()
 
 def _escape_property(value):
     """Java Properties.store(Writer)처럼 값을 쓴다: `\\`·`=`·`:`·`#`·`!` 앞에 `\\`, 맨 앞 공백도 이스케이프.
-    서버가 쓰는 파일과 같은 모양(level-type=minecraft\\:normal)이 된다. 줄바꿈은 공용 도우미가 거부한다"""
+    서버가 쓰는 파일과 같은 모양(level-type=minecraft\\:normal)이 된다. 줄바꿈 이스케이프 \\n·\\r은 그대로 둔다
+    (_unescape_property가 풀지 않은 모양). 진짜 줄바꿈은 공용 도우미가 거부한다"""
     value = str(value)
-    out = "".join("\\" + ch if ch in "\\=:#!" else ch for ch in value)
+    out = re.sub(r"\\(?![nr])|[=:#!]", lambda m: "\\" + m.group(0), value)
     return "\\" + out if out.startswith(" ") else out
 
 

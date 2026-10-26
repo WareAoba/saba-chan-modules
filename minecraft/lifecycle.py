@@ -16,7 +16,6 @@ Always outputs JSON to stdout, logs to stderr.
 
 import sys
 import json
-import locale
 import subprocess
 import os
 import re
@@ -34,8 +33,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더�
 
 import plugins
 import server_types
-from daemon_rcon import (PathOutside, atomic_write, graceful_stop, is_process_alive, request_console, request_terminate,
-                         safe_join)
+from daemon_rcon import (PathOutside, atomic_write, graceful_stop, is_process_alive, read_key_values, request_console,
+                         request_terminate, safe_join, setting_file_keys, settings_from_file, settings_to_file,
+                         update_key_values)
 
 # ─── Init ─────────────────────────────────────────────────────
 
@@ -46,82 +46,6 @@ i18n = I18n(MODULE_DIR)
 def _progress(percent, message):
     """데몬이 읽는 진행률 줄 (stderr `PROGRESS:{json}`, GUI 설치 진행률)"""
     print("PROGRESS:" + json.dumps({"percent": percent, "message": message}, ensure_ascii=True), file=sys.stderr, flush=True)
-
-# ─── Friendly name → server.properties key mapping ───────────
-# Used by configure() and install_server() to translate settings.
-_PROPERTY_KEY_MAP = {
-    "accepts_transfers": "accepts-transfers",
-    "allow_flight": "allow-flight",
-    "allow_nether": "allow-nether",
-    "broadcast_console_to_ops": "broadcast-console-to-ops",
-    "bug_report_link": "bug-report-link",
-    "difficulty": "difficulty",
-    "enable_command_block": "enable-command-block",
-    "enable_code_of_conduct": "enable-code-of-conduct",
-    "enable_jmx_monitoring": "enable-jmx-monitoring",
-    "enable_query": "enable-query",
-    "enable_status": "enable-status",
-    "enforce_secure_profile": "enforce-secure-profile",
-    "enforce_whitelist": "enforce-whitelist",
-    "entity_broadcast_range_percentage": "entity-broadcast-range-percentage",
-    "force_gamemode": "force-gamemode",
-    "function_permission_level": "function-permission-level",
-    "gamemode": "gamemode",
-    "generate_structures": "generate-structures",
-    "generator_settings": "generator-settings",
-    "hardcore": "hardcore",
-    "hide_online_players": "hide-online-players",
-    "initial_disabled_packs": "initial-disabled-packs",
-    "initial_enabled_packs": "initial-enabled-packs",
-    "level_name": "level-name",
-    "level_seed": "level-seed",
-    "level_type": "level-type",
-    "log_ips": "log-ips",
-    "max_chained_neighbor_updates": "max-chained-neighbor-updates",
-    "max_players": "max-players",
-    "max_tick_time": "max-tick-time",
-    "max_world_size": "max-world-size",
-    "motd": "motd",
-    "network_compression_threshold": "network-compression-threshold",
-    "online_mode": "online-mode",
-    "op_permission_level": "op-permission-level",
-    "player_idle_timeout": "player-idle-timeout",
-    "pause_when_empty_seconds": "pause-when-empty-seconds",
-    "port": "server-port",
-    "prevent_proxy_connections": "prevent-proxy-connections",
-    "pvp": "pvp",
-    "query_port": "query.port",
-    "debug": "debug",
-    "management_server_enabled": "management-server-enabled",
-    "management_server_host": "management-server-host",
-    "management_server_port": "management-server-port",
-    "management_server_secret": "management-server-secret",
-    "management_server_allowed_origins": "management-server-allowed-origins",
-    "management_server_tls_enabled": "management-server-tls-enabled",
-    "management_server_tls_keystore": "management-server-tls-keystore",
-    "management_server_tls_keystore_password": "management-server-tls-keystore-password",
-    "rate_limit": "rate-limit",
-    "region_file_compression": "region-file-compression",
-    "require_resource_pack": "require-resource-pack",
-    "resource_pack": "resource-pack",
-    "resource_pack_id": "resource-pack-id",
-    "resource_pack_prompt": "resource-pack-prompt",
-    "resource_pack_sha1": "resource-pack-sha1",
-    "server_ip": "server-ip",
-    "simulation_distance": "simulation-distance",
-    "spawn_animals": "spawn-animals",
-    "spawn_monsters": "spawn-monsters",
-    "spawn_npcs": "spawn-npcs",
-    "spawn_protection": "spawn-protection",
-    "status_heartbeat_interval": "status-heartbeat-interval",
-    "sync_chunk_writes": "sync-chunk-writes",
-    "text_filtering_config": "text-filtering-config",
-    "text_filtering_version": "text-filtering-version",
-    "use_native_transport": "use-native-transport",
-    "view_distance": "view-distance",
-    "white_list": "white-list",
-}
-
 
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                    Java Detection                         ║
@@ -669,34 +593,14 @@ class ServerPropertiesManager:
     def exists(self):
         return os.path.isfile(self.path)
 
-    def _lines(self):
-        """파일의 줄. UTF-8이 아니면(ANSI 편집기로 저장한 cp949 등) cp949·시스템 로캘·latin-1 순서로 읽는다.
-        cp949가 로캘보다 먼저다: 영문 Windows의 cp1252는 거의 모든 바이트를 받아 한글을 깨진 글자로 읽는다"""
-        with open(self.path, "rb") as f:
-            raw = f.read()
-        for encoding in ("utf-8-sig", "cp949", locale.getpreferredencoding(False), "latin-1"):
-            try:
-                return raw.decode(encoding).splitlines(keepends=True)
-            except (UnicodeDecodeError, LookupError):
-                continue
-        return []
-
     def read(self):
-        """Parse server.properties into a dict."""
-        props = {}
+        """Parse server.properties into a dict. 인코딩 추측(UTF-8 → cp949 → 로캘)은 공용 read_key_values가 한다"""
         if not self.exists():
-            return props
+            return {}
         try:
-            for line in self._lines():
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                if "=" in line:
-                    key, _, value = line.partition("=")
-                    props[key.strip()] = value.strip()
+            return read_key_values(self.path, strip_values=True)
         except OSError:
-            pass
-        return props
+            return {}
 
     def write(self, properties):
         """Write a full properties dict (replaces entire file)."""
@@ -712,32 +616,13 @@ class ServerPropertiesManager:
             return False
 
     def update(self, changes):
-        """Merge changes into existing properties (preserves comments)."""
+        """Merge changes into existing properties (preserves comments). 서버는 UTF-8로 읽으므로 UTF-8로 쓴다"""
         if not self.exists():
             merged = dict(DEFAULT_PROPERTIES)
             merged.update(changes)
             return self.write(merged)
-
         try:
-            lines = []
-            updated_keys = set()
-            for line in self._lines():
-                stripped = line.strip()
-                if stripped and not stripped.startswith("#") and "=" in stripped:
-                    key = stripped.partition("=")[0].strip()
-                    if key in changes:
-                        lines.append(f"{key}={changes[key]}\n")
-                        updated_keys.add(key)
-                    else:
-                        lines.append(line)
-                else:
-                    lines.append(line)
-
-            for key, value in changes.items():
-                if key not in updated_keys:
-                    lines.append(f"{key}={value}\n")
-
-            atomic_write(self.path, "".join(lines).encode("utf-8"))
+            update_key_values(self.path, changes, write_encoding="utf-8")
             return True
         except OSError:
             return False
@@ -1310,15 +1195,8 @@ def configure(config):
 
     mgr = ServerPropertiesManager(working_dir)
 
-    props_changes = {}
-    for key, value in settings.items():
-        # server.properties 키가 아닌 것(ram, java_path 같은 사바쨩 설정)은 쓰지 않는다
-        prop_key = _PROPERTY_KEY_MAP.get(key)
-        if prop_key is None:
-            continue
-        if isinstance(value, bool):
-            value = "true" if value else "false"
-        props_changes[prop_key] = str(value)
+    # server.properties 키(module.toml file_key)가 없는 것(ram, java_path 같은 사바쨩 설정)은 쓰지 않는다
+    props_changes = settings_to_file(MODULE_DIR, settings)
 
     success = mgr.update(props_changes)
     return {
@@ -1384,16 +1262,11 @@ def import_settings(config):
     if not raw_props:
         return {"success": True, "settings": found, "message": i18n.t("messages.no_properties_found"), **extra}
 
-    # Build reverse map: server.properties key → saba-chan key
-    reverse_map = {v: k for k, v in _PROPERTY_KEY_MAP.items()}
-
-    # 스키마 타입대로만 바꾼다: 숫자 같은 비밀번호("000123")나 이름은 문자열 그대로
-    from daemon_rcon import coerce_setting, load_setting_types
-    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
-    settings = {}
-    for prop_key, raw_value in raw_props.items():
-        saba_key = reverse_map.get(prop_key, prop_key)
-        settings[saba_key] = coerce_setting(raw_value, types.get(saba_key))
+    # 설정 화면에 없는 키는 이름 그대로 넘긴다. 있는 키는 스키마 타입대로만 바꾼다:
+    # 숫자 같은 비밀번호("000123")나 이름은 문자열 그대로
+    known = set(setting_file_keys(MODULE_DIR).values())
+    settings = {key: value for key, value in raw_props.items() if key not in known}
+    settings.update(settings_from_file(MODULE_DIR, raw_props))
     settings.update(found)
 
     return {"success": True, "settings": settings, **extra}
@@ -2155,12 +2028,11 @@ class ServerInstaller:
         # Apply initial server settings
         if initial_settings and isinstance(initial_settings, dict):
             mgr = ServerPropertiesManager(install_path)
-            props = {}
-            for k, v in initial_settings.items():
-                prop_key = _PROPERTY_KEY_MAP.get(k, k)
-                if isinstance(v, bool):
-                    v = "true" if v else "false"
-                props[prop_key] = str(v)
+            # 설정 이름은 server.properties 키로, 그 밖의 키(이미 파일 키인 것)는 그대로
+            keys = setting_file_keys(MODULE_DIR)
+            props = {**{k: v for k, v in initial_settings.items() if k not in keys},
+                     **settings_to_file(MODULE_DIR, initial_settings)}
+            props = {k: ("true" if v is True else "false" if v is False else str(v)) for k, v in props.items()}
 
             # RCON is blocked for security (commands go through the console)
             props["enable-rcon"] = "false"
@@ -2275,7 +2147,8 @@ def install_server(config):
         do_eula = "eula" in (config.get("accepted_agreements") or [])
         settings = config.get("settings") or {}
         # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
-        initial_settings = {k: v for k, v in settings.items() if k in _PROPERTY_KEY_MAP and v is not None}
+        file_keys = setting_file_keys(MODULE_DIR)
+        initial_settings = {k: v for k, v in settings.items() if k in file_keys and v is not None}
         initial_settings.update(config.get("initial_settings") or {})
         # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다.
         # 없으면(GUI의 버전 설치) 폴더에 있는 서버의 종류를 따른다: Paper·Fabric을 바닐라로 덮지 않는다

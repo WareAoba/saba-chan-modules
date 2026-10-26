@@ -157,6 +157,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "accepts_transfers"
+file_key = "accepts-transfers"
 type = "boolean"
 label = "Accepts Transfers"
 description = "Allow connection transfer from other servers"
@@ -165,6 +166,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_flight"
+file_key = "allow-flight"
 type = "boolean"
 label = "Allow Flight"
 description = "Allow flying in survival mode"
@@ -172,6 +174,7 @@ default = false
 
 [[settings.fields]]
 name = "allow_nether"
+file_key = "allow-nether"
 type = "boolean"
 label = "Allow Nether"
 description = "Allow players to travel to the Nether"
@@ -179,6 +182,7 @@ default = true
 
 [[settings.fields]]
 name = "broadcast_console_to_ops"
+file_key = "broadcast-console-to-ops"
 type = "boolean"
 label = "Broadcast Console to Ops"
 description = "Send console output to all online ops"
@@ -187,6 +191,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "bug_report_link"
+file_key = "bug-report-link"
 type = "text"
 label = "Bug Report Link"
 description = "Custom bug report link"
@@ -195,6 +200,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "difficulty"
+file_key = "difficulty"
 type = "select"
 label = "Difficulty"
 description = "Game difficulty"
@@ -203,6 +209,7 @@ default = "normal"
 
 [[settings.fields]]
 name = "enable_command_block"
+file_key = "enable-command-block"
 type = "boolean"
 label = "Command Blocks"
 description = "Enable command blocks"
@@ -210,6 +217,7 @@ default = false
 
 [[settings.fields]]
 name = "enable_code_of_conduct"
+file_key = "enable-code-of-conduct"
 type = "boolean"
 label = "Code of Conduct"
 description = "Enable code of conduct screen"
@@ -218,6 +226,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_jmx_monitoring"
+file_key = "enable-jmx-monitoring"
 type = "boolean"
 label = "JMX Monitoring"
 description = "Enable JMX monitoring (exposes MBean)"
@@ -226,6 +235,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_query"
+file_key = "enable-query"
 type = "boolean"
 label = "Enable Query"
 description = "Enable the GameSpy4 query protocol"
@@ -234,6 +244,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_status"
+file_key = "enable-status"
 type = "boolean"
 label = "Enable Status"
 description = "Show server in multiplayer server list"
@@ -242,6 +253,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enforce_secure_profile"
+file_key = "enforce-secure-profile"
 type = "boolean"
 label = "Enforce Secure Profile"
 description = "Require Mojang-signed public key for players"
@@ -250,6 +262,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enforce_whitelist"
+file_key = "enforce-whitelist"
 type = "boolean"
 label = "Enforce Whitelist"
 description = "Kick players not on whitelist when whitelist is reloaded"
@@ -257,6 +270,7 @@ default = false
 
 [[settings.fields]]
 name = "entity_broadcast_range_percentage"
+file_key = "entity-broadcast-range-percentage"
 type = "number"
 label = "Entity Broadcast Range %"
 description = "Distance at which mobs and other entities are sent to players, as a percentage of the default (10-1000)"
@@ -267,6 +281,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "force_gamemode"
+file_key = "force-gamemode"
 type = "boolean"
 label = "Force Game Mode"
 description = "Force default gamemode on player join"
@@ -275,6 +290,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "function_permission_level"
+file_key = "function-permission-level"
 type = "number"
 label = "Function Permission Level"
 description = "Default permission level for function commands (1-4)"
@@ -285,6 +301,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "gamemode"
+file_key = "gamemode"
 type = "select"
 label = "Game Mode"
 description = "Default game mode"
@@ -293,6 +310,7 @@ default = "survival"
 
 [[settings.fields]]
 name = "generate_structures"
+file_key = "generate-structures"
 type = "boolean"
 label = "Generate Structures"
 description = "Generate structures such as villages and mineshafts"
@@ -300,6 +318,7 @@ default = true
 
 [[settings.fields]]
 name = "generator_settings"
+file_key = "generator-settings"
 type = "text"
 label = "Generator Settings"
 description = "JSON settings for flat world generation"
@@ -308,6 +327,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hardcore"
+file_key = "hardcore"
 type = "boolean"
 label = "Hardcore"
 description = "Enable hardcore mode"
@@ -315,6 +335,7 @@ default = false
 
 [[settings.fields]]
 name = "hide_online_players"
+file_key = "hide-online-players"
 type = "boolean"
 label = "Hide Online Players"
 description = "Hide player list from status response"
@@ -323,6 +344,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "initial_disabled_packs"
+file_key = "initial-disabled-packs"
 type = "text"
 label = "Initial Disabled Packs"
 description = "Comma-separated list of disabled datapacks"
@@ -331,6 +353,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "initial_enabled_packs"
+file_key = "initial-enabled-packs"
 type = "text"
 label = "Initial Enabled Packs"
 description = "Comma-separated list of enabled datapacks"
@@ -339,6 +362,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "level_name"
+file_key = "level-name"
 type = "text"
 label = "World Name"
 description = "Name of the world folder"
@@ -346,6 +370,7 @@ default = "world"
 
 [[settings.fields]]
 name = "level_seed"
+file_key = "level-seed"
 type = "text"
 label = "World Seed"
 description = "Seed for world generation (leave blank for random)"
@@ -353,6 +378,7 @@ default = ""
 
 [[settings.fields]]
 name = "level_type"
+file_key = "level-type"
 type = "select"
 label = "World Type"
 description = "Type of world generation"
@@ -361,6 +387,7 @@ default = "minecraft:normal"
 
 [[settings.fields]]
 name = "log_ips"
+file_key = "log-ips"
 type = "boolean"
 label = "Log IPs"
 description = "Log player IP addresses"
@@ -369,6 +396,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_chained_neighbor_updates"
+file_key = "max-chained-neighbor-updates"
 type = "number"
 label = "Max Chained Neighbor Updates"
 description = "Max consecutive neighbor updates before skipping (-1 for no limit)"
@@ -379,6 +407,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_players"
+file_key = "max-players"
 type = "number"
 label = "Max Players"
 description = "Maximum number of players"
@@ -388,6 +417,7 @@ max = 1000
 
 [[settings.fields]]
 name = "max_tick_time"
+file_key = "max-tick-time"
 type = "number"
 label = "Max Tick Time"
 description = "Max milliseconds a tick can take before watchdog kills server (-1 to disable)"
@@ -398,6 +428,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_world_size"
+file_key = "max-world-size"
 type = "number"
 label = "Max World Size"
 description = "Maximum world border radius"
@@ -407,6 +438,7 @@ max = 29999984
 
 [[settings.fields]]
 name = "motd"
+file_key = "motd"
 type = "text"
 label = "MOTD"
 description = "Message shown under the server name in the server list"
@@ -414,6 +446,7 @@ default = "A Minecraft Server"
 
 [[settings.fields]]
 name = "network_compression_threshold"
+file_key = "network-compression-threshold"
 type = "number"
 label = "Network Compression Threshold"
 description = "Minimum packet size to compress (-1 to disable, 0 to compress all)"
@@ -424,6 +457,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "online_mode"
+file_key = "online-mode"
 type = "boolean"
 label = "Online Mode"
 description = "Only players with an authenticated Minecraft account can join (Mojang authentication). Disable for cracked clients"
@@ -431,6 +465,7 @@ default = true
 
 [[settings.fields]]
 name = "op_permission_level"
+file_key = "op-permission-level"
 type = "number"
 label = "Op Permission Level"
 description = "Default permission level for ops (1-4)"
@@ -441,6 +476,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_idle_timeout"
+file_key = "player-idle-timeout"
 type = "number"
 label = "Player Idle Timeout"
 description = "Minutes before idle players are kicked (0 to disable)"
@@ -451,6 +487,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "port"
+file_key = "server-port"
 type = "number"
 port = true
 label = "Server Port"
@@ -461,6 +498,7 @@ max = 65535
 
 [[settings.fields]]
 name = "pause_when_empty_seconds"
+file_key = "pause-when-empty-seconds"
 type = "number"
 label = "Pause When Empty"
 description = "Pause server ticking after no players for this many seconds (0 to disable)"
@@ -471,6 +509,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "prevent_proxy_connections"
+file_key = "prevent-proxy-connections"
 type = "boolean"
 label = "Prevent Proxy Connections"
 description = "Block connections using VPN/proxy"
@@ -479,6 +518,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pvp"
+file_key = "pvp"
 type = "boolean"
 label = "PVP"
 description = "Allow player vs player combat"
@@ -486,6 +526,7 @@ default = true
 
 [[settings.fields]]
 name = "debug"
+file_key = "debug"
 type = "boolean"
 label = "Debug"
 description = "Extra debug logging from the server"
@@ -494,6 +535,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_enabled"
+file_key = "management-server-enabled"
 type = "boolean"
 label = "Management Server"
 description = "Enable the server management protocol (JSON-RPC over WebSocket)"
@@ -502,6 +544,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_host"
+file_key = "management-server-host"
 type = "text"
 label = "Management Server Host"
 default = "localhost"
@@ -509,6 +552,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_port"
+file_key = "management-server-port"
 type = "number"
 label = "Management Server Port"
 default = 0
@@ -518,18 +562,21 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_secret"
+file_key = "management-server-secret"
 type = "password"
 label = "Management Server Secret"
 group = "advanced"
 
 [[settings.fields]]
 name = "management_server_allowed_origins"
+file_key = "management-server-allowed-origins"
 type = "text"
 label = "Management Server Allowed Origins"
 group = "advanced"
 
 [[settings.fields]]
 name = "management_server_tls_enabled"
+file_key = "management-server-tls-enabled"
 type = "boolean"
 label = "Management Server TLS"
 default = true
@@ -537,18 +584,21 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_tls_keystore"
+file_key = "management-server-tls-keystore"
 type = "text"
 label = "Management Server TLS Keystore"
 group = "advanced"
 
 [[settings.fields]]
 name = "management_server_tls_keystore_password"
+file_key = "management-server-tls-keystore-password"
 type = "password"
 label = "Management Server TLS Keystore Password"
 group = "advanced"
 
 [[settings.fields]]
 name = "query_port"
+file_key = "query.port"
 type = "number"
 port = true
 label = "Query Port"
@@ -560,6 +610,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "rate_limit"
+file_key = "rate-limit"
 type = "number"
 label = "Rate Limit"
 description = "Max packets per second before disconnect (0 to disable)"
@@ -570,6 +621,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "region_file_compression"
+file_key = "region-file-compression"
 type = "select"
 label = "Region File Compression"
 description = "Compression algorithm for region files"
@@ -579,6 +631,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "require_resource_pack"
+file_key = "require-resource-pack"
 type = "boolean"
 label = "Require Resource Pack"
 description = "Require players to accept the resource pack"
@@ -587,6 +640,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "resource_pack"
+file_key = "resource-pack"
 type = "text"
 label = "Resource Pack URL"
 description = "URL to a server resource pack"
@@ -595,6 +649,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "resource_pack_id"
+file_key = "resource-pack-id"
 type = "text"
 label = "Resource Pack ID"
 description = "UUID for the resource pack"
@@ -603,6 +658,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "resource_pack_prompt"
+file_key = "resource-pack-prompt"
 type = "text"
 label = "Resource Pack Prompt"
 description = "Custom message shown when resource pack is offered"
@@ -611,6 +667,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "resource_pack_sha1"
+file_key = "resource-pack-sha1"
 type = "text"
 label = "Resource Pack SHA-1"
 description = "SHA-1 hash of the resource pack"
@@ -619,6 +676,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "server_ip"
+file_key = "server-ip"
 type = "text"
 label = "Server IP"
 description = "IP address the server listens on (leave blank for all)"
@@ -627,6 +685,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "simulation_distance"
+file_key = "simulation-distance"
 type = "number"
 label = "Simulation Distance"
 description = "Maximum distance in which mobs and crops are active (chunks). Higher values put more load on the server"
@@ -636,6 +695,7 @@ max = 32
 
 [[settings.fields]]
 name = "spawn_animals"
+file_key = "spawn-animals"
 type = "boolean"
 label = "Spawn Animals"
 description = "Allow animals to spawn"
@@ -644,6 +704,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "spawn_monsters"
+file_key = "spawn-monsters"
 type = "boolean"
 label = "Spawn Monsters"
 description = "Allow hostile mobs to spawn"
@@ -652,6 +713,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "spawn_npcs"
+file_key = "spawn-npcs"
 type = "boolean"
 label = "Spawn NPCs"
 description = "Allow villagers to spawn"
@@ -660,6 +722,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "spawn_protection"
+file_key = "spawn-protection"
 type = "number"
 label = "Spawn Protection"
 description = "Radius around spawn where non-op players cannot break or place blocks (0 to disable)"
@@ -669,6 +732,7 @@ max = 256
 
 [[settings.fields]]
 name = "status_heartbeat_interval"
+file_key = "status-heartbeat-interval"
 type = "number"
 label = "Status Heartbeat Interval"
 description = "Heartbeat interval for server status (0 to disable)"
@@ -679,6 +743,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "sync_chunk_writes"
+file_key = "sync-chunk-writes"
 type = "boolean"
 label = "Sync Chunk Writes"
 description = "Write chunk data to disk synchronously (more reliable, can be slower)"
@@ -687,6 +752,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "text_filtering_config"
+file_key = "text-filtering-config"
 type = "text"
 label = "Text Filtering Config"
 description = "Text filtering configuration"
@@ -695,6 +761,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "text_filtering_version"
+file_key = "text-filtering-version"
 type = "number"
 label = "Text Filtering Version"
 description = "Text filtering version"
@@ -705,6 +772,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "use_native_transport"
+file_key = "use-native-transport"
 type = "boolean"
 label = "Use Native Transport"
 description = "Use Linux optimized network transport"
@@ -713,6 +781,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "view_distance"
+file_key = "view-distance"
 type = "number"
 label = "View Distance"
 description = "Maximum distance players can see (chunks). Higher values put more load on the server"
@@ -722,6 +791,7 @@ max = 32
 
 [[settings.fields]]
 name = "white_list"
+file_key = "white-list"
 type = "boolean"
 label = "Whitelist"
 description = "Only allow whitelisted players"

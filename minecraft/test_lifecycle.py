@@ -39,9 +39,9 @@ def test_default_properties_no_empty_keys():
 
 
 def test_property_key_map_coverage():
-    """_PROPERTY_KEY_MAP values should reference valid server.properties keys."""
-    from minecraft.lifecycle import _PROPERTY_KEY_MAP
-    for friendly_name, prop_key in _PROPERTY_KEY_MAP.items():
+    """module.toml file_key values should reference valid server.properties keys."""
+    from daemon_rcon import setting_file_keys
+    for friendly_name, prop_key in setting_file_keys(MODULE_DIR).items():
         # Most mapped keys should exist in DEFAULT_PROPERTIES
         # (some might be saba-chan-specific, so we just check format)
         assert "-" in prop_key or "." in prop_key or prop_key.isalpha(), \
@@ -321,8 +321,10 @@ def test_launch_turns_rcon_off_in_every_mode(managed):
 
 
 def test_rcon_cannot_be_turned_on_from_settings():
-    from minecraft.lifecycle import _PROPERTY_KEY_MAP
-    assert not {"enable_rcon", "rcon_password", "rcon_port", "broadcast_rcon_to_ops"} & set(_PROPERTY_KEY_MAP)
+    from daemon_rcon import setting_file_keys
+    keys = setting_file_keys(MODULE_DIR)
+    assert not {"enable_rcon", "rcon_password", "rcon_port", "broadcast_rcon_to_ops"} & set(keys)
+    assert not {"enable-rcon", "rcon.password", "rcon.port", "broadcast-rcon-to-ops"} & set(keys.values())
 
 
 def test_build_launch_info_working_dir_from_jar():
@@ -1088,15 +1090,17 @@ def test_reset_server_refuses_a_world_name_that_is_a_kept_item(tmp_path):
 def test_server_properties_saved_in_the_windows_locale_are_read(tmp_path, monkeypatch):
     """ANSI(cp949) 편집기로 한글 MOTD를 저장한 server.properties 때문에 시작이 UnicodeDecodeError로 막혔다.
     영문 Windows(cp1252)에서도 cp949 파일을 깨진 글자로 읽어 MOTD를 망가뜨리지 않는다"""
-    from minecraft import lifecycle
+    import locale
     from minecraft.lifecycle import ServerPropertiesManager
-    monkeypatch.setattr(lifecycle.locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
+    monkeypatch.setattr(locale, "getpreferredencoding", lambda do_setlocale=True: "cp1252")
     (tmp_path / "server.properties").write_bytes("motd=우리 서버\nserver-port=25565\n".encode("cp949"))
     manager = ServerPropertiesManager(str(tmp_path))
     assert manager.read()["motd"] == "우리 서버"
     assert manager.update({"server-port": "25570"})
     props = manager.read()
     assert (props["motd"], props["server-port"]) == ("우리 서버", "25570")
+    # 서버는 UTF-8로 읽으므로 고쳐 쓸 때 UTF-8로 바꾼다
+    assert (tmp_path / "server.properties").read_text(encoding="utf-8").startswith("motd=우리 서버")
 
 
 def _jar_with_version(path, version):
@@ -1329,8 +1333,8 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     # 채팅에 머리 흉내("]: ")를 넣어도 줄 처음의 로그 머리부터 맞춰야 한다 (리뷰 544)
     assert not any(p.search('[20:08:00] [Server thread/INFO]: <Steve> ]: Done (1.0s)! For help, type "help"') for p in patterns)
     assert "ready_patterns" not in toml["detection"]
-    # 설정 파일 저장이 공용 atomic_write(saba-core 0.1.10부터)를 쓴다
-    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.10"
+    # 정지·설정 파일이 공용 도우미(graceful_stop·update_key_values, saba-core 0.1.11부터)를 쓴다
+    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.11-0"
 
 
 def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():

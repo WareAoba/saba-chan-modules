@@ -717,7 +717,7 @@ def test_install_does_not_hide_a_profile_path_escape(tmp_path, monkeypatch):
 def test_manifest_declares_the_external_data_roots_and_the_sdk_boundary():
     cfg = _load_module_toml()
     assert cfg["extensions"]["saba-core"]["data_roots"] == ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
-    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.10"
+    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.11-0"
     field = next(field for field in cfg["settings"]["fields"] if field["name"] == "data_home")
     assert field["format"] == "path"
 

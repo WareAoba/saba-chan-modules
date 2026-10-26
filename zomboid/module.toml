@@ -1,7 +1,7 @@
 [module]
 schema_version = 1
 name = "zomboid"
-version = "0.1.5"
+version = "0.1.6"
 description = "Project Zomboid dedicated server management module"
 author = "WareAoba"
 game_name = "Project Zomboid"
@@ -12,7 +12,7 @@ log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
 saba-core = ">=0.1.11-0"
-ext-steamcmd = ">=0.1.0"
+ext-steamcmd = ">=0.1.5"
 
 [permissions]
 network = true          # 서버 파일 내려받기, 포트 확인

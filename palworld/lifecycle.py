@@ -15,7 +15,7 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-from daemon_rcon import PathOutside, daemon_rest, force_kill, is_process_alive, safe_join, wait_for_exit
+from daemon_rcon import PathOutside, daemon_rest, graceful_stop, is_process_alive, safe_join
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -351,68 +351,13 @@ def _rest_shutdown(config):
         return False
 
 
-# 데몬이 호출 제한을 알려 주지 않으면(0.1.8 데몬, 모듈 호출 120초) 강제 종료까지 그 안에 끝나도록 90초에서 멈춘다.
-# 알려 주면(stop_call_limit, 데몬 #480 이후) 그 30초 앞까지 기다린다
-STOP_TIMEOUT_MAX = 90
-STOP_CALL_MARGIN = 30
-
-
-def _stop_timeout(config):
-    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout. 상한은 데몬의 호출 제한 안이다"""
-    value = config.get("stop_timeout")
-    if value in (None, ""):
-        import tomllib
-        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
-    try:
-        value = int(value)
-    except (TypeError, ValueError):
-        value = 30
-    cap = STOP_TIMEOUT_MAX
-    try:
-        cap = int(config["stop_call_limit"]) - STOP_CALL_MARGIN
-    except (KeyError, TypeError, ValueError):
-        pass
-    return max(1, min(value, cap))
-
-
 def stop(config):
     """Stop Palworld server.
 
-    Palworld는 콘솔(stdin) 명령을 받지 않으므로 REST로 저장·종료를 요청하고,
-    시간 안에 끝나지 않으면 강제 종료한다. REST를 쓸 수 없으면 끝내지 않고 `graceful_stop_unavailable`로 답한다. 데몬이 PID를 주면(managed) 그 프로세스만 다룬다.
+    Palworld는 콘솔(stdin) 명령을 받지 않으므로 REST로 저장·종료를 요청한다. 기다림·강제 종료·managed·
+    요청 불가(`graceful_stop_unavailable`)는 공용 절차(graceful_stop)가 맡는다. 데몬이 준 PID(와 자식)만 다룬다.
     """
-    try:
-        pid = config.get("pid")
-        force = config.get("force", False)
-        exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
-        if not pid:
-            # 데몬이 PID를 모르면 이 인스턴스의 서버가 아니다(또는 안 돌고 있다)
-            return {"success": True, "message": i18n.t("messages.process_not_running", name=exe_name)}
-
-        if not force and not _rest_shutdown(config):
-            # REST가 없어 저장 후 종료를 요청할 수 없다: 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
-            return {"success": False, "error_code": "graceful_stop_unavailable",
-                    "message": i18n.t("errors.graceful_stop_unavailable")}
-        if not force and config.get("managed"):
-            # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 90초 상한에 잘린다
-            return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
-        if not force:
-            if wait_for_exit(pid, timeout=_stop_timeout(config)):
-                return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
-            print("[Palworld] Server did not exit after REST shutdown, force killing", file=sys.stderr)
-
-        # 그 PID(와 자식)만 끝낸다. 실행 파일 이름으로는 끝내지 않는다: 같은 게임의 다른 인스턴스까지 죽는다
-        ok, error = force_kill(pid)
-        if not ok:
-            return {"success": False, "message": i18n.t("errors.failed_to_stop_process", error=error or f"PID {pid}")}
-        return {"success": True, "message": i18n.t("messages.terminated", name=exe_name)}
-    except PathOutside:
-        raise
-    except Exception as e:
-        error_msg = i18n.t("errors.failed_to_stop_process", error=str(e))
-        print(error_msg, file=sys.stderr)
-        return {"success": False, "message": error_msg}
+    return graceful_stop(config, lambda: _rest_shutdown(config), i18n, module_dir=MODULE_DIR)
 
 
 def get_credentials(config):

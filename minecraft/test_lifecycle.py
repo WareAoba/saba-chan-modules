@@ -454,59 +454,6 @@ def test_status_does_not_signal_process():
     alive.assert_called_once_with(1234)
 
 
-def test_stop_graceful_then_reports_success():
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=True) as console, \
-         mock.patch.object(lifecycle, "wait_for_exit", return_value=True), \
-         mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 99, "instance_id": "abc"})
-    assert result["success"] is True
-    console.assert_called_once_with("abc")
-    kill.assert_not_called()
-
-
-def test_normal_stop_without_console_terminates_before_any_kill():
-    """RCON is off and there is no console: a normal stop asks the server to exit (SIGTERM) and waits,
-    so it can save; it only force-kills after the wait runs out"""
-    from minecraft import lifecycle
-    calls = []
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
-         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or True), \
-         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
-        result = lifecycle.stop({"pid": 99})
-    assert result["success"] is True
-    assert calls == ["term", "wait"]
-
-    calls.clear()
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
-         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or False), \
-         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
-        lifecycle.stop({"pid": 99})
-    assert calls == ["term", "wait", "kill"]
-
-
-@pytest.mark.skipif(os.name == "nt", reason="SIGTERM is POSIX only")
-def test_request_terminate_sends_sigterm_not_sigkill():
-    import signal
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle.os, "kill") as kill:
-        assert lifecycle._request_terminate(4321) is True
-    kill.assert_called_once_with(4321, signal.SIGTERM)
-
-
-def test_force_stop_kills_without_asking():
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle, "_send_console_stop") as console, \
-         mock.patch.object(lifecycle, "_request_terminate") as term, \
-         mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
-        lifecycle.stop({"pid": 99, "force": True})
-    console.assert_not_called()
-    term.assert_not_called()
-    kill.assert_called_once_with(99)
-
-
 def test_ping_closes_socket_on_error():
     from minecraft import lifecycle
     conn = mock.MagicMock()
@@ -1242,21 +1189,6 @@ def test_backup_keeps_permissions_and_settings():
         assert name in paths, name
 
 
-def test_plain_stop_without_a_way_to_save_does_not_kill():
-    """콘솔도 SIGTERM도 없으면(Windows, 콘솔 없는 서버) 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
-            mock.patch.object(lifecycle, "_request_terminate", return_value=False), \
-            mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 4242, "instance_id": "x"})
-    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
-    assert result.get("message")
-    kill.assert_not_called()
-    with mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
-        assert lifecycle.stop({"pid": 4242, "force": True})["success"] is True
-    kill.assert_called_once()
-
-
 def test_backup_keeps_plugin_mod_and_server_type_configs():
     """Paper·Spigot·모드 서버는 플러그인·모드와 그 설정이 플레이 데이터다 (MK18, PaperMC 문서 "Configuration").
     사바쨩이 다시 받아 주지 않는 것이라 복원 때 같이 돌아와야 한다. 다시 만들 수 있는 캐시(.paper-remapped, libraries, logs)는 넣지 않는다"""
@@ -1279,17 +1211,6 @@ def test_commands_that_change_access_or_grant_things_are_danger():
         risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
     for name in ("give", "gamemode", "pardon", "op", "deop", "whitelist", "ban", "difficulty"):
         assert risks[name] == "danger", name
-
-
-def test_stop_waits_for_the_configured_stop_timeout():
-    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한(stop_call_limit)을 알려 주면 그 30초 앞까지, 모르면(0.1.8 데몬, 120초 제한) 90초까지 (MA2, 리뷰 526)"""
-    from minecraft import lifecycle
-    for config, expected in (({"stop_timeout": "75"}, 75), ({}, 90), ({"stop_timeout": 3600}, 90), ({"stop_timeout": 3600, "stop_call_limit": 3630}, 3600), ({"stop_call_limit": 150}, 120), ({"stop_timeout": 600, "stop_call_limit": "100"}, 70), ({"stop_timeout": 600, "stop_call_limit": "x"}, 90)):
-        waits = []
-        with mock.patch.object(lifecycle, "_send_console_stop", return_value=True), \
-             mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: waits.append(timeout) or True):
-            lifecycle.stop({"pid": 99, **config})
-        assert waits == [expected], config
 
 
 def test_backup_leaves_out_rendered_map_tiles(tmp_path):
@@ -1456,20 +1377,6 @@ def test_player_patterns_name_who_joined_or_left():
         assert name(join, head + spoof) is None and name(leave, head + spoof) is None, spoof
 
 
-def test_managed_stop_leaves_the_wait_to_the_daemon():
-    """managed 정지는 저장 후 종료만 요청하고 바로 돌려준다: 기다림과 강제 종료는 데몬이 인스턴스 stop_timeout까지 맡는다.
-    여기서 기다리면 호출 제한(stop_call_limit - 30초)에 잘려 저장 중에 강제 종료한다 (02 §3.4, palworld와 같다)"""
-    from minecraft import lifecycle
-    with mock.patch.object(lifecycle, "_send_console_stop", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", return_value=True), \
-         mock.patch.object(lifecycle, "wait_for_exit") as wait, \
-         mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 99, "managed": True, "stop_timeout": 300, "stop_call_limit": 120})
-    assert result["success"] is True
-    wait.assert_not_called()
-    kill.assert_not_called()
-
-
 @pytest.mark.parametrize("name,content,expected", [
     ("start.bat", "@echo off\njava -Xms2G -Xmx10G -jar server.jar nogui\npause\n", "10G"),
     ("run.sh", "#!/bin/sh\nexec java -Xmx3072M -jar paper.jar --nogui\n", "3072M"),
@@ -1591,3 +1498,21 @@ def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
         port = s.getsockname()[1]
         result = lifecycle.validate({"working_dir": str(tmp_path), "port": port})
     assert "PORT_IN_USE" not in [i["code"] for i in result.get("issues", [])]
+
+
+def test_stop_uses_the_shared_procedure_with_console_then_sigterm():
+    """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. 모듈은 요청 방법만 정한다:
+    콘솔 `stop` → (콘솔이 없으면) SIGTERM"""
+    from minecraft import lifecycle
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()) as shared, \
+         mock.patch.object(lifecycle, "request_console", return_value=True) as console, \
+         mock.patch.object(lifecycle, "request_terminate") as term:
+        assert lifecycle.stop({"pid": 99, "instance_id": "abc"}) is True
+    assert shared.call_args.kwargs["module_dir"] == lifecycle.MODULE_DIR
+    console.assert_called_once_with({"pid": 99, "instance_id": "abc"}, "stop")
+    term.assert_not_called()
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()), \
+         mock.patch.object(lifecycle, "request_console", return_value=False), \
+         mock.patch.object(lifecycle, "request_terminate", return_value=True) as term:
+        assert lifecycle.stop({"pid": 99}) is True
+    term.assert_called_once_with(99)

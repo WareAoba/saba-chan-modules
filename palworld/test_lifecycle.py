@@ -368,25 +368,6 @@ def test_validate_accepts_daemon_server_jar_key(tmp_path):
     assert "NO_EXECUTABLE" not in codes and "EXECUTABLE_NOT_FOUND" not in codes
 
 
-def test_stop_kills_only_given_pid():
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "force_kill", return_value=(True, None)) as kill:
-        result = lifecycle.stop({"pid": 4321, "force": True, "server_executable": "C:/x/PalServer.exe"})
-    assert result["success"] is True
-    kill.assert_called_once_with(4321)
-
-
-def test_plain_stop_without_rest_does_not_kill():
-    """REST로 저장 후 종료를 요청할 수 없으면 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "force_kill") as kill, \
-         mock.patch.object(lifecycle, "_rest_shutdown", return_value=False):
-        result = lifecycle.stop({"pid": 4321, "server_executable": "C:/x/PalServer.exe"})
-    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
-    assert result.get("message")
-    kill.assert_not_called()
-
-
 def test_status_uses_pid_liveness():
     from palworld import lifecycle
     with mock.patch.object(lifecycle, "is_process_alive", return_value=True):
@@ -592,45 +573,6 @@ def test_commands_that_change_access_or_grant_things_are_danger():
         assert risks[name] == "danger", name
 
 
-def test_stop_waits_for_the_configured_stop_timeout():
-    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한(stop_call_limit)을 알려 주면 그 30초 앞까지, 모르면(0.1.8 데몬, 120초 제한) 90초까지 (MA2, 리뷰 526)"""
-    from palworld import lifecycle
-    for config, expected in (({"stop_timeout": "45"}, 45), ({}, 60), ({"stop_timeout": 600}, 90), ({"stop_timeout": 600, "stop_call_limit": 630}, 600), ({"stop_timeout": 600, "stop_call_limit": 100}, 70)):
-        with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
-             mock.patch.object(lifecycle, "wait_for_exit", return_value=False) as wait, \
-             mock.patch.object(lifecycle, "force_kill", return_value=(True, None)):
-            lifecycle.stop({"pid": 4321, **config})
-        assert wait.call_args.kwargs["timeout"] == expected, config
-
-
-def test_stop_reports_a_kill_that_did_not_work():
-    """강제 종료가 듣지 않으면(접근 거부 등) 정지됐다고 답하지 않는다: 데몬이 서버를 멈춘 것으로 표시한다 (MA4)"""
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "force_kill", return_value=(False, "Access is denied.")):
-        result = lifecycle.stop({"pid": 4321, "force": True})
-    assert result["success"] is False, result
-    assert "Access is denied." in result.get("message", "")
-
-
-def test_stop_uses_the_shared_process_helpers():
-    """PID 확인·종료는 공용 도우미로만 한다: 직접 만든 것은 POSIX에서 자식(PalServer.sh가 띄운 서버)을 남긴다"""
-    from palworld import lifecycle
-    assert not hasattr(lifecycle, "_pid_running") and not hasattr(lifecycle, "_kill")
-
-
-def test_managed_stop_leaves_the_wait_to_the_daemon():
-    """managed 정지는 데몬이 인스턴스 stop_timeout(최대 3600초)까지 기다린다: 모듈이 REST로 요청한 뒤 기다리거나 죽이면
-    90초 상한에 잘려 저장 중에 끝난다 (리뷰 514 P2-1)"""
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "_rest_shutdown", return_value=True), \
-         mock.patch.object(lifecycle, "wait_for_exit") as wait, \
-         mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 4321, "managed": True, "stop_timeout": 600})
-    assert result["success"] is True, result
-    wait.assert_not_called()
-    kill.assert_not_called()
-
-
 def test_a_failed_rest_policy_write_does_not_sync_an_unwritten_password(tmp_path):
     """INI 저장이 실패하면(예: Windows ACL 교체 실패) 바뀌었다고 하지 않고, INI에 없는 비밀번호를 데몬에 넘기지 않는다"""
     from palworld import lifecycle
@@ -820,3 +762,13 @@ def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
         port = s.getsockname()[1]
         result = lifecycle.validate({"server_jar": str(exe), "port": port})
     assert "PORT_IN_USE" not in [i["code"] for i in result.get("issues", [])]
+
+
+def test_stop_uses_the_shared_procedure_with_a_rest_shutdown():
+    """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. Palworld는 REST로만 요청한다"""
+    from palworld import lifecycle
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()) as shared, \
+         mock.patch.object(lifecycle, "_rest_shutdown", return_value=False) as rest:
+        assert lifecycle.stop({"pid": 4321}) is False
+    rest.assert_called_once_with({"pid": 4321})
+    assert shared.call_args.kwargs["module_dir"] == lifecycle.MODULE_DIR

@@ -12,7 +12,7 @@ icon = "icon.png"
 log_pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
 [module.dependencies]
-saba-core = ">=0.1.10"
+saba-core = ">=0.1.11-0"
 
 [permissions]
 network = true          # 서버 파일 내려받기, 포트 확인

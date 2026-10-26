@@ -34,7 +34,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더�
 
 import plugins
 import server_types
-from daemon_rcon import PathOutside, atomic_write, force_kill, is_process_alive, safe_join, wait_for_exit
+from daemon_rcon import (PathOutside, atomic_write, graceful_stop, is_process_alive, request_console, request_terminate,
+                         safe_join)
 
 # ─── Init ─────────────────────────────────────────────────────
 
@@ -1601,90 +1602,16 @@ def diagnose_log(config):
     }
 
 
-# 데몬이 호출 제한을 알려 주지 않으면(0.1.8 데몬, 모듈 호출 120초) 강제 종료까지 그 안에 끝나도록 90초에서 멈춘다.
-# 알려 주면(stop_call_limit, 데몬 #480 이후) 그 30초 앞까지 기다린다
-STOP_TIMEOUT_MAX = 90
-STOP_CALL_MARGIN = 30
-
-
-def _stop_timeout(config):
-    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout. 상한은 데몬의 호출 제한 안이다"""
-    value = config.get("stop_timeout")
-    if value in (None, ""):
-        import tomllib
-        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
-    try:
-        value = int(value)
-    except (TypeError, ValueError):
-        value = 30
-    cap = STOP_TIMEOUT_MAX
-    try:
-        cap = int(config["stop_call_limit"]) - STOP_CALL_MARGIN
-    except (KeyError, TypeError, ValueError):
-        pass
-    return max(1, min(value, cap))
-
-
-def _send_console_stop(instance_id):
-    """데몬을 거쳐 서버 콘솔(stdin)에 `stop`을 보낸다. 콘솔이 없으면 False"""
-    if not instance_id:
-        return False
-    try:
-        from daemon_rcon import daemon_stdin_command
-        daemon_stdin_command(instance_id, "stop", timeout=5)
-        return True
-    except Exception as e:  # 콘솔 없음(409), 데몬 없음
-        print(f"[Minecraft] console stop unavailable: {e}", file=sys.stderr)
-        return False
-
-
-def _request_terminate(pid):
-    """POSIX: SIGTERM (서버가 월드를 저장하고 끝난다). Windows 콘솔 앱에는 보낼 정상 종료 신호가 없어 False"""
-    if os.name == "nt":
-        return False
-    import signal
-    try:
-        os.kill(int(pid), signal.SIGTERM)
-        return True
-    except (OSError, ValueError) as e:
-        print(f"[Minecraft] SIGTERM failed: {e}", file=sys.stderr)
-        return False
+def _request_stop(config):
+    """저장 후 종료 요청: 콘솔 `stop` → SIGTERM (RCON은 보안 정책으로 꺼져 있다)"""
+    return request_console(config, "stop") or request_terminate(config.get("pid"))
 
 
 def stop(config):
-    """서버 정지. 일반 정지는 콘솔 `stop` → SIGTERM 순서로 저장 후 종료를 기다리고,
-    force이거나 기다려도 안 끝날 때만 강제 종료한다 (RCON은 보안 정책으로 꺼져 있다).
-    둘 다 보낼 수 없으면 끝내지 않고 `graceful_stop_unavailable`로 답한다.
-
-    데몬은 콘솔이 있는 managed 서버를 직접 멈추므로, 이 함수는 콘솔이 없을 때 주로 불린다.
-    """
-    try:
-        pid = config.get("pid")
-        if not pid:
-            return {"success": False, "message": i18n.t("errors.no_pid_provided")}
-
-        if not config.get("force", False):
-            asked = _send_console_stop(config.get("instance_id")) or _request_terminate(pid)
-            if not asked:
-                # 저장 후 종료를 요청할 길이 없다(콘솔 없음, Windows): 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
-                return {"success": False, "error_code": "graceful_stop_unavailable",
-                        "message": i18n.t("errors.graceful_stop_unavailable")}
-            if config.get("managed"):
-                # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 호출 제한에 잘린다
-                return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
-            # Windows에서 os.kill(pid, 0)은 프로세스를 끝내 버린다. 공용 도우미로만 확인한다
-            if wait_for_exit(pid, timeout=_stop_timeout(config)):
-                return {"success": True,
-                        "message": i18n.t("messages.graceful_stop", pid=pid)}
-            print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-
-        ok, error = force_kill(pid)
-        if ok:
-            return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-        return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
-    except Exception as e:
-        return {"success": False, "message": i18n.t("errors.failed_to_stop", error=str(e))}
+    """서버 정지. 공용 절차(graceful_stop): 저장 후 종료를 요청하고, force이거나 기다려도 안 끝날 때만 강제 종료한다.
+    요청할 길이 없으면 끄지 않고 `graceful_stop_unavailable`로 답한다.
+    데몬은 콘솔이 있는 managed 서버를 직접 멈추므로, 이 함수는 콘솔이 없을 때 주로 불린다."""
+    return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
 def status(config):

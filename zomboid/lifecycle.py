@@ -20,7 +20,6 @@ import os
 import re
 import sqlite3
 import hashlib
-import time
 from pathlib import Path
 
 # ─── Path setup ──────────────────────────────────────────
@@ -34,7 +33,8 @@ if _root_dir not in sys.path:
 
 from i18n import I18n
 
-from daemon_rcon import PathOutside, atomic_write, safe_join, daemon_stdin_command, force_kill, is_process_alive, wait_for_exit
+from daemon_rcon import (PathOutside, atomic_write, safe_join, daemon_stdin_command, graceful_stop, is_process_alive,
+                         request_console, request_terminate)
 
 i18n = I18n(MODULE_DIR)
 
@@ -1096,94 +1096,19 @@ def status(config):
 # ║                  Optional Functions                       ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-# 데몬이 호출 제한을 알려 주지 않으면(0.1.8 데몬, 모듈 호출 120초) 강제 종료까지 그 안에 끝나도록 90초에서 멈춘다.
-# 알려 주면(stop_call_limit, 데몬 #480 이후) 그 30초 앞까지 기다린다
-STOP_TIMEOUT_MAX = 90
-STOP_CALL_MARGIN = 30
-
-
-def _stop_timeout(config):
-    """정지 대기(초): 인스턴스 stop_timeout → module.toml [config] stop_timeout. 상한은 데몬의 호출 제한 안이다"""
-    value = config.get("stop_timeout")
-    if value in (None, ""):
-        import tomllib
-        with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-            value = tomllib.load(f).get("config", {}).get("stop_timeout", 30)
-    try:
-        value = int(value)
-    except (TypeError, ValueError):
-        value = 30
-    cap = STOP_TIMEOUT_MAX
-    try:
-        cap = int(config["stop_call_limit"]) - STOP_CALL_MARGIN
-    except (KeyError, TypeError, ValueError):
-        pass
-    return max(1, min(value, cap))
-
-
-def _request_terminate(pid):
-    """POSIX: SIGTERM (서버가 저장하고 끝난다). Windows 콘솔 앱에는 보낼 정상 종료 신호가 없어 False"""
-    if os.name == "nt":
-        return False
-    import signal
-    try:
-        os.kill(int(pid), signal.SIGTERM)
-        return True
-    except (OSError, ValueError) as e:
-        print(f"[Zomboid] SIGTERM failed: {e}", file=sys.stderr)
-        return False
-
-
-def _console_quit(instance_id):
-    """콘솔(stdin)로 save 후 quit. 콘솔이 없으면(409, 데몬 없음) False"""
-    if not instance_id:
-        return False
-    try:
-        daemon_stdin_command(instance_id, "save")
-        print(i18n.t("messages.save_before_quit"), file=sys.stderr)
-        time.sleep(5)
-        daemon_stdin_command(instance_id, "quit")
-        return True
-    except PathOutside:
-        raise
-    except Exception as e:
-        print(f"[Zomboid] console stop unavailable: {e}", file=sys.stderr)
-        return False
-
-
-def _kill(pid):
-    ok, error = force_kill(pid)
-    if ok:
-        return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-    return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
+def _request_stop(config):
+    """저장 후 종료 요청: 콘솔 `quit`(서버가 저장하고 끝난다, PZ 위키 "Server commands") → SIGTERM"""
+    return request_console(config, "quit") or request_terminate(config.get("pid"))
 
 
 def stop(config):
     """Stop the server.
 
-    Normal stop: console `save` + `quit`, else SIGTERM, then wait for the exit.
-    Force kill only when force=true or the server did not exit in time (RCON is off by policy).
-    With neither a console nor SIGTERM, do not kill: answer `graceful_stop_unavailable`.
+    Ask for a save-and-exit (console `quit`, else SIGTERM); waiting, force kill, managed and
+    `graceful_stop_unavailable` are handled by the shared procedure (graceful_stop). RCON is off by policy.
     The daemon stops managed servers with a console itself, so this runs mostly without one.
     """
-    pid = config.get("pid")
-    if not pid:
-        return {"success": True, "message": i18n.t("messages.no_process_running")}
-    if config.get("force", False):
-        return _kill(pid)
-
-    if not (_console_quit(config.get("instance_id", "")) or _request_terminate(pid)):
-        # 저장 후 종료를 요청할 길이 없다(콘솔 없음, Windows): 저장 없이 죽이지 않고 데몬이 사용자에게 묻게 한다
-        return {"success": False, "error_code": "graceful_stop_unavailable",
-                "message": i18n.t("errors.graceful_stop_unavailable")}
-    print(i18n.t("messages.shutdown_signal_sent", pid=pid), file=sys.stderr)
-    if config.get("managed"):
-        # managed: 데몬이 인스턴스 stop_timeout까지 기다리고 그 뒤에만 강제 종료한다(02 §3.4). 여기서 기다리면 호출 제한에 잘린다
-        return {"success": True, "message": i18n.t("messages.shutdown_signal_sent", pid=pid)}
-    if wait_for_exit(pid, timeout=_stop_timeout(config)):
-        return {"success": True, "message": i18n.t("messages.graceful_stop", pid=pid)}
-    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-    return _kill(pid)
+    return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
 def _ini_updates(settings):

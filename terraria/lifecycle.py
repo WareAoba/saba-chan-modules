@@ -23,7 +23,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 from i18n import I18n
 
 from daemon_rcon import (PathOutside, atomic_write, coerce_setting, config_value, daemon_stdin_command,
-                         force_kill, is_process_alive, load_setting_types, safe_join, wait_for_exit)
+                         graceful_stop, is_process_alive, load_setting_types, request_console, safe_join)
 
 i18n = I18n(MODULE_DIR)
 
@@ -412,54 +412,11 @@ def status(config):
     return {"success": True, "status": "stopped"}
 
 
-# 데몬이 호출 제한을 알려 주지 않으면(0.1.8 데몬, 모듈 호출 120초) 강제 종료까지 그 안에 끝나도록 90초에서 멈춘다
-STOP_TIMEOUT_MAX = 90
-STOP_CALL_MARGIN = 30
-
-
-def _stop_timeout(config):
-    try:
-        value = int(config.get("stop_timeout") or 60)
-    except (TypeError, ValueError):
-        value = 60
-    cap = STOP_TIMEOUT_MAX
-    try:
-        cap = int(config["stop_call_limit"]) - STOP_CALL_MARGIN
-    except (KeyError, TypeError, ValueError):
-        pass
-    return max(1, min(value, cap))
-
-
-def _kill(pid):
-    ok, error = force_kill(pid)
-    if ok:
-        return {"success": True, "message": i18n.t("messages.force_killed", pid=pid)}
-    return {"success": False, "message": i18n.t("errors.failed_to_kill", error=error)}
-
-
 def stop(config):
     """정지. 공식 `exit`는 월드를 저장하고 끝낸다(위키), 그래서 앞에 save를 붙이지 않는다.
-    managed: 요청만 보내고 반환(대기·강제 종료는 데몬). non-managed: stop_timeout만큼 기다린 뒤 강제 종료.
+    기다림·강제 종료·managed·요청 불가는 공용 절차(graceful_stop)가 맡는다.
     콘솔이 없으면 저장 없이 죽이지 않고 graceful_stop_unavailable (SIGTERM이 저장하는지는 공식 근거가 없어 쓰지 않는다)."""
-    pid = config.get("pid")
-    if config.get("force"):
-        if not pid:
-            return {"success": True, "message": i18n.t("messages.no_process_running")}
-        return _kill(pid)
-    try:
-        daemon_stdin_command(config.get("instance_id", ""), STOP_COMMAND)
-    except PathOutside:
-        raise
-    except Exception as e:
-        print(f"[Terraria] console stop unavailable: {e}", file=sys.stderr)
-        return {"success": False, "error_code": "graceful_stop_unavailable",
-                "message": i18n.t("errors.graceful_stop_unavailable")}
-    if config.get("managed") or not pid:
-        return {"success": True, "message": i18n.t("messages.stop_requested")}
-    if wait_for_exit(pid, timeout=_stop_timeout(config)):
-        return {"success": True, "message": i18n.t("messages.graceful_stop")}
-    print(i18n.t("messages.graceful_stop_timeout"), file=sys.stderr)
-    return _kill(pid)
+    return graceful_stop(config, lambda: request_console(config, STOP_COMMAND), i18n, module_dir=MODULE_DIR)
 
 
 def configure(config):

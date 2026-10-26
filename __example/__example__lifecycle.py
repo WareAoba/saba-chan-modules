@@ -98,7 +98,9 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
 #   daemon_stdin_command(instance_id, line): 데몬이 관리하는 서버 콘솔(stdin)에 한 줄 보내기
 #   is_process_alive / wait_for_exit / force_kill: OS별 프로세스 처리 (직접 만들지 마세요)
-from daemon_rcon import atomic_write, daemon_stdin_command, force_kill, is_process_alive, run_lifecycle, wait_for_exit
+#   graceful_stop / request_console / request_terminate: stop()의 공용 절차 (saba-core 0.1.11부터)
+from daemon_rcon import (atomic_write, daemon_stdin_command, graceful_stop, is_process_alive, request_console,
+                         request_terminate, run_lifecycle)
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
@@ -235,52 +237,28 @@ def get_launch_command(config):
 # ═══════════════════════════════════════════════════════════════════
 #  서버를 종료합니다.
 #
-#  ── 종료 전략 (우선순위) ──
-#   managed: 저장·종료 요청 뒤 바로 반환. 대기와 강제 종료는 데몬이 합니다.
-#   non-managed: 저장·종료 요청 → stop_timeout 동안 대기 → 필요하면 강제 종료
+#  ── 종료 전략 ──
+#   모듈은 "저장 후 종료를 어떻게 요청하는지"만 정하고, 나머지는 공용 graceful_stop이 합니다:
+#   force면 그 PID만 강제 종료 / 요청할 길이 없으면 끄지 않고 graceful_stop_unavailable (데몬이 사용자에게 묻습니다) /
+#   managed면 요청 뒤 바로 반환 (대기·강제 종료는 데몬) / 아니면 stop_timeout 동안 기다린 뒤에만 강제 종료.
 #   graceful 단계 없이 바로 force_kill 하면 저장이 날아갑니다.
+#   문구(messages.graceful_stop 등)는 공용 문구에 있어 locales에 다시 쓰지 않아도 됩니다.
 #
 #  config["pid"]: 데몬이 알려주는 프로세스 PID
 #  config["force"]: non-managed 강제 종료 플래그
 #
+STOP_COMMAND = "quit"  # 게임의 실제 저장 후 종료 명령어로 바꾸세요
+
+
+def _request_stop(config):
+    # 콘솔에 종료 명령, 안 되면 POSIX SIGTERM (managed 서버는 데몬의 프로세스라 신호를 보내지 않습니다)
+    if request_console(config, STOP_COMMAND):
+        return True
+    return not config.get("managed") and request_terminate(config.get("pid"))
+
+
 def stop(config):
-    pid = config.get("pid")
-    force = config.get("force", False)
-    managed = config.get("managed", False)
-    instance_id = config.get("instance_id", "")
-    if not pid:
-        return {"success": False, "message": "No PID available to stop the server"}
-
-    if not force or managed:
-        # 1) Graceful: 데몬을 거쳐 콘솔에 종료 명령 (게임의 실제 명령어로 바꾸세요), 안 되면 POSIX SIGTERM
-        asked = False
-        try:
-            daemon_stdin_command(instance_id, config.get("stop_command", "quit"), timeout=5)
-            asked = True
-        except Exception as e:
-            print(f"[STOP] Graceful stop command failed: {e}", file=sys.stderr)
-        if not asked and not managed and os.name != "nt":
-            import signal
-            try:
-                os.kill(int(pid), signal.SIGTERM)
-                asked = True
-            except (OSError, ValueError) as e:
-                print(f"[STOP] SIGTERM failed: {e}", file=sys.stderr)
-        if not asked:
-            # 저장 후 종료를 요청할 길이 없다: 저장 없이 죽이지 말고 이렇게 답한다.
-            # 데몬이 사용자에게 알리고, 사용자가 고르면 force=true로 다시 부른다
-            return {"success": False, "error_code": "graceful_stop_unavailable",
-                    "message": i18n.t("errors.graceful_stop_unavailable")}
-        if managed:
-            return {"success": True, "message": i18n.t("messages.stop_requested")}
-        if wait_for_exit(pid, timeout=config.get("stop_timeout", 30)):
-            return {"success": True, "message": "Server stopped gracefully"}
-
-    # 2) Force kill
-    ok, error = force_kill(pid)
-    if ok:
-        return {"success": True, "message": "Server force-killed"}
-    return {"success": False, "message": f"Force kill failed: {error}"}
+    return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
 # ═══════════════════════════════════════════════════════════════════

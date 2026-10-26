@@ -399,27 +399,6 @@ def test_launch_turns_rcon_off(tmp_path):
     assert IniManager.read(str(ini))["RCONPassword"] == ""
 
 
-def test_normal_stop_never_force_kills_first():
-    """RCON is off: a normal stop goes console save+quit (or SIGTERM) and waits; kill only after the wait"""
-    from unittest import mock
-    from zomboid import lifecycle
-    calls = []
-    with mock.patch.object(lifecycle, "_console_quit", side_effect=lambda iid: calls.append("quit") or True), \
-         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
-         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or True), \
-         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
-        assert lifecycle.stop({"pid": 7, "instance_id": "z"})["success"] is True
-    assert calls == ["quit", "wait"]
-
-    calls.clear()
-    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", side_effect=lambda pid: calls.append("term") or True), \
-         mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: calls.append("wait") or False), \
-         mock.patch.object(lifecycle, "force_kill", side_effect=lambda pid: calls.append("kill") or (True, None)):
-        lifecycle.stop({"pid": 7})
-    assert calls == ["term", "wait", "kill"]
-
-
 def test_commands_go_to_the_console():
     from unittest import mock
     from zomboid import lifecycle
@@ -605,19 +584,6 @@ def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(
     assert lifecycle.IniManager.read(str(ini))["Password"] == "changed"
 
 
-def test_plain_stop_without_a_way_to_save_does_not_kill():
-    """콘솔도 SIGTERM도 없으면(Windows, 콘솔 없는 서버) 저장 없이 죽이지 않고 데몬에 알린다 (MK10)"""
-    from unittest import mock
-    from zomboid import lifecycle
-    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
-            mock.patch.object(lifecycle, "_request_terminate", return_value=False), \
-            mock.patch.object(lifecycle, "force_kill") as kill:
-        result = lifecycle.stop({"pid": 4242, "instance_id": "x"})
-    assert result["success"] is False and result["error_code"] == "graceful_stop_unavailable", result
-    assert result.get("message")
-    kill.assert_not_called()
-
-
 def test_backup_paths_fail_when_the_server_folder_cannot_be_read(tmp_path):
     """Server/를 읽지 못하면 SandboxVars·spawn 설정이 조용히 빠지므로 백업 훅을 실패시킨다"""
     from unittest import mock
@@ -635,33 +601,6 @@ def test_commands_that_change_access_or_grant_things_are_danger():
         risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
     for name in ('unbanuser', 'adduser', 'setaccesslevel', 'banuser', 'additem', 'addxp', 'godmod', 'invisible', 'createhorde', 'changeoption', 'reloadoptions'):
         assert risks[name] == "danger", name
-
-
-def test_stop_waits_for_the_configured_stop_timeout():
-    """정지 대기는 인스턴스 stop_timeout → module.toml stop_timeout 순이고, 데몬이 호출 제한(stop_call_limit)을 알려 주면 그 30초 앞까지, 모르면(0.1.8 데몬, 120초 제한) 90초까지 (MA2, 리뷰 526)"""
-    from unittest import mock
-    from zomboid import lifecycle
-    for config, expected in (({"stop_timeout": "75"}, 75), ({}, 90), ({"stop_timeout": 3600}, 90), ({"stop_timeout": 3600, "stop_call_limit": 3630}, 3600), ({"stop_call_limit": 150}, 120), ({"stop_timeout": 600, "stop_call_limit": "100"}, 70)):
-        waits = []
-        with mock.patch.object(lifecycle, "_console_quit", return_value=True), \
-             mock.patch.object(lifecycle, "wait_for_exit", side_effect=lambda pid, timeout: waits.append(timeout) or True):
-            lifecycle.stop({"pid": 7, **config})
-        assert waits == [expected], config
-
-
-def test_managed_stop_leaves_the_wait_to_the_daemon():
-    """managed 정지는 저장 후 종료만 요청하고 바로 돌려준다: 기다림과 강제 종료는 데몬이 인스턴스 stop_timeout까지 맡는다.
-    여기서 기다리면 호출 제한(stop_call_limit - 30초)에 잘려 저장 중에 강제 종료한다 (02 §3.4, palworld와 같다)"""
-    from unittest import mock
-    from zomboid import lifecycle
-    with mock.patch.object(lifecycle, "_console_quit", return_value=False), \
-         mock.patch.object(lifecycle, "_request_terminate", return_value=True), \
-         mock.patch.object(lifecycle, "wait_for_exit") as wait, \
-         mock.patch.object(lifecycle, "_kill") as kill:
-        result = lifecycle.stop({"pid": 7, "managed": True, "stop_timeout": 300, "stop_call_limit": 120})
-    assert result["success"] is True
-    wait.assert_not_called()
-    kill.assert_not_called()
 
 
 def _worlds(home, *names):
@@ -929,3 +868,22 @@ def test_a_data_folder_that_cannot_be_made_fails_with_a_plain_message(tmp_path):
     assert result["success"] is False
     assert result["message"] == lifecycle.i18n.t("errors.data_home_unavailable")
     assert "D:" not in result["message"]
+
+
+def test_stop_uses_the_shared_procedure_with_a_console_quit_then_sigterm():
+    """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. 모듈은 요청 방법만 정한다:
+    콘솔 `quit`(저장하고 끝난다) → (콘솔이 없으면) SIGTERM. quit 앞에 save와 5초 대기를 붙이지 않는다"""
+    from unittest import mock
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()) as shared, \
+         mock.patch.object(lifecycle, "request_console", return_value=True) as console, \
+         mock.patch.object(lifecycle, "request_terminate") as term:
+        assert lifecycle.stop({"pid": 7, "instance_id": "z"}) is True
+    assert shared.call_args.kwargs["module_dir"] == lifecycle.MODULE_DIR
+    console.assert_called_once_with({"pid": 7, "instance_id": "z"}, "quit")
+    term.assert_not_called()
+    with mock.patch.object(lifecycle, "graceful_stop", side_effect=lambda config, request, i18n, module_dir: request()), \
+         mock.patch.object(lifecycle, "request_console", return_value=False), \
+         mock.patch.object(lifecycle, "request_terminate", return_value=True) as term:
+        assert lifecycle.stop({"pid": 7}) is True
+    term.assert_called_once_with(7)

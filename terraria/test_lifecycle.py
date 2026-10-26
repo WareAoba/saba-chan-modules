@@ -307,50 +307,14 @@ def test_validate_flags_bad_world_name(lc, tmp_path):
 
 # ─── 정지 ────────────────────────────────────────────────
 
-def _no_kill(*args, **kwargs):
-    pytest.fail("정상 종료 요청 길이 있거나 managed면 죽이지 않는다")
-
-
-def test_managed_stop_requests_exit_and_returns(lc, monkeypatch):
-    sent = []
-    monkeypatch.setattr(lc, "daemon_stdin_command", lambda iid, line, **kw: sent.append((iid, line)))
-    monkeypatch.setattr(lc, "wait_for_exit", _no_kill)
-    monkeypatch.setattr(lc, "force_kill", _no_kill)
-    result = lc.stop({"managed": True, "instance_id": "inst-1", "pid": 42})
-    assert result["success"] is True
-    assert sent == [("inst-1", "exit")]
-
-
-def test_stop_without_console_does_not_kill(lc, monkeypatch):
-    def unavailable(*args, **kwargs):
-        raise ConnectionError("409 no_command_path")
-    monkeypatch.setattr(lc, "daemon_stdin_command", unavailable)
-    monkeypatch.setattr(lc, "wait_for_exit", _no_kill)
-    monkeypatch.setattr(lc, "force_kill", _no_kill)
-    for managed in (True, False):
-        result = lc.stop({"managed": managed, "instance_id": "inst-1", "pid": 42})
-        assert result["success"] is False
-        assert result["error_code"] == "graceful_stop_unavailable"
-
-
-def test_nonmanaged_stop_waits_then_kills(lc, monkeypatch):
-    waited, killed = [], []
-    monkeypatch.setattr(lc, "daemon_stdin_command", lambda *a, **k: None)
-    monkeypatch.setattr(lc, "wait_for_exit", lambda pid, timeout: waited.append(timeout) or False)
-    monkeypatch.setattr(lc, "force_kill", lambda pid: killed.append(pid) or (True, None))
-    result = lc.stop({"managed": False, "instance_id": "inst-1", "pid": 42,
-                      "stop_timeout": 50, "stop_call_limit": 80})
-    assert waited == [50]
-    assert killed == [42]
-    assert result["success"] is True
-
-
-def test_force_stop_kills(lc, monkeypatch):
-    killed = []
-    monkeypatch.setattr(lc, "daemon_stdin_command", _no_kill)
-    monkeypatch.setattr(lc, "force_kill", lambda pid: killed.append(pid) or (True, None))
-    assert lc.stop({"managed": False, "pid": 42, "force": True})["success"]
-    assert killed == [42]
+def test_stop_uses_the_shared_procedure_with_the_console_exit(lc, monkeypatch):
+    """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. 테라리아는 콘솔 `exit`로만 요청한다"""
+    asked, used = [], {}
+    monkeypatch.setattr(lc, "request_console", lambda config, command: asked.append(command) or True)
+    monkeypatch.setattr(lc, "graceful_stop", lambda config, request, i18n, module_dir: used.update(module_dir=module_dir) or request())
+    assert lc.stop({"instance_id": "inst-1", "pid": 42}) is True
+    assert asked == ["exit"]
+    assert used["module_dir"] == lc.MODULE_DIR
 
 
 # ─── 백업 ────────────────────────────────────────────────
@@ -674,7 +638,7 @@ def test_install_refuses_corrupt_zip(lc, tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("version", ["", "latest", "1.4/../x", "1..4"])
 def test_install_refuses_bad_version(lc, tmp_path, monkeypatch, version):
-    monkeypatch.setattr(lc, "_download", _no_kill)
+    monkeypatch.setattr(lc, "_download", lambda *a, **k: pytest.fail("잘못된 버전은 받지 않는다"))
     result = lc.install_server({"version": version, "install_dir": str(tmp_path / "inst")})
     assert result["success"] is False
 

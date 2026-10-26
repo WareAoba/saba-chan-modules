@@ -1040,10 +1040,8 @@ def diagnose_log(config):
 def install_server(config):
     """Install/update the Project Zomboid dedicated server via SteamCMD.
 
-    Uses the saba-chan SteamCMD extension for portable, automatic download.
-
-    Steam App ID: 380870
-    Anonymous login: Yes
+    Uses the saba-chan SteamCMD extension for portable, automatic download
+    (Steam app and anonymous login come from module.toml [install]).
     Optionally use -beta unstable for Build 42 unstable.
     """
     install_dir = config.get("install_dir", "")
@@ -1057,53 +1055,32 @@ def install_server(config):
     os.makedirs(install_dir, exist_ok=True)
     use_beta = config.get("use_beta", False)
 
-    # ── SteamCMD extension 사용 시도 ──
-    # 먼저 익스텐션 활성화 상태 확인
-    enabled_exts = os.environ.get("SABA_ENABLED_EXTENSIONS", "").split(",")
-    if "steamcmd" not in enabled_exts:
-        return {
-            "success": False,
-            "message": i18n.t("errors.extension_not_enabled"),
-            "error_code": "extension_required",
-            "missing_extensions": ["steamcmd"],
-        }
-
+    # app_id는 module.toml [install]. 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하게 답한다
     try:
-        from extensions.steamcmd import SteamCMD
-
-        steam = SteamCMD()
-        steam.ensure_available()
-
-        result = steam.install(
-            app_id=380870,
-            install_dir=install_dir,
-            anonymous=True,
-            beta="unstable" if use_beta else None,
-        )
-
-        if result.get("success"):
-            if sys.platform == "win32":
-                exe = os.path.join(install_dir, "StartServer64.bat")
-            else:
-                exe = os.path.join(install_dir, "start-server.sh")
-            result["install_path"] = install_dir
-            result["executable_path"] = exe if os.path.exists(exe) else ""
-            settings_error = _write_initial_ini(config)
-            if settings_error:
-                return settings_error
-
-        return result
-
+        from extensions.steamcmd import install_for_module
     except ImportError:
-        return {
-            "success": False,
-            "message": i18n.t("errors.steamcmd_not_found"),
-        }
+        return {"success": False, "message": i18n.t("errors.extension_not_enabled"),
+                "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
+    try:
+        result = install_for_module(MODULE_DIR, install_dir, beta="unstable" if use_beta else None)
     except PathOutside:
         raise
     except Exception as e:
         print(f"[Zomboid] SteamCMD extension install failed: {e}", file=sys.stderr)
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
+
+    if result.get("success"):
+        if sys.platform == "win32":
+            exe = os.path.join(install_dir, "StartServer64.bat")
+        else:
+            exe = os.path.join(install_dir, "start-server.sh")
+        result["install_path"] = install_dir
+        result["executable_path"] = exe if os.path.exists(exe) else ""
+        settings_error = _write_initial_ini(config)
+        if settings_error:
+            return settings_error
+    return result
+
 
 def _write_initial_ini(config):
     """첫 설치: 만들 때 고른 설정(접속 암호·인원·포트 등)으로 서버 ini를 만든다. 서버는 첫 실행 때 나머지 키를

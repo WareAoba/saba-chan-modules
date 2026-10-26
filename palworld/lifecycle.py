@@ -912,11 +912,9 @@ def get_version_details(config):
 
 
 def install_server(config):
-    """Install Palworld dedicated server via SteamCMD extension.
+    """Install Palworld dedicated server via the SteamCMD extension (app_id는 module.toml [install]).
 
-    Uses the saba-chan SteamCMD extension for portable, automatic
-    download.  Falls back to manual instructions when the extension
-    is unavailable.
+    익스텐션이 없거나 꺼져 있으면(import 가드) `extension_required`로 답해 데몬이 켜기를 안내한다.
     """
     install_dir = config.get("install_dir", "")
     if not install_dir:
@@ -928,101 +926,68 @@ def install_server(config):
 
     os.makedirs(install_dir, exist_ok=True)
 
-    # ── SteamCMD extension 사용 시도 ──
-    # 먼저 익스텐션 활성화 상태 확인
-    enabled_exts = os.environ.get("SABA_ENABLED_EXTENSIONS", "").split(",")
-    if "steamcmd" not in enabled_exts:
-        return {
-            "success": False,
-            "message": i18n.t("messages.extension_not_enabled"),
-            "error_code": "extension_required",
-            "missing_extensions": ["steamcmd"],
-        }
-
     try:
-        from extensions.steamcmd import SteamCMD
-
-        steam = SteamCMD()
-        steam.ensure_available()
-
-        result = steam.install(
-            app_id=2394010,
-            install_dir=install_dir,
-            anonymous=True,
-        )
-
-        if result.get("success"):
-            exe_name = "PalServer.exe" if sys.platform == "win32" else "PalServer.sh"
-            exe_path = str(safe_join(install_dir, exe_name))
-            result["install_path"] = install_dir
-            result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
-
-            # ── 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성 ──
-            # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
-            # 기본 값 + RESTAPIEnabled=True, RCONEnabled=False 로 미리 기록한다.
-            try:
-                if sys.platform == "win32":
-                    platform_dir = "WindowsServer"
-                else:
-                    platform_dir = "LinuxServer"
-                ini_dir = safe_join(
-                    install_dir, "Pal", "Saved", "Config", platform_dir
-                )
-                os.makedirs(ini_dir, exist_ok=True)
-                ini_path = safe_join(ini_dir, "PalWorldSettings.ini")
-
-                # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
-                if os.path.isfile(ini_path) and _parse_option_settings(ini_path):
-                    print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
-                else:
-                    defaults = dict(DEFAULT_PALWORLD_SETTINGS)
-                    defaults["RESTAPIEnabled"] = "True"
-                    # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
-                    _apply_settings(defaults, config.get("settings"))
-                    defaults["RCONEnabled"] = "False"
-                    if _write_option_settings(ini_path, defaults):
-                        print(
-                            f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
-                            file=sys.stderr,
-                        )
-                    else:
-                        print("[Palworld] Provisioning: failed to write default INI", file=sys.stderr)
-                        return {"success": False, "error_code": "settings_write_failed",
-                                "message": i18n.t("errors.settings_write_failed")}
-            except PathOutside:
-                raise
-            except Exception as e:
-                print(
-                    f"[Palworld] Provisioning: failed to write default INI: {e}",
-                    file=sys.stderr,
-                )
-                return {"success": False, "error_code": "settings_write_failed",
-                        "message": i18n.t("errors.settings_write_failed")}
-
-        return result
-
+        from extensions.steamcmd import install_for_module
     except ImportError:
-        print("[Palworld] SteamCMD extension not available, returning instructions", file=sys.stderr)
+        return {"success": False, "message": i18n.t("messages.extension_not_enabled"),
+                "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
+    try:
+        result = install_for_module(MODULE_DIR, install_dir)
     except PathOutside:
         raise
     except Exception as e:
         print(f"[Palworld] SteamCMD install failed: {e}", file=sys.stderr)
         return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
 
-    # ── Fallback: 수동 설치 안내 ──
-    return {
-        "success": False,
-        "message": i18n.t("messages.install_via_steamcmd"),
-        "install_method": "steamcmd",
-        "steam_app_id": "2394010",
-        "instructions": [
-            i18n.t("messages.install_step_download"),
-            i18n.t("messages.install_step_run",
-                   command='steamcmd +force_install_dir "{}" +login anonymous +app_update 2394010 validate +quit'.format(
-                       install_dir or "<install_directory>")),
-            i18n.t("messages.install_step_set_path"),
-        ],
-    }
+    if result.get("success"):
+        exe_name = "PalServer.exe" if sys.platform == "win32" else "PalServer.sh"
+        exe_path = str(safe_join(install_dir, exe_name))
+        result["install_path"] = install_dir
+        result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
+
+        # ── 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성 ──
+        # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
+        # 기본 값 + RESTAPIEnabled=True, RCONEnabled=False 로 미리 기록한다.
+        try:
+            if sys.platform == "win32":
+                platform_dir = "WindowsServer"
+            else:
+                platform_dir = "LinuxServer"
+            ini_dir = safe_join(
+                install_dir, "Pal", "Saved", "Config", platform_dir
+            )
+            os.makedirs(ini_dir, exist_ok=True)
+            ini_path = safe_join(ini_dir, "PalWorldSettings.ini")
+
+            # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
+            if os.path.isfile(ini_path) and _parse_option_settings(ini_path):
+                print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
+            else:
+                defaults = dict(DEFAULT_PALWORLD_SETTINGS)
+                defaults["RESTAPIEnabled"] = "True"
+                # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
+                _apply_settings(defaults, config.get("settings"))
+                defaults["RCONEnabled"] = "False"
+                if _write_option_settings(ini_path, defaults):
+                    print(
+                        f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
+                        file=sys.stderr,
+                    )
+                else:
+                    print("[Palworld] Provisioning: failed to write default INI", file=sys.stderr)
+                    return {"success": False, "error_code": "settings_write_failed",
+                            "message": i18n.t("errors.settings_write_failed")}
+        except PathOutside:
+            raise
+        except Exception as e:
+            print(
+                f"[Palworld] Provisioning: failed to write default INI: {e}",
+                file=sys.stderr,
+            )
+            return {"success": False, "error_code": "settings_write_failed",
+                    "message": i18n.t("errors.settings_write_failed")}
+
+    return result
 
 
 def command(config):

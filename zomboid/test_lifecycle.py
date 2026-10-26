@@ -549,14 +549,15 @@ def test_steamcmd_extension_import_failure_does_not_search_for_an_executable(mon
     from zomboid import lifecycle
     import extensions.steamcmd
 
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
-    monkeypatch.delattr(extensions.steamcmd, "SteamCMD", raising=False)
+    # 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하도록 extension_required로 답한다
+    monkeypatch.delattr(extensions.steamcmd, "install_for_module", raising=False)
     monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
 
     result = lifecycle.install_server({"install_dir": "server", "settings": {}})
 
     assert result["success"] is False
     assert result["message"]
+    assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]
 
 
 def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(tmp_path, monkeypatch):
@@ -564,17 +565,9 @@ def test_a_new_server_starts_with_the_password_and_size_chosen_when_creating_it(
     from unittest import mock
     from zomboid import lifecycle
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
-
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
     home = tmp_path / "data"
     settings = {"cache_dir": str(home), "server_name": "srv", "password": "pw", "max_players": 4, "port": 16300, "ram": 4}
-    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": settings})["success"]
         ini = home / "Server" / "srv.ini"
         values = lifecycle.IniManager.read(str(ini))
@@ -676,15 +669,7 @@ def test_first_install_fails_when_the_selected_settings_cannot_be_written(tmp_pa
     from zomboid import lifecycle
     import extensions.steamcmd
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
-
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
-    monkeypatch.setattr(extensions.steamcmd, "SteamCMD", FakeSteam)
+    monkeypatch.setattr(extensions.steamcmd, "install_for_module", lambda *args, **kwargs: {"success": True})
     def denied(*args, **kwargs):
         raise PermissionError("denied")
 
@@ -701,15 +686,7 @@ def test_install_does_not_hide_a_profile_path_escape(tmp_path, monkeypatch):
     from zomboid import lifecycle
     import extensions.steamcmd
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
-
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd")
-    monkeypatch.setattr(extensions.steamcmd, "SteamCMD", FakeSteam)
+    monkeypatch.setattr(extensions.steamcmd, "install_for_module", lambda *args, **kwargs: {"success": True})
     with pytest.raises(PathOutside):
         lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": {"cache_dir": str(tmp_path / "data"), "server_name": "../other", "password": "private"}})
 
@@ -902,3 +879,13 @@ def test_diagnose_reads_the_daemon_lines_then_the_server_console_but_not_the_cli
     assert lifecycle.diagnose_log(config)["issues"] == []
     (home / "server-console.txt").write_text("LuaException: boom\n", encoding="utf-8")
     assert [i["code"] for i in lifecycle.diagnose_log(config)["issues"]] == ["MOD_ERROR"]
+
+
+def test_install_reads_the_steam_app_from_module_toml(tmp_path):
+    """Steam app_id는 module.toml [install] 한 곳에 둔다(steamcmd install_for_module). Build 42 unstable은 beta로"""
+    from unittest import mock
+    from zomboid import lifecycle
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
+        lifecycle.install_server({"install_dir": str(tmp_path / "server"), "use_beta": True})
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta="unstable")
+    assert _load_module_toml()["install"]["app_id"] == 380870

@@ -513,16 +513,9 @@ def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypat
     서버 이름·비밀번호가 초기화되어 비공개 서버가 공개가 된다"""
     from palworld import lifecycle
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
 
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
     install = str(tmp_path / "server")
-    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": install})["success"]
         props = lifecycle.read_properties({"working_dir": install})["properties"]
         assert props["RESTAPIEnabled"] == "True", "a fresh install still gets the REST-enabled defaults"
@@ -537,17 +530,10 @@ def test_a_new_server_starts_with_the_settings_chosen_when_creating_it(tmp_path,
     """만들 때 고른 이름·비밀번호·인원은 첫 설치의 PalWorldSettings.ini에 들어간다 (비밀번호 없이 열리지 않게)"""
     from palworld import lifecycle
 
-    class FakeSteam:
-        def ensure_available(self):
-            pass
 
-        def install(self, **kwargs):
-            return {"success": True}
-
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
     install = str(tmp_path / "server")
     settings = {"server_name": "우리서버", "server_password": "secret", "max_players": 8, "managed_start": True}
-    with mock.patch("extensions.steamcmd.SteamCMD", FakeSteam):
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": install, "settings": settings})["success"]
     props = lifecycle.read_properties({"working_dir": install})["properties"]
     assert props["ServerName"] == "우리서버"
@@ -666,10 +652,8 @@ def test_rest_failure_keeps_the_daemon_error_code(monkeypatch):
 @pytest.mark.parametrize("failure", [False, OSError("쓰기 거부")])
 def test_first_install_fails_when_the_chosen_settings_cannot_be_written(tmp_path, monkeypatch, failure):
     from palworld import lifecycle
-    monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
-    with mock.patch("extensions.steamcmd.SteamCMD") as steam, \
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}), \
          mock.patch.object(lifecycle, "_write_option_settings", side_effect=failure if isinstance(failure, Exception) else None, return_value=failure):
-        steam.return_value.install.return_value = {"success": True}
         result = lifecycle.install_server({"install_dir": str(tmp_path / "server"), "settings": {"server_password": "private"}})
     assert result["success"] is False, result
     assert result["error_code"] == "settings_write_failed"
@@ -700,10 +684,8 @@ def test_path_boundary_errors_reach_the_shared_runner(tmp_path, monkeypatch, fun
     from daemon_rcon import PathOutside
     from palworld import lifecycle
     if function == "install_server":
-        monkeypatch.setenv("SABA_ENABLED_EXTENSIONS", "steamcmd,ue4-ini")
-        with mock.patch("extensions.steamcmd.SteamCMD") as steam, \
+        with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}), \
              mock.patch.object(lifecycle, "_write_option_settings", side_effect=PathOutside(tmp_path / "outside")):
-            steam.return_value.install.return_value = {"success": True}
             with pytest.raises(PathOutside):
                 lifecycle.install_server({"install_dir": str(tmp_path)})
     elif function == "command":
@@ -789,3 +771,17 @@ def test_diagnose_rules_come_from_module_toml_with_their_phrases(tmp_path):
     issues = lifecycle.diagnose_log({"log_lines": ["LogNet: Error: Address already in use"]})["issues"]
     assert [(i["code"], i["severity"], i["message"]) for i in issues] == [
         ("PORT_IN_USE", "critical", phrases["log_port_in_use"])]
+
+
+def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_extension(tmp_path, monkeypatch):
+    """Steam app_id는 module.toml [install] 한 곳에 둔다(steamcmd install_for_module). 익스텐션이 없거나 꺼져 있으면
+    (import 가드의 ModuleNotFoundError) 데몬이 켜기를 안내하도록 extension_required로 답한다"""
+    import extensions.steamcmd
+    from palworld import lifecycle
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
+        lifecycle.install_server({"install_dir": str(tmp_path / "server")})
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"))
+    assert _load_module_toml()["install"]["app_id"] == 2394010
+    monkeypatch.delattr(extensions.steamcmd, "install_for_module")
+    result = lifecycle.install_server({"install_dir": str(tmp_path / "server")})
+    assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]

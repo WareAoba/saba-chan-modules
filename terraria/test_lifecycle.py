@@ -945,3 +945,14 @@ def test_module_has_an_icon():
     head = (MODULE_DIR / "icon.png").read_bytes()[:24]
     width, height = struct.unpack(">II", head[16:24])
     assert head[:8] == b"\x89PNG\r\n\x1a\n" and width == height >= 256
+
+
+def test_a_damaged_zip_is_reported_in_the_users_language(lc, tmp_path, monkeypatch):
+    exe = lc._server_exe_name()
+    folder = "Windows" if exe.endswith(".exe") else "Linux"
+    data = bytearray(_zip_bytes({f"1458/{folder}/{exe}": b"X" * 64}))
+    data[data.index(b"X" * 64)] = ord("Y")
+    _fake_download(monkeypatch, lc, bytes(data))
+    result = lc.install_server({"version": "1.4.5.8", "install_dir": str(tmp_path / "inst")})
+    assert result["success"] is False
+    assert "The server archive is damaged" in result["message"]

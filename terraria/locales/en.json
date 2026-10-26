@@ -287,6 +287,7 @@
     }
   },
   "errors": {
+    "archive_corrupt": "The server archive is damaged ({{file}})",
     "backup_paths_failed": "Could not work out the backup files: {{error}}",
     "executable_not_found": "Terraria server executable not found. Install the server first",
     "invalid_banlist": "Ban list name \"{{name}}\" is not a plain file name",

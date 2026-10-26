@@ -287,6 +287,7 @@
     }
   },
   "errors": {
+    "archive_corrupt": "L'archive du serveur est endommagée ({{file}})",
     "backup_paths_failed": "Impossible de déterminer les fichiers à sauvegarder : {{error}}",
     "executable_not_found": "Exécutable du serveur introuvable. Installez d'abord le serveur",
     "invalid_banlist": "Le nom \"{{name}}\" n'est pas un simple nom de fichier",

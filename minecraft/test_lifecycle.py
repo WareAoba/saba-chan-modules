@@ -1555,3 +1555,13 @@ def test_a_jre_archive_that_reaches_outside_the_java_folder_is_not_extracted(tmp
     assert result["success"] is False
     assert not (tmp_path.parent / "evil.txt").exists()
     assert sorted(p.name for p in tmp_path.iterdir()) == []
+
+
+def test_a_setting_with_a_line_break_is_a_write_failure():
+    # 줄바꿈은 server.properties 한 줄을 깨뜨리므로 공용 settings_to_file이 거부한다. 모듈 예외가 아니라 저장 실패로 답해야 한다
+    from minecraft.lifecycle import configure, ServerPropertiesManager
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ServerPropertiesManager(tmpdir).write({"motd": "old"})
+        result = configure({"working_dir": tmpdir, "settings": {"motd": "a\nb"}})
+        assert result["success"] is False
+        assert ServerPropertiesManager(tmpdir).read()["motd"] == "old"

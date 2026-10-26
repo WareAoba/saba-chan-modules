@@ -855,7 +855,10 @@ def configure(config):
         return {"success": False, "message": i18n.t("errors.no_settings")}
     
     ini_path = IniManager.get_ini_path(config)
-    updates = _ini_updates(settings)
+    try:
+        updates = _ini_updates(settings)
+    except ValueError as e:
+        return {"success": False, "message": i18n.t("errors.properties_write_failed", error=str(e))}
     
     if not updates:
         return {"success": True, "updated_keys": [], "message": i18n.t("messages.no_mappable_settings")}
@@ -1089,10 +1092,10 @@ def _write_initial_ini(config):
     ini_path = IniManager.get_ini_path({**config, **settings})
     if os.path.exists(ini_path):
         return
-    updates = _ini_updates(settings)
-    if not updates:
-        return
     try:
+        updates = _ini_updates(settings)
+        if not updates:
+            return
         IniManager.write(ini_path, updates)
     except PathOutside:
         raise

@@ -560,7 +560,9 @@ def install_server(config):
             exe = _extract_server(archive, install_dir)
         except PathOutside:
             raise
-        except (zipfile.BadZipFile, ValueError, OSError) as e:
+        except zipfile.BadZipFile:
+            return {"success": False, "message": i18n.t("errors.archive_corrupt", file=url.rsplit("/", 1)[-1])}
+        except (ValueError, OSError) as e:
             return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
     finally:
         try:

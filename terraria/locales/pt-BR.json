@@ -287,6 +287,7 @@
     }
   },
   "errors": {
+    "archive_corrupt": "O arquivo do servidor está danificado ({{file}})",
     "backup_paths_failed": "Não foi possível definir os arquivos de backup: {{error}}",
     "executable_not_found": "Executável do servidor não encontrado. Instale o servidor primeiro",
     "invalid_banlist": "O nome \"{{name}}\" não é um nome de arquivo simples",

@@ -998,7 +998,10 @@ def configure(config):
     mgr = ServerPropertiesManager(working_dir)
 
     # server.properties 키(module.toml file_key)가 없는 것(ram, java_path 같은 사바쨩 설정)은 쓰지 않는다
-    props_changes = settings_to_file(MODULE_DIR, settings)
+    try:
+        props_changes = settings_to_file(MODULE_DIR, settings)
+    except ValueError:
+        return {"success": False, "message": i18n.t("errors.properties_write_failed")}
 
     success = mgr.update(props_changes)
     return {
@@ -1796,17 +1799,20 @@ class ServerInstaller:
             mgr = ServerPropertiesManager(install_path)
             # 설정 이름은 server.properties 키로, 그 밖의 키(이미 파일 키인 것)는 그대로
             keys = setting_file_keys(MODULE_DIR)
-            props = {**{k: v for k, v in initial_settings.items() if k not in keys},
-                     **settings_to_file(MODULE_DIR, initial_settings)}
-            props = {k: ("true" if v is True else "false" if v is False else str(v)) for k, v in props.items()}
+            try:
+                props = {**{k: v for k, v in initial_settings.items() if k not in keys},
+                         **settings_to_file(MODULE_DIR, initial_settings)}
+            except ValueError:
+                # 줄바꿈이 든 값: 서버 파일은 깔렸으니 설치는 성공으로 두고 설정만 적용하지 않았다고 알린다
+                props = None
+            if props is not None:
+                props = {k: ("true" if v is True else "false" if v is False else str(v)) for k, v in props.items()}
 
-            # RCON is blocked for security (commands go through the console)
-            props["enable-rcon"] = "false"
+                # RCON is blocked for security (commands go through the console)
+                props["enable-rcon"] = "false"
 
-            if props:
                 mgr.update(props)
-
-            result["settings_applied"] = True
+            result["settings_applied"] = props is not None
 
         # Download bundled Java if needed
         java_req = details.get("java_major_version")

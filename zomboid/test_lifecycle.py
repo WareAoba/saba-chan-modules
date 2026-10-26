@@ -889,3 +889,13 @@ def test_install_reads_the_steam_app_from_module_toml(tmp_path):
         lifecycle.install_server({"install_dir": str(tmp_path / "server"), "use_beta": True})
     install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta="unstable")
     assert _load_module_toml()["install"]["app_id"] == 380870
+
+
+def test_a_setting_with_a_line_break_is_a_write_failure(tmp_path, monkeypatch):
+    # 줄바꿈은 ini 한 줄을 깨뜨리므로 공용 settings_to_file이 거부한다. 모듈 예외가 아니라 저장 실패로 답해야 한다
+    from zomboid import lifecycle
+    ini_path = str(tmp_path / "servertest.ini")
+    monkeypatch.setattr(lifecycle.IniManager, "get_ini_path", staticmethod(lambda config: ini_path))
+    result = lifecycle.configure({"settings": {"public_name": "a\nb"}})
+    assert result["success"] is False and "properties_write_failed" not in result["message"]
+    assert lifecycle._write_initial_ini({"settings": {"public_name": "a\nb"}})["error_code"] == "settings_write_failed"

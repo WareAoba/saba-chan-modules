@@ -287,6 +287,7 @@
     }
   },
   "errors": {
+    "archive_corrupt": "服务器压缩包已损坏（{{file}}）",
     "backup_paths_failed": "无法确定要备份的文件：{{error}}",
     "executable_not_found": "找不到泰拉瑞亚服务器程序，请先安装服务器",
     "invalid_banlist": "封禁列表名“{{name}}”不是简单的文件名",

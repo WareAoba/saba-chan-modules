@@ -1302,11 +1302,9 @@ def import_settings(config):
         profile = _only_profile(_zomboid_home(config))
         if profile:
             found["server_name"] = config["server_name"] = profile
-    try:
-        IniManager.get_ini_path(config)
-    except PathOutside:
-        # 스크립트·폴더의 이름이 프로필 폴더 밖을 가리키면 그 이름은 쓰지 않는다
-        found.pop("server_name", None)
+    if "server_name" in found and not _plain_server_name(found["server_name"]):
+        # 스크립트의 이름이 프로필 폴더 밖을 가리키면 그 이름은 쓰지 않는다
+        found.pop("server_name")
         config.pop("server_name", None)
 
     result = read_properties(config)
@@ -1498,6 +1496,11 @@ def _write_initial_ini(config):
         return {"success": False, "error_code": "settings_write_failed", "message": i18n.t("errors.settings_write_failed", error=str(e))}
 
 
+def _plain_server_name(name):
+    """폴더 하나를 가리키는 서버 이름인가: 구분자·'..'·드라이브(C:)가 없고, Windows가 잘라 내는 끝 공백·점이 없다"""
+    return bool(name) and name not in (".", "..") and not any(sep in name for sep in ("/", "\\", ":")) and name[-1] not in " ."
+
+
 def reset_server(config):
     """Reset the server world (delete save data, keep settings).
     
@@ -1508,7 +1511,7 @@ def reset_server(config):
     multiplayer = os.path.join(_zomboid_home(config), "Saves", "Multiplayer")
     saves_dir = os.path.join(multiplayer, server_name)
     # 이 서버의 월드 폴더 하나만 지운다 (이름에 구분자·'..'·드라이브(C:)가 있거나, Windows가 잘라 내는 끝 공백·점이 있으면 다른 서버의 월드까지 지울 수 있다)
-    if server_name in (".", "..") or any(sep in server_name for sep in ("/", "\\", ":")) or server_name[-1] in " ." or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
+    if not _plain_server_name(server_name) or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
         return {"success": False, "message": i18n.t("errors.invalid_server_name", name=server_name)}
     saves_dir = str(safe_join(_zomboid_home(config), "Saves", "Multiplayer", server_name))
     

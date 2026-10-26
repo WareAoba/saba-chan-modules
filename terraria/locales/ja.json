@@ -1,0 +1,332 @@
+{
+  "module": {
+    "display_name": "テラリア",
+    "description": "テラリア専用サーバー"
+  },
+  "settings": {
+    "managed_start": {
+      "label": "コンソール付きで起動",
+      "description": "サバちゃんのコンソールを接続して起動します"
+    },
+    "ip": {
+      "label": "待ち受けIP",
+      "description": "サーバーが待ち受けるIPアドレス(-ip)。空欄ですべてのアドレス"
+    },
+    "steam": {
+      "label": "Steam対応",
+      "description": "Steam対応を有効にします(-steam)"
+    },
+    "lobby": {
+      "label": "Steamロビー",
+      "description": "Steamから参加できる人(-lobby、Steam対応が必要)"
+    },
+    "disable_announcement_box": {
+      "label": "アナウンスボックスを無効化",
+      "description": "アナウンスボックスのメッセージを無効にします"
+    },
+    "announcement_box_range": {
+      "label": "アナウンスボックスの範囲",
+      "description": "メッセージが届く範囲(ピクセル)。-1でサーバー全体"
+    },
+    "world_name": {
+      "label": "ワールド名",
+      "description": "ワールドファイル名(<名前>.wld)と新しいワールドの名前"
+    },
+    "world_dir": {
+      "label": "ワールドフォルダー",
+      "description": "ワールドファイルを置くフォルダー(worldpath)"
+    },
+    "autocreate": {
+      "label": "新規ワールドのサイズ",
+      "description": "ワールドがないときに作るサイズ: 1 小、2 中、3 大"
+    },
+    "difficulty": {
+      "label": "新規ワールドの難易度",
+      "description": "0 クラシック、1 エキスパート、2 マスター、3 ジャーニー"
+    },
+    "seed": {
+      "label": "新規ワールドのシード",
+      "description": "新しく作るワールドのシード"
+    },
+    "port": {
+      "label": "ポート",
+      "description": "サーバーが待ち受けるTCPポート"
+    },
+    "max_players": {
+      "label": "最大人数",
+      "description": "最大接続人数(1〜255)"
+    },
+    "password": {
+      "label": "サーバーパスワード",
+      "description": "参加用パスワード(空欄でなし)"
+    },
+    "motd": {
+      "label": "今日のメッセージ",
+      "description": "参加したプレイヤーに表示するメッセージ"
+    },
+    "secure": {
+      "label": "チート対策",
+      "description": "追加のチート対策(secure)"
+    },
+    "language": {
+      "label": "サーバー言語",
+      "description": "サーバーメッセージの言語"
+    },
+    "upnp": {
+      "label": "UPnPポート転送",
+      "description": "UPnPで自動的にポートを開放します"
+    },
+    "banlist": {
+      "label": "BANリストファイル",
+      "description": "サーバーフォルダー内のBANリストファイル名"
+    },
+    "npcstream": {
+      "label": "NPCストリーム",
+      "description": "敵の同期: 低いほど飛びが減るが帯域を多く使う。0でオフ"
+    },
+    "priority": {
+      "label": "プロセス優先度",
+      "description": "0 リアルタイム、1 高、2 通常以上、3 通常、4 通常以下、5 低"
+    },
+    "journeypermission_time_setfrozen": {
+      "label": "ジャーニー: 時間停止",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_time_setdawn": {
+      "label": "ジャーニー: 夜明けにする",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_time_setnoon": {
+      "label": "ジャーニー: 正午にする",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_time_setdusk": {
+      "label": "ジャーニー: 夕暮れにする",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_time_setmidnight": {
+      "label": "ジャーニー: 真夜中にする",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_godmode": {
+      "label": "ジャーニー: ゴッドモード",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_wind_setstrength": {
+      "label": "ジャーニー: 風の強さ",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_rain_setstrength": {
+      "label": "ジャーニー: 雨の強さ",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_time_setspeed": {
+      "label": "ジャーニー: 時間の速さ",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_rain_setfrozen": {
+      "label": "ジャーニー: 雨の固定",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_wind_setfrozen": {
+      "label": "ジャーニー: 風の固定",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_increaseplacementrange": {
+      "label": "ジャーニー: 設置範囲",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_setdifficulty": {
+      "label": "ジャーニー: 難易度",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_biomespread_setfrozen": {
+      "label": "ジャーニー: バイオーム拡散の停止",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "journeypermission_setspawnrate": {
+      "label": "ジャーニー: 敵の出現率",
+      "description": "0 全員ロック、1 ホストのみ、2 全員"
+    },
+    "seed_celebration": {
+      "label": "お祝いシード",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_notthebees": {
+      "label": "蜂ではない！",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_notraps": {
+      "label": "罠なし",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_fortheworthy": {
+      "label": "For the Worthy",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_remix": {
+      "label": "リミックス",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_drunk": {
+      "label": "酔っ払い",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "seed_zenith": {
+      "label": "ゼニス",
+      "description": "特殊ワールドシードを有効化します: 0 無効、1 有効"
+    },
+    "worldrollbackstokeep": {
+      "label": "保持するワールド巻き戻し数",
+      "description": "保持するワールド巻き戻しバックアップ数"
+    },
+    "slowliquids": {
+      "label": "液体の低速更新",
+      "description": "液体の低速更新を有効にします"
+    }
+  },
+  "commands": {
+    "help": {
+      "label": "ヘルプ",
+      "description": "サーバーコマンドの一覧"
+    },
+    "playing": {
+      "label": "プレイヤー",
+      "description": "接続中のプレイヤー一覧"
+    },
+    "clear": {
+      "label": "コンソール消去",
+      "description": "サーバーコンソールを消去"
+    },
+    "save": {
+      "label": "ワールド保存",
+      "description": "ワールドを保存"
+    },
+    "say": {
+      "label": "発言",
+      "description": "全プレイヤーにメッセージを送信",
+      "inputs": {
+        "message": {
+          "label": "メッセージ"
+        }
+      }
+    },
+    "version": {
+      "label": "バージョン",
+      "description": "サーバーのバージョンを表示"
+    },
+    "time": {
+      "label": "ゲーム内時刻",
+      "description": "ゲーム内の時刻を表示"
+    },
+    "port": {
+      "label": "ポート",
+      "description": "待ち受けポートを表示"
+    },
+    "maxplayers": {
+      "label": "最大人数",
+      "description": "最大人数を表示"
+    },
+    "motd": {
+      "label": "今日のメッセージ",
+      "description": "今日のメッセージを表示"
+    },
+    "password": {
+      "label": "パスワード表示",
+      "description": "サーバーコンソールにパスワードを表示"
+    },
+    "dawn": {
+      "label": "夜明け",
+      "description": "時刻を夜明けにする"
+    },
+    "noon": {
+      "label": "正午",
+      "description": "時刻を正午にする"
+    },
+    "dusk": {
+      "label": "夕暮れ",
+      "description": "時刻を夕暮れにする"
+    },
+    "midnight": {
+      "label": "真夜中",
+      "description": "時刻を真夜中にする"
+    },
+    "settle": {
+      "label": "液体を落ち着かせる",
+      "description": "ワールドの水をすべて落ち着かせる"
+    },
+    "kick": {
+      "label": "プレイヤーをキック",
+      "description": "プレイヤーをサーバーから追い出す",
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名"
+        }
+      }
+    },
+    "ban": {
+      "label": "プレイヤーをBAN",
+      "description": "プレイヤーをBAN(BANリストに記録)",
+      "inputs": {
+        "player": {
+          "label": "プレイヤー名"
+        }
+      }
+    },
+    "exit-nosave": {
+      "label": "保存せず終了",
+      "description": "ワールドを保存せずにサーバーを終了"
+    },
+    "seed": {
+      "label": "ワールドシード",
+      "description": "現在のワールドシードを表示します"
+    }
+  },
+  "errors": {
+    "archive_corrupt": "サーバーアーカイブが壊れています({{file}})",
+    "backup_paths_failed": "バックアップするファイルを決められませんでした: {{error}}",
+    "download_failed": "ダウンロードに失敗しました: {{error}}",
+    "executable_not_found": "テラリアのサーバー実行ファイルがありません。先にサーバーをインストールしてください",
+    "failed_to_kill": "サーバープロセスを終了できませんでした: {{error}}",
+    "graceful_stop_unavailable": "サーバーコンソールが接続されていないため、保存して停止できません。未保存の進行が失われてもよければ強制終了してください",
+    "install_failed": "インストールに失敗しました: {{error}}",
+    "invalid_banlist": "BANリスト名「{{name}}」は単純なファイル名ではありません",
+    "invalid_world_name": "ワールド名「{{name}}」に / \\ : * ? \" < > | は使えず、空白や点で終われません",
+    "line_break": "{{setting}} の値に改行は使えません",
+    "no_install_dir": "インストール先フォルダーがありません",
+    "no_version": "サーバーバージョンを選んでください(例: 1.4.5.8)",
+    "not_server_folder": "このフォルダーにテラリアのサーバーがないため、何も削除しませんでした",
+    "properties_read_failed": "serverconfig.txt を読めませんでした: {{error}}",
+    "properties_write_failed": "serverconfig.txt を保存できませんでした: {{error}}",
+    "server_not_in_archive": "ダウンロードしたファイルにこのシステム用の {{file}} がありません",
+    "server_reset_partial": "一部のワールドファイルを削除できませんでした: {{errors}}",
+    "settings_write_failed": "サーバーはインストールしましたが、設定を書き込めませんでした: {{error}}",
+    "version_list_failed": "terraria.org からサーバーバージョン一覧を取得できませんでした: {{error}}",
+    "xna_framework_missing": "サーバーフォルダーに XNA Framework 4.0 のファイルがありません。サーバーを再インストールすると配置されます。",
+    "xna_install_failed": "サーバーフォルダーに XNA Framework 4.0 を配置できませんでした: {{error}}",
+    "xna_extension_missing": "Windows でテラリアサーバーを実行するには XNA エクステンションが必要です。「XNA Framework 4.0 (portable)」エクステンションをインストールして有効にしてください。",
+    "version_unknown": "インストールされたサーバーのバージョンが見つかりません。"
+  },
+  "messages": {
+    "downloading": "テラリアサーバーをダウンロード中",
+    "extracting": "サーバーファイルを展開中",
+    "force_killed": "サーバープロセス {{pid}} を強制終了しました",
+    "graceful_stop": "サーバーはワールドを保存して停止しました",
+    "graceful_stop_timeout": "時間内に停止しなかったため強制終了します",
+    "install_complete": "テラリアサーバーをインストールしました",
+    "no_mappable_settings": "serverconfig.txt に書き込む値がありません",
+    "no_process_running": "サーバーは起動していません",
+    "properties_updated": "serverconfig.txt に保存しました。サーバーを再起動すると反映されます",
+    "server_reset_complete": "ワールドを削除しました。次回起動時に新しいワールドを作ります",
+    "stop_requested": "サーバーに保存して停止するよう要求しました",
+    "installing_xna": "サーバーフォルダーに XNA Framework 4.0 を配置しています..."
+  },
+  "reset": {
+    "label": "ワールドの初期化",
+    "description": "このサーバーのワールドファイルと .wld.bak および .wld.bak<数字> のバックアップを削除します。serverconfig.txt、BANリスト、他のワールド、サーバーファイルは残ります。次回起動時に新しいワールドを作成します。"
+  }
+}

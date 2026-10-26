@@ -1,0 +1,332 @@
+{
+  "module": {
+    "display_name": "Terraria",
+    "description": "Servidor dedicado de Terraria"
+  },
+  "settings": {
+    "managed_start": {
+      "label": "Início gerenciado (console)",
+      "description": "Iniciar com o console do saba-chan conectado"
+    },
+    "ip": {
+      "label": "IP de escuta",
+      "description": "Endereço IP em que o servidor escuta (-ip). Vazio = todos"
+    },
+    "steam": {
+      "label": "Suporte ao Steam",
+      "description": "Ativar o suporte ao Steam (-steam)"
+    },
+    "lobby": {
+      "label": "Lobby do Steam",
+      "description": "Quem pode entrar pelo Steam (-lobby, requer Steam)"
+    },
+    "disable_announcement_box": {
+      "label": "Desativar caixa de anúncios",
+      "description": "Desativar as mensagens da caixa de anúncios"
+    },
+    "announcement_box_range": {
+      "label": "Alcance da caixa de anúncios",
+      "description": "Alcance em pixels, -1 = servidor inteiro"
+    },
+    "world_name": {
+      "label": "Nome do mundo",
+      "description": "Nome do arquivo do mundo (<nome>.wld) e do novo mundo"
+    },
+    "world_dir": {
+      "label": "Pasta de mundos",
+      "description": "Pasta dos arquivos de mundo (worldpath)"
+    },
+    "autocreate": {
+      "label": "Tamanho do novo mundo",
+      "description": "Tamanho se não houver mundo: 1 pequeno, 2 médio, 3 grande"
+    },
+    "difficulty": {
+      "label": "Dificuldade do novo mundo",
+      "description": "0 Clássico, 1 Expert, 2 Mestre, 3 Jornada"
+    },
+    "seed": {
+      "label": "Semente do novo mundo",
+      "description": "Semente para um mundo novo"
+    },
+    "port": {
+      "label": "Porta",
+      "description": "Porta TCP do servidor"
+    },
+    "max_players": {
+      "label": "Máx. de jogadores",
+      "description": "Número máximo de jogadores (1-255)"
+    },
+    "password": {
+      "label": "Senha do servidor",
+      "description": "Senha para entrar (vazio = nenhuma)"
+    },
+    "motd": {
+      "label": "Mensagem do dia",
+      "description": "Mensagem para quem entra"
+    },
+    "secure": {
+      "label": "Proteção contra trapaças",
+      "description": "Proteção adicional contra trapaças (secure)"
+    },
+    "language": {
+      "label": "Idioma do servidor",
+      "description": "Idioma das mensagens do servidor"
+    },
+    "upnp": {
+      "label": "Encaminhamento de porta UPnP",
+      "description": "Encaminhar a porta automaticamente com UPnP"
+    },
+    "banlist": {
+      "label": "Arquivo de banimentos",
+      "description": "Nome do arquivo de banimentos na pasta do servidor"
+    },
+    "npcstream": {
+      "label": "Fluxo de NPC",
+      "description": "Sincronia de inimigos: menor = menos saltos, mais banda. 0 = desligado"
+    },
+    "priority": {
+      "label": "Prioridade do processo",
+      "description": "0 Tempo real, 1 Alta, 2 Acima do normal, 3 Normal, 4 Abaixo do normal, 5 Baixa"
+    },
+    "journeypermission_time_setfrozen": {
+      "label": "Jornada: Congelar tempo",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_time_setdawn": {
+      "label": "Jornada: Amanhecer",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_time_setnoon": {
+      "label": "Jornada: Meio-dia",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_time_setdusk": {
+      "label": "Jornada: Entardecer",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_time_setmidnight": {
+      "label": "Jornada: Meia-noite",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_godmode": {
+      "label": "Jornada: Modo deus",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_wind_setstrength": {
+      "label": "Jornada: Força do vento",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_rain_setstrength": {
+      "label": "Jornada: Força da chuva",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_time_setspeed": {
+      "label": "Jornada: Velocidade do tempo",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_rain_setfrozen": {
+      "label": "Jornada: Congelar chuva",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_wind_setfrozen": {
+      "label": "Jornada: Congelar vento",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_increaseplacementrange": {
+      "label": "Jornada: Alcance de colocação",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_setdifficulty": {
+      "label": "Jornada: Dificuldade",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_biomespread_setfrozen": {
+      "label": "Jornada: Congelar espalhamento de biomas",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "journeypermission_setspawnrate": {
+      "label": "Jornada: Taxa de surgimento",
+      "description": "0 bloqueado, 1 só o anfitrião, 2 todos"
+    },
+    "seed_celebration": {
+      "label": "Semente de celebração",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_theconstant": {
+      "label": "The Constant",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_notthebees": {
+      "label": "Não são abelhas!",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_notraps": {
+      "label": "Sem armadilhas",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_fortheworthy": {
+      "label": "Para os dignos",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_remix": {
+      "label": "Remix",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_drunk": {
+      "label": "Bêbado",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "seed_zenith": {
+      "label": "Zenith",
+      "description": "Ativa a semente especial: 0 desativada, 1 ativada"
+    },
+    "worldrollbackstokeep": {
+      "label": "Reversões do mundo a manter",
+      "description": "Número de cópias de reversão do mundo a manter"
+    },
+    "slowliquids": {
+      "label": "Líquidos lentos",
+      "description": "Ativa atualizações lentas de líquidos"
+    }
+  },
+  "commands": {
+    "help": {
+      "label": "Ajuda",
+      "description": "Lista os comandos do servidor"
+    },
+    "playing": {
+      "label": "Jogadores",
+      "description": "Lista os jogadores conectados"
+    },
+    "clear": {
+      "label": "Limpar console",
+      "description": "Limpa o console do servidor"
+    },
+    "save": {
+      "label": "Salvar mundo",
+      "description": "Salva o mundo"
+    },
+    "say": {
+      "label": "Dizer",
+      "description": "Envia uma mensagem a todos",
+      "inputs": {
+        "message": {
+          "label": "Mensagem"
+        }
+      }
+    },
+    "version": {
+      "label": "Versão",
+      "description": "Mostra a versão"
+    },
+    "time": {
+      "label": "Hora do jogo",
+      "description": "Mostra a hora do jogo"
+    },
+    "port": {
+      "label": "Porta",
+      "description": "Mostra a porta"
+    },
+    "maxplayers": {
+      "label": "Máx. de jogadores",
+      "description": "Mostra o limite"
+    },
+    "motd": {
+      "label": "Mensagem do dia",
+      "description": "Mostra a mensagem do dia"
+    },
+    "password": {
+      "label": "Mostrar senha",
+      "description": "Mostra a senha no console"
+    },
+    "dawn": {
+      "label": "Amanhecer",
+      "description": "Define a hora para o amanhecer"
+    },
+    "noon": {
+      "label": "Meio-dia",
+      "description": "Define a hora para meio-dia"
+    },
+    "dusk": {
+      "label": "Entardecer",
+      "description": "Define a hora para o entardecer"
+    },
+    "midnight": {
+      "label": "Meia-noite",
+      "description": "Define a hora para meia-noite"
+    },
+    "settle": {
+      "label": "Assentar líquidos",
+      "description": "Assenta toda a água"
+    },
+    "kick": {
+      "label": "Expulsar jogador",
+      "description": "Expulsa um jogador",
+      "inputs": {
+        "player": {
+          "label": "Nome do jogador"
+        }
+      }
+    },
+    "ban": {
+      "label": "Banir jogador",
+      "description": "Bane um jogador (lista de banimentos)",
+      "inputs": {
+        "player": {
+          "label": "Nome do jogador"
+        }
+      }
+    },
+    "exit-nosave": {
+      "label": "Desligar sem salvar",
+      "description": "Desliga o servidor sem salvar"
+    },
+    "seed": {
+      "label": "Semente do mundo",
+      "description": "Exibe a semente atual do mundo"
+    }
+  },
+  "errors": {
+    "archive_corrupt": "O arquivo do servidor está danificado ({{file}})",
+    "backup_paths_failed": "Não foi possível definir os arquivos de backup: {{error}}",
+    "download_failed": "Falha no download: {{error}}",
+    "executable_not_found": "Executável do servidor não encontrado. Instale o servidor primeiro",
+    "failed_to_kill": "Não foi possível encerrar o processo: {{error}}",
+    "graceful_stop_unavailable": "O console não está conectado, então não dá para salvar antes de parar. Force a parada só se aceitar perder o progresso não salvo",
+    "install_failed": "Falha na instalação: {{error}}",
+    "invalid_banlist": "O nome \"{{name}}\" não é um nome de arquivo simples",
+    "invalid_world_name": "O nome \"{{name}}\" não pode conter / \\ : * ? \" < > | nem terminar com espaço ou ponto",
+    "line_break": "O valor de {{setting}} não pode ter quebra de linha",
+    "no_install_dir": "Nenhuma pasta de instalação informada",
+    "no_version": "Escolha uma versão do servidor (ex.: 1.4.5.8)",
+    "not_server_folder": "Esta pasta não tem um servidor Terraria; nada foi apagado",
+    "properties_read_failed": "Não foi possível ler serverconfig.txt: {{error}}",
+    "properties_write_failed": "Não foi possível salvar serverconfig.txt: {{error}}",
+    "server_not_in_archive": "O arquivo não tem {{file}} para este sistema",
+    "server_reset_partial": "Alguns arquivos não puderam ser apagados: {{errors}}",
+    "settings_write_failed": "O servidor foi instalado, mas as configurações não foram gravadas: {{error}}",
+    "version_list_failed": "Não foi possível obter as versões em terraria.org: {{error}}",
+    "xna_framework_missing": "Os arquivos do XNA Framework 4.0 estão ausentes da pasta do servidor. Reinstale o servidor para adicioná-los.",
+    "xna_install_failed": "Não foi possível adicionar o XNA Framework 4.0 à pasta do servidor: {{error}}",
+    "xna_extension_missing": "A extensão XNA é necessária para rodar o servidor do Terraria no Windows. Instale e ative a extensão \"XNA Framework 4.0 (portable)\".",
+    "version_unknown": "Não foi possível encontrar a versão do servidor instalada."
+  },
+  "messages": {
+    "downloading": "Baixando o servidor do Terraria",
+    "extracting": "Extraindo arquivos do servidor",
+    "force_killed": "O processo {{pid}} foi encerrado à força",
+    "graceful_stop": "O servidor salvou o mundo e parou",
+    "graceful_stop_timeout": "O servidor não parou a tempo; forçando a parada",
+    "install_complete": "Servidor do Terraria instalado",
+    "no_mappable_settings": "Nada para gravar em serverconfig.txt",
+    "no_process_running": "O servidor não está em execução",
+    "properties_updated": "Salvo em serverconfig.txt. Reinicie o servidor para aplicar",
+    "server_reset_complete": "O mundo foi apagado. Um novo será criado no próximo início",
+    "stop_requested": "Pedido ao servidor para salvar e parar",
+    "installing_xna": "Instalando o XNA Framework 4.0 junto ao servidor..."
+  },
+  "reset": {
+    "label": "Redefinir mundo",
+    "description": "Exclui o arquivo deste mundo e as cópias .wld.bak e .wld.bak<número>. serverconfig.txt, a lista de banimentos, outros mundos e arquivos do servidor são mantidos. Um novo mundo será criado na próxima inicialização."
+  }
+}

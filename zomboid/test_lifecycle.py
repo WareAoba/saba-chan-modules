@@ -901,3 +901,31 @@ def test_config_files_lists_the_profile_ini(tmp_path):
     from zomboid.lifecycle import FUNCTIONS, IniManager
     config = {"data_home": str(tmp_path), "server_name": "pvp"}
     assert FUNCTIONS["config_files"](config) == {"success": True, "files": [IniManager.get_ini_path(config)]}
+
+
+def test_import_does_not_offer_defaults_when_the_server_ini_cannot_be_read(tmp_path, monkeypatch):
+    """스크립트의 데이터 폴더 ini를 읽지 못하면(없음·권한 없음) 기본값을 가져오지 않는다 (사용자 설정을 기본값으로 덮지 않게)"""
+    from zomboid import lifecycle
+
+    home = tmp_path / "읽을 수 없는 데이터"
+    server = _existing_server(tmp_path, f'".\\jre64\\bin\\java.exe" -Xmx8g -cp java/ zombie.network.GameServer -servername pvp "-cachedir={home}"\n', monkeypatch)
+
+    settings = lifecycle.import_settings({"working_dir": str(server)})["settings"]
+
+    assert settings["data_home"] == str(home)
+    assert settings["server_name"] == "pvp"
+    assert not {"public_name", "max_players", "port", "pvp"} & set(settings)
+
+
+def test_a_data_folder_that_cannot_be_made_fails_with_a_plain_message(tmp_path):
+    """데이터 폴더를 만들 수 없으면 원본 오류(경로·트레이스백) 대신 현지화한 한 줄로 실패한다"""
+    from unittest import mock
+    from zomboid import lifecycle
+    parsed = {"java_exe_abs": "java", "classpath": "a.jar", "jvm_flags": ["-Xmx2g"], "main_class": "zombie.network.GameServer", "extra_args": []}
+    with mock.patch.object(lifecycle, "_find_server_dir", return_value=str(tmp_path)), \
+         mock.patch.object(lifecycle, "_parse_launch_info", return_value=parsed), \
+         mock.patch.object(lifecycle.os, "makedirs", side_effect=PermissionError(5, "Access is denied", "D:\\")):
+        result = lifecycle.get_launch_command({"data_home": "D:\\zomboid data"})
+    assert result["success"] is False
+    assert result["message"] == lifecycle.i18n.t("errors.data_home_unavailable")
+    assert "D:" not in result["message"]

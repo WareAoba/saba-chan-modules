@@ -1077,7 +1077,10 @@ def get_launch_command(config):
     if _cache_dir(config) or _legacy_config_dir(config) or config.get("data_home"):
         home = _zomboid_home(config)
         if not preview:
-            os.makedirs(home, exist_ok=True)
+            try:
+                os.makedirs(home, exist_ok=True)
+            except OSError:
+                return {"success": False, "message": i18n.t("errors.data_home_unavailable")}
         # 가져온 서버의 스크립트에 있던 -cachedir는 빼고 데몬이 정한 폴더 하나만 넘긴다
         args = [a for a in args if not a.startswith("-cachedir=")]
         args.append(f"-cachedir={home}")
@@ -1306,11 +1309,14 @@ def import_settings(config):
         found.pop("server_name")
         config.pop("server_name", None)
 
-    result = read_properties(config)
-    if not result.get("success"):
-        return result
-
-    raw_props = result.get("properties", {})
+    # 읽지 못한 ini(없음·권한 없음) 대신 기본값을 가져오면 사용자 설정을 기본값으로 덮는다
+    if not os.path.isfile(IniManager.get_ini_path(config)):
+        raw_props = {}
+    else:
+        result = read_properties(config)
+        if not result.get("success"):
+            return result
+        raw_props = result.get("properties", {})
     if not raw_props:
         return {"success": True, "settings": {**found, "data_home": _zomboid_home(config)}, "message": i18n.t("messages.no_properties_found")}
 

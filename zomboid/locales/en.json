@@ -243,6 +243,7 @@
     "quit": { "label": "Shutdown Server", "description": "Save and gracefully shut down" }
   },
   "errors": {
+    "data_home_unavailable": "Couldn't create or open the server data folder. Check the folder location and permissions.",
     "settings_write_failed": "The server files were installed, but the selected settings could not be saved: {{error}}",
     "backup_paths_failed": "Could not read the save folder for backup: {{error}}",
     "graceful_stop_unavailable": "There is no way to ask the server to save and exit (no console or REST). It was not stopped. Force stop it only if you accept losing unsaved progress.",

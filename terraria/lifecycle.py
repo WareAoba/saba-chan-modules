@@ -22,9 +22,9 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, graceful_stop,
-                         is_process_alive, read_key_values, request_console, safe_join, setting_file_keys,
-                         settings_from_file, update_key_values)
+from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, download, graceful_stop,
+                         is_process_alive, progress, read_key_values, request_console, safe_extract, safe_join,
+                         setting_file_keys, settings_from_file, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
@@ -66,12 +66,6 @@ _BAD_NAME_CHARS = set('/\\:*?"<>|')
 
 
 # ─── Helpers ─────────────────────────────────────────────
-
-def _progress(percent, message):
-    """데몬이 읽는 진행률 줄 (stderr `PROGRESS:{json}`)"""
-    print("PROGRESS:" + json.dumps({"percent": percent, "message": message}, ensure_ascii=True),
-          file=sys.stderr, flush=True)
-
 
 def _server_exe_name():
     """이 OS의 공식 서버 실행 파일 이름 (zip의 Windows/Linux 폴더)"""
@@ -505,46 +499,21 @@ def list_versions(config):
 
 
 def _download(url, dest):
-    import urllib.request
-    req = urllib.request.Request(url, headers={"User-Agent": "saba-chan"})
-    with urllib.request.urlopen(req, timeout=60) as resp, open(dest, "wb") as out:
-        total = int(resp.headers.get("Content-Length") or 0)
-        done = 0
-        while True:
-            chunk = resp.read(1 << 20)
-            if not chunk:
-                break
-            out.write(chunk)
-            done += len(chunk)
-            if total:
-                _progress(5 + int(done * 75 / total), i18n.t("messages.downloading"))
+    message = i18n.t("messages.downloading")
+    download(url, dest, on_progress=lambda done, total: total and progress(5 + int(done * 75 / total), message))
 
 
 def _extract_server(archive, install_dir):
-    """zip에서 이 OS 서버 실행 파일이 든 폴더만 install_dir에 푼다. 기존 serverconfig.txt는 덮지 않는다.
+    """zip에서 이 OS 서버 실행 파일이 든 폴더만 install_dir에 푼다(공용 safe_extract). 기존 serverconfig.txt는 덮지 않는다.
     zip에 체크섬이 없으므로(공식 제공 없음) CRC 검사와 실행 파일 존재로 확인한다"""
     exe_name = _server_exe_name()
     platform_dir = "Windows" if exe_name.endswith(".exe") else "Linux"
     with zipfile.ZipFile(archive) as z:
-        bad = z.testzip()
-        if bad is not None:
-            raise ValueError(i18n.t("errors.archive_corrupt", file=bad))
-        entries = [i for i in z.infolist() if not i.is_dir()]
-        exes = [i.filename for i in entries if i.filename.rsplit("/", 1)[-1] == exe_name
-                and i.filename.rsplit("/", 1)[0].rsplit("/", 1)[-1] == platform_dir]
-        if len(exes) != 1:
-            raise ValueError(i18n.t("errors.server_not_in_archive", file=exe_name))
-        prefix = exes[0].rsplit("/", 1)[0] + "/"
-        members = [i for i in entries if i.filename.startswith(prefix)]
-        # 먼저 모두 검사하고 나서 쓴다: 바깥으로 나가는 항목이 하나라도 있으면 아무것도 풀지 않는다
-        planned = [(i, safe_join(install_dir, *i.filename[len(prefix):].split("/"))) for i in members]
-        for info, dest in planned:
-            rel = info.filename[len(prefix):]
-            if rel == CONFIG_FILE and dest.exists():
-                continue
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            with z.open(info) as src, open(dest, "wb") as out:
-                shutil.copyfileobj(src, out)
+        names = [i.filename for i in z.infolist() if not i.is_dir()]
+    exes = [n for n in names if n.rsplit("/", 1)[-1] == exe_name and n.rsplit("/", 1)[0].rsplit("/", 1)[-1] == platform_dir]
+    if len(exes) != 1:
+        raise ValueError(i18n.t("errors.server_not_in_archive", file=exe_name))
+    safe_extract(archive, install_dir, prefix=exes[0].rsplit("/", 1)[0], keep_existing={CONFIG_FILE})
     exe = os.path.join(install_dir, exe_name)
     if os.name != "nt":
         os.chmod(exe, 0o755)
@@ -581,12 +550,12 @@ def install_server(config):
     fd, archive = tempfile.mkstemp(prefix=".terraria-server-", suffix=".download", dir=install_dir)
     os.close(fd)
     try:
-        _progress(5, i18n.t("messages.downloading"))
+        progress(5, i18n.t("messages.downloading"))
         try:
             _download(url, archive)
         except Exception as e:
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
-        _progress(85, i18n.t("messages.extracting"))
+        progress(85, i18n.t("messages.extracting"))
         try:
             exe = _extract_server(archive, install_dir)
         except PathOutside:
@@ -604,7 +573,7 @@ def install_server(config):
         if xna is None:
             return {"success": False, "error_code": "extension_required", "missing_extensions": ["xna"],
                     "message": i18n.t("errors.xna_extension_missing")}
-        _progress(90, i18n.t("messages.installing_xna"))
+        progress(90, i18n.t("messages.installing_xna"))
         try:
             xna.install(install_dir)
         except xna.XnaError as e:
@@ -621,7 +590,7 @@ def install_server(config):
         except (OSError, UnicodeDecodeError, ValueError) as e:
             return {"success": False, "error_code": "settings_write_failed",
                     "message": i18n.t("errors.settings_write_failed", error=str(e))}
-    _progress(100, i18n.t("messages.install_complete"))
+    progress(100, i18n.t("messages.install_complete"))
     return {"success": True, "version": version, "executable_path": exe, "install_path": install_dir,
             "message": i18n.t("messages.install_complete")}
 

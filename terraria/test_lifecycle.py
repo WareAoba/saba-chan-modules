@@ -481,19 +481,21 @@ def test_install_picks_platform_named_folder_only_and_refuses_ambiguous(lc, tmp_
         "1458/Windows/serverconfig.txt": b"priority=1\r\n",
         "1458/Mac/Terraria Server.app/Contents/Resources/TerrariaServer.exe": b"mac",
     }
-    archive = io.BytesIO(_zip_bytes(entries))
+    archive = tmp_path / "server.zip"
+    archive.write_bytes(_zip_bytes(entries))
     for os_name, exe, expected in (("nt", "TerrariaServer.exe", b"windows"),
                                    ("posix", "TerrariaServer.bin.x86_64", b"linux")):
         install = tmp_path / os_name
         monkeypatch.setattr(lc, "_server_exe_name", lambda exe=exe: exe)
-        lc._extract_server(archive, str(install))
+        lc._extract_server(str(archive), str(install))
         assert (install / exe).read_bytes() == expected
         assert sorted(p.name for p in install.iterdir()) == sorted(
             ["TerrariaServer.exe", "serverconfig.txt"] if os_name == "nt"
             else ["TerrariaServer.bin.x86_64", "mscorlib.dll"])
-    ambiguous = _zip_bytes({**entries, "1458/Other/Linux/TerrariaServer.bin.x86_64": b"other"})
+    ambiguous = tmp_path / "ambiguous.zip"
+    ambiguous.write_bytes(_zip_bytes({**entries, "1458/Other/Linux/TerrariaServer.bin.x86_64": b"other"}))
     with pytest.raises(ValueError):
-        lc._extract_server(io.BytesIO(ambiguous), str(tmp_path / "ambiguous"))
+        lc._extract_server(str(ambiguous), str(tmp_path / "ambiguous"))
 
 
 @pytest.fixture

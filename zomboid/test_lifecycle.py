@@ -801,3 +801,74 @@ def test_backup_rejects_a_linked_subfolder_outside_the_data_root(tmp_path, folde
 
     with pytest.raises(PathOutside):
         backup_paths({"cache_dir": str(home), "server_name": "srv"})
+
+
+def _existing_server(tmp_path, script):
+    server = tmp_path / "기존 서버"
+    server.mkdir()
+    (server / "StartServer64.bat").write_text(script, encoding="utf-8")
+    return server
+
+
+def test_import_reads_memory_profile_and_data_folder_from_the_start_script(tmp_path):
+    """가져온 서버는 쓰던 StartServer64.bat의 -Xmx·-servername·-cachedir를 그대로 쓴다 (기본값 4GB·servertest로 덮지 않게)"""
+    from zomboid import lifecycle
+
+    home = tmp_path / "데이터 폴더"
+    (home / "Server").mkdir(parents=True)
+    lifecycle.IniManager.write(str(home / "Server" / "pvp.ini"), {"PublicName": "Mine", "MaxPlayers": "12"})
+    server = _existing_server(tmp_path, (
+        '@setlocal enableextensions\n'
+        'SET PZ_CLASSPATH=java/;java/projectzomboid.jar\n'
+        f'".\\jre64\\bin\\java.exe" -Djava.awt.headless=true -Xms16g -Xmx16g -cp %PZ_CLASSPATH% zombie.network.GameServer -statistic 0 -servername pvp "-cachedir={home}" %1 %2\n'
+        'PAUSE\n'
+    ))
+
+    settings = lifecycle.import_settings({"working_dir": str(server)})["settings"]
+
+    assert settings["ram"] == 16
+    assert settings["server_name"] == "pvp"
+    assert settings["data_home"] == str(home)
+    assert settings["public_name"] == "Mine"
+    assert settings["max_players"] == 12
+
+
+@pytest.mark.parametrize("profiles,expected", [(["pvp"], "pvp"), (["pvp", "servertest"], "servertest"), ([], "servertest")])
+def test_import_finds_the_only_existing_profile_when_the_script_names_none(tmp_path, monkeypatch, profiles, expected):
+    from zomboid import lifecycle
+
+    home = tmp_path / "Zomboid"
+    (home / "Server").mkdir(parents=True)
+    for name in profiles:
+        lifecycle.IniManager.write(str(home / "Server" / f"{name}.ini"), {"PublicName": name})
+        (home / "Server" / f"{name}_SandboxVars.lua").write_text("SandboxVars = {}", encoding="utf-8")
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv("HOME", str(tmp_path))
+    server = _existing_server(tmp_path, '".\\jre64\\bin\\java.exe" -Xmx8g -cp java/ zombie.network.GameServer -statistic 0\n')
+
+    settings = lifecycle.import_settings({"working_dir": str(server)})["settings"]
+
+    assert settings.get("server_name", "servertest") == expected
+    assert settings["ram"] == 8
+
+
+def test_launch_does_not_repeat_the_scripts_data_folder(tmp_path, monkeypatch):
+    """스크립트에 -cachedir가 있어도 데몬이 정한 데이터 폴더 하나만 넘긴다 (둘이면 어느 쪽을 쓸지 PZ에 맡기게 된다)"""
+    from zomboid import lifecycle
+
+    server = _existing_server(tmp_path, '".\\jre64\\bin\\java.exe" -Xmx8g -cp java/ zombie.network.GameServer -cachedir=C:\\old\n')
+    monkeypatch.setattr(lifecycle, "_find_launch_script", lambda d: os.path.join(d, "StartServer64.bat"))
+    (server / "jre64" / "bin").mkdir(parents=True)
+    (server / "jre64" / "bin" / "java.exe").write_text("", encoding="utf-8")
+    home = tmp_path / "new home"
+
+    result = lifecycle.get_launch_command({"working_dir": str(server), "data_home": str(home), "preview": True})
+
+    cachedirs = [a for a in result["args"] if a.startswith("-cachedir=")]
+    assert cachedirs == [f"-cachedir={home}"]
+
+
+def test_config_files_lists_the_profile_ini(tmp_path):
+    from zomboid.lifecycle import FUNCTIONS, IniManager
+    config = {"data_home": str(tmp_path), "server_name": "pvp"}
+    assert FUNCTIONS["config_files"](config) == {"success": True, "files": [IniManager.get_ini_path(config)]}

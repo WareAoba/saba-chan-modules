@@ -1314,6 +1314,27 @@ def configure(config):
     }
 
 
+# 가져온 서버가 쓰던 실행 스크립트 (Forge·NeoForge 설치기는 메모리를 user_jvm_args.txt에 둔다)
+_START_SCRIPTS = ("user_jvm_args.txt", "run.bat", "start.bat", "run.sh", "start.sh")
+
+
+def _script_memory(working_dir):
+    """쓰던 실행 스크립트의 -Xmx ("10G", "3072M"). 없으면 None (모듈 기본값 그대로)"""
+    for name in _START_SCRIPTS:
+        try:
+            with open(os.path.join(working_dir, name), encoding="utf-8", errors="replace") as f:
+                text = f.read()
+        except OSError:
+            continue
+        for line in text.splitlines():
+            if line.lstrip().startswith(("#", "rem ", "REM ", "::")):
+                continue
+            m = re.search(r"(?<!\S)-Xmx(\d+[KMGkmg])(?!\S)", line)
+            if m:
+                return m.group(1).upper()
+    return None
+
+
 def import_settings(config):
     """Read server.properties and return settings in saba-chan key format.
 
@@ -1334,6 +1355,10 @@ def import_settings(config):
     }}
     if detected.get("jar"):
         extra["executable_path"] = detected["jar"]
+
+    ram = _script_memory(working_dir)
+    if ram:
+        found["ram"] = ram
 
     result = read_properties(config)
     if not result.get("success"):
@@ -1356,6 +1381,14 @@ def import_settings(config):
     settings.update(found)
 
     return {"success": True, "settings": settings, **extra}
+
+
+def config_files(config):
+    """사바쨩이 고칠 수 있는 게임 설정 파일 (가져온 서버를 해제할 때 데몬이 가져오기 전 내용으로 되돌린다)"""
+    working_dir = config.get("working_dir")
+    if not working_dir:
+        return {"success": False, "message": i18n.t("errors.no_working_dir")}
+    return {"success": True, "files": [os.path.join(working_dir, "server.properties"), os.path.join(working_dir, "eula.txt")]}
 
 
 def instance_commands(config):
@@ -1415,7 +1448,7 @@ _RESET_KEEP = {
     "eula.txt", "user_jvm_args.txt", "run.bat", "run.sh",
     "fabric-server-launcher.properties", "quilt-server-launcher.properties",
     "java", "libraries", "versions", ".fabric", ".quilt",
-    "instance.json", "settings.json", "settings.json.tmp", "managed.pid", "run", "backups", "rcon.json", "rcon.json.tmp",
+    "instance.json", "settings.json", "settings.json.tmp", "managed.pid", "run", "backups", "rcon.json", "rcon.json.tmp", "migration",
 }
 
 
@@ -2370,6 +2403,7 @@ FUNCTIONS = {
     "configure": configure,
     "read_properties": read_properties,
     "import_settings": import_settings,
+    "config_files": config_files,
     "reset_properties": reset_properties,
     "reset_server": reset_server,
     "accept_agreements": accept_agreements,

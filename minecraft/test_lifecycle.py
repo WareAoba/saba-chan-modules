@@ -1468,3 +1468,34 @@ def test_managed_stop_leaves_the_wait_to_the_daemon():
     assert result["success"] is True
     wait.assert_not_called()
     kill.assert_not_called()
+
+
+@pytest.mark.parametrize("name,content,expected", [
+    ("start.bat", "@echo off\njava -Xms2G -Xmx10G -jar server.jar nogui\npause\n", "10G"),
+    ("run.sh", "#!/bin/sh\nexec java -Xmx3072M -jar paper.jar --nogui\n", "3072M"),
+    ("user_jvm_args.txt", "# Forge\n-Xmx6G\n", "6G"),
+])
+def test_import_keeps_the_memory_of_the_existing_start_script(tmp_path, name, content, expected):
+    """가져온 서버는 쓰던 실행 스크립트의 -Xmx를 그대로 쓴다 (모듈 기본값 4G로 줄지 않게)"""
+    from minecraft.lifecycle import import_settings, ServerPropertiesManager
+    ServerPropertiesManager(str(tmp_path)).write({"motd": "kept"})
+    (tmp_path / name).write_text(content, encoding="utf-8")
+
+    settings = import_settings({"working_dir": str(tmp_path)})["settings"]
+
+    assert settings["ram"] == expected
+    assert settings["motd"] == "kept"
+
+
+def test_import_without_a_start_script_leaves_the_memory_setting_alone(tmp_path):
+    from minecraft.lifecycle import import_settings, ServerPropertiesManager
+    ServerPropertiesManager(str(tmp_path)).write({"motd": "kept"})
+    assert "ram" not in import_settings({"working_dir": str(tmp_path)})["settings"]
+
+
+def test_config_files_lists_the_files_saba_chan_may_change(tmp_path):
+    """가져오기를 해제할 때 되돌릴 파일: 사바쨩이 쓰는 server.properties와 eula.txt (있든 없든 경로는 알린다)"""
+    from minecraft.lifecycle import FUNCTIONS
+    files = FUNCTIONS["config_files"]({"working_dir": str(tmp_path)})
+    assert files["success"] is True
+    assert sorted(files["files"]) == sorted([str(tmp_path / "server.properties"), str(tmp_path / "eula.txt")])

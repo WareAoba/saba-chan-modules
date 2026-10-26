@@ -799,3 +799,10 @@ def test_line_start_splits_rest_logs_written_without_newlines():
     # 한 줄로 온 로그는 나누지 않는다
     single = "[2026-10-26 01:18:32] [LOG] REST accessed endpoint /v1/api/metrics OK"
     assert [m.start() for m in head.finditer(single) if m.start() > 0] == []
+
+
+def test_config_files_lists_the_settings_ini(tmp_path):
+    """가져오기를 해제할 때 되돌릴 파일: 사바쨩이 REST 정책·설정을 쓰는 PalWorldSettings.ini"""
+    from palworld.lifecycle import FUNCTIONS, _get_settings_ini_path
+    config = {"working_dir": str(tmp_path)}
+    assert FUNCTIONS["config_files"](config) == {"success": True, "files": [_get_settings_ini_path(config)]}

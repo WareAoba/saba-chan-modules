@@ -1078,6 +1078,8 @@ def get_launch_command(config):
         home = _zomboid_home(config)
         if not preview:
             os.makedirs(home, exist_ok=True)
+        # 가져온 서버의 스크립트에 있던 -cachedir는 빼고 데몬이 정한 폴더 하나만 넘긴다
+        args = [a for a in args if not a.startswith("-cachedir=")]
         args.append(f"-cachedir={home}")
     
     return {
@@ -1238,25 +1240,95 @@ def configure(config):
         }
 
 
+def _heap_gb(value):
+    """-Xmx 값("16g", "8192m") → GB 정수 (ram 설정 단위). 읽을 수 없으면 None"""
+    m = re.fullmatch(r"(\d+)([kKmMgG])", str(value or "").strip())
+    if not m:
+        return None
+    size = int(m.group(1))
+    unit = m.group(2).lower()
+    gb = size if unit == "g" else size // 1024 if unit == "m" else size // (1024 * 1024)
+    return max(1, gb)
+
+
+def _script_settings(server_dir):
+    """쓰던 실행 스크립트가 정한 메모리(-Xmx)·서버 이름(-servername)·데이터 폴더(-cachedir).
+    가져오기가 모듈 기본값(4GB, servertest, ~/Zomboid)으로 덮지 않게 한다. 읽지 못한 값은 빠진다"""
+    info = None
+    for name in ("StartServer64.bat", "StartServer64_nosteam.bat", "StartServer.bat", "start-server.sh", "StartServer.sh"):
+        script = os.path.join(server_dir, name)
+        if os.path.isfile(script):
+            info = _parse_launch_script(script)
+            if info:
+                break
+    if not info:
+        return {}
+    found = {}
+    ram = _heap_gb(info["memory"][1])
+    if ram:
+        found["ram"] = ram
+    for flag in info["jvm_flags"]:
+        if flag.startswith("-Ddeployment.user.cachedir="):
+            found["data_home"] = flag.split("=", 1)[1]
+    args = info["extra_args"]
+    for i, arg in enumerate(args):
+        if arg == "-servername" and i + 1 < len(args):
+            found["server_name"] = args[i + 1]
+        elif arg.startswith("-cachedir="):
+            found["data_home"] = arg.split("=", 1)[1]
+    return found
+
+
+def _only_profile(home):
+    """데이터 폴더의 Server/에 프로필(ini)이 하나뿐이고 PZ 기본값(servertest)이 아니면 그 이름"""
+    try:
+        names = [f[:-4] for f in os.listdir(os.path.join(home, "Server")) if f.lower().endswith(".ini")]
+    except OSError:
+        return None
+    return names[0] if len(names) == 1 and names[0] != "servertest" else None
+
+
 def import_settings(config):
     """Read server INI and return settings in saba-chan key format.
 
     Used during migration to import existing server settings into saba-chan.
+    실행 스크립트의 메모리·서버 이름·데이터 폴더도 읽고, 스크립트가 서버 이름을 정하지 않았으면
+    데이터 폴더에 하나뿐인 프로필을 쓴다 (쓰던 월드 대신 새 servertest 월드가 뜨지 않게).
     """
+    server_dir = _find_server_dir(config)
+    found = _script_settings(server_dir) if server_dir else {}
+    config = {**config, **found}
+    if "server_name" not in found and not config.get("server_name"):
+        profile = _only_profile(_zomboid_home(config))
+        if profile:
+            found["server_name"] = config["server_name"] = profile
+    try:
+        IniManager.get_ini_path(config)
+    except PathOutside:
+        # 스크립트·폴더의 이름이 프로필 폴더 밖을 가리키면 그 이름은 쓰지 않는다
+        found.pop("server_name", None)
+        config.pop("server_name", None)
+
     result = read_properties(config)
     if not result.get("success"):
         return result
 
     raw_props = result.get("properties", {})
     if not raw_props:
-        return {"success": True, "settings": {"data_home": _zomboid_home(config)}, "message": i18n.t("messages.no_properties_found")}
+        return {"success": True, "settings": {**found, "data_home": _zomboid_home(config)}, "message": i18n.t("messages.no_properties_found")}
 
     from daemon_rcon import coerce_setting, load_setting_types
     types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
     settings = {key: coerce_setting(raw_value, types.get(key)) for key, raw_value in raw_props.items()}
+    settings.update(found)
     settings["data_home"] = _zomboid_home(config)
 
     return {"success": True, "settings": settings}
+
+
+def config_files(config):
+    """사바쨩이 고칠 수 있는 게임 설정 파일 (가져온 서버를 해제할 때 데몬이 가져오기 전 내용으로 되돌린다)"""
+    return {"success": True, "files": [IniManager.get_ini_path(config)]}
 
 
 def read_properties(config):
@@ -1583,6 +1655,7 @@ FUNCTIONS = {
     "command":            command,
     "configure":          configure,
     "import_settings":    import_settings,
+    "config_files":       config_files,
     "read_properties":    read_properties,
     "diagnose_log":       diagnose_log,
     "install_server":     install_server,

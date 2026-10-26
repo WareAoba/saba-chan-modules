@@ -91,7 +91,7 @@
 
 - `password <pass>`, `motd <message>`(바꾸기): 실행 중 값만 바뀌고 serverconfig.txt는 그대로라 단일 설정원(§8.3)을 깬다. 설정 화면의 `password`·`motd`로 바꾸고 다시 켠다. 실행 중 적용이 필요하면 데몬에 "설정 저장 때 켜진 서버에 반영할 명령" 같은 범용 지점이 먼저 필요하다.
 - 밴 해제: 게임에 명령이 없다(W1). 밴 목록 파일을 고치는 모듈 명령은 공식 기능이 아니라 넣지 않았다.
-- `[status] players`의 1분 갱신: 게임에 조회 API가 없고 `playing`을 1분마다 보내면 콘솔에 쌓인다. 그래서 목록을 물을 때(`players_detail`)만 `playing`을 보내고, 1분 갱신에는 수를 모른다고 답한다.
+- `[status] players`의 1분 갱신: 게임에 조회 API가 없고 `playing`을 1분마다 보내면 콘솔에 쌓인다. 그래서 목록을 물을 때(`players_detail`)만 `playing`을 보내고, 1분 갱신에는 최대 인원만 답한다. 수는 데몬이 접속·퇴장 줄로 센다(saba-chan 0.1.11, 02-modules §1.2 접속·퇴장).
 
 ## 2026-10-24 실측 (공식 1.4.5.8 zip)
 
@@ -124,7 +124,7 @@
 
 ## 접속·퇴장·접속자 (2026-10-26, 서버 파일 확인)
 
-PC 인스턴스의 공식 1.4.5.8 `TerrariaServer.exe` 안 번역 JSON(언어마다 `LegacyMultiplayer`·`CLI` 절)에서 읽었다. 서버가 콘솔에 찍는 문구의 원본이지만 실제 클라이언트 접속으로는 아직 재지 못했다(PC 실측 필요).
+PC 인스턴스의 공식 1.4.5.8 `TerrariaServer.exe` 안 번역 JSON(언어마다 `LegacyMultiplayer`·`CLI` 절)에서 읽었다. 실제 서버 로그에서도 같은 줄을 확인했다: 같은 엔진의 tModLoader 서버 로그 `FauleSpirit has joined.`·`FauleSpirit has left.`([S1](https://steamcommunity.com/app/1281930/discussions/0/3803904729137351688/), 로그 머리 `[시각] [스레드/INFO] [Terraria]: ` 뒤). 바닐라 서버 콘솔에는 로그 머리가 없다. 우리 PC에 게임 클라이언트가 없어 직접 접속으로는 재지 못했다.
 
 | 언어 | 접속 (`LegacyMultiplayer.19`) | 퇴장 (`.20`) | `playing` 마지막 줄 (`CLI.NoPlayers` / `OnePlayerConnected` / `PlayersConnected`) |
 |---|---|---|---|
@@ -144,9 +144,13 @@ PC 인스턴스의 공식 1.4.5.8 `TerrariaServer.exe` 안 번역 JSON(언어마
 - `player_join_patterns`·`player_leave_patterns`는 위 문구 줄 전체에 묶는다. 이름이 `<`로 시작하면 채팅 줄(`<이름> 말`)이라 받지 않는다.
 - `playing`의 플레이어 줄 모양 `<이름> (<주소>)`은 서버 파일에 번역 문자열이 없어 확인하지 못했다. 그래서 이름 줄 수가 마지막 줄의 수와 맞을 때만 이름을 싣고, 아니면 수만 답한다.
 
+## 아이콘
+
+`icon.png`는 Steam이 배포하는 테라리아 공식 클라이언트 아이콘(앱 105600 `clienticon` a4ce7b16…, `https://shared.fastly.steamstatic.com/community_assets/images/apps/105600/a4ce7b163832f35ffcbf560ca40974bccd5d4cd5.ico`)의 128px 판을 512px로 최근접 확대했다. `TerrariaServer.exe`에는 아이콘 리소스가 없다(버전·매니페스트만, 2026-10-26 확인).
+
 ## 확인 못 함
 
-- 위 접속·퇴장·`playing` 문구를 실제 클라이언트 접속으로 재는 것(PC 실측 필요).
+- `playing` 플레이어 줄 모양과 영어 밖 언어의 접속·퇴장 줄을 실제 접속으로 재는 것(게임 클라이언트가 없음).
 - `kick`·`ban`의 실제 대상 처리는 실측하지 못했다.
 - serverconfig의 키 대소문자, 값 앞뒤 공백, 중복 키와 값 안의 `=`·`#` 동작은 확인하지 않았다.
 - `exit` 저장 시간과 SIGTERM 저장 여부는 확인하지 않았다.

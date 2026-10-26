@@ -530,10 +530,12 @@ def _playing_count(line):
 
 
 def player_count(config):
-    """접속자 (module.toml [status] players). 게임에 조회 API가 없어 콘솔 `playing`으로 읽는다.
-    1분 갱신(players_detail 없음)에는 콘솔에 찍히지 않게 묻지 않고 수를 모른다고 답한다"""
+    """접속자 (module.toml [status] players). 게임에 조회 API가 없어 목록은 콘솔 `playing`으로 읽는다.
+    1분 갱신(players_detail 없음)에는 콘솔에 찍히지 않게 묻지 않는다. 그때 수는 데몬이 접속·퇴장 줄로 센다(0.1.11)"""
+    max_players = _int_or_none(config_value(config, "max_players", None))
     if not config.get("players_detail"):
-        return {"success": True}
+        # 수는 데몬이 접속·퇴장 줄로 센다(player_join/leave_patterns). 최대 인원만 알려 준다
+        return {"success": True, "max": max_players} if max_players else {"success": True}
     try:
         reply = daemon_stdin_command(config.get("instance_id", ""), "playing", timeout=5)
     except PathOutside:
@@ -552,7 +554,6 @@ def player_count(config):
         count = _playing_count(line)
         if count is not None:
             result = {"success": True, "online": count}
-            max_players = _int_or_none(config_value(config, "max_players", None))
             if max_players:
                 result["max"] = max_players
             if len(names) == count:

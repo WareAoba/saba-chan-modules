@@ -261,6 +261,7 @@ default = 7777
 min = 1
 max = 65535
 port = true
+public = "tcp"
 format = "port"
 
 [[settings.fields]]

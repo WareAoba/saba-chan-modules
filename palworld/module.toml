@@ -150,6 +150,7 @@ max = 32
 name = "port"
 type = "number"
 port = true
+public = "udp"
 format = "port"
 arg = "--port={value}"
 label = "Server Port"

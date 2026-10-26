@@ -453,6 +453,7 @@ group = "advanced"
 name = "port"
 type = "number"
 port = true
+public = "tcp"
 label = "Server Port"
 description = "Game server port"
 default = 25565

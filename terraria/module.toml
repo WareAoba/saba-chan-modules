@@ -7,6 +7,7 @@ description = "Terraria dedicated server"
 game_name = "Terraria"
 display_name = "Terraria"
 entry = "lifecycle.py"
+icon = "icon.png"
 author = "WareAoba"
 
 # safe_join·PathOutside·atomic_write

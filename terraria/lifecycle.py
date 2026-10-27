@@ -161,7 +161,10 @@ def _read_config_file(path):
 
 def _update_config_file(path, updates):
     """바뀐 키만 고친다. 주석·다른 키·순서·줄바꿈 표기는 그대로. 값이 None·""이면 그 키 줄을 지운다(게임 기본값)"""
-    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    # 있는 폴더에는 makedirs를 부르지 않는다: 위 폴더를 보지 못하는 격리 실행(드라이브 바로 아래 서버 폴더)에서 실패한다
+    folder = os.path.dirname(path) or "."
+    if not os.path.isdir(folder):
+        os.makedirs(folder, exist_ok=True)
     values = {key: value if value is None or value == "" else _format_value(key, value) for key, value in updates.items()}
     update_key_values(path, values, delete_empty=True, **_FILE_FORMAT)
 

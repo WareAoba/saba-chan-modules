@@ -149,6 +149,23 @@ def test_configure_roundtrip_keeps_special_characters(lc, tmp_path):
         assert imported["settings"][key] == value, key
 
 
+def test_configure_writes_in_a_folder_whose_parent_cannot_be_seen(lc, tmp_path, monkeypatch):
+    """드라이브 바로 아래 서버 폴더를 가져오면 격리 실행은 그 위(D:\\)를 보지 못한다 (PC 실측 10-27, 마인크래프트):
+    이미 있는 서버 폴더에 os.makedirs를 부르면 위부터 만들려다 PermissionError로 저장이 실패한다"""
+    server = _server(tmp_path, lc)
+    real = os.makedirs
+
+    def makedirs(path, *args, **kwargs):
+        if os.path.abspath(path) == os.path.abspath(server):
+            raise PermissionError(13, "denied")
+        return real(path, *args, **kwargs)
+
+    monkeypatch.setattr(lc.os, "makedirs", makedirs)
+    result = lc.configure(_config(server, settings={"max_players": 8}))
+    assert result["success"] is True, result
+    assert "maxplayers=8" in _read(server / "serverconfig.txt").splitlines()
+
+
 def test_configure_writes_official_spelling(lc, tmp_path):
     server = _server(tmp_path, lc)
     lc.configure(_config(server, settings={"secure": True, "upnp": False, "max_players": 8}))

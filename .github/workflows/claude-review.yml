@@ -8,8 +8,9 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review, labeled]
 
+# 다른 라벨을 붙인 실행은 따로 묶어 진행 중인 리뷰를 취소하지 않게 한다.
 concurrency:
-  group: claude-review-${{ github.event.pull_request.number }}
+  group: claude-review-${{ github.event.pull_request.number }}-${{ (github.event.action == 'labeled' && github.event.label.name != 'claude-review') && github.run_id || 'review' }}
   cancel-in-progress: true
 
 jobs:

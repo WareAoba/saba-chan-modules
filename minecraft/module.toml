@@ -814,6 +814,8 @@ failure_patterns = [
     '(?m)^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<reason>Unknown or incomplete command)',
     '(?m)^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<reason>Incorrect argument for command)',
     '''(?m)^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<reason>Unknown item '[^']*')''',
+    # Spigot(spigot.yml messages.unknown-command)·CraftBukkit의 모르는 명령 답 (실측 26.1·26.3)
+    '(?m)^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?P<reason>Unknown command)\. Type "/?help" for help\.',
 ]
 
 [[commands.fields]]
@@ -1267,7 +1269,7 @@ priority = 65
 # 서버가 거절한 명령의 답 (failure_patterns와 같은 문구, 로그 머리 바로 뒤에서만: 공지·채팅 본문은 아니다)
 [[syntax_highlight.rules]]
 name = "command_rejected"
-pattern = "\\]: (?:System chat: )?(?P<hl>No player was found|No entity was found|Unknown or incomplete command\\. See below for error|Incorrect argument for command|Unknown item '[^']*')\\s*$"
+pattern = "\\]: (?:System chat: )?(?P<hl>No player was found|No entity was found|Unknown or incomplete command\\. See below for error|Incorrect argument for command|Unknown item '[^']*'|Unknown command\\. Type \"/?help\" for help\\.)\\s*$"
 color = "error"
 bold = true
 priority = 62

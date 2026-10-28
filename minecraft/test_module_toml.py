@@ -138,6 +138,16 @@ def test_admin_feedback_of_26x_is_highlighted():
             assert highlight("admin_target", head + body) == hl, head + body
 
 
+def test_bukkit_unknown_command_is_a_failure():
+    """Spigot은 모르는 명령에 `Unknown command. Type "/help" for help.`(spigot.yml messages.unknown-command),
+    CraftBukkit은 `Type "help"`로 답한다 (실측 26.1·26.3)"""
+    for line in ['[21:20:21] [Server thread/INFO]: Unknown command. Type "/help" for help.',
+                 '[22:00:00] [Server thread/INFO]: Unknown command. Type "help" for help.']:
+        assert failure(line) == "Unknown command", line
+        assert highlight("command_rejected", line) == line.split("]: ", 1)[1]
+    assert failure('[22:00:00] [Server thread/INFO]: <Steve> Unknown command. Type "help" for help.') is None
+
+
 def test_spigot_kick_leave_line_ends_with_a_period():
     """Spigot·CraftBukkit은 추방·밴으로 나갈 때 `left the game.`을 찍는다 (실측 26.1, 보통 퇴장은 마침표가 없다)"""
     line = "[20:49:16] [Server thread/INFO]: SabaBot left the game."

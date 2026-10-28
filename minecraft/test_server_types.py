@@ -544,6 +544,69 @@ def test_new_instances_pick_the_newest_version_their_server_type_can_install():
     assert plain["latest"]["release"] == "1.21.5"
 
 
+def test_each_server_type_lists_the_versions_its_source_has():
+    """만들 때 고르는 버전 목록은 서버 종류의 받을 곳이 내놓은 것이다 (2026-10-28 각 API 응답 모양 그대로)"""
+    answers = {
+        "https://fill.papermc.io/v3/projects/folia": {"project": {"id": "folia"}, "versions": {"1.21": ["1.21.4"], "1.20": ["1.20.6"]}},
+        "https://api.purpurmc.org/v2/purpur": {"project": "purpur", "versions": ["1.20.6", "1.21.4"]},
+        "https://meta.fabricmc.net/v2/versions/game": [{"version": "1.21.5-rc1", "stable": False}, {"version": "1.21.4", "stable": True}],
+        "https://meta.quiltmc.org/v3/versions/game": [{"version": "1.20.6", "stable": True}],
+        "https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json":
+            {"promos": {"1.21.4-latest": "54.1.0", "1.20.6-recommended": "50.1.0", "1.20.6-latest": "50.1.12"}},
+        "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge":
+            {"versions": ["21.4.10-beta", "21.1.77"]},
+        "https://ci.pufferfish.host/api/json?tree=jobs[name]":
+            {"jobs": [{"name": "Pufferfish-1.21"}, {"name": "Pufferfish-Purpur-1.18"}]},
+        "https://ci.pufferfish.host/job/Pufferfish-1.21/api/json?tree=builds[result,artifacts[fileName]]": {"builds": [
+            {"result": "SUCCESS", "artifacts": [{"fileName": "pufferfish-paperclip-1.21.4-R0.1-SNAPSHOT-mojmap.jar"}]},
+            {"result": "FAILURE", "artifacts": [{"fileName": "pufferfish-paperclip-1.21.5-R0.1-SNAPSHOT.jar"}]},
+        ]},
+    }
+    listing = '<a href="latest.json">latest.json</a>\n<a href="1.20.6.json">1.20.6.json</a>\n<a href="1.21.4.json">1.21.4.json</a>'
+    with mock.patch.object(server_types, "_get_json", side_effect=lambda url: answers[url]), \
+            mock.patch.object(server_types, "_get_text", return_value=listing):
+        got = {t: server_types.installable_versions(t) for t in
+               ("folia", "purpur", "fabric", "quilt", "forge", "neoforge", "pufferfish", "spigot")}
+        assert server_types.installable_versions("vanilla") is None
+    assert got == {
+        "folia": {"1.21.4", "1.20.6"},
+        "purpur": {"1.20.6", "1.21.4"},
+        "fabric": {"1.21.4"},
+        "quilt": {"1.20.6"},
+        "forge": {"1.21.4", "1.20.6"},
+        "neoforge": {"1.21.4", "1.21.1"},
+        "pufferfish": {"1.21.4"},
+        "spigot": {"1.20.6", "1.21.4"},
+    }
+
+
+def test_the_version_list_holds_only_what_the_server_type_can_install():
+    """서버 종류를 주면 그 종류가 받을 수 있는 릴리스만, 쪽 나누기도 거른 뒤에. 받을 곳을 못 읽으면 거르지 않는다"""
+    manifest = {"latest": {"release": "1.21.5", "snapshot": "25w01a"},
+                "versions": [{"id": v, "type": "release"} for v in ["1.21.5", "1.21.4", "1.21.3", "1.21.2"]]}
+    with mock.patch.object(lifecycle.ServerInstaller, "fetch_version_manifest", return_value=manifest), \
+            mock.patch.object(server_types, "installable_versions", return_value={"1.21.4", "1.21.2"}), \
+            mock.patch.object(server_types, "resolve_download", return_value={"url": "u"}):
+        paged = lifecycle.list_versions({"settings": {"server_type": "paper"}, "per_page": 1, "page": 2})
+    assert [v["id"] for v in paged["versions"]] == ["1.21.2"]
+    assert (paged["total"], paged["total_pages"], paged["latest"]["release"]) == (2, 2, "1.21.4")
+    with mock.patch.object(lifecycle.ServerInstaller, "fetch_version_manifest", return_value=manifest), \
+            mock.patch.object(server_types, "installable_versions", side_effect=OSError("offline")), \
+            mock.patch.object(server_types, "resolve_download", return_value={"url": "u"}):
+        offline = lifecycle.list_versions({"settings": {"server_type": "paper"}})
+    assert offline["success"] and len(offline["versions"]) == 4
+    # 목록에 있어도 받아 보니 아직 없는 새 버전(안정 빌드 전)은 최신으로도 목록으로도 내놓지 않는다
+    def resolve(server_type, version):
+        if version == "1.21.4":
+            raise ValueError("version_unavailable")
+        return {"url": "u"}
+    with mock.patch.object(lifecycle.ServerInstaller, "fetch_version_manifest", return_value=manifest), \
+            mock.patch.object(server_types, "installable_versions", return_value={"1.21.4", "1.21.2"}), \
+            mock.patch.object(server_types, "resolve_download", side_effect=resolve):
+        early = lifecycle.list_versions({"settings": {"server_type": "folia"}})
+    assert ([v["id"] for v in early["versions"]], early["latest"]["release"]) == (["1.21.2"], "1.21.2")
+
+
 def test_a_version_the_source_does_not_have_yet_is_skipped_not_given_up_on():
     """Folia·Purpur는 아직 없는 버전에 404를 준다: 그 버전을 건너뛰고 다음 릴리스를 본다 (Mojang 최신으로 돌아가지 않는다)"""
     import io

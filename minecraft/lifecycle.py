@@ -1659,18 +1659,20 @@ class ServerInstaller:
             raise ConnectionError(f"Failed to fetch version manifest: {e}")
 
     @staticmethod
-    def list_versions(include_snapshots=False, page=1, per_page=25):
+    def list_versions(include_snapshots=False, page=1, per_page=25, only=None, manifest=None):
         """Return a paginated list of available Minecraft server versions.
 
         Args:
             include_snapshots: Include snapshot/pre-release versions
             page: Page number (1-based)
             per_page: Results per page
+            only: 이 버전들만 (서버 종류가 받을 수 있는 것). 쪽을 나누기 전에 거른다
+            manifest: 이미 받은 Mojang 목록 (없으면 받는다)
 
         Returns:
             dict with 'versions', 'latest', 'total', 'page', 'per_page', 'total_pages'
         """
-        manifest = ServerInstaller.fetch_version_manifest()
+        manifest = manifest or ServerInstaller.fetch_version_manifest()
         latest = manifest.get("latest", {})
         all_versions = manifest.get("versions", [])
 
@@ -1679,6 +1681,8 @@ class ServerInstaller:
             versions = [v for v in all_versions if v.get("type") == "release"]
         else:
             versions = all_versions  # Already sorted newest-first by Mojang
+        if only is not None:
+            versions = [v for v in versions if v.get("id") in only]
 
         total = len(versions)
         total_pages = max(1, (total + per_page - 1) // per_page)
@@ -2171,25 +2175,41 @@ def list_versions(config):
         include_snapshots (bool): Include snapshots/pre-releases (default: false)
         page (int): Page number, 1-based (default: 1)
         per_page (int): Results per page (default: 25)
-        settings (dict): 인스턴스 설정. `server_type`이 있으면 `latest.release`는 그 종류가 받을 수 있는
-            가장 새 릴리스다 (데몬이 새 인스턴스의 버전을 고를 때 넘긴다)
+        settings (dict): 인스턴스 설정. `server_type`이 있으면 목록은 그 종류가 받을 수 있는 버전만이고
+            `latest.release`는 그중 받을 수 있는 가장 새 릴리스다(그보다 새 것은 받아 보니 아직 없어 목록에서도 뺀다).
+            만들기 화면과 데몬이 새 인스턴스의 버전을 고를 때 넘긴다.
+            그 종류의 받을 곳을 읽지 못하면 거르지 않는다 (설치가 그 버전을 다시 확인한다)
     """
     try:
         include_snapshots = config.get("include_snapshots", False)
         page = int(config.get("page", 1))
         per_page = int(config.get("per_page", 25))
 
+        server_type = (config.get("settings") or {}).get("server_type")
+        typed = bool(server_type) and server_type != "vanilla"
+        only = None
+        if typed:
+            try:
+                only = server_types.installable_versions(server_type)
+            except Exception as e:
+                print(f"Could not list the versions {server_type} offers: {e}", file=sys.stderr)
+        manifest = ServerInstaller.fetch_version_manifest()
+        latest = None
+        if typed:
+            releases = [v["id"] for v in ServerInstaller.list_versions(per_page=10, only=only, manifest=manifest)["versions"]]
+            latest = server_types.latest_installable(server_type, releases)
+            # 그보다 새 릴리스는 받아 보니 아직 받을 수 없었다 (Paper·Folia의 안정 빌드 전): 목록에서도 뺀다
+            if latest and only is not None:
+                only = only - set(releases[:releases.index(latest)])
         result = ServerInstaller.list_versions(
             include_snapshots=include_snapshots,
             page=page,
             per_page=per_page,
+            only=only,
+            manifest=manifest,
         )
-        server_type = (config.get("settings") or {}).get("server_type")
-        if server_type and server_type != "vanilla":
-            releases = [v["id"] for v in result["versions"] if v["type"] == "release"]
-            installable = server_types.latest_installable(server_type, releases)
-            if installable:
-                result["latest"] = {**result.get("latest", {}), "release": installable}
+        if latest:
+            result["latest"] = {**result.get("latest", {}), "release": latest}
         return {"success": True, **result}
     except Exception as e:
         return {"success": False, "message": str(e)}

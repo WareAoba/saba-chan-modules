@@ -325,14 +325,14 @@ def _get_json(url, timeout=15):
         raise
 
 
-def _get_text(url, timeout=15):
-    """받을 곳의 짧은 글 (maven의 `.sha256` 같은 해시 파일). 없으면(404) ValueError("version_unavailable")"""
+def _get_text(url, timeout=15, limit=4096):
+    """받을 곳의 짧은 글 (maven의 `.sha256` 같은 해시 파일, `limit` 바이트까지). 없으면(404) ValueError("version_unavailable")"""
     import urllib.error
     import urllib.request
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.read(4096).decode("utf-8", "replace")
+            return resp.read(limit).decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
         if e.code == 404:
             raise ValueError("version_unavailable") from e
@@ -510,6 +510,45 @@ def retire_other_builds(server_type, source, server_dir):
         for path in glob.glob(os.path.join(glob.escape(base), "*", name)):
             if os.path.basename(os.path.dirname(path)) != build:
                 os.remove(path)
+
+
+def installable_versions(server_type):
+    """서버 종류의 받을 곳이 내놓은 마인크래프트 버전들 (집합). `resolve_download`가 보는 곳과 같은 목록이다.
+
+    받을 곳이 따로 없는 종류(바닐라)·모르는 종류는 None (Mojang 목록 그대로). 받을 곳을 읽지 못하면 예외.
+    Paper·Folia는 목록에 있어도 안정 빌드가 아직 없을 수 있다 (그 버전 설치는 version_unavailable로 실패한다)
+    """
+    source = SERVER_TYPES.get(server_type, {}).get("install")
+    if source == "fill":
+        groups = _get_json(f"https://fill.papermc.io/v3/projects/{server_type}").get("versions") or {}
+        return {v for versions in groups.values() for v in versions}
+    if source == "purpur":
+        return set(_get_json("https://api.purpurmc.org/v2/purpur").get("versions") or [])
+    if source in ("fabric", "quilt"):
+        url = {"fabric": "https://meta.fabricmc.net/v2/versions/game", "quilt": "https://meta.quiltmc.org/v3/versions/game"}[source]
+        return {g["version"] for g in _get_json(url) if g.get("stable") and g.get("version")}
+    if source == "forge":
+        promos = _get_json("https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json").get("promos") or {}
+        return {key.rsplit("-", 1)[0] for key in promos if key.endswith(("-recommended", "-latest"))}
+    if source == "neoforge":
+        versions = _get_json("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge").get("versions") or []
+        return {mc for mc in (minecraft_version_of("neoforge", v) for v in versions) if mc}
+    if source == "pufferfish":
+        # 부 버전마다 Jenkins 작업 하나 (Pufferfish-Purpur-*는 다른 서버다). 성공한 빌드의 jar 이름에 버전이 있다
+        jobs = [j["name"] for j in _get_json("https://ci.pufferfish.host/api/json?tree=jobs[name]").get("jobs") or []
+                if re.fullmatch(r"Pufferfish-\d+\.\d+", j.get("name", ""))]
+        jar = re.compile(r"pufferfish-paperclip-(.+?)-R\d+\.\d+-SNAPSHOT(-\w+)?\.jar")
+        found = set()
+        for job in jobs:
+            listing = _get_json(f"https://ci.pufferfish.host/job/{job}/api/json?tree=builds[result,artifacts[fileName]]")
+            for build in listing.get("builds") or []:
+                if build.get("result") == "SUCCESS":
+                    found.update(m.group(1) for a in build.get("artifacts") or [] if (m := jar.fullmatch(a.get("fileName", ""))))
+        return found
+    if source == "buildtools":
+        # BuildTools가 빌드할 수 있는 버전마다 `<버전>.json`이 있다 (latest.json 같은 별칭은 뺀다)
+        return set(re.findall(r'href="(\d+\.\d+(?:\.\d+)?)\.json"', _get_text("https://hub.spigotmc.org/versions/", timeout=20, limit=1 << 20)))
+    return None
 
 
 def latest_installable(server_type, releases, tries=10, deadline_secs=60):

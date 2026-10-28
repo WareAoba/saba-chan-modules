@@ -571,7 +571,7 @@ def test_each_server_type_lists_the_versions_its_source_has():
     assert got == {
         "folia": {"1.21.4", "1.20.6"},
         "purpur": {"1.20.6", "1.21.4"},
-        "fabric": {"1.21.4"},
+        "fabric": {"1.21.5-rc1", "1.21.4"},  # 스냅샷도 로더가 있으면 받는다 (릴리스만 보일지는 include_snapshots)
         "quilt": {"1.20.6"},
         "forge": {"1.21.4", "1.20.6"},
         "neoforge": {"1.21.4", "1.21.1"},

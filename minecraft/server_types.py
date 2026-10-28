@@ -526,7 +526,8 @@ def installable_versions(server_type):
         return set(_get_json("https://api.purpurmc.org/v2/purpur").get("versions") or [])
     if source in ("fabric", "quilt"):
         url = {"fabric": "https://meta.fabricmc.net/v2/versions/game", "quilt": "https://meta.quiltmc.org/v3/versions/game"}[source]
-        return {g["version"] for g in _get_json(url) if g.get("stable") and g.get("version")}
+        # `stable`은 게임 버전이 릴리스인지다 (스냅샷도 로더가 있으면 받는다; 릴리스만 보일지는 include_snapshots)
+        return {g["version"] for g in _get_json(url) if g.get("version")}
     if source == "forge":
         promos = _get_json("https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json").get("promos") or {}
         return {key.rsplit("-", 1)[0] for key in promos if key.endswith(("-recommended", "-latest"))}

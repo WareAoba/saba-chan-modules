@@ -155,7 +155,10 @@ def test_launch_keeps_the_console_utf8_and_without_color_codes():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         args = get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2})["args"]
-        flags = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8", "-Dterminal.ansi=false"]
+        flags = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
+                 # Java 17 이하는 sun.stdout.encoding·file.encoding을 본다
+                 "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dfile.encoding=UTF-8",
+                 "-Dterminal.ansi=false"]
         assert all(f in args for f in flags)
         assert max(args.index(f) for f in flags) < args.index("-jar"), "JVM 인자 자리에 둔다"
 

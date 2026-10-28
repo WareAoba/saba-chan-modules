@@ -118,6 +118,9 @@ def test_rejected_commands_are_colored_as_errors():
             assert highlight("command_rejected", head + body) == hl, head + body
     assert highlight("command_rejected", "[20:00:00] [Server thread/INFO]: [Not Secure] [Server] No player was found") is None
     assert highlight("command_rejected", "[20:00:00] [Server thread/INFO]: <Steve> No entity was found") is None
+    # 채팅에 로그 머리 끝(`]: `)을 흉내 내도 칠하지 않는다
+    assert highlight("command_rejected", "[20:00:00] [Server thread/INFO]: <Steve> x]: No player was found") is None
+    assert highlight("player_join", "[20:00:00] [Server thread/INFO]: <Steve> a]: Bob joined the game") is None
     # 틀린 자리 표시: 오류 다음 줄 `System chat: ...ive Steve not_an_item_saba<--[HERE]`
     assert highlight("command_error_here", "[20:00:00 INFO]: System chat: ...ive Steve not_an_item_saba<--[HERE]") == "<--[HERE]"
 

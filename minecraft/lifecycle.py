@@ -1004,7 +1004,10 @@ def _enforce_rcon_policy(working_dir, config=None):
 # 한글 공지가 `???`로 바뀌었다 (클라우드 Linux 실측, 26.3).
 # Paper 계열 콘솔(TerminalConsoleAppender)은 화면이 아닌 파이프에도 ANSI 색 코드를 넣어 `Seed: [\x1b[92m…`처럼
 # 실패·답 모양과 로그 진단이 맞지 않는다. 데몬 콘솔은 색을 스스로 칠하므로(syntax_highlight) 색 코드를 끈다 (`terminal.ansi`)
-_CONSOLE_FLAGS = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8", "-Dterminal.ansi=false"]
+# Java 17 이하(1.20.4 이하 서버)는 stdout.encoding 대신 sun.stdout.encoding을, stdin은 file.encoding을 본다
+_CONSOLE_FLAGS = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
+                  "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dfile.encoding=UTF-8",
+                  "-Dterminal.ansi=false"]
 
 
 def get_launch_command(config):

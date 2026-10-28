@@ -273,7 +273,7 @@ def minecraft_version_of(server_type, loader_version):
     text = str(loader_version or "")
     if server_type == "forge":
         mc = text.split("-")[0]
-        return mc if re.fullmatch(r"(?:1|2\d)\.\d+(\.\d+)?", mc) else None
+        return mc if re.fullmatch(r"\d+\.\d+(\.\d+)?", mc) else None
     if server_type == "neoforge":
         numbers = re.match(r"(\d+)\.(\d+)", text)
         if not numbers:

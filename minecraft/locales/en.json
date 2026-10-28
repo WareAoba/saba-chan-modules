@@ -104,6 +104,7 @@
       }
     },
     "save-all": { "label": "Save World", "description": "Save the game world" },
+    "save-flush": { "label": "Save World to Disk", "description": "Save the game world and wait until every chunk is written to disk" },
     "save-off": { "label": "Pause Autosave", "description": "Stop the server from saving the world automatically" },
     "save-on": { "label": "Resume Autosave", "description": "Let the server save the world automatically again" },
     "list": { "label": "Player List", "description": "View list of connected players" },

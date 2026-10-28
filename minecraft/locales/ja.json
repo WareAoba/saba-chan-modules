@@ -100,6 +100,7 @@
       "inputs": { "player": { "label": "プレイヤー名", "placeholder": "プレイヤーのニックネーム" }, "item": { "label": "アイテムID", "placeholder": "例: diamond, iron_ore" }, "amount": { "label": "個数" } }
     },
     "save-all": { "label": "ワールド保存", "description": "ゲームワールドを保存します" },
+    "save-flush": { "label": "ディスクに保存", "description": "ワールドを保存し、すべてのチャンクがディスクに書き込まれるまで待ちます" },
     "save-off": { "label": "自動保存を止める", "description": "サーバーがワールドを自動で保存しないようにします" },
     "save-on": { "label": "自動保存を再開", "description": "サーバーが再びワールドを自動で保存します" },
     "list": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧を表示します" },

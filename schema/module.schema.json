@@ -582,6 +582,13 @@
             "null"
           ]
         },
+        "save_done_pattern": {
+          "description": "켜진 서버에서 `save_command`가 디스크에 다 썼다고 알리는 콘솔 줄의 정규식 (예: \"Saved the game$\"). 있으면 데몬이 고정 대기 대신 이 줄을 기다리고(최대 120초), 나오지 않으면 백업을 만들지 않는다",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "snapshots": {
           "description": "true면 lifecycle `backup_snapshots(config)`가 게임이 스스로 만든 자동 백업(스냅샷)을 `{\"success\": true, \"snapshots\": [{\"id\", \"created\", \"paths\": [{\"from\", \"to\"}]}]}`(새것부터)로 준다. 백업 목록에 함께 보이고, 사바쨩 백업으로 보관하거나 바로 복원할 수 있다",
           "type": "boolean"

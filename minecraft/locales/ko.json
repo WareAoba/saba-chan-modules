@@ -104,6 +104,7 @@
       }
     },
     "save-all": { "label": "월드 저장", "description": "게임 월드를 저장합니다" },
+    "save-flush": { "label": "디스크에 저장", "description": "월드를 저장하고 모든 청크를 디스크에 다 쓸 때까지 기다립니다" },
     "save-off": { "label": "자동 저장 끄기", "description": "서버가 월드를 자동으로 저장하지 않게 합니다" },
     "save-on": { "label": "자동 저장 켜기", "description": "서버가 월드를 다시 자동으로 저장합니다" },
     "list": { "label": "플레이어 목록", "description": "접속 중인 플레이어 목록을 조회합니다" },

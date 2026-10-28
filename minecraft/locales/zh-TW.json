@@ -100,6 +100,7 @@
       "inputs": { "player": { "label": "玩家名稱", "placeholder": "玩家暱稱" }, "item": { "label": "物品ID", "placeholder": "例: diamond, iron_ore" }, "amount": { "label": "數量" } }
     },
     "save-all": { "label": "儲存世界", "description": "儲存遊戲世界" },
+    "save-flush": { "label": "儲存到磁碟", "description": "儲存世界並等待所有區塊寫入磁碟" },
     "save-off": { "label": "暫停自動儲存", "description": "讓伺服器不再自動儲存世界" },
     "save-on": { "label": "恢復自動儲存", "description": "讓伺服器重新自動儲存世界" },
     "list": { "label": "玩家清單", "description": "檢視已連線的玩家清單" },

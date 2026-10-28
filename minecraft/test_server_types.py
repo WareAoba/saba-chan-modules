@@ -642,6 +642,18 @@ def test_loader_servers_report_the_minecraft_version_they_run(tmp_path):
     assert (found["success"], found["version"], found["server_type"]) == (True, "1.21.1", "neoforge")
 
 
+def test_year_versioned_forge_reports_its_minecraft_version(tmp_path):
+    """26.x Forge의 로더 버전은 `26.3-66.1.0`이다 (클라우드 실측: 설치한 26.3 Forge의 installed-version이 실패했다)"""
+    args = tmp_path / "libraries" / "net" / "minecraftforge" / "forge" / "26.3-66.1.0"
+    args.mkdir(parents=True)
+    (args / "unix_args.txt").write_text("-cp x\n")
+    shim = make_jar(str(tmp_path / "forge-26.3-66.1.0-shim.jar"),
+                    {"META-INF/MANIFEST.MF": "Main-Class: net.minecraftforge.bootstrap.shim.Main\n"})
+    found = lifecycle.get_installed_version({"working_dir": str(tmp_path), "server_executable": shim})
+    assert (found["success"], found.get("version"), found.get("server_type")) == (True, "26.3", "forge")
+    assert server_types.minecraft_version_of("forge", "26.1.2-64.0.1") == "26.1.2"
+
+
 def test_the_installer_result_must_be_the_chosen_type_and_build(tmp_path):
     """설치기가 끝난 뒤 준비 폴더에 그 종류·그 판의 서버가 있어야 한다 (서버 폴더에 남은 옛 jar로 판정하지 않는다)"""
     forge = tmp_path / "forge"

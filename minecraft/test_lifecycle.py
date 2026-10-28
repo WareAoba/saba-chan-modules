@@ -148,6 +148,21 @@ def test_build_launch_info_basic():
         assert result["working_dir"] == os.path.abspath(tmpdir)
 
 
+def test_launch_keeps_the_console_utf8_and_without_color_codes():
+    """데몬은 콘솔을 UTF-8 글자로 주고받는다. 로캘이 POSIX인 Linux에서 Paper·Spigot·Forge는 한글 공지를 `???`로 바꿨고,
+    Paper 계열은 파이프에도 ANSI 색 코드를 넣어 실패 모양(`No player was found`)·답 모양(`Seed: [..]`)이 맞지 않았다 (클라우드 실측 26.3)"""
+    from minecraft.lifecycle import get_launch_command
+    with tempfile.TemporaryDirectory() as tmpdir:
+        jar = _make_fake_jar(tmpdir)
+        args = get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2})["args"]
+        flags = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
+                 # Java 17 이하는 sun.stdout.encoding·file.encoding을 본다
+                 "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dfile.encoding=UTF-8",
+                 "-Dterminal.ansi=false"]
+        assert all(f in args for f in flags)
+        assert max(args.index(f) for f in flags) < args.index("-jar"), "JVM 인자 자리에 둔다"
+
+
 def test_build_launch_info_missing_jar():
     """get_launch_command returns action_required when jar missing."""
     from minecraft.lifecycle import get_launch_command

@@ -169,7 +169,7 @@
     "server_type_mismatch": "Тип сервера установлен как '{{chosen}}', но файлы сервера — '{{detected}}'.",
     "server_type_install_unsupported": "saba-chan не может установить серверы '{{type}}'. Установите его самостоятельно и добавьте через «Миграция сервера».",
     "server_type_version_unavailable": "Для '{{type}}' пока нет стабильной сборки под Minecraft {{version}}.",
-    "installer_failed": "Официальный установщик '{{type}}' завершился с ошибкой (код {{code}}). Попробуйте ещё раз.",
+    "installer_failed": "Официальный установщик '{{type}}' завершился с ошибкой (код {{code}}): {{detail}}",
     "installer_timeout": "Официальный установщик '{{type}}' работал слишком долго и был остановлен. Попробуйте ещё раз.",
     "installer_no_server": "Установщик '{{type}}' завершился, но не создал файлы сервера.",
     "server_jar_not_specified": "server_jar не указан в конфигурации экземпляра. Пожалуйста добавьте путь к server.jar",

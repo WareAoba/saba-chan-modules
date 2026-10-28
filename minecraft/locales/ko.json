@@ -173,7 +173,7 @@
     "server_type_mismatch": "서버 종류가 '{{chosen}}'(으)로 설정되어 있지만 서버 파일은 '{{detected}}'입니다.",
     "server_type_install_unsupported": "'{{type}}' 서버는 사바쨩이 설치할 수 없습니다. 직접 설치한 서버를 '기존 서버 가져오기'로 추가해 주세요.",
     "server_type_version_unavailable": "'{{type}}' 서버에는 마인크래프트 {{version}}용 안정 빌드가 아직 없습니다.",
-    "installer_failed": "'{{type}}' 공식 설치기가 실패했습니다 (종료 코드 {{code}}). 다시 시도해 주세요.",
+    "installer_failed": "'{{type}}' 공식 설치기가 실패했습니다 (종료 코드 {{code}}): {{detail}}",
     "installer_timeout": "'{{type}}' 공식 설치기가 너무 오래 걸려 멈췄습니다. 다시 시도해 주세요.",
     "installer_no_server": "'{{type}}' 설치기는 끝났지만 서버 파일이 만들어지지 않았습니다.",
     "server_jar_not_specified": "인스턴스 구성에 server_jar가 지정되지 않았습니다. server.jar 경로를 추가해주세요",

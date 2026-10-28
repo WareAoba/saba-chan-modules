@@ -169,7 +169,7 @@
     "server_type_mismatch": "Le type de serveur est défini sur '{{chosen}}', mais les fichiers du serveur sont '{{detected}}'.",
     "server_type_install_unsupported": "saba-chan ne peut pas installer de serveurs '{{type}}'. Installez-le vous-même et ajoutez-le via 'Migration du serveur existant'.",
     "server_type_version_unavailable": "'{{type}}' n'a pas encore de build stable pour Minecraft {{version}}.",
-    "installer_failed": "L'installateur officiel de '{{type}}' a échoué (code de sortie {{code}}). Veuillez réessayer.",
+    "installer_failed": "L'installateur officiel de '{{type}}' a échoué (code de sortie {{code}}) : {{detail}}",
     "installer_timeout": "L'installateur officiel de '{{type}}' a pris trop de temps et a été arrêté. Veuillez réessayer.",
     "installer_no_server": "L'installateur de '{{type}}' s'est terminé sans créer les fichiers du serveur.",
     "server_jar_not_specified": "server_jar non spécifié dans la configuration de l'instance. Veuillez ajouter le chemin vers server.jar",

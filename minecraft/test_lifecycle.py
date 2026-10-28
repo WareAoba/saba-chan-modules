@@ -1692,7 +1692,7 @@ def test_an_escaped_line_break_survives_import_and_save():
 
 # ─── 공식 설치기로 까는 서버 종류 (Quilt·Forge·NeoForge·BuildTools) ─────────────
 
-def _installer_fixture(tmp_path, server_type, source, run):
+def _installer_fixture(tmp_path, server_type, source, run, jre=None):
     """설치기 jar를 받고 Java를 갖춘 뒤 run(cmd, cwd, env)으로 설치기를 돌리는 install_server를 부른다"""
     import hashlib
     import io
@@ -1720,15 +1720,17 @@ def _installer_fixture(tmp_path, server_type, source, run):
         calls.append({"cmd": cmd, "cwd": cwd, "env": env, "installer": open(cmd[cmd.index("-jar") + 1], "rb").read()})
         return run(cmd, cwd, env)
 
-    java = str(tmp_path / "java" / "bin" / "java")
+    def fake_jre(major, folder, image_type="jre", max_major=None):
+        return jre(major, folder, image_type, max_major) if jre else \
+            {"success": True, "java_path": os.path.join(folder, "java", "bin", image_type), "version": "21"}
+
     with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
             mock.patch.object(lifecycle.server_types, "resolve_download", return_value=source), \
             mock.patch("urllib.request.urlopen", return_value=Resp(body)), \
-            mock.patch.object(lifecycle.JavaDownloader, "download_jre",
-                              return_value={"success": True, "java_path": java, "version": "21"}) as jre, \
+            mock.patch.object(lifecycle.JavaDownloader, "download_jre", side_effect=fake_jre) as jres, \
             mock.patch.object(ServerInstaller, "_run_installer_process", side_effect=fake_run):
         result = ServerInstaller.install_server("1.21.1", str(tmp_path), server_type=server_type, accept_eula=True)
-    return result, calls, jre, body
+    return result, calls, jres, body
 
 
 def _jar_bytes(files):
@@ -1745,59 +1747,90 @@ def _no_build_dirs(path):
     return [p.name for p in path.iterdir() if p.name.startswith(".saba-install")] == []
 
 
-def test_quilt_is_installed_by_its_official_installer_with_portable_java(tmp_path):
-    def run(cmd, cwd, env):
-        (tmp_path / "quilt-server-launch.jar").write_bytes(_jar_bytes({
-            "META-INF/MANIFEST.MF": "Main-Class: org.quiltmc.loader.impl.launch.server.QuiltServerLauncher\n"}))
-        (tmp_path / "server.jar").write_bytes(_jar_bytes({"net/minecraft/server/MinecraftServer.class": "x"}))
-        return 0, []
+def _quilt_run(cmd, cwd, env):
+    target = next(a for a in cmd if a.startswith("--install-dir=")).split("=", 1)[1]
+    assert cwd == target
+    open(os.path.join(cwd, "installer.jar.log"), "w").write("installer log")
+    open(os.path.join(target, "quilt-server-launch.jar"), "wb").write(_jar_bytes({
+        "META-INF/MANIFEST.MF": "Main-Class: org.quiltmc.loader.impl.launch.server.QuiltServerLauncher\n"}))
+    open(os.path.join(target, "server.jar"), "wb").write(b"vanilla 1.21.1")
+    os.makedirs(os.path.join(target, "libraries", "org", "quiltmc"))
+    open(os.path.join(target, "libraries", "org", "quiltmc", "quilt-loader.jar"), "wb").write(b"loader")
+    return 0, []
 
-    result, calls, jre, body = _installer_fixture(tmp_path, "quilt", {"build": "0.30.1"}, run)
+
+def test_quilt_is_installed_by_its_official_installer_with_portable_java(tmp_path):
+    (tmp_path / "world").mkdir()
+    (tmp_path / "world" / "level.dat").write_bytes(b"save")
+    result, calls, jre, body = _installer_fixture(tmp_path, "quilt", {"build": "0.30.1"}, _quilt_run)
     assert result["success"], result
     assert result["executable_path"] == str(tmp_path / "quilt-server-launch.jar")
     assert (result["server_type"], result["build"], result["java_path"]) == ("quilt", "0.30.1", calls[0]["cmd"][0])
-    # 설치기는 PC의 Java가 아니라 고정 판 포터블 Java로 돈다 (마인크래프트 버전이 요구하는 주 버전)
-    assert jre.call_args[0] == (21, str(tmp_path))
+    # 설치기는 PC의 Java가 아니라 고정 판 포터블 Java로 돈다. 서버 폴더에 더 새 Java가 있으면 고정 판으로 바꾼다
+    assert jre.call_args.args == (21, str(tmp_path)) and jre.call_args.kwargs == {"max_major": 21}
     cmd = calls[0]["cmd"]
-    assert cmd[cmd.index("-jar") + 2:] == ["install", "server", "1.21.1", "0.30.1", "--download-server",
-                                           f"--install-dir={tmp_path}"]
+    assert cmd[cmd.index("-jar") + 2:-1] == ["install", "server", "1.21.1", "0.30.1", "--download-server"]
     assert calls[0]["installer"] == body, "체크섬을 확인한 설치기를 돌린다"
-    assert os.path.dirname(calls[0]["cwd"]) == str(tmp_path) and _no_build_dirs(tmp_path), "설치기 폴더는 지운다"
+    # 준비 폴더에 만든 서버를 확인한 뒤 서버 폴더로 옮긴다. 월드는 그대로다
+    assert os.path.dirname(os.path.dirname(calls[0]["cwd"])) == str(tmp_path)
+    assert (tmp_path / "server.jar").read_bytes() == b"vanilla 1.21.1"
+    assert (tmp_path / "libraries" / "org" / "quiltmc" / "quilt-loader.jar").read_bytes() == b"loader"
+    assert (tmp_path / "world" / "level.dat").read_bytes() == b"save"
+    assert not (tmp_path / "installer.jar.log").exists(), "설치기 로그는 서버 폴더로 옮기지 않는다"
+    assert _no_build_dirs(tmp_path), "설치기 폴더는 지운다"
     assert (tmp_path / "eula.txt").read_text(encoding="utf-8").strip().endswith("eula=true")
 
 
-def test_buildtools_builds_spigot_inside_the_server_folder_and_puts_the_jar_in_place(tmp_path):
+def test_buildtools_builds_spigot_with_a_jdk_inside_the_server_folder(tmp_path):
     (tmp_path / "server.jar").write_bytes(b"old spigot")
+    (tmp_path / "paper-1.21.1.jar").write_bytes(_jar_bytes({
+        "META-INF/MANIFEST.MF": "Main-Class: io.papermc.paperclip.Main\n",
+        "META-INF/versions.list": "abc\t1.21.1\t1.21.1/paper-1.21.1.jar\n"}))
     built = _jar_bytes({"META-INF/MANIFEST.MF": "Main-Class: org.bukkit.craftbukkit.bootstrap.Main\n",
                         "META-INF/versions.list": "d955 *spigot-1.21.1-R0.1-SNAPSHOT.jar\n"})
 
     def run(cmd, cwd, env):
         out = cmd[cmd.index("--output-dir") + 1]
-        assert out == cwd
+        assert os.path.dirname(out) == cwd
+        open(os.path.join(cwd, "BuildData.txt"), "w").write("work")
         open(os.path.join(out, cmd[cmd.index("--final-name") + 1]), "wb").write(built)
         return 0, []
 
-    result, calls, jre, _ = _installer_fixture(tmp_path, "spigot", {"build": "4344", "java_min": 21}, run)
+    result, calls, jre, _ = _installer_fixture(tmp_path, "spigot", {"build": "4344", "java_min": 21, "java_max": 23,
+                                                                     "jdk": True}, run)
     assert result["success"], result
+    # 서버 폴더에 남은 다른 종류의 jar(paper)는 판정에 끼지 않는다
     assert (tmp_path / "server.jar").read_bytes() == built
     assert result["executable_path"] == str(tmp_path / "server.jar")
-    # 메이븐 저장소·임시 파일도 설치기 폴더 안에 둔다 (사용자 홈의 ~/.m2를 채우지 않는다)
+    # BuildTools는 컴파일하므로 설치기 폴더에 받은 JDK로 돈다. 서버는 서버 폴더의 JRE로 뜬다
     build = calls[0]["cwd"]
+    assert calls[0]["cmd"][0] == os.path.join(build, "java", "bin", "jdk")
+    assert result["java_path"] == os.path.join(str(tmp_path), "java", "bin", "jre")
+    # 메이븐 저장소·임시 파일도 설치기 폴더 안에 둔다 (사용자 홈의 ~/.m2를 채우지 않는다)
     assert calls[0]["env"]["MAVEN_OPTS"] == f"-Dmaven.repo.local={os.path.join(build, 'm2')}"
     assert f"-Djava.io.tmpdir={os.path.join(build, 'tmp')}" in calls[0]["cmd"]
-    assert _no_build_dirs(tmp_path)
+    assert not (tmp_path / "BuildData.txt").exists() and _no_build_dirs(tmp_path)
 
 
-def test_a_failed_installer_reports_failure_and_keeps_the_old_server(tmp_path):
-    (tmp_path / "server.jar").write_bytes(b"old spigot")
-    result, _, _, _ = _installer_fixture(tmp_path, "spigot", {"build": "4344"}, lambda *a: (1, ["BUILD FAILURE"]))
-    assert result["success"] is False and "spigot" in result["message"]
-    assert (tmp_path / "server.jar").read_bytes() == b"old spigot"
+def test_a_failed_installer_reports_why_and_keeps_the_old_server(tmp_path):
+    (tmp_path / "server.jar").write_bytes(b"old server")
+    tail = ["[INFO] BUILD FAILURE", "[ERROR] No compiler is provided in this environment.", "[INFO] done"]
+
+    def half_done(cmd, cwd, env):
+        target = next((a.split("=", 1)[1] for a in cmd if a.startswith("--install-dir=")), None)
+        open(os.path.join(target, "server.jar"), "wb").write(b"half")
+        return 1, tail
+
+    result, _, _, _ = _installer_fixture(tmp_path, "quilt", {"build": "0.30.1"}, half_done)
+    assert result["success"] is False and "quilt" in result["message"]
+    assert "No compiler is provided" in result["message"]
+    assert (tmp_path / "server.jar").read_bytes() == b"old server", "실패한 설치는 서버 폴더를 건드리지 않는다"
     assert _no_build_dirs(tmp_path)
 
     # 설치기가 성공이라 해도 고른 종류의 서버가 생기지 않았으면 실패다
     result, _, _, _ = _installer_fixture(tmp_path, "quilt", {"build": "0.30.1"}, lambda *a: (0, []))
     assert result["success"] is False and "quilt" in result["message"]
+    assert (tmp_path / "server.jar").read_bytes() == b"old server"
     assert _no_build_dirs(tmp_path)
 
 
@@ -1815,3 +1848,36 @@ def test_an_installer_needs_its_portable_java(tmp_path):
     assert result["success"] is False and "offline" in result["message"]
     run.assert_not_called()
     assert _no_build_dirs(tmp_path)
+
+
+def test_an_installer_folder_in_use_is_not_removed_but_a_stale_one_is(tmp_path):
+    import time
+    from minecraft.lifecycle import ServerInstaller
+    fresh = tmp_path / ".saba-install-fresh"
+    stale = tmp_path / ".saba-install-stale"
+    for d in (fresh, stale):
+        (d / "Spigot" / ".git").mkdir(parents=True)
+        pack = d / "Spigot" / ".git" / "pack.idx"
+        pack.write_bytes(b"x")
+        os.chmod(pack, 0o444)  # git 팩 파일은 읽기 전용이다
+    old = time.time() - 2 * 3600
+    os.utime(stale, (old, old))
+    build = ServerInstaller._make_build_dir(str(tmp_path))
+    assert fresh.exists() and not stale.exists() and os.path.isdir(build)
+
+
+def test_bundled_java_newer_than_an_installer_allows_is_replaced(tmp_path):
+    """서버 폴더의 java/가 고정 판보다 새것이면 그대로 쓰지 않는다 (옛 Forge·BuildTools는 너무 새 Java를 거절한다)"""
+    from minecraft.lifecycle import JavaDownloader
+    with mock.patch.object(JavaDownloader, "_find_bundled_java", return_value="/srv/java/bin/java"), \
+            mock.patch.object(lifecycle_module().JavaDetector, "get_java_info",
+                              return_value={"major_version": 21, "version": "21"}), \
+            mock.patch.object(JavaDownloader, "_release_package", side_effect=RuntimeError("download")) as fetch:
+        assert JavaDownloader.download_jre(8, str(tmp_path))["already_exists"]
+        result = JavaDownloader.download_jre(8, str(tmp_path), max_major=8)
+    assert result["success"] is False and fetch.called
+
+
+def lifecycle_module():
+    from minecraft import lifecycle
+    return lifecycle

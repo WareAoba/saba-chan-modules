@@ -169,7 +169,7 @@
     "server_type_mismatch": "服务器类型设置为 '{{chosen}}'，但服务器文件是 '{{detected}}'。",
     "server_type_install_unsupported": "saba-chan 无法安装 '{{type}}' 服务器。请自行安装，然后通过“迁移现有服务器”添加。",
     "server_type_version_unavailable": "'{{type}}' 尚无适用于 Minecraft {{version}} 的稳定版本。",
-    "installer_failed": "'{{type}}' 官方安装器失败（退出代码 {{code}}）。请重试。",
+    "installer_failed": "'{{type}}' 官方安装器失败（退出代码 {{code}}）：{{detail}}",
     "installer_timeout": "'{{type}}' 官方安装器耗时过长，已停止。请重试。",
     "installer_no_server": "'{{type}}' 安装器已结束，但没有生成服务器文件。",
     "server_jar_not_specified": "实例配置中未指定server_jar。请添加server.jar的路径",

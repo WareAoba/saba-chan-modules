@@ -254,10 +254,6 @@ def detect(working_dir, server_jar=None):
         result["type"] = marker
         result["evidence"].append(f"{marker_rel} (folder)")
 
-    # 로더 런처 jar(Quilt)에 버전이 없으면 그 로더가 띄우는 옆의 바닐라 jar의 버전이다
-    if result["version"] is None and family(result["type"]) == "mod":
-        result["version"] = next((info.get("version") for _, info in infos
-                                  if info["type"] == "vanilla" and info.get("version")), None)
 
     if result["type"] in ("forge", "neoforge"):
         args_version = _modern_forge_version(working_dir, result["type"])
@@ -265,6 +261,10 @@ def detect(working_dir, server_jar=None):
             result["loader_version"] = args_version
             result["version"] = result["version"] or minecraft_version_of(result["type"], args_version)
             result["evidence"].append(f"libraries/…/{args_version}/unix_args.txt")
+    # 로더 런처 jar(Quilt)에 버전이 없으면 그 로더가 띄우는 옆의 바닐라 jar의 버전이다
+    if result["version"] is None and family(result["type"]) == "mod":
+        result["version"] = next((info.get("version") for _, info in infos
+                                  if info["type"] == "vanilla" and info.get("version")), None)
     return result
 
 
@@ -443,29 +443,58 @@ def resolve_download(server_type, mc_version):
         return {"url": url, "sha256": _maven_sha256(url), "build": build, "installer": True}
     if source == "buildtools":
         # Spigot·CraftBukkit은 배포 jar가 없고 공식 BuildTools로 빌드한다. 버전 정보가 없으면 빌드할 수 없는 버전이다.
-        # javaVersions는 BuildTools가 받는 Java의 class 파일 버전 범위다 (65 = Java 21). BuildTools.jar에는 공식 체크섬이 없다
+        # javaVersions는 BuildTools가 받는 Java의 class 파일 버전 범위다 (65 = Java 21). 컴파일하므로 JRE가 아니라 JDK가 든다.
+        # BuildTools.jar에는 공식 체크섬이 없다
         info = _get_json(f"https://hub.spigotmc.org/versions/{mc_version}.json")
         java = [v for v in info.get("javaVersions") or [] if isinstance(v, int)]
-        return {"url": _BUILDTOOLS_URL, "build": str(info.get("name") or ""), "installer": True,
-                **({"java_min": java[0] - 44} if java else {})}
+        return {"url": _BUILDTOOLS_URL, "build": str(info.get("name") or ""), "installer": True, "jdk": True,
+                **({"java_min": java[0] - 44, "java_max": java[-1] - 44} if java else {})}
     raise ValueError("install_unsupported")
 
 
-def installer_args(server_type, mc_version, source, install_dir, build_dir, jar_name):
-    """공식 설치기(`java -jar <설치기>`) 뒤에 붙일 인자. 설치기는 build_dir에서 돈다.
+def installer_command(server_type, mc_version, source, target_dir, build_dir, jar_name):
+    """공식 설치기(`java -jar <설치기>`) 뒤에 붙일 인자와 작업 폴더.
 
-    Quilt·Forge·NeoForge는 install_dir에 서버를 바로 깐다. BuildTools는 build_dir에 빌드해 jar_name으로 낸다
-    (호출한 쪽이 완성된 jar를 서버 폴더로 옮긴다)
+    설치기는 서버 폴더가 아니라 비어 있는 target_dir에 서버를 만든다 (호출한 쪽이 확인한 뒤 서버 폴더로 옮긴다).
+    Quilt·Forge·NeoForge는 target_dir에서 돌린다 (옛 Forge 설치기는 경로 인자 없이 작업 폴더에 깐다).
+    BuildTools는 소스·메이븐 작업물을 작업 폴더에 남기므로 build_dir에서 돌리고 완성된 jar만 target_dir에 낸다
     """
     kind = SERVER_TYPES[server_type]["install"]
     if kind == "quilt":
-        return ["install", "server", mc_version, source["build"], "--download-server", f"--install-dir={install_dir}"]
+        return ["install", "server", mc_version, source["build"], "--download-server", f"--install-dir={target_dir}"], target_dir
     if kind in ("forge", "neoforge"):
-        return ["--installServer", install_dir]
+        return ["--installServer", target_dir], target_dir
     if kind == "buildtools":
-        return ["--rev", mc_version, "--compile", server_type, "--nogui", "--output-dir", build_dir,
-                "--final-name", jar_name]
+        return ["--rev", mc_version, "--compile", server_type, "--nogui", "--output-dir", target_dir,
+                "--final-name", jar_name], build_dir
     raise ValueError("install_unsupported")
+
+
+def installed_jar(server_type, source, target_dir, jar_name):
+    """설치기가 target_dir에 만든 서버의 실행 jar 이름. 인자 파일로 뜨는 1.17+ Forge·NeoForge는 ""(shim jar가 있으면 그것).
+    고른 종류·판의 서버가 생기지 않았으면 None"""
+    kind = SERVER_TYPES[server_type]["install"]
+    build = str(source.get("build") or "")
+    if kind in ("forge", "neoforge"):
+        root = {"forge": ("net", "minecraftforge", "forge"), "neoforge": ("net", "neoforged", "neoforge")}[kind]
+        if os.path.isfile(os.path.join(target_dir, "libraries", *root, build, "unix_args.txt")):
+            shim = f"forge-{build}-shim.jar"
+            return shim if kind == "forge" and os.path.isfile(os.path.join(target_dir, shim)) else ""
+        # 1.16 이하 Forge는 실행 jar를 낸다
+        names = [f"forge-{build}.jar", f"forge-{build}-universal.jar"] if kind == "forge" else []
+    elif kind == "quilt":
+        names = ["quilt-server-launch.jar"]
+    else:
+        # BuildTools는 Spigot에만 --final-name을 쓴다 (CraftBukkit은 craftbukkit-<버전>.jar, 2026-10 실측)
+        names = [jar_name] + sorted(n for n in os.listdir(target_dir) if n.endswith(".jar") and n != jar_name)
+    for name in names:
+        info = inspect_jar(os.path.join(target_dir, name))
+        if info and info["type"] == server_type:
+            if kind == "buildtools" and name != jar_name:
+                os.replace(os.path.join(target_dir, name), os.path.join(target_dir, jar_name))
+                return jar_name
+            return name
+    return None
 
 
 def latest_installable(server_type, releases, tries=10, deadline_secs=60):

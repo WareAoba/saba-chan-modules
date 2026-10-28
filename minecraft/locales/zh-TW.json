@@ -169,7 +169,7 @@
     "server_type_mismatch": "伺服器類型設定為 '{{chosen}}'，但伺服器檔案是 '{{detected}}'。",
     "server_type_install_unsupported": "saba-chan 無法安裝 '{{type}}' 伺服器。請自行安裝後，透過「遷移現有伺服器」新增。",
     "server_type_version_unavailable": "'{{type}}' 尚無適用於 Minecraft {{version}} 的穩定版本。",
-    "installer_failed": "'{{type}}' 官方安裝程式失敗（結束代碼 {{code}}）。請再試一次。",
+    "installer_failed": "'{{type}}' 官方安裝程式失敗（結束代碼 {{code}}）：{{detail}}",
     "installer_timeout": "'{{type}}' 官方安裝程式耗時過久，已停止。請再試一次。",
     "installer_no_server": "'{{type}}' 安裝程式已結束，但沒有產生伺服器檔案。",
     "server_jar_not_specified": "實例設定中未指定server_jar。請新增server.jar的路徑",

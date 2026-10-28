@@ -169,7 +169,7 @@
     "server_type_mismatch": "サーバーの種類は '{{chosen}}' に設定されていますが、サーバーファイルは '{{detected}}' です。",
     "server_type_install_unsupported": "saba-chanは '{{type}}' サーバーをインストールできません。ご自身でインストールし、「既存サーバーの移行」で追加してください。",
     "server_type_version_unavailable": "'{{type}}' にはMinecraft {{version}} 用の安定ビルドがまだありません。",
-    "installer_failed": "'{{type}}' の公式インストーラーが失敗しました (終了コード {{code}})。もう一度お試しください。",
+    "installer_failed": "'{{type}}' の公式インストーラーが失敗しました (終了コード {{code}}): {{detail}}",
     "installer_timeout": "'{{type}}' の公式インストーラーに時間がかかりすぎたため停止しました。もう一度お試しください。",
     "installer_no_server": "'{{type}}' のインストーラーは終了しましたが、サーバーファイルが作成されませんでした。",
     "server_jar_not_specified": "インスタンス設定で server_jar が指定されていません。server.jar のパスを追加してください",

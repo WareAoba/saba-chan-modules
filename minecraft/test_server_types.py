@@ -229,8 +229,8 @@ def test_quilt_runs_the_official_installer_with_the_newest_stable_loader():
         found = server_types.resolve_download("quilt", "1.21.1")
     assert found["url"].endswith("/quilt-installer-0.15.1.jar") and found["sha256"] == "ab" * 32
     assert found["build"] == "0.30.1" and found["installer"]
-    assert server_types.installer_args("quilt", "1.21.1", found, "/srv/mc", "/srv/mc/.build", "server.jar") == \
-        ["install", "server", "1.21.1", "0.30.1", "--download-server", "--install-dir=/srv/mc"]
+    assert server_types.installer_command("quilt", "1.21.1", found, "/b/server", "/b", "server.jar") == \
+        (["install", "server", "1.21.1", "0.30.1", "--download-server", "--install-dir=/b/server"], "/b/server")
 
 
 def test_forge_prefers_the_recommended_build_and_checks_the_maven_hash():
@@ -246,8 +246,9 @@ def test_forge_prefers_the_recommended_build_and_checks_the_maven_hash():
         assert server_types.resolve_download("forge", "1.21.6")["build"] == "1.21.6-56.0.9"
         with pytest.raises(ValueError, match="version_unavailable"):
             server_types.resolve_download("forge", "1.21.2")
-    assert server_types.installer_args("forge", "1.21.1", found, "/srv/mc", "/srv/mc/.build", "server.jar") == \
-        ["--installServer", "/srv/mc"]
+    # 옛 Forge 설치기는 경로 인자 없이 작업 폴더에 깐다: 작업 폴더도 준비 폴더다
+    assert server_types.installer_command("forge", "1.21.1", found, "/b/server", "/b", "server.jar") == \
+        (["--installServer", "/b/server"], "/b/server")
 
 
 def test_neoforge_picks_the_newest_stable_build_of_that_minecraft_version():
@@ -273,9 +274,12 @@ def test_spigot_and_craftbukkit_are_built_by_buildtools(server_type):
         found = server_types.resolve_download(server_type, "1.21.1")
     assert get.call_args[0][0] == "https://hub.spigotmc.org/versions/1.21.1.json"
     assert found["url"] == "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
-    assert found["installer"] and found["java_min"] == 21 and found["build"] == "4344"
-    assert server_types.installer_args(server_type, "1.21.1", found, "/srv/mc", "/srv/mc/.build", "server.jar") == \
-        ["--rev", "1.21.1", "--compile", server_type, "--nogui", "--output-dir", "/srv/mc/.build", "--final-name", "server.jar"]
+    assert found["installer"] and found["jdk"] and (found["java_min"], found["java_max"]) == (21, 23)
+    assert found["build"] == "4344"
+    # 소스·메이븐 작업물은 설치기 폴더에 두고 완성된 jar만 준비 폴더에 낸다
+    assert server_types.installer_command(server_type, "1.21.1", found, "/b/server", "/b", "server.jar") == \
+        (["--rev", "1.21.1", "--compile", server_type, "--nogui", "--output-dir", "/b/server", "--final-name", "server.jar"],
+         "/b")
 
     with mock.patch.object(server_types, "_get_json", side_effect=ValueError("version_unavailable")):
         with pytest.raises(ValueError, match="version_unavailable"):
@@ -636,3 +640,46 @@ def test_loader_servers_report_the_minecraft_version_they_run(tmp_path):
     (args / "unix_args.txt").write_text("-cp x\n")
     found = lifecycle.get_installed_version({"working_dir": str(neo), "server_executable": str(neo / "server.jar")})
     assert (found["success"], found["version"], found["server_type"]) == (True, "1.21.1", "neoforge")
+
+
+def test_the_installer_result_must_be_the_chosen_type_and_build(tmp_path):
+    """설치기가 끝난 뒤 준비 폴더에 그 종류·그 판의 서버가 있어야 한다 (서버 폴더에 남은 옛 jar로 판정하지 않는다)"""
+    forge = tmp_path / "forge"
+    args = forge / "libraries" / "net" / "minecraftforge" / "forge" / "1.21.1-52.1.20"
+    args.mkdir(parents=True)
+    (args / "unix_args.txt").write_text("-cp x\n")
+    make_jar(str(forge / "forge-1.21.1-52.1.20-shim.jar"), {"META-INF/MANIFEST.MF": "Main-Class: net.minecraftforge.bootstrap.shim.Main\n"})
+    assert server_types.installed_jar("forge", {"build": "1.21.1-52.1.20"}, str(forge), "server.jar") == "forge-1.21.1-52.1.20-shim.jar"
+    assert server_types.installed_jar("forge", {"build": "1.21.1-52.1.21"}, str(forge), "server.jar") is None
+
+    old = tmp_path / "old"
+    make_jar(str(old / "forge-1.16.5-36.2.34.jar"), {"META-INF/MANIFEST.MF": "Main-Class: net.minecraftforge.server.ServerMain\n"})
+    assert server_types.installed_jar("forge", {"build": "1.16.5-36.2.34"}, str(old), "server.jar") == "forge-1.16.5-36.2.34.jar"
+
+    neo = tmp_path / "neo"
+    (neo / "libraries" / "net" / "neoforged" / "neoforge" / "21.1.265").mkdir(parents=True)
+    (neo / "libraries" / "net" / "neoforged" / "neoforge" / "21.1.265" / "unix_args.txt").write_text("-cp x\n")
+    assert server_types.installed_jar("neoforge", {"build": "21.1.265"}, str(neo), "server.jar") == ""
+
+    spigot = tmp_path / "spigot"
+    bundler(str(spigot / "server.jar"), "paper-1.21.1.jar")
+    assert server_types.installed_jar("spigot", {"build": "1"}, str(spigot), "server.jar") is None
+
+
+def test_a_forge_args_file_beats_a_leftover_vanilla_jar_for_the_version(tmp_path):
+    args = tmp_path / "libraries" / "net" / "minecraftforge" / "forge" / "1.21.1-52.1.20"
+    args.mkdir(parents=True)
+    (args / "unix_args.txt").write_text("-cp x\n")
+    shim = make_jar(str(tmp_path / "forge-1.21.1-52.1.20-shim.jar"),
+                    {"META-INF/MANIFEST.MF": "Main-Class: net.minecraftforge.bootstrap.shim.Main\n"})
+    bundler(str(tmp_path / "server.jar"), "server-1.21.4.jar", version="1.21.4", main="net.minecraft.bundler.Main")
+    assert server_types.detect(str(tmp_path), shim)["version"] == "1.21.1"
+
+
+def test_buildtools_craftbukkit_jar_takes_the_server_jar_name(tmp_path):
+    """BuildTools는 CraftBukkit에 --final-name을 쓰지 않고 craftbukkit-<버전>.jar로 낸다"""
+    make_jar(str(tmp_path / "craftbukkit-1.21.1.jar"), {
+        "META-INF/MANIFEST.MF": "Main-Class: org.bukkit.craftbukkit.bootstrap.Main\n",
+        "META-INF/versions.list": "d955 *craftbukkit-1.21.1-R0.1-SNAPSHOT.jar\n"})
+    assert server_types.installed_jar("craftbukkit", {"build": "1"}, str(tmp_path), "server.jar") == "server.jar"
+    assert sorted(os.listdir(tmp_path)) == ["server.jar"]

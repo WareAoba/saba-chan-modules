@@ -886,6 +886,17 @@
           "description": "서버를 만들 때 고르는 설정이면 true (설치할 파일이 달라지는 값)",
           "type": "boolean"
         },
+        "install_options": {
+          "default": null,
+          "description": "만들 때 고를 수 있는 `options` (사바쨩이 설치할 수 있는 값). 없으면 `options` 전부",
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
         "label": {
           "default": null,
           "type": [

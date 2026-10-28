@@ -47,9 +47,6 @@ class PalworldRestClient:
             raise RuntimeError(result.get("message") or result.get("error") or i18n.t("errors.daemon_error", error="REST"))
         return (result.get("data") or {}).get("response")
 
-    def announce(self, message):
-        return self._request("POST", "/announce", {"message": message})
-
     def info(self):
         return self._request("GET", "/info")
 
@@ -58,21 +55,6 @@ class PalworldRestClient:
 
     def metrics(self):
         return self._request("GET", "/metrics")
-
-    def kick(self, userid, message=None):
-        payload = {"userid": userid}
-        if message:
-            payload["message"] = message
-        return self._request("POST", "/kick", payload)
-
-    def ban(self, userid, message=None):
-        payload = {"userid": userid}
-        if message:
-            payload["message"] = message
-        return self._request("POST", "/ban", payload)
-
-    def unban(self, userid):
-        return self._request("POST", "/unban", {"userid": userid})
 
 
 def resolve_player_id(instance_id, player_input, config):

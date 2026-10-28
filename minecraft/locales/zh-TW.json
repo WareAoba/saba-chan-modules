@@ -4,7 +4,7 @@
     "description": "具有完整生命週期控制的Minecraft伺服器管理模組"
   },
   "settings": {
-    "server_type": { "label": "伺服器類型", "description": "執行此世界的伺服器軟體。Vanilla、Paper、Folia、Purpur 和 Fabric 可由 saba-chan 安裝；其他類型會在匯入現有伺服器時判定。", "options": { "vanilla": "原版", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
+    "server_type": { "label": "伺服器類型", "description": "執行此世界的伺服器軟體。saba-chan 可以安裝所有類型。Spigot 和 CraftBukkit 需以官方 BuildTools 建置，需要幾分鐘；Pufferfish 只有部分 Minecraft 版本的建置。", "options": { "vanilla": "原版", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Java路徑", "description": "Java執行檔路徑（留空則自動偵測）" },
     "ram": { "label": "記憶體（RAM）", "description": "最大記憶體分配（如 2G、4G）" },
     "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },
@@ -169,6 +169,9 @@
     "server_type_mismatch": "伺服器類型設定為 '{{chosen}}'，但伺服器檔案是 '{{detected}}'。",
     "server_type_install_unsupported": "saba-chan 無法安裝 '{{type}}' 伺服器。請自行安裝後，透過「遷移現有伺服器」新增。",
     "server_type_version_unavailable": "'{{type}}' 尚無適用於 Minecraft {{version}} 的穩定版本。",
+    "installer_failed": "'{{type}}' 官方安裝程式失敗（結束代碼 {{code}}）。請再試一次。",
+    "installer_timeout": "'{{type}}' 官方安裝程式耗時過久，已停止。請再試一次。",
+    "installer_no_server": "'{{type}}' 安裝程式已結束，但沒有產生伺服器檔案。",
     "server_jar_not_specified": "實例設定中未指定server_jar。請新增server.jar的路徑",
     "server_jar_not_found": "找不到伺服器jar：{{path}}。請檢查實例設定中的路徑。",
     "not_a_server_folder": "此資料夾看起來不是 Minecraft 伺服器資料夾(沒有 server.properties 或 eula.txt),因此未刪除任何內容:{{path}}",
@@ -221,6 +224,7 @@
   "messages": {
     "downloading_server": "正在下載 Minecraft 伺服器 {{version}}",
     "downloading_java": "正在下載 Java {{version}}",
+    "running_installer": "正在用 {{type}} 官方安裝程式建立 Minecraft {{version}} 伺服器（可能需要幾分鐘）",
     "server_online": "伺服器在線並正在回應",
     "server_starting_no_response": "程序正在執行，但伺服器尚未回應",
     "properties_updated": "server.properties 已更新",

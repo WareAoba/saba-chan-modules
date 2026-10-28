@@ -102,12 +102,10 @@ player_leave_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]
 name = "server_type"
 type = "select"
 label = "Server Type"
-description = "Which server software runs this world. Vanilla, Paper, Folia, Purpur and Fabric can be installed by saba-chan; the others are detected when you import an existing server."
+description = "Which server software runs this world. saba-chan can install every type. Spigot and CraftBukkit are built with the official BuildTools and take a few minutes; Pufferfish only has builds for some Minecraft versions."
 options = ["vanilla", "paper", "folia", "purpur", "pufferfish", "spigot", "craftbukkit", "fabric", "quilt", "forge", "neoforge"]
 default = "vanilla"
 install = true
-# 새 서버로 설치할 수 있는 종류 (나머지는 기존 서버를 가져올 때 판정만 한다)
-install_options = ["vanilla", "paper", "folia", "purpur", "fabric"]
 group = "saba-chan"
 
 [[settings.fields]]

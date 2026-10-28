@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더�
 
 import plugins
 import server_types
-from daemon_rcon import (ChecksumMismatch, PathOutside, atomic_write, diagnose_lines, download, graceful_stop,
+from daemon_rcon import (ChecksumMismatch, PathOutside, atomic_write, diagnose_lines, download, force_kill, graceful_stop,
                          is_process_alive, load_diagnose_rules, progress, read_key_values, request_console,
                          request_terminate, safe_extract, safe_join, setting_file_keys, settings_from_file,
                          settings_to_file, tail_lines, update_key_values)
@@ -1505,6 +1505,10 @@ def get_installed_version(config):
     if not os.path.isfile(jar_path):
         found = server_types.find_server_jar(install_dir)
         if not found:
+            # 1.17+ Forge·NeoForge는 실행 jar 없이 인자 파일로 뜬다: 로더 버전이 마인크래프트 버전을 알려 준다
+            loader = server_types.detect(install_dir)
+            if loader.get("version") and server_types.family(loader["type"]) == "mod":
+                return {"success": True, "version": loader["version"], "server_type": loader["type"]}
             return {"success": False, "message": i18n.t("errors.server_jar_not_found", path=jar_path)}
         jar_path, jar_name = found, os.path.basename(found)
 
@@ -1515,6 +1519,11 @@ def get_installed_version(config):
     forked = server_types.inspect_jar(jar_path)
     if forked and forked.get("version"):
         return {"success": True, "version": forked["version"], "server_type": forked["type"]}
+    # 로더 런처(Quilt, Forge shim)는 jar에 버전이 없다: 서버 폴더로 판정한다
+    if forked and server_types.family(forked["type"]) == "mod":
+        loader = server_types.detect(install_dir, jar_path)
+        if loader.get("version"):
+            return {"success": True, "version": loader["version"], "server_type": loader["type"]}
     return {"success": False, "message": i18n.t("errors.version_info_unreadable")}
 
 
@@ -1743,6 +1752,7 @@ class ServerInstaller:
         expected_sha1 = details.get("sha1")
         expected_sha256 = expected_md5 = None
         build = None
+        installer = False
         if server_type != "vanilla":
             # 바닐라 외 종류는 그 프로젝트의 빌드를 받는다. Java 요구는 같은 마인크래프트 버전을 따른다
             try:
@@ -1758,6 +1768,7 @@ class ServerInstaller:
             expected_sha256 = source.get("sha256")
             expected_md5 = source.get("md5")
             build = source.get("build")
+            installer = bool(source.get("installer"))
             # Fabric 런처는 처음 뜰 때 바닐라 server.jar를 같은 폴더에 받는다 — 이름이 겹치면 안 된다
             if server_type == "fabric" and jar_name == "server.jar":
                 jar_name = "fabric-server-launch.jar"
@@ -1775,13 +1786,26 @@ class ServerInstaller:
         jar_path = str(safe_join(install_path, jar_name))
         # 받는 동안과 검증이 끝날 때까지는 임시 파일에 쓴다: 실패해도 지금 쓰던 jar가 남는다
         # (데몬은 업데이트 전에 server.jar만 백업한다. fabric-server-launch.jar 같은 다른 이름은 여기서 지킨다).
-        # 해시가 있으면 해시로, 없으면(Fabric 런처) 크기와 jar 구조로 확인한다. 이름은 요청마다 다르다
+        # 해시가 있으면 해시로, 없으면(Fabric 런처) 크기와 jar 구조로 확인한다. 이름은 요청마다 다르다.
+        # 공식 설치기는 서버 폴더 안의 설치기 폴더에 받아 거기서 돌리고, 끝나면 폴더째 지운다
         _remove_stale_downloads(install_path, jar_name)
+        build_dir = None
         try:
-            fd, part_path = tempfile.mkstemp(prefix=jar_name + ".", suffix=".download", dir=install_path)
-            os.close(fd)
+            if installer:
+                build_dir = ServerInstaller._make_build_dir(install_path)
+                part_path = os.path.join(build_dir, "installer.jar")
+            else:
+                fd, part_path = tempfile.mkstemp(prefix=jar_name + ".", suffix=".download", dir=install_path)
+                os.close(fd)
         except OSError as e:
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
+        if installer:
+            try:
+                return ServerInstaller._install_with_installer(
+                    server_type, version_id, source, details, install_path, build_dir, part_path, jar_name,
+                    accept_eula, initial_settings)
+            finally:
+                shutil.rmtree(build_dir, ignore_errors=True)
 
         # Download with progress
         print(f"Downloading Minecraft server {version_id}...", file=sys.stderr)
@@ -1853,31 +1877,7 @@ class ServerInstaller:
             "size": downloaded,
             "java_major_version": details.get("java_major_version"),
         }
-
-        # Accept EULA if requested
-        if accept_eula:
-            ok = EulaManager.accept_eula(install_path)
-            result["eula_accepted"] = ok
-
-        # Apply initial server settings
-        if initial_settings and isinstance(initial_settings, dict):
-            mgr = ServerPropertiesManager(install_path)
-            # 설정 이름은 server.properties 키로, 그 밖의 키(이미 파일 키인 것)는 그대로
-            keys = setting_file_keys(MODULE_DIR)
-            try:
-                props = {**{k: v for k, v in initial_settings.items() if k not in keys},
-                         **settings_to_file(MODULE_DIR, initial_settings)}
-            except ValueError:
-                # 줄바꿈이 든 값: 서버 파일은 깔렸으니 설치는 성공으로 두고 설정만 적용하지 않았다고 알린다
-                props = None
-            if props is not None:
-                props = {k: ("true" if v is True else "false" if v is False else str(v)) for k, v in props.items()}
-
-                # RCON is blocked for security (commands go through the console)
-                props["enable-rcon"] = "false"
-
-                mgr.update(props)
-            result["settings_applied"] = props is not None
+        ServerInstaller._apply_first_settings(result, install_path, accept_eula, initial_settings)
 
         # Download bundled Java if needed
         java_req = details.get("java_major_version")
@@ -1905,6 +1905,149 @@ class ServerInstaller:
                     result["java_warning"] = i18n.t("errors.java_download_warning", version=str(java_req),
                                                     error=jre_result.get("message", ""))
 
+        result["message"] = i18n.t("messages.server_installed", version=version_id, path=install_path)
+        return result
+
+    @staticmethod
+    def _apply_first_settings(result, install_path, accept_eula, initial_settings):
+        """설치한 서버 폴더에 EULA 동의와 처음 설정(server.properties)을 쓰고 result에 적는다"""
+        # Accept EULA if requested
+        if accept_eula:
+            ok = EulaManager.accept_eula(install_path)
+            result["eula_accepted"] = ok
+
+        # Apply initial server settings
+        if initial_settings and isinstance(initial_settings, dict):
+            mgr = ServerPropertiesManager(install_path)
+            # 설정 이름은 server.properties 키로, 그 밖의 키(이미 파일 키인 것)는 그대로
+            keys = setting_file_keys(MODULE_DIR)
+            try:
+                props = {**{k: v for k, v in initial_settings.items() if k not in keys},
+                         **settings_to_file(MODULE_DIR, initial_settings)}
+            except ValueError:
+                # 줄바꿈이 든 값: 서버 파일은 깔렸으니 설치는 성공으로 두고 설정만 적용하지 않았다고 알린다
+                props = None
+            if props is not None:
+                props = {k: ("true" if v is True else "false" if v is False else str(v)) for k, v in props.items()}
+
+                # RCON is blocked for security (commands go through the console)
+                props["enable-rcon"] = "false"
+
+                mgr.update(props)
+            result["settings_applied"] = props is not None
+
+    # 공식 설치기 한 번에 주는 시간 (데몬의 설치 한도 30분 안. BuildTools는 실측 4분, 처음 받는 PC는 더 걸린다)
+    INSTALLER_TIMEOUT = 1500
+    _BUILD_PREFIX = ".saba-install-"
+
+    @staticmethod
+    def _make_build_dir(install_path):
+        """서버 폴더 안의 새 설치기 폴더. 지난번에 끊겨 남은 설치기 폴더는 지운다.
+        (tempfile.mkdtemp 폴더는 격리 계정이 쓸 수 없어 직접 만든다)"""
+        import uuid
+        for name in os.listdir(install_path):
+            path = os.path.join(install_path, name)
+            if name.startswith(ServerInstaller._BUILD_PREFIX) and os.path.isdir(path) and not os.path.islink(path):
+                shutil.rmtree(path, ignore_errors=True)
+        build_dir = os.path.join(install_path, ServerInstaller._BUILD_PREFIX + uuid.uuid4().hex[:12])
+        os.makedirs(os.path.join(build_dir, "tmp"))
+        return build_dir
+
+    @staticmethod
+    def _run_installer_process(cmd, cwd, env):
+        """설치기를 돌린다. env는 더할 환경 변수다 (나머지는 이 실행의 환경을 물려받는다).
+        출력은 데몬 로그(stderr)로만 보낸다 (stdout은 응답 JSON 자리다).
+        돌려주는 값: (종료 코드 또는 시간 초과 None, 마지막 출력 줄들)"""
+        import collections
+        import threading
+        creationflags = 0x08000000 if os.name == "nt" else 0  # 콘솔 창을 띄우지 않는다
+        os.environ.update(env)  # 이 lifecycle 실행은 한 번 쓰고 끝난다
+        proc = subprocess.Popen(cmd, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, creationflags=creationflags)
+        tail = collections.deque(maxlen=20)
+
+        def pump():
+            for raw in proc.stdout:
+                line = raw.decode("utf-8", "replace").rstrip()
+                tail.append(line)
+                print(f"  [installer] {line}", file=sys.stderr)
+
+        reader = threading.Thread(target=pump, daemon=True)
+        reader.start()
+        try:
+            code = proc.wait(timeout=ServerInstaller.INSTALLER_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            force_kill(proc.pid, tree=True)
+            proc.wait()
+            code = None
+        reader.join(timeout=10)
+        return code, list(tail)
+
+    @staticmethod
+    def _install_with_installer(server_type, version_id, source, details, install_path, build_dir, installer_jar,
+                                jar_name, accept_eula, initial_settings):
+        """공식 설치기(Quilt·Forge·NeoForge 설치기, BuildTools)를 받아 고정 판 포터블 Java로 돌린다.
+        설치기는 서버 폴더 안의 build_dir에서 돌고, 메이븐 저장소와 임시 파일도 거기 둔다 (호출한 쪽이 지운다)"""
+        try:
+            download(source["url"], installer_jar, timeout=120, user_agent="saba-chan/1.0",
+                     checksums={"sha256": source.get("sha256"), "sha1": source.get("sha1"), "md5": source.get("md5")})
+            if not (source.get("sha256") or source.get("sha1") or source.get("md5")):
+                with zipfile.ZipFile(installer_jar) as z:  # BuildTools: 공식 체크섬이 없다
+                    bad = z.testzip()
+                if bad is not None:
+                    raise IOError(f"corrupt jar entry: {bad}")
+        except ChecksumMismatch as e:
+            return {"success": False, "message": i18n.t("errors.checksum_mismatch", algorithm=e.algorithm,
+                                                        expected=e.expected, actual=e.actual)}
+        except Exception as e:
+            return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
+
+        # 설치기는 PC에 깔린 Java가 아니라 버전을 고정한 포터블 Java로 돌린다 (서버도 그 Java로 뜬다)
+        java_req = max(details.get("java_major_version") or required_java(version_id), source.get("java_min") or 0)
+        jre = JavaDownloader.download_jre(java_req, install_path)
+        if not jre.get("success"):
+            return {"success": False, "message": i18n.t("errors.java_download_failed", error=jre.get("message", ""))}
+
+        args = server_types.installer_args(server_type, version_id, source, install_path, build_dir, jar_name)
+        cmd = [jre["java_path"], f"-Djava.io.tmpdir={os.path.join(build_dir, 'tmp')}", "-jar", installer_jar, *args]
+        env = {"MAVEN_OPTS": f"-Dmaven.repo.local={os.path.join(build_dir, 'm2')}"}
+        progress(None, i18n.t("messages.running_installer", type=server_type, version=version_id))
+        code, tail = ServerInstaller._run_installer_process(cmd, build_dir, env)
+        if code != 0:
+            key = "errors.installer_timeout" if code is None else "errors.installer_failed"
+            return {"success": False, "message": i18n.t(key, type=server_type, code=str(code))}
+
+        # BuildTools는 빌드한 jar를 build_dir에 낸다: 검증한 뒤 서버 jar 자리로 옮긴다
+        built = os.path.join(build_dir, jar_name)
+        if os.path.isfile(built):
+            info = server_types.inspect_jar(built)
+            if not info or info["type"] != server_type:
+                return {"success": False, "message": i18n.t("errors.installer_no_server", type=server_type)}
+            os.replace(built, str(safe_join(install_path, jar_name)))
+
+        found = server_types.detect(install_path)
+        if found.get("type") != server_type:
+            return {"success": False, "message": i18n.t("errors.installer_no_server", type=server_type)}
+        jar_path = os.path.join(install_path, found["jar"]) if found.get("jar") else None
+
+        result = {
+            "success": True,
+            "install_path": install_path,
+            "jar_path": jar_path,
+            "jar_name": os.path.basename(jar_path) if jar_path else None,
+            "server_type": server_type,
+            "build": source.get("build"),
+            "version": version_id,
+            "java_major_version": java_req,
+            "java_ok": True,
+            "java_path": jre["java_path"],
+            "java_version": jre.get("version", ""),
+            "java_bundled": True,
+        }
+        # 1.17+ Forge·NeoForge는 실행 jar 없이 인자 파일로 뜬다 (server_types.launch_target)
+        if jar_path:
+            result["executable_path"] = jar_path
+        ServerInstaller._apply_first_settings(result, install_path, accept_eula, initial_settings)
         result["message"] = i18n.t("messages.server_installed", version=version_id, path=install_path)
         return result
 

@@ -4,7 +4,7 @@
     "description": "Módulo de gerenciamento de servidor Minecraft com controle completo do ciclo de vida"
   },
   "settings": {
-    "server_type": { "label": "Tipo de servidor", "description": "Qual software de servidor roda este mundo. O saba-chan pode instalar Vanilla, Paper, Folia, Purpur e Fabric; os demais são detectados ao importar um servidor existente.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
+    "server_type": { "label": "Tipo de servidor", "description": "O software de servidor que roda este mundo. O saba-chan pode instalar todos os tipos. Spigot e CraftBukkit são compilados com as BuildTools oficiais e levam alguns minutos; Pufferfish só tem builds para algumas versões do Minecraft.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Caminho do Java", "description": "Caminho para o executável Java (detecção automática se vazio)" },
     "ram": { "label": "Memória (RAM)", "description": "Alocação máxima de memória (ex. 2G, 4G)" },
     "port": { "label": "Porta do servidor", "description": "Porta do servidor de jogo" },
@@ -169,6 +169,9 @@
     "server_type_mismatch": "O tipo de servidor está definido como '{{chosen}}', mas os arquivos do servidor são '{{detected}}'.",
     "server_type_install_unsupported": "O saba-chan não pode instalar servidores '{{type}}'. Instale-o você mesmo e adicione-o com 'Migrar servidor existente'.",
     "server_type_version_unavailable": "'{{type}}' ainda não tem uma build estável para Minecraft {{version}}.",
+    "installer_failed": "O instalador oficial de '{{type}}' falhou (código de saída {{code}}). Tente novamente.",
+    "installer_timeout": "O instalador oficial de '{{type}}' demorou demais e foi interrompido. Tente novamente.",
+    "installer_no_server": "O instalador de '{{type}}' terminou, mas não criou os arquivos do servidor.",
     "server_jar_not_specified": "server_jar não especificado na configuração da instância. Por favor adicione o caminho para server.jar",
     "server_jar_not_found": "Arquivo jar do servidor não encontrado: {{path}}. Por favor verifique o caminho nas configurações da instância.",
     "not_a_server_folder": "Esta pasta não parece ser uma pasta de servidor Minecraft (sem server.properties ou eula.txt), então nada foi excluído: {{path}}",
@@ -221,6 +224,7 @@
   "messages": {
     "downloading_server": "Baixando o servidor do Minecraft {{version}}",
     "downloading_java": "Baixando o Java {{version}}",
+    "running_installer": "Preparando o servidor Minecraft {{version}} com o instalador oficial de {{type}} (pode levar alguns minutos)",
     "server_online": "O servidor está online e respondendo",
     "server_starting_no_response": "O processo está em execução, mas o servidor ainda não está respondendo",
     "properties_updated": "server.properties atualizado",

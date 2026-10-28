@@ -87,6 +87,7 @@ def test_modern_forge_runs_from_its_args_file_without_a_jar(tmp_path):
     ("neoforge", "20.4.237", "1.20.4", 17),
     ("neoforge", "21.0.167", "1.21", 21),
     ("neoforge", "26.1.0.5-beta", "26.1", 25),
+    ("neoforge", "26.1.2.7", "26.1.2", 25),
 ])
 def test_args_file_install_without_version_needs_the_java_of_its_minecraft(tmp_path, server_type, loader, mc, java):
     """가져온 1.17+ Forge/NeoForge 서버(실행 jar·server_version 없음)는 로더 버전에서 Minecraft 버전을 읽는다"""
@@ -176,10 +177,121 @@ def test_fabric_picks_stable_loader_and_installer():
 
 def test_types_without_a_download_source_say_so(tmp_path):
     with mock.patch.object(lifecycle.ServerInstaller, "get_version_details",
-                           return_value={"has_server": True, "download_url": "x", "sha1": None}):
+                           return_value={"has_server": True, "download_url": "x", "sha1": None}), \
+            mock.patch.dict(server_types.SERVER_TYPES, {"spigot": {"family": "bukkit", "install": None}}):
         result = lifecycle.install_server({"version": "1.21.4", "install_dir": str(tmp_path),
                                            "settings": {"server_type": "spigot"}})
     assert result["success"] is False and "spigot" in result["message"]
+
+
+def test_every_server_type_has_an_install_source():
+    """마인크래프트 서버 종류는 모두 새로 설치할 수 있다 (사용자 지정 10-28)"""
+    assert [t for t, info in server_types.SERVER_TYPES.items() if not info["install"]] == []
+
+
+PUFFERFISH = "https://ci.pufferfish.host/job/Pufferfish-1.21/"
+
+
+def test_pufferfish_takes_the_newest_successful_build_of_that_exact_version():
+    builds = {"builds": [
+        {"number": 40, "result": "FAILURE", "artifacts": []},
+        {"number": 39, "result": "SUCCESS", "artifacts": [
+            {"fileName": "pufferfish-paperclip-1.21.10-R0.1-SNAPSHOT-mojmap.jar",
+             "relativePath": "pufferfish-server/build/libs/pufferfish-paperclip-1.21.10-R0.1-SNAPSHOT-mojmap.jar"}]},
+        {"number": 21, "result": "SUCCESS", "artifacts": [
+            {"fileName": "pufferfish-paperclip-1.21.1-R0.1-SNAPSHOT-mojmap.jar",
+             "relativePath": "build/libs/pufferfish-paperclip-1.21.1-R0.1-SNAPSHOT-mojmap.jar"}]},
+        {"number": 20, "result": "SUCCESS", "artifacts": [
+            {"fileName": "pufferfish-paperclip-1.21.1-R0.1-SNAPSHOT-mojmap.jar",
+             "relativePath": "build/libs/pufferfish-paperclip-1.21.1-R0.1-SNAPSHOT-mojmap.jar"}]},
+    ]}
+    with mock.patch.object(server_types, "_get_json", return_value=builds) as get:
+        found = server_types.resolve_download("pufferfish", "1.21.1")
+        assert get.call_args[0][0].startswith(PUFFERFISH + "api/json")
+        assert found == {"url": PUFFERFISH + "21/artifact/build/libs/pufferfish-paperclip-1.21.1-R0.1-SNAPSHOT-mojmap.jar",
+                         "build": 21}
+        with pytest.raises(ValueError, match="version_unavailable"):
+            server_types.resolve_download("pufferfish", "1.21.4")
+
+
+def test_quilt_runs_the_official_installer_with_the_newest_stable_loader():
+    answers = {
+        "https://meta.quiltmc.org/v3/versions/loader/1.21.1": [
+            {"loader": {"version": "0.30.0-beta.2"}}, {"loader": {"version": "0.29.2"}}, {"loader": {"version": "0.30.1"}},
+            {"loader": {"version": "0.9.9"}}],
+        "https://meta.quiltmc.org/v3/versions/installer": [
+            {"version": "0.15.1", "url": "https://maven.quiltmc.org/repository/release/org/quiltmc/quilt-installer/0.15.1/quilt-installer-0.15.1.jar"},
+            {"version": "0.15.0", "url": "https://maven.quiltmc.org/repository/release/org/quiltmc/quilt-installer/0.15.0/quilt-installer-0.15.0.jar"}],
+    }
+    texts = {answers["https://meta.quiltmc.org/v3/versions/installer"][0]["url"] + ".sha256": "ab" * 32 + "\n"}
+    with mock.patch.object(server_types, "_get_json", side_effect=lambda url: answers[url]), \
+            mock.patch.object(server_types, "_get_text", side_effect=lambda url: texts[url]):
+        found = server_types.resolve_download("quilt", "1.21.1")
+    assert found["url"].endswith("/quilt-installer-0.15.1.jar") and found["sha256"] == "ab" * 32
+    assert found["build"] == "0.30.1" and found["installer"]
+    assert server_types.installer_args("quilt", "1.21.1", found, "/srv/mc", "/srv/mc/.build", "server.jar") == \
+        ["install", "server", "1.21.1", "0.30.1", "--download-server", "--install-dir=/srv/mc"]
+
+
+def test_forge_prefers_the_recommended_build_and_checks_the_maven_hash():
+    promos = {"promos": {"1.21.1-latest": "52.1.21", "1.21.1-recommended": "52.1.20", "1.21.6-latest": "56.0.9"}}
+    base = "https://maven.minecraftforge.net/net/minecraftforge/forge/"
+    texts = {base + "1.21.1-52.1.20/forge-1.21.1-52.1.20-installer.jar.sha256": "cd" * 32,
+             base + "1.21.6-56.0.9/forge-1.21.6-56.0.9-installer.jar.sha256": "ef" * 32}
+    with mock.patch.object(server_types, "_get_json", return_value=promos), \
+            mock.patch.object(server_types, "_get_text", side_effect=lambda url: texts[url]):
+        found = server_types.resolve_download("forge", "1.21.1")
+        assert (found["url"], found["sha256"], found["build"]) == (
+            base + "1.21.1-52.1.20/forge-1.21.1-52.1.20-installer.jar", "cd" * 32, "1.21.1-52.1.20")
+        assert server_types.resolve_download("forge", "1.21.6")["build"] == "1.21.6-56.0.9"
+        with pytest.raises(ValueError, match="version_unavailable"):
+            server_types.resolve_download("forge", "1.21.2")
+    assert server_types.installer_args("forge", "1.21.1", found, "/srv/mc", "/srv/mc/.build", "server.jar") == \
+        ["--installServer", "/srv/mc"]
+
+
+def test_neoforge_picks_the_newest_stable_build_of_that_minecraft_version():
+    versions = {"versions": ["21.1.208", "21.1.209", "21.1.210-beta", "21.10.5-beta", "21.11.1-beta",
+                             "26.1.0.4-beta", "26.1.2.7", "26.1.2.12", "26.1.2.9"]}
+    base = "https://maven.neoforged.net/releases/net/neoforged/neoforge/"
+    with mock.patch.object(server_types, "_get_json", return_value=versions), \
+            mock.patch.object(server_types, "_get_text", return_value="12" * 32):
+        assert server_types.resolve_download("neoforge", "1.21.1")["url"] == \
+            base + "21.1.209/neoforge-21.1.209-installer.jar"
+        assert server_types.resolve_download("neoforge", "26.1.2")["build"] == "26.1.2.12"
+        # 안정판이 아직 없으면 베타를 쓴다 (NeoForge가 내려받기로 내놓는 판)
+        assert server_types.resolve_download("neoforge", "1.21.10")["build"] == "21.10.5-beta"
+        assert server_types.resolve_download("neoforge", "26.1")["build"] == "26.1.0.4-beta"
+        with pytest.raises(ValueError, match="version_unavailable"):
+            server_types.resolve_download("neoforge", "1.21.4")
+
+
+@pytest.mark.parametrize("server_type", ["spigot", "craftbukkit"])
+def test_spigot_and_craftbukkit_are_built_by_buildtools(server_type):
+    info = {"name": "4344", "javaVersions": [65, 67]}
+    with mock.patch.object(server_types, "_get_json", return_value=info) as get:
+        found = server_types.resolve_download(server_type, "1.21.1")
+    assert get.call_args[0][0] == "https://hub.spigotmc.org/versions/1.21.1.json"
+    assert found["url"] == "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
+    assert found["installer"] and found["java_min"] == 21 and found["build"] == "4344"
+    assert server_types.installer_args(server_type, "1.21.1", found, "/srv/mc", "/srv/mc/.build", "server.jar") == \
+        ["--rev", "1.21.1", "--compile", server_type, "--nogui", "--output-dir", "/srv/mc/.build", "--final-name", "server.jar"]
+
+    with mock.patch.object(server_types, "_get_json", side_effect=ValueError("version_unavailable")):
+        with pytest.raises(ValueError, match="version_unavailable"):
+            server_types.resolve_download(server_type, "1.99")
+
+
+@pytest.mark.parametrize("inner,expected", [("spigot-1.21.1-R0.1-SNAPSHOT.jar", "spigot"),
+                                            ("craftbukkit-1.21.1-R0.1-SNAPSHOT.jar", "craftbukkit")])
+def test_buildtools_bootstrap_jar_is_read_from_its_versions_list(tmp_path, inner, expected):
+    """BuildTools가 만든 jar는 Main-Class가 CraftBukkit bootstrap이고 versions.list가 `해시 *이름` 한 칸 형식이다"""
+    jar = make_jar(str(tmp_path / "server.jar"), {
+        "META-INF/MANIFEST.MF": "Manifest-Version: 1.0\nMain-Class: org.bukkit.craftbukkit.bootstrap.Main\n",
+        "META-INF/versions.list": f"d955c4b938 *{inner}\n",
+    })
+    info = server_types.inspect_jar(jar)
+    assert (info["type"], info["version"]) == (expected, "1.21.1")
 
 
 # ─── plugin.yml 읽기 ────────────────────────────────────────────
@@ -505,3 +617,22 @@ def test_player_only_commands_stay_out_of_the_console_list(tmp_path):
     names = {c["name"] for c in lifecycle.instance_commands({"working_dir": str(tmp_path)})["commands"]}
     assert "co" not in names
     assert "co-lookup" in names
+
+
+def test_loader_servers_report_the_minecraft_version_they_run(tmp_path):
+    """Quilt 런처 jar에는 버전이 없고 1.17+ Forge·NeoForge에는 실행 jar가 없다: 옆의 바닐라 jar나 로더 버전으로 답한다"""
+    quilt = tmp_path / "quilt"
+    make_jar(str(quilt / "quilt-server-launch.jar"), {
+        "META-INF/MANIFEST.MF": "Main-Class: org.quiltmc.loader.impl.launch.server.QuiltServerLauncher\n"})
+    bundler(str(quilt / "server.jar"), "server-1.21.1.jar", version="1.21.1", main="net.minecraft.bundler.Main")
+    assert server_types.detect(str(quilt))["version"] == "1.21.1"
+    found = lifecycle.get_installed_version({"working_dir": str(quilt),
+                                             "server_executable": str(quilt / "quilt-server-launch.jar")})
+    assert (found["success"], found["version"], found["server_type"]) == (True, "1.21.1", "quilt")
+
+    neo = tmp_path / "neo"
+    args = neo / "libraries" / "net" / "neoforged" / "neoforge" / "21.1.265"
+    args.mkdir(parents=True)
+    (args / "unix_args.txt").write_text("-cp x\n")
+    found = lifecycle.get_installed_version({"working_dir": str(neo), "server_executable": str(neo / "server.jar")})
+    assert (found["success"], found["version"], found["server_type"]) == (True, "1.21.1", "neoforge")

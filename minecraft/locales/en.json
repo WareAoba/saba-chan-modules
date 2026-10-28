@@ -4,7 +4,7 @@
     "description": "Minecraft server management module with full lifecycle control"
   },
   "settings": {
-    "server_type": { "label": "Server Type", "description": "Which server software runs this world. Vanilla, Paper, Folia, Purpur and Fabric can be installed by saba-chan; the others are detected when you import an existing server." },
+    "server_type": { "label": "Server Type", "description": "Which server software runs this world. Vanilla, Paper, Folia, Purpur and Fabric can be installed by saba-chan; the others are detected when you import an existing server.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Java Path", "description": "Path to Java executable (auto-detected if blank)" },
     "ram": { "label": "Memory (RAM)", "description": "Java heap size: a number with K, M or G (e.g. 4G, 1024M)" },
     "port": { "label": "Server Port", "description": "Game server port" },

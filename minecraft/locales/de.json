@@ -4,7 +4,7 @@
     "description": "Minecraft-Server-Verwaltungsmodul mit vollständiger Lebenszyklus-Steuerung"
   },
   "settings": {
-    "server_type": { "label": "Servertyp", "description": "Welche Serversoftware diese Welt betreibt. Vanilla, Paper, Folia, Purpur und Fabric kann saba-chan installieren; die anderen werden beim Import eines vorhandenen Servers erkannt." },
+    "server_type": { "label": "Servertyp", "description": "Welche Serversoftware diese Welt betreibt. Vanilla, Paper, Folia, Purpur und Fabric kann saba-chan installieren; die anderen werden beim Import eines vorhandenen Servers erkannt.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Java-Pfad", "description": "Pfad zur Java-Programmdatei (automatisch erkannt, wenn leer)" },
     "ram": { "label": "Arbeitsspeicher (RAM)", "description": "Maximale Speicherzuweisung (z.B. 2G, 4G)" },
     "port": { "label": "Server-Port", "description": "Spielserver-Port" },

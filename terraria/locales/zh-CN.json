@@ -38,7 +38,8 @@
     },
     "autocreate": {
       "label": "新世界大小",
-      "description": "没有世界时创建的大小：1 小，2 中，3 大"
+      "description": "没有世界时创建的大小：1 小，2 中，3 大",
+      "options": { "1": "小", "2": "中", "3": "大" }
     },
     "difficulty": {
       "label": "新世界难度",

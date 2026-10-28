@@ -4,7 +4,7 @@
     "description": "完全なライフサイクル制御を備えたマインクラフトサーバー管理モジュール"
   },
   "settings": {
-    "server_type": { "label": "サーバーの種類", "description": "このワールドを動かすサーバーソフトウェアです。Vanilla・Paper・Folia・Purpur・Fabricはsaba-chanがインストールでき、その他は既存サーバーの取り込み時に判定します。" },
+    "server_type": { "label": "サーバーの種類", "description": "このワールドを動かすサーバーソフトウェアです。Vanilla・Paper・Folia・Purpur・Fabricはsaba-chanがインストールでき、その他は既存サーバーの取り込み時に判定します。", "options": { "vanilla": "バニラ", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Javaパス", "description": "Java実行ファイルのパス（空白の場合は自動検出）" },
     "ram": { "label": "メモリ（RAM）", "description": "最大メモリ割り当て（例: 2G, 4G）" },
     "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },

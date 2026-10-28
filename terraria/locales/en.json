@@ -38,7 +38,8 @@
     },
     "autocreate": {
       "label": "New World Size",
-      "description": "Size of the world created when none exists: 1 small, 2 medium, 3 large"
+      "description": "Size of the world created when none exists: 1 small, 2 medium, 3 large",
+      "options": { "1": "Small", "2": "Medium", "3": "Large" }
     },
     "difficulty": {
       "label": "New World Difficulty",

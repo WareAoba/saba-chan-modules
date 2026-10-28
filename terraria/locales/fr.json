@@ -38,7 +38,8 @@
     },
     "autocreate": {
       "label": "Taille du nouveau monde",
-      "description": "Taille si aucun monde : 1 petit, 2 moyen, 3 grand"
+      "description": "Taille si aucun monde : 1 petit, 2 moyen, 3 grand",
+      "options": { "1": "Petit", "2": "Moyen", "3": "Grand" }
     },
     "difficulty": {
       "label": "Difficulté du nouveau monde",

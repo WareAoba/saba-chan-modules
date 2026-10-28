@@ -38,7 +38,8 @@
     },
     "autocreate": {
       "label": "새 월드 크기",
-      "description": "월드가 없을 때 만들 크기: 1 작음, 2 중간, 3 큼"
+      "description": "월드가 없을 때 만들 크기: 1 작음, 2 중간, 3 큼",
+      "options": { "1": "작게", "2": "보통", "3": "크게" }
     },
     "difficulty": {
       "label": "새 월드 난이도",

@@ -4,7 +4,7 @@
     "description": "마인크래프트 서버 관리 모듈 (전체 수명주기 제어)"
   },
   "settings": {
-    "server_type": { "label": "서버 종류", "description": "이 월드를 돌리는 서버 프로그램입니다. 바닐라·페이퍼·폴리아·퍼퍼·패브릭은 사바쨩이 설치할 수 있고, 나머지는 기존 서버를 가져올 때 판정합니다." },
+    "server_type": { "label": "서버 종류", "description": "이 월드를 돌리는 서버 프로그램입니다. 바닐라·페이퍼·폴리아·퍼퍼·패브릭은 사바쨩이 설치할 수 있고, 나머지는 기존 서버를 가져올 때 판정합니다.", "options": { "vanilla": "바닐라", "paper": "페이퍼", "folia": "폴리아", "purpur": "퍼퍼", "pufferfish": "퍼퍼피시", "spigot": "스피곳", "craftbukkit": "크래프트버킷", "fabric": "패브릭", "quilt": "퀼트", "forge": "포지", "neoforge": "네오포지" } },
     "java_path": { "label": "Java 경로", "description": "Java 실행 파일 경로 (비워두면 자동 감지)" },
     "ram": { "label": "메모리 (RAM)", "description": "자바 힙 크기: 숫자 뒤에 K, M, G (예: 4G, 1024M)" },
     "port": { "label": "서버 포트", "description": "게임 서버 포트" },

@@ -38,7 +38,8 @@
     },
     "autocreate": {
       "label": "Größe neuer Welt",
-      "description": "Größe der neu erstellten Welt: 1 klein, 2 mittel, 3 groß"
+      "description": "Größe der neu erstellten Welt: 1 klein, 2 mittel, 3 groß",
+      "options": { "1": "Klein", "2": "Mittel", "3": "Groß" }
     },
     "difficulty": {
       "label": "Schwierigkeit neuer Welt",

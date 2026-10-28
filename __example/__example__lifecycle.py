@@ -19,7 +19,7 @@
       → module.toml [config] stop_command만 적어도 데몬이 stdin으로 보내 줍니다
       → managed의 종료 대기·강제 종료는 데몬이 합니다
       → 명령 경로는 stdin → REST → RCON 순서입니다. RCON은 둘 다 없는 서버만 쓰고, 그때 정지 명령은
-        daemon_post(f"/api/instance/{instance_id}/rcon", {"command": "<정지 명령>"})로 데몬에 보냅니다
+        daemon_rcon_command(instance_id, "<정지 명령>")로 데몬에 보냅니다 (0.1.12+)
 
    4. configure()에 설정 파일 쓰기 로직 구현
       → module.toml [[settings.fields]]에 file_key = "게임 설정 파일 키" 추가 (이름 표를 코드에 따로 두지 않습니다)

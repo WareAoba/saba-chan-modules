@@ -1109,7 +1109,7 @@ def execute_command_via_rest(instance_id, command_lower, args, config):
 
 
 def execute_rest_via_daemon(instance_id, endpoint, body, command_text, method="POST"):
-    """SDK가 HOST 통로와 데몬 HTTP 호환 경로를 고른다."""
+    """데몬 HOST 통로로 이 인스턴스의 REST를 부른다."""
     try:
         result = daemon_rest(instance_id, method, endpoint, body=body, timeout=5)
         result.setdefault("success", True)

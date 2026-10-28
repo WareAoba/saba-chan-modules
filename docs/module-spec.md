@@ -126,7 +126,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 데몬은 `python <entry> <함수 이름>`으로 실행하고 stdin에 JSON 하나를 쓴다. 모듈은 결과 JSON을 stdout에 쓰고 종료 코드 0으로 끝낸다. 결과는 stdout 전체이거나 **마지막 줄**이어야 한다(그 앞의 디버그 출력은 무시된다). 진행 상황은 stderr에 `PROGRESS:{json}` 줄로 쓴다.
 
-- 데몬이 넣는 환경 변수: `SABA_IPC_URL`, `SABA_IPC_PORT`, `SABA_TOKEN_PATH`(토큰 파일 경로), `SABA_LANG`. 데몬 역호출은 `daemon_rcon.daemon_post()`를 쓴다.
+- 데몬이 넣는 환경 변수: `SABA_IPC_URL`, `SABA_IPC_PORT`, `SABA_HOST_DIR`(HOST 통로), `SABA_LANG`. 0.1.12부터 IPC 토큰(`SABA_TOKEN_PATH`)은 주지 않는다. 데몬에 부탁할 일(콘솔 한 줄·REST·RCON)은 `daemon_rcon`의 `daemon_stdin_command`·`daemon_rest`·`daemon_rcon_command`로 HOST 통로를 거친다. `daemon_post`는 0.1.12에서 지웠다.
 - 공통 응답: `success: bool`, `message: str`. 사용자 조치가 필요하면 `action_required: "<코드>"`. 서버 실행 파일을 찾지 못하면(`get_launch_command`) 범용 코드 `executable_not_found`에 `configured_path`(설정된 경로, 있으면)와 `options: ["update_path", "install_new"]`를 싣는다. 경로를 다시 고르는 화면은 `configured_path`의 확장자로 파일 종류를 정한다(없으면 모든 파일). 익스텐션이 없으면 `error_code: "extension_required"`, `missing_extensions[]`.
 - 모르는 함수 이름에는 `{"success": false, "message": "Unknown function: X"}`.
 - 예약 함수 `functions`: `{"success": true, "functions": [FUNCTIONS 표의 함수 이름…]}`. 데몬은 이것으로 모듈이 지원하는 기능을 알고, 없는 기능(예: `reset_server`가 없으면 서버 초기화)은 화면에서 숨긴다. 공용 `run_lifecycle(FUNCTIONS)`을 쓰면 자동으로 답한다. 진입점을 직접 쓰면 `FUNCTIONS["functions"] = lambda _config: {"success": True, "functions": [f for f in FUNCTIONS if f != "functions"]}` 한 줄을 더한다.

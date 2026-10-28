@@ -624,26 +624,11 @@ def test_nickname_resolution_uses_the_sdk_player_list(monkeypatch):
     rest.assert_called_once_with("i1", "GET", "/v1/api/players", body=None, timeout=5)
 
 
-def test_daemon_rest_http_fallback_keeps_endpoint_and_empty_post_body(monkeypatch):
-    from palworld import lifecycle
-    import daemon_rcon
-    monkeypatch.delenv("SABA_HOST_DIR", raising=False)
-    post = mock.Mock(return_value={"success": True, "data": {}})
-    monkeypatch.setattr(daemon_rcon, "daemon_post", post)
-    if hasattr(lifecycle, "daemon_post"):
-        monkeypatch.setattr(lifecycle, "daemon_post", post)
-    result = lifecycle.execute_rest_via_daemon("i1", "/v1/api/save", {}, "save")
-    assert result["success"] is True
-    post.assert_called_once_with("/api/instance/i1/rest", {"method": "POST", "endpoint": "/v1/api/save", "body": {}}, timeout=5)
-
-
 def test_rest_failure_keeps_the_daemon_error_code(monkeypatch):
     from palworld import lifecycle
     error = ConnectionError("요청 거부")
     error.error_code = "no_instance"
     monkeypatch.setattr(lifecycle, "daemon_rest", mock.Mock(side_effect=error), raising=False)
-    if hasattr(lifecycle, "daemon_post"):
-        monkeypatch.setattr(lifecycle, "daemon_post", mock.Mock(side_effect=AssertionError("옛 데몬 호출")))
     result = lifecycle.execute_rest_via_daemon("i1", "/v1/api/save", {}, "save")
     assert result["success"] is False
     assert result["error_code"] == "no_instance"

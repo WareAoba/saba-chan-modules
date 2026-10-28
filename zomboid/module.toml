@@ -42,6 +42,8 @@ snapshots = true
 
 [extensions.saba-core]
 data_roots = ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
+# 돌아가는 CPU (saba-chan 0.1.12 architectures, 0.1.11 데몬은 모르는 키 경고로 무시). x86_64만 있는 이유: 설치에 쓰는 SteamCMD가 32비트 x86이고, 서버가 동봉 x86_64 JRE(jre64)로 돈다. 에뮬레이션은 하지 않는다
+architectures = ["x86_64"]
 
 [install]
 method = "steamcmd"

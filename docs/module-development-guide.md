@@ -74,7 +74,7 @@
 - 콘솔이나 REST가 있는 게임에 RCON 설정이 있으면 모듈이 실행 전·설정 저장 때마다 **끈다**. 예: minecraft `_enforce_rcon_policy()`가 `enable-rcon=false`, palworld는 `RCONEnabled=False`, zomboid는 `RCONPassword`를 비운다.
 - **RCON만 받는 게임**(`supported = ["rcon"]`): `[protocols] rcon_port`(게임의 기본 RCON 포트)가 필수다. 데몬이 처음 시작할 때 인스턴스마다 포트와 무작위 비밀번호를 정해 인스턴스 폴더 `rcon.json`에 두고, 모듈 config에 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 `get_launch_command`(또는 실행 전 준비)에서 이 값을 게임 설정에 쓰고, RCON을 127.0.0.1에서만 받게 한다. 데몬은 `127.0.0.1:<rcon_port>`에만 접속한다.
   - 콘솔 명령(`method = "console"`)과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 모듈이 RCON 소켓을 직접 열지 않는다.
-  - 정지는 데몬이 RCON으로 `stop_command`를 보내지 않는다. 모듈 `stop()`이 데몬 `/api/instance/<id>/rcon`에 정지 명령을 보낸다: `daemon_post(f"/api/instance/{instance_id}/rcon", {"command": "<정지 명령>"})`. 보낼 수 없으면 `graceful_stop_unavailable`(§3 stop).
+  - 정지는 데몬이 RCON으로 `stop_command`를 보내지 않는다. 모듈 `stop()`이 데몬을 거쳐 RCON으로 정지 명령을 보낸다: `daemon_rcon_command(instance_id, "<정지 명령>")`(0.1.12+). 보낼 수 없으면 `graceful_stop_unavailable`(§3 stop).
   - RCON 포트·비밀번호를 설정 화면(`[[settings.fields]]`)에 두지 않는다. 비밀번호를 로그·응답·오류 문구에 쓰지 않는다.
 - 공용 도우미 파일 이름은 `daemon_rcon.py`지만 RCON 클라이언트가 아니다. 데몬 API와 프로세스 처리 도우미다(§5).
 
@@ -89,7 +89,7 @@
 - 답은 늘 JSON 객체이고 `success: bool`을 넣는다. 실패해도 **종료 코드 0**으로 끝낸다(0이 아니면 데몬이 stdout을 버린다).
 - 로그는 `print(..., file=sys.stderr)`로만 쓴다. stdout에 찍으면 결과 JSON이 깨질 수 있다.
 - 데몬은 `PYTHONPATH`에 공용 폴더(`i18n.py`, `daemon_rcon.py`)와 익스텐션 폴더를 넣는다. `SABA_LANG`은 호출 언어다. 공용 파일을 모듈 폴더에 복사하지 않는다.
-- 0.1.10부터 모든 Python 호출에 `SABA_HOST_DIR`을 준다. SDK가 이 통로로 인스턴스의 stdin·REST 요청을 보낸다. 모듈은 HOST 파일이나 IPC 토큰을 직접 다루지 않는다. 기존 HTTP 연동용 `SABA_IPC_URL`·`SABA_TOKEN_PATH`는 호환용이며, 격리 실행에는 토큰 경로를 주지 않는다.
+- 0.1.10부터 모든 Python 호출에 `SABA_HOST_DIR`을 준다. SDK가 이 통로로 인스턴스의 stdin·REST 요청을 보낸다. 모듈은 HOST 파일이나 IPC 토큰을 직접 다루지 않는다. 0.1.12부터 데몬은 모듈에 IPC 토큰(`SABA_TOKEN_PATH`)을 주지 않아 데몬 HTTP API를 직접 부를 수 없고, `daemon_post`와 HTTP 대체 길은 지웠다. `SABA_HOST_DIR`이 없으면 SDK가 `ConnectionError`(`error_code` `no_host`)를 낸다.
 - 결과 stdout의 상한은 4 MiB다. 일반 stderr는 마지막 200줄, 합계 64 KiB만 보존한다. 일반 호출은 최대 8개, `install_server`는 별도로 최대 2개가 동시에 실행된다. 기본 기한은 120초이고 설치는 1800초다. 자리 대기도 기한에 들지만 격리 실행 준비는 빠진다. 전체 규칙과 오류 필드는 [실행기 계약](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/01-daemon-core.md#71-srcpluginmodrs-python-모듈익스텐션-실행기-단발-프로세스)을 따른다.
 
 ### 서버 실행: managed가 기본
@@ -379,16 +379,16 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 |---|---|
 | `daemon_stdin_command(instance_id, line, *, timeout=10)` | 데몬이 관리하는 서버 콘솔에 한 줄 보내기 |
 | `daemon_rest(instance_id, method, path, *, body=None, timeout=10)` | 데몬을 통해 게임 REST 요청 보내기 |
-| `daemon_post(path, payload, timeout=10)` | 기존 HTTP 연동용 데몬 API 호출 |
+| `daemon_rcon_command(instance_id, command, *, timeout=10)` | RCON만 받는 서버에 한 줄 보내기 (HOST, 0.1.12+) |
 | `is_process_alive(pid)`, `wait_for_exit(pid, timeout)`, `force_kill(pid, tree=True)` | PID 단위 프로세스 확인·대기·강제 종료 (Windows/POSIX 공용) |
 | `config_value(config, key, default)` | config 세 위치에서 설정 값 찾기 |
 | `load_setting_types(module_dir)`, `coerce_setting(value, type)` | 파일 값을 필드 타입으로 |
 | `run_lifecycle(FUNCTIONS)` | `python lifecycle.py <함수>` 진입점 |
 | `safe_join(root, *parts)`, `PathOutside` | 사용자 이름 조각을 루트 안 경로로 합치기·경로 위반 알리기 |
 
-콘솔 명령은 `daemon_stdin_command`, REST는 `daemon_rest`를 쓴다. `SABA_HOST_DIR`이 있으면 SDK가 HOST 통로를 쓰고, 없으면 HTTP API로 보낸다. HOST의 대상은 데몬이 정한 현재 인스턴스다. 모듈이 다른 `instance_id`를 넘겨도 대상을 바꾸지 못한다. 인스턴스 없는 호출은 `no_instance`로 실패한다. 요청 한도는 실행당 64건, 건당 30초, 보내기 64 KiB, 받기 1 MiB다. `LOOPBACK`과 요청 수를 함께 센다. HOST 실패는 `error_code` 속성이 있는 `ConnectionError`다.
+콘솔 명령은 `daemon_stdin_command`, REST는 `daemon_rest`를 쓴다. SDK는 `SABA_HOST_DIR`의 HOST 통로로만 보낸다. HOST의 대상은 데몬이 정한 현재 인스턴스다. 모듈이 다른 `instance_id`를 넘겨도 대상을 바꾸지 못한다. 인스턴스 없는 호출은 `no_instance`로 실패한다. 요청 한도는 실행당 64건, 건당 30초, 보내기 64 KiB, 받기 1 MiB다. `LOOPBACK`과 요청 수를 함께 센다. HOST 실패는 `error_code` 속성이 있는 `ConnectionError`다.
 
-`daemon_rest`의 `path`는 게임 REST의 endpoint다. HTTP 호환 경로에서도 같은 endpoint로 전달된다. RCON만 받는 게임의 정지 명령은 기존 `daemon_post(f"/api/instance/{instance_id}/rcon", {"command": ...})`를 쓴다(§1).
+`daemon_rest`의 `path`는 게임 REST의 endpoint다. RCON만 받는 게임의 정지 명령은 `daemon_rcon_command(instance_id, ...)`를 쓴다(§1).
 
 SDK를 import하면 `module.toml`의 `[module.dependencies]`에 최소 코어 버전을 선언한다. `daemon_rcon.py`의 `SINCE`에서 쓰는 이름 중 가장 높은 버전을 고른다. 예제의 기존 함수는 `>=0.1.2`다. `safe_join`, `PathOutside`, `daemon_rest`를 쓰면 `>=0.1.10`으로 올린다. 범위·상한은 지원하지 않는다. `saba-core module audit`과 적합성 키트는 누락·낮은 선언을 `sdk_version`으로 알린다.
 

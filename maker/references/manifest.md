@@ -9,7 +9,7 @@
 - 게임 서버가 지원하는 경로 중 **stdin(콘솔)을 먼저**, 없으면 **REST**, 둘 다 없을 때만 **RCON**을 쓴다. 명령마다 같은 순서로 고른다(예: 콘솔에 없는 명령만 REST).
 - `[protocols] supported`에 실제로 쓰는 것만 적는다. `interaction_mode`: `console` 또는 `commands`.
 - 콘솔이나 REST가 있으면 RCON은 `supported`에 넣지 않고, 게임 설정의 RCON은 실행 전·설정 저장 때마다 끈다. 실행 중에 RCON을 다시 켤 수 있는 자유 입력 명령(lessons.md §안전·효율)도 막는다.
-- **RCON만 받는 게임**(`supported = ["rcon"]`): `[protocols] rcon_port`(게임의 기본 RCON 포트)가 필수다. 데몬이 인스턴스마다 포트와 무작위 비밀번호를 정해 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 `get_launch_command`(또는 실행 전 준비)에서 이 값을 게임 설정에 쓰고 RCON을 127.0.0.1에서만 받게 한다. 콘솔 명령과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 모듈은 RCON 소켓을 직접 열지 않는다. 정지는 모듈 `stop()`이 `daemon_post(f"/api/instance/{instance_id}/rcon", {"command": "<정지 명령>"})`로 보낸다. RCON 포트·비밀번호는 설정 화면에 두지 않고 로그·응답·오류에 쓰지 않는다.
+- **RCON만 받는 게임**(`supported = ["rcon"]`): `[protocols] rcon_port`(게임의 기본 RCON 포트)가 필수다. 데몬이 인스턴스마다 포트와 무작위 비밀번호를 정해 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 `get_launch_command`(또는 실행 전 준비)에서 이 값을 게임 설정에 쓰고 RCON을 127.0.0.1에서만 받게 한다. 콘솔 명령과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 모듈은 RCON 소켓을 직접 열지 않는다. 정지는 모듈 `stop()`이 `daemon_rcon_command(instance_id, "<정지 명령>")`로 보낸다 (saba-core 0.1.12+). RCON 포트·비밀번호는 설정 화면에 두지 않고 로그·응답·오류에 쓰지 않는다.
 
 ## 절마다
 

@@ -497,6 +497,21 @@ def installed_jar(server_type, source, target_dir, jar_name):
     return None
 
 
+def retire_other_builds(server_type, source, server_dir):
+    """방금 깐 Forge·NeoForge 빌드 말고 다른 빌드의 인자 파일을 지운다. launch_target은 인자 파일이 있는 가장 높은
+    빌드로 뜨므로, 낮은 빌드를 다시 깔면 그대로는 옛 빌드가 뜬다. 라이브러리 jar는 그대로 둔다"""
+    kind = SERVER_TYPES[server_type]["install"]
+    if kind not in ("forge", "neoforge"):
+        return
+    root = {"forge": ("net", "minecraftforge", "forge"), "neoforge": ("net", "neoforged", "neoforge")}[kind]
+    build = str(source.get("build") or "")
+    base = os.path.join(server_dir, "libraries", *root)
+    for name in ("unix_args.txt", "win_args.txt"):
+        for path in glob.glob(os.path.join(glob.escape(base), "*", name)):
+            if os.path.basename(os.path.dirname(path)) != build:
+                os.remove(path)
+
+
 def latest_installable(server_type, releases, tries=10, deadline_secs=60):
     """서버 종류가 받을 수 있는 가장 새 릴리스 (`releases`는 새것부터).
 

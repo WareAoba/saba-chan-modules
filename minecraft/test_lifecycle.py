@@ -1692,7 +1692,7 @@ def test_an_escaped_line_break_survives_import_and_save():
 
 # ─── 공식 설치기로 까는 서버 종류 (Quilt·Forge·NeoForge·BuildTools) ─────────────
 
-def _installer_fixture(tmp_path, server_type, source, run, jre=None):
+def _installer_fixture(tmp_path, server_type, source, run, jre=None, bundled=None):
     """설치기 jar를 받고 Java를 갖춘 뒤 run(cmd, cwd, env)으로 설치기를 돌리는 install_server를 부른다"""
     import hashlib
     import io
@@ -1721,13 +1721,19 @@ def _installer_fixture(tmp_path, server_type, source, run, jre=None):
         return run(cmd, cwd, env)
 
     def fake_jre(major, folder, image_type="jre", max_major=None):
-        return jre(major, folder, image_type, max_major) if jre else \
-            {"success": True, "java_path": os.path.join(folder, "java", "bin", image_type), "version": "21"}
+        if jre:
+            return jre(major, folder, image_type, max_major)
+        assert os.path.isdir(folder), "download_jre는 있는 폴더에 받는다"
+        exe = os.path.join(folder, "java", "bin", image_type)
+        os.makedirs(os.path.dirname(exe), exist_ok=True)
+        open(exe, "w").write(f"new {image_type}")
+        return {"success": True, "java_path": exe, "version": "21"}
 
     with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
             mock.patch.object(lifecycle.server_types, "resolve_download", return_value=source), \
             mock.patch("urllib.request.urlopen", return_value=Resp(body)), \
             mock.patch.object(lifecycle.JavaDownloader, "download_jre", side_effect=fake_jre) as jres, \
+            mock.patch.object(lifecycle.JavaDownloader, "bundled_within", return_value=bundled), \
             mock.patch.object(ServerInstaller, "_run_installer_process", side_effect=fake_run):
         result = ServerInstaller.install_server("1.21.1", str(tmp_path), server_type=server_type, accept_eula=True)
     return result, calls, jres, body
@@ -1765,9 +1771,13 @@ def test_quilt_is_installed_by_its_official_installer_with_portable_java(tmp_pat
     result, calls, jre, body = _installer_fixture(tmp_path, "quilt", {"build": "0.30.1"}, _quilt_run)
     assert result["success"], result
     assert result["executable_path"] == str(tmp_path / "quilt-server-launch.jar")
-    assert (result["server_type"], result["build"], result["java_path"]) == ("quilt", "0.30.1", calls[0]["cmd"][0])
+    assert (result["server_type"], result["build"]) == ("quilt", "0.30.1")
     # 설치기는 PC의 Java가 아니라 고정 판 포터블 Java로 돈다. 서버 폴더에 더 새 Java가 있으면 고정 판으로 바꾼다
-    assert jre.call_args.args == (21, str(tmp_path)) and jre.call_args.kwargs == {"max_major": 21}
+    # 새 Java는 설치기 폴더에 받고, 설치가 끝난 뒤에 서버 폴더의 java/로 들인다
+    build = os.path.dirname(calls[0]["cwd"])
+    assert jre.call_args.args == (21, os.path.join(build, "runtime")) and jre.call_args.kwargs == {"max_major": 21}
+    assert result["java_path"] == str(tmp_path / "java" / "bin" / "jre")
+    assert (tmp_path / "java" / "bin" / "jre").read_text() == "new jre"
     cmd = calls[0]["cmd"]
     assert cmd[cmd.index("-jar") + 2:-1] == ["install", "server", "1.21.1", "0.30.1", "--download-server"]
     assert calls[0]["installer"] == body, "체크섬을 확인한 설치기를 돌린다"
@@ -1832,6 +1842,46 @@ def test_a_failed_installer_reports_why_and_keeps_the_old_server(tmp_path):
     assert result["success"] is False and "quilt" in result["message"]
     assert (tmp_path / "server.jar").read_bytes() == b"old server"
     assert _no_build_dirs(tmp_path)
+
+
+def test_a_failed_install_keeps_the_servers_java(tmp_path):
+    """설치가 실패하면 서버 폴더의 java/는 그대로다 (새 Java는 설치가 끝난 뒤에만 들인다)"""
+    (tmp_path / "java" / "bin").mkdir(parents=True)
+    (tmp_path / "java" / "bin" / "java").write_text("old java 17")
+    result, _, jre, _ = _installer_fixture(tmp_path, "quilt", {"build": "0.30.1"}, lambda *a: (1, ["ERROR boom"]))
+    assert result["success"] is False and jre.called
+    assert (tmp_path / "java" / "bin" / "java").read_text() == "old java 17"
+    assert sorted(p.name for p in (tmp_path / "java" / "bin").iterdir()) == ["java"]
+
+
+def test_a_usable_server_java_is_used_without_downloading(tmp_path):
+    have = {"success": True, "java_path": str(tmp_path / "java" / "bin" / "java"), "version": "21"}
+    result, calls, jre, _ = _installer_fixture(tmp_path, "quilt", {"build": "0.30.1"}, _quilt_run, bundled=have)
+    assert result["success"], result
+    assert not jre.called and calls[0]["cmd"][0] == have["java_path"] == result["java_path"]
+
+
+def test_installing_a_lower_forge_build_makes_it_the_launch_target(tmp_path):
+    """더 높은 빌드가 깔린 폴더에 낮은 빌드를 깔아도 다음 실행은 방금 깐 빌드다"""
+    from minecraft import server_types
+    newer = tmp_path / "libraries" / "net" / "neoforged" / "neoforge" / "21.1.210"
+    newer.mkdir(parents=True)
+    for name in ("unix_args.txt", "win_args.txt"):
+        (newer / name).write_text("newer")
+    (newer / "neoforge-21.1.210-universal.jar").write_bytes(b"lib")
+
+    def run(cmd, cwd, env):
+        here = os.path.join(cmd[cmd.index("--installServer") + 1], "libraries", "net", "neoforged", "neoforge",
+                            "21.1.209")
+        os.makedirs(here)
+        for name in ("unix_args.txt", "win_args.txt"):
+            open(os.path.join(here, name), "w").write("installed")
+        return 0, []
+
+    result, _, _, _ = _installer_fixture(tmp_path, "neoforge", {"build": "21.1.209"}, run)
+    assert result["success"], result
+    args, _ = server_types.launch_target({"server_type": "neoforge"}, None, str(tmp_path))
+    assert "21.1.209" in args[0]
 
 
 def test_an_installer_needs_its_portable_java(tmp_path):

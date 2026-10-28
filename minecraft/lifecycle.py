@@ -382,17 +382,9 @@ class JavaDownloader:
         java_dir = os.path.join(install_dir, "java")
 
         # Check if already downloaded
-        existing = JavaDownloader._find_bundled_java(java_dir)
+        existing = JavaDownloader.bundled_within(install_dir, major_version, max_major)
         if existing:
-            info = JavaDetector.get_java_info(existing)
-            if info and major_version <= info["major_version"] <= (max_major or info["major_version"]):
-                return {
-                    "success": True,
-                    "java_path": existing,
-                    "java_home": java_dir,
-                    "version": info["version"],
-                    "already_exists": True,
-                }
+            return existing
 
         # Determine archive type
         ext = "zip" if os_name == "windows" else "tar.gz"
@@ -462,24 +454,11 @@ class JavaDownloader:
             shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_run_failed")}
 
-        # 옛 java/는 먼저 옆으로 옮긴다: 쓰는 중이라 옮기지 못하면 손대지 않고 실패한다.
-        # 새 것을 들이지 못하면 옛 것을 되돌린다
-        old_dir = final_dir + ".old"
         try:
-            shutil.rmtree(old_dir, ignore_errors=True)
-            had_old = os.path.exists(final_dir)
-            if had_old:
-                os.replace(final_dir, old_dir)
-            try:
-                os.replace(java_dir, final_dir)
-            except OSError:
-                if had_old:
-                    os.replace(old_dir, final_dir)
-                raise
+            JavaDownloader.swap_in(java_dir, final_dir)
         except OSError as e:
             shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
-        shutil.rmtree(old_dir, ignore_errors=True)
         java_dir = final_dir
         java_exe = JavaDownloader._find_bundled_java(java_dir)
         info = JavaDetector.get_java_info(java_exe) if java_exe else None
@@ -495,6 +474,39 @@ class JavaDownloader:
             "version": info["version"],
             "major_version": info["major_version"],
         }
+
+    @staticmethod
+    def bundled_within(install_dir, major_version, max_major=None):
+        """<install_dir>/java/의 Java가 major_version 이상 max_major 이하이면 download_jre와 같은 응답, 아니면 None"""
+        java_dir = os.path.join(install_dir, "java")
+        existing = JavaDownloader._find_bundled_java(java_dir)
+        info = JavaDetector.get_java_info(existing) if existing else None
+        if info and major_version <= info["major_version"] <= (max_major or info["major_version"]):
+            return {
+                "success": True,
+                "java_path": existing,
+                "java_home": java_dir,
+                "version": info["version"],
+                "already_exists": True,
+            }
+        return None
+
+    @staticmethod
+    def swap_in(new_dir, final_dir):
+        """new_dir을 final_dir 자리로 들인다. 옛 것은 먼저 옆으로 옮긴다: 쓰는 중이라 옮기지 못하면 손대지 않고
+        OSError를 낸다. 새 것을 들이지 못하면 옛 것을 되돌린다"""
+        old_dir = final_dir + ".old"
+        shutil.rmtree(old_dir, ignore_errors=True)
+        had_old = os.path.exists(final_dir)
+        if had_old:
+            os.replace(final_dir, old_dir)
+        try:
+            os.replace(new_dir, final_dir)
+        except OSError:
+            if had_old:
+                os.replace(old_dir, final_dir)
+            raise
+        shutil.rmtree(old_dir, ignore_errors=True)
 
     @staticmethod
     def bundled_major(java_dir, java_exe):
@@ -2031,11 +2043,18 @@ class ServerInstaller:
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
 
         # 설치기와 서버는 PC에 깔린 Java가 아니라 버전을 고정한 포터블 Java로 돈다. 서버 폴더에 이미 있는 것이
-        # 고정 판보다 새것이면 바꾼다 (옛 Forge·BuildTools는 너무 새 Java를 거절한다)
+        # 고정 판보다 새것이면 바꾼다 (옛 Forge·BuildTools는 너무 새 Java를 거절한다). 새 Java는 설치기 폴더에 받아
+        # 두고 설치가 끝난 뒤에만 서버 폴더로 들인다: 설치가 실패하면 지금 서버의 Java도 그대로다
         java_req = max(details.get("java_major_version") or required_java(version_id), source.get("java_min") or 0)
         pinned = JavaDownloader.pinned_major(java_req)
         java_max = min(source.get("java_max") or pinned or java_req, pinned or java_req)
-        jre = JavaDownloader.download_jre(java_req, install_path, max_major=java_max)
+        jre = JavaDownloader.bundled_within(install_path, java_req, java_max)
+        staged_java = None
+        if not jre:
+            staged = os.path.join(build_dir, "runtime")
+            os.makedirs(staged, exist_ok=True)
+            jre = JavaDownloader.download_jre(java_req, staged, max_major=java_max)
+            staged_java = os.path.join(staged, "java")
         if not jre.get("success"):
             return {"success": False, "message": i18n.t("errors.java_download_failed", error=jre.get("message", ""))}
         runner = jre
@@ -2067,6 +2086,12 @@ class ServerInstaller:
             return {"success": False, "message": i18n.t("errors.installer_no_server", type=server_type)}
         try:
             _move_into(target, install_path)
+            if staged_java:
+                JavaDownloader.swap_in(staged_java, os.path.join(install_path, "java"))
+                jre = {**jre, "java_path": os.path.join(install_path, "java",
+                                                        os.path.relpath(jre["java_path"], staged_java))}
+            # 같은 폴더의 다른 Forge·NeoForge 빌드가 다음 실행을 가로채지 않게 한다
+            server_types.retire_other_builds(server_type, source, install_path)
         except OSError as e:
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
         jar_path = os.path.join(install_path, name) if name else None

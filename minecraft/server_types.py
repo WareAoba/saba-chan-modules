@@ -269,11 +269,11 @@ def detect(working_dir, server_jar=None):
 
 
 def minecraft_version_of(server_type, loader_version):
-    """로더 버전에 담긴 Minecraft 버전. Forge는 `1.20.1-47.3.0`, NeoForge는 `21.1.77`(→1.21.1)·`26.1.0.5`(→26.1)"""
+    """로더 버전에 담긴 Minecraft 버전. Forge는 `1.20.1-47.3.0`·`26.3-66.1.0`, NeoForge는 `21.1.77`(→1.21.1)·`26.1.0.5`(→26.1)"""
     text = str(loader_version or "")
     if server_type == "forge":
         mc = text.split("-")[0]
-        return mc if re.fullmatch(r"1\.\d+(\.\d+)?", mc) else None
+        return mc if re.fullmatch(r"(?:1|2\d)\.\d+(\.\d+)?", mc) else None
     if server_type == "neoforge":
         numbers = re.match(r"(\d+)\.(\d+)", text)
         if not numbers:

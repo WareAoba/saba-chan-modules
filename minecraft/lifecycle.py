@@ -998,6 +998,15 @@ def _enforce_rcon_policy(working_dir, config=None):
     return {"changed": True, "changes": {"enable-rcon": "false"}}
 
 
+# 콘솔 입출력은 UTF-8로: 데몬은 stdin에 UTF-8을 쓰고 stdout을 UTF-8로 읽는다. JVM은 파이프의 문자 집합을
+# OS 로캘(native.encoding)로 정해서, 로캘이 POSIX면 ASCII, 일본어 Windows면 MS932가 된다.
+# 바닐라는 stdin을 UTF-8로 직접 읽지만 Paper 계열·Forge 콘솔은 stdout을, Spigot 계열은 stdin도 이 문자 집합으로 다뤄
+# 한글 공지가 `???`로 바뀌었다 (클라우드 Linux 실측, 26.3).
+# Paper 계열 콘솔(TerminalConsoleAppender)은 화면이 아닌 파이프에도 ANSI 색 코드를 넣어 `Seed: [\x1b[92m…`처럼
+# 실패·답 모양과 로그 진단이 맞지 않는다. 데몬 콘솔은 색을 스스로 칠하므로(syntax_highlight) 색 코드를 끈다 (`terminal.ansi`)
+_CONSOLE_FLAGS = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8", "-Dterminal.ansi=false"]
+
+
 def get_launch_command(config):
     """
     Build the command for the Rust daemon to spawn as a ManagedProcess.
@@ -1033,7 +1042,7 @@ def get_launch_command(config):
 
     java_path = _launch_java(config, server_jar)
 
-    args = [f"-Xmx{ram}", f"-Xms{ram}"]
+    args = [f"-Xmx{ram}", f"-Xms{ram}", *_CONSOLE_FLAGS]
 
     # Aikar's flags (recommended for modern MC servers)
     if config.get("use_aikar_flags", False):

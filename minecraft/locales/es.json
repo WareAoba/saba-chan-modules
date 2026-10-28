@@ -4,7 +4,7 @@
     "description": "Módulo de gestión de servidor Minecraft con control completo del ciclo de vida"
   },
   "settings": {
-    "server_type": { "label": "Tipo de servidor", "description": "Qué software de servidor ejecuta este mundo. saba-chan puede instalar Vanilla, Paper, Folia, Purpur y Fabric; los demás se detectan al importar un servidor existente." },
+    "server_type": { "label": "Tipo de servidor", "description": "Qué software de servidor ejecuta este mundo. saba-chan puede instalar Vanilla, Paper, Folia, Purpur y Fabric; los demás se detectan al importar un servidor existente.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Ruta de Java", "description": "Ruta al ejecutable de Java (detección automática si está vacío)" },
     "ram": { "label": "Memoria (RAM)", "description": "Asignación máxima de memoria (ej. 2G, 4G)" },
     "port": { "label": "Puerto del servidor", "description": "Puerto del servidor de juego" },

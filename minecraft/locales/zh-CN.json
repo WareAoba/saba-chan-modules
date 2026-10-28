@@ -4,7 +4,7 @@
     "description": "具有完整生命周期控制的我的世界服务器管理模块"
   },
   "settings": {
-    "server_type": { "label": "服务器类型", "description": "运行此世界的服务器软件。Vanilla、Paper、Folia、Purpur 和 Fabric 可由 saba-chan 安装；其他类型会在导入现有服务器时识别。" },
+    "server_type": { "label": "服务器类型", "description": "运行此世界的服务器软件。Vanilla、Paper、Folia、Purpur 和 Fabric 可由 saba-chan 安装；其他类型会在导入现有服务器时识别。", "options": { "vanilla": "原版", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Java路径", "description": "Java可执行文件路径（留空则自动检测）" },
     "ram": { "label": "内存（RAM）", "description": "最大内存分配（如 2G、4G）" },
     "port": { "label": "服务器端口", "description": "游戏服务器端口" },

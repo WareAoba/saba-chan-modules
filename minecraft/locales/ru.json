@@ -4,7 +4,7 @@
     "description": "Модуль управления сервером Minecraft с полным контролем жизненного цикла"
   },
   "settings": {
-    "server_type": { "label": "Тип сервера", "description": "Какое серверное ПО запускает этот мир. Vanilla, Paper, Folia, Purpur и Fabric saba-chan может установить сам; остальные определяются при импорте существующего сервера." },
+    "server_type": { "label": "Тип сервера", "description": "Какое серверное ПО запускает этот мир. Vanilla, Paper, Folia, Purpur и Fabric saba-chan может установить сам; остальные определяются при импорте существующего сервера.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Путь к Java", "description": "Путь к исполняемому файлу Java (автоопределение, если пусто)" },
     "ram": { "label": "Память (RAM)", "description": "Максимальный объем выделяемой памяти (напр. 2G, 4G)" },
     "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },

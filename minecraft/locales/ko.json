@@ -4,7 +4,7 @@
     "description": "마인크래프트 서버 관리 모듈 (전체 수명주기 제어)"
   },
   "settings": {
-    "server_type": { "label": "서버 종류", "description": "이 월드를 돌리는 서버 프로그램입니다. 바닐라·페이퍼·폴리아·퍼퍼·패브릭은 사바쨩이 설치할 수 있고, 나머지는 기존 서버를 가져올 때 판정합니다.", "options": { "vanilla": "바닐라", "paper": "페이퍼", "folia": "폴리아", "purpur": "퍼퍼", "pufferfish": "퍼퍼피시", "spigot": "스피곳", "craftbukkit": "크래프트버킷", "fabric": "패브릭", "quilt": "퀼트", "forge": "포지", "neoforge": "네오포지" } },
+    "server_type": { "label": "서버 종류", "description": "이 월드를 돌리는 서버 프로그램입니다. 모든 종류를 사바쨩이 설치할 수 있습니다. 스피곳·크래프트버킷은 공식 BuildTools로 빌드해서 몇 분 걸리고, 퍼퍼피시는 일부 마인크래프트 버전용 빌드만 있습니다.", "options": { "vanilla": "바닐라", "paper": "페이퍼", "folia": "폴리아", "purpur": "퍼퍼", "pufferfish": "퍼퍼피시", "spigot": "스피곳", "craftbukkit": "크래프트버킷", "fabric": "패브릭", "quilt": "퀼트", "forge": "포지", "neoforge": "네오포지" } },
     "java_path": { "label": "Java 경로", "description": "Java 실행 파일 경로 (비워두면 자동 감지)" },
     "ram": { "label": "메모리 (RAM)", "description": "자바 힙 크기: 숫자 뒤에 K, M, G (예: 4G, 1024M)" },
     "port": { "label": "서버 포트", "description": "게임 서버 포트" },
@@ -173,6 +173,9 @@
     "server_type_mismatch": "서버 종류가 '{{chosen}}'(으)로 설정되어 있지만 서버 파일은 '{{detected}}'입니다.",
     "server_type_install_unsupported": "'{{type}}' 서버는 사바쨩이 설치할 수 없습니다. 직접 설치한 서버를 '기존 서버 가져오기'로 추가해 주세요.",
     "server_type_version_unavailable": "'{{type}}' 서버에는 마인크래프트 {{version}}용 안정 빌드가 아직 없습니다.",
+    "installer_failed": "'{{type}}' 공식 설치기가 실패했습니다 (종료 코드 {{code}}): {{detail}}",
+    "installer_timeout": "'{{type}}' 공식 설치기가 너무 오래 걸려 멈췄습니다. 다시 시도해 주세요.",
+    "installer_no_server": "'{{type}}' 설치기는 끝났지만 서버 파일이 만들어지지 않았습니다.",
     "server_jar_not_specified": "인스턴스 구성에 server_jar가 지정되지 않았습니다. server.jar 경로를 추가해주세요",
     "server_jar_not_found": "서버 jar를 찾을 수 없습니다: {{path}}. 인스턴스 설정의 경로를 확인해주세요.",
     "not_a_server_folder": "이 폴더는 마인크래프트 서버 폴더가 아닌 것 같아서 아무것도 지우지 않았습니다 (server.properties와 eula.txt가 없음): {{path}}",
@@ -225,6 +228,7 @@
   "messages": {
     "downloading_server": "마인크래프트 서버 {{version}} 받는 중",
     "downloading_java": "Java {{version}} 받는 중",
+    "running_installer": "{{type}} 공식 설치기로 마인크래프트 {{version}} 서버를 만드는 중 (몇 분 걸릴 수 있습니다)",
     "server_online": "서버가 온라인이며 응답 중입니다",
     "server_starting_no_response": "프로세스는 실행 중이지만 서버가 아직 응답하지 않습니다",
     "properties_updated": "server.properties를 수정했습니다",

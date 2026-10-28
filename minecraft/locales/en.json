@@ -4,7 +4,7 @@
     "description": "Minecraft server management module with full lifecycle control"
   },
   "settings": {
-    "server_type": { "label": "Server Type", "description": "Which server software runs this world. Vanilla, Paper, Folia, Purpur and Fabric can be installed by saba-chan; the others are detected when you import an existing server.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
+    "server_type": { "label": "Server Type", "description": "Which server software runs this world. saba-chan can install every type. Spigot and CraftBukkit are built with the official BuildTools and take a few minutes; Pufferfish only has builds for some Minecraft versions.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Java Path", "description": "Path to Java executable (auto-detected if blank)" },
     "ram": { "label": "Memory (RAM)", "description": "Java heap size: a number with K, M or G (e.g. 4G, 1024M)" },
     "port": { "label": "Server Port", "description": "Game server port" },
@@ -173,6 +173,9 @@
     "server_type_mismatch": "Server type is set to '{{chosen}}' but the server files are '{{detected}}'.",
     "server_type_install_unsupported": "saba-chan cannot install '{{type}}' servers. Install it yourself and add it with 'Import existing server'.",
     "server_type_version_unavailable": "'{{type}}' has no stable build for Minecraft {{version}} yet.",
+    "installer_failed": "The official '{{type}}' installer failed (exit code {{code}}): {{detail}}",
+    "installer_timeout": "The official '{{type}}' installer took too long and was stopped. Please try again.",
+    "installer_no_server": "The '{{type}}' installer finished but produced no server files.",
     "server_jar_not_specified": "server_jar not specified in instance configuration. Please add the path to server.jar",
     "server_jar_not_found": "Server jar not found: {{path}}. Please check the path in instance settings.",
     "not_a_server_folder": "This folder does not look like a Minecraft server folder (no server.properties or eula.txt), so nothing was deleted: {{path}}",
@@ -225,6 +228,7 @@
   "messages": {
     "downloading_server": "Downloading Minecraft server {{version}}",
     "downloading_java": "Downloading Java {{version}}",
+    "running_installer": "Setting up Minecraft {{version}} with the official {{type}} installer (this can take a few minutes)",
     "server_online": "Server is online and responding",
     "server_starting_no_response": "Process is running but server is not yet responding to queries",
     "properties_updated": "Updated server.properties",

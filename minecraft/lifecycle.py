@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 같은 폴더�
 
 import plugins
 import server_types
-from daemon_rcon import (ChecksumMismatch, PathOutside, atomic_write, diagnose_lines, download, graceful_stop,
+from daemon_rcon import (ChecksumMismatch, PathOutside, atomic_write, diagnose_lines, download, force_kill, graceful_stop,
                          is_process_alive, load_diagnose_rules, progress, read_key_values, request_console,
                          request_terminate, safe_extract, safe_join, setting_file_keys, settings_from_file,
                          settings_to_file, tail_lines, update_key_values)
@@ -302,6 +302,11 @@ class JavaDownloader:
     }
 
     @staticmethod
+    def pinned_major(major_version):
+        """major_version 이상인 고정 판 중 가장 낮은 주 버전 (없으면 None)"""
+        return next((m for m in sorted(JavaDownloader._RELEASES) if m >= major_version), None)
+
+    @staticmethod
     def _pinned_release(major_version):
         for major in sorted(JavaDownloader._RELEASES):
             if major >= major_version:
@@ -309,14 +314,14 @@ class JavaDownloader:
         return None
 
     @staticmethod
-    def _release_package(release, os_name, arch):
-        """고정 판 release의 이 플랫폼 JRE 압축 정보({link, checksum, ...}). 이 플랫폼용이 없으면 None"""
+    def _release_package(release, os_name, arch, image_type="jre"):
+        """고정 판 release의 이 플랫폼 JRE(또는 JDK) 압축 정보({link, checksum, ...}). 이 플랫폼용이 없으면 None"""
         import urllib.error
         import urllib.parse
         import urllib.request
         url = (
             f"{JavaDownloader._API_BASE}/assets/release_name/eclipse/{urllib.parse.quote(release, safe='')}?"
-            + urllib.parse.urlencode({"os": os_name, "architecture": arch, "image_type": "jre",
+            + urllib.parse.urlencode({"os": os_name, "architecture": arch, "image_type": image_type,
                                       "jvm_impl": "hotspot", "heap_size": "normal", "project": "jdk"})
         )
         print(f"  Release: {url}", file=sys.stderr)
@@ -330,7 +335,7 @@ class JavaDownloader:
             raise
         for binary in data.get("binaries") or []:
             package = binary.get("package") or {}
-            if (binary.get("os"), binary.get("architecture"), binary.get("image_type")) == (os_name, arch, "jre") \
+            if (binary.get("os"), binary.get("architecture"), binary.get("image_type")) == (os_name, arch, image_type) \
                     and str(package.get("link", "")).startswith("https://") and package.get("checksum"):
                 return package
         return None
@@ -361,12 +366,14 @@ class JavaDownloader:
         return os_name, arch
 
     @staticmethod
-    def download_jre(major_version, install_dir):
+    def download_jre(major_version, install_dir, image_type="jre", max_major=None):
         """Download and extract a portable JRE into <install_dir>/java/.
 
         Args:
             major_version: Java major version (e.g., 21, 17)
             install_dir: Server install directory
+            image_type: "jre", 또는 컴파일하는 설치기(BuildTools)에 줄 "jdk"
+            max_major: 이보다 새 Java는 쓰지 않는다 (있는 것이 더 새것이면 고정 판으로 바꾼다)
 
         Returns:
             dict with success, java_path, java_home, version
@@ -375,17 +382,9 @@ class JavaDownloader:
         java_dir = os.path.join(install_dir, "java")
 
         # Check if already downloaded
-        existing = JavaDownloader._find_bundled_java(java_dir)
+        existing = JavaDownloader.bundled_within(install_dir, major_version, max_major)
         if existing:
-            info = JavaDetector.get_java_info(existing)
-            if info and info["major_version"] >= major_version:
-                return {
-                    "success": True,
-                    "java_path": existing,
-                    "java_home": java_dir,
-                    "version": info["version"],
-                    "already_exists": True,
-                }
+            return existing
 
         # Determine archive type
         ext = "zip" if os_name == "windows" else "tar.gz"
@@ -394,11 +393,11 @@ class JavaDownloader:
         unavailable = {"success": False, "message": i18n.t(
             "errors.java_release_unavailable", version=str(major_version), platform=f"{os_name} {arch}")}
         release = JavaDownloader._pinned_release(major_version)
-        if not release:
+        if not release or (max_major and JavaDownloader.pinned_major(major_version) > max_major):
             return unavailable
         print(f"Downloading Java {major_version} JRE ({release}) from Adoptium...", file=sys.stderr)
         try:
-            package = JavaDownloader._release_package(release, os_name, arch)
+            package = JavaDownloader._release_package(release, os_name, arch, image_type)
         except Exception as e:
             return {"success": False, "message": i18n.t("errors.java_download_failed", error=str(e))}
         if not package:
@@ -455,24 +454,11 @@ class JavaDownloader:
             shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_run_failed")}
 
-        # 옛 java/는 먼저 옆으로 옮긴다: 쓰는 중이라 옮기지 못하면 손대지 않고 실패한다.
-        # 새 것을 들이지 못하면 옛 것을 되돌린다
-        old_dir = final_dir + ".old"
         try:
-            shutil.rmtree(old_dir, ignore_errors=True)
-            had_old = os.path.exists(final_dir)
-            if had_old:
-                os.replace(final_dir, old_dir)
-            try:
-                os.replace(java_dir, final_dir)
-            except OSError:
-                if had_old:
-                    os.replace(old_dir, final_dir)
-                raise
+            JavaDownloader.swap_in(java_dir, final_dir)
         except OSError as e:
             shutil.rmtree(java_dir, ignore_errors=True)
             return {"success": False, "message": i18n.t("errors.java_extract_failed", error=str(e))}
-        shutil.rmtree(old_dir, ignore_errors=True)
         java_dir = final_dir
         java_exe = JavaDownloader._find_bundled_java(java_dir)
         info = JavaDetector.get_java_info(java_exe) if java_exe else None
@@ -488,6 +474,39 @@ class JavaDownloader:
             "version": info["version"],
             "major_version": info["major_version"],
         }
+
+    @staticmethod
+    def bundled_within(install_dir, major_version, max_major=None):
+        """<install_dir>/java/의 Java가 major_version 이상 max_major 이하이면 download_jre와 같은 응답, 아니면 None"""
+        java_dir = os.path.join(install_dir, "java")
+        existing = JavaDownloader._find_bundled_java(java_dir)
+        info = JavaDetector.get_java_info(existing) if existing else None
+        if info and major_version <= info["major_version"] <= (max_major or info["major_version"]):
+            return {
+                "success": True,
+                "java_path": existing,
+                "java_home": java_dir,
+                "version": info["version"],
+                "already_exists": True,
+            }
+        return None
+
+    @staticmethod
+    def swap_in(new_dir, final_dir):
+        """new_dir을 final_dir 자리로 들인다. 옛 것은 먼저 옆으로 옮긴다: 쓰는 중이라 옮기지 못하면 손대지 않고
+        OSError를 낸다. 새 것을 들이지 못하면 옛 것을 되돌린다"""
+        old_dir = final_dir + ".old"
+        shutil.rmtree(old_dir, ignore_errors=True)
+        had_old = os.path.exists(final_dir)
+        if had_old:
+            os.replace(final_dir, old_dir)
+        try:
+            os.replace(new_dir, final_dir)
+        except OSError:
+            if had_old:
+                os.replace(old_dir, final_dir)
+            raise
+        shutil.rmtree(old_dir, ignore_errors=True)
 
     @staticmethod
     def bundled_major(java_dir, java_exe):
@@ -1505,6 +1524,10 @@ def get_installed_version(config):
     if not os.path.isfile(jar_path):
         found = server_types.find_server_jar(install_dir)
         if not found:
+            # 1.17+ Forge·NeoForge는 실행 jar 없이 인자 파일로 뜬다: 로더 버전이 마인크래프트 버전을 알려 준다
+            loader = server_types.detect(install_dir)
+            if loader.get("version") and server_types.family(loader["type"]) == "mod":
+                return {"success": True, "version": loader["version"], "server_type": loader["type"]}
             return {"success": False, "message": i18n.t("errors.server_jar_not_found", path=jar_path)}
         jar_path, jar_name = found, os.path.basename(found)
 
@@ -1515,6 +1538,11 @@ def get_installed_version(config):
     forked = server_types.inspect_jar(jar_path)
     if forked and forked.get("version"):
         return {"success": True, "version": forked["version"], "server_type": forked["type"]}
+    # 로더 런처(Quilt, Forge shim)는 jar에 버전이 없다: 서버 폴더로 판정한다
+    if forked and server_types.family(forked["type"]) == "mod":
+        loader = server_types.detect(install_dir, jar_path)
+        if loader.get("version"):
+            return {"success": True, "version": loader["version"], "server_type": loader["type"]}
     return {"success": False, "message": i18n.t("errors.version_info_unreadable")}
 
 
@@ -1743,6 +1771,7 @@ class ServerInstaller:
         expected_sha1 = details.get("sha1")
         expected_sha256 = expected_md5 = None
         build = None
+        installer = False
         if server_type != "vanilla":
             # 바닐라 외 종류는 그 프로젝트의 빌드를 받는다. Java 요구는 같은 마인크래프트 버전을 따른다
             try:
@@ -1758,6 +1787,7 @@ class ServerInstaller:
             expected_sha256 = source.get("sha256")
             expected_md5 = source.get("md5")
             build = source.get("build")
+            installer = bool(source.get("installer"))
             # Fabric 런처는 처음 뜰 때 바닐라 server.jar를 같은 폴더에 받는다 — 이름이 겹치면 안 된다
             if server_type == "fabric" and jar_name == "server.jar":
                 jar_name = "fabric-server-launch.jar"
@@ -1775,13 +1805,26 @@ class ServerInstaller:
         jar_path = str(safe_join(install_path, jar_name))
         # 받는 동안과 검증이 끝날 때까지는 임시 파일에 쓴다: 실패해도 지금 쓰던 jar가 남는다
         # (데몬은 업데이트 전에 server.jar만 백업한다. fabric-server-launch.jar 같은 다른 이름은 여기서 지킨다).
-        # 해시가 있으면 해시로, 없으면(Fabric 런처) 크기와 jar 구조로 확인한다. 이름은 요청마다 다르다
+        # 해시가 있으면 해시로, 없으면(Fabric 런처) 크기와 jar 구조로 확인한다. 이름은 요청마다 다르다.
+        # 공식 설치기는 서버 폴더 안의 설치기 폴더에 받아 거기서 돌리고, 끝나면 폴더째 지운다
         _remove_stale_downloads(install_path, jar_name)
+        build_dir = None
         try:
-            fd, part_path = tempfile.mkstemp(prefix=jar_name + ".", suffix=".download", dir=install_path)
-            os.close(fd)
+            if installer:
+                build_dir = ServerInstaller._make_build_dir(install_path)
+                part_path = os.path.join(build_dir, "installer.jar")
+            else:
+                fd, part_path = tempfile.mkstemp(prefix=jar_name + ".", suffix=".download", dir=install_path)
+                os.close(fd)
         except OSError as e:
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
+        if installer:
+            try:
+                return ServerInstaller._install_with_installer(
+                    server_type, version_id, source, details, install_path, build_dir, part_path, jar_name,
+                    accept_eula, initial_settings)
+            finally:
+                _remove_tree(build_dir)
 
         # Download with progress
         print(f"Downloading Minecraft server {version_id}...", file=sys.stderr)
@@ -1853,31 +1896,7 @@ class ServerInstaller:
             "size": downloaded,
             "java_major_version": details.get("java_major_version"),
         }
-
-        # Accept EULA if requested
-        if accept_eula:
-            ok = EulaManager.accept_eula(install_path)
-            result["eula_accepted"] = ok
-
-        # Apply initial server settings
-        if initial_settings and isinstance(initial_settings, dict):
-            mgr = ServerPropertiesManager(install_path)
-            # 설정 이름은 server.properties 키로, 그 밖의 키(이미 파일 키인 것)는 그대로
-            keys = setting_file_keys(MODULE_DIR)
-            try:
-                props = {**{k: v for k, v in initial_settings.items() if k not in keys},
-                         **settings_to_file(MODULE_DIR, initial_settings)}
-            except ValueError:
-                # 줄바꿈이 든 값: 서버 파일은 깔렸으니 설치는 성공으로 두고 설정만 적용하지 않았다고 알린다
-                props = None
-            if props is not None:
-                props = {k: ("true" if v is True else "false" if v is False else str(v)) for k, v in props.items()}
-
-                # RCON is blocked for security (commands go through the console)
-                props["enable-rcon"] = "false"
-
-                mgr.update(props)
-            result["settings_applied"] = props is not None
+        ServerInstaller._apply_first_settings(result, install_path, accept_eula, initial_settings)
 
         # Download bundled Java if needed
         java_req = details.get("java_major_version")
@@ -1907,6 +1926,230 @@ class ServerInstaller:
 
         result["message"] = i18n.t("messages.server_installed", version=version_id, path=install_path)
         return result
+
+    @staticmethod
+    def _apply_first_settings(result, install_path, accept_eula, initial_settings):
+        """설치한 서버 폴더에 EULA 동의와 처음 설정(server.properties)을 쓰고 result에 적는다"""
+        # Accept EULA if requested
+        if accept_eula:
+            ok = EulaManager.accept_eula(install_path)
+            result["eula_accepted"] = ok
+
+        # Apply initial server settings
+        if initial_settings and isinstance(initial_settings, dict):
+            mgr = ServerPropertiesManager(install_path)
+            # 설정 이름은 server.properties 키로, 그 밖의 키(이미 파일 키인 것)는 그대로
+            keys = setting_file_keys(MODULE_DIR)
+            try:
+                props = {**{k: v for k, v in initial_settings.items() if k not in keys},
+                         **settings_to_file(MODULE_DIR, initial_settings)}
+            except ValueError:
+                # 줄바꿈이 든 값: 서버 파일은 깔렸으니 설치는 성공으로 두고 설정만 적용하지 않았다고 알린다
+                props = None
+            if props is not None:
+                props = {k: ("true" if v is True else "false" if v is False else str(v)) for k, v in props.items()}
+
+                # RCON is blocked for security (commands go through the console)
+                props["enable-rcon"] = "false"
+
+                mgr.update(props)
+            result["settings_applied"] = props is not None
+
+    # 공식 설치기 한 번에 주는 시간 (데몬의 설치 한도 30분 안. BuildTools는 실측 4분, 처음 받는 PC는 더 걸린다)
+    INSTALLER_TIMEOUT = 1500
+    _BUILD_PREFIX = ".saba-install-"
+
+    @staticmethod
+    def _make_build_dir(install_path):
+        """서버 폴더 안의 새 설치기 폴더. 지난번에 끊겨 한 시간 넘게 남은 설치기 폴더는 지운다
+        (그보다 새것은 다른 설치가 쓰는 중일 수 있다). tempfile.mkdtemp 폴더는 격리 계정이 쓸 수 없어 직접 만든다"""
+        import uuid
+        cutoff = time.time() - _STALE_DOWNLOAD_SECONDS
+        for name in os.listdir(install_path):
+            path = os.path.join(install_path, name)
+            try:
+                stale = name.startswith(ServerInstaller._BUILD_PREFIX) and os.path.isdir(path) \
+                    and not os.path.islink(path) and os.path.getmtime(path) < cutoff
+            except OSError:
+                stale = False
+            if stale:
+                _remove_tree(path)
+        build_dir = os.path.join(install_path, ServerInstaller._BUILD_PREFIX + uuid.uuid4().hex[:12])
+        for sub in ("tmp", "server"):
+            os.makedirs(os.path.join(build_dir, sub))
+        return build_dir
+
+    @staticmethod
+    def _run_installer_process(cmd, cwd, env):
+        """설치기를 돌린다. env는 이 설치기에만 더할 환경 변수다 (나머지는 이 실행의 환경을 물려받는다).
+        출력은 데몬 로그(stderr)로만 보낸다 (stdout은 응답 JSON 자리다).
+        돌려주는 값: (종료 코드, 시간 초과면 None, 마지막 출력 줄들). 실행하지 못하면 OSError"""
+        import collections
+        import threading
+        creationflags = 0x08000000 if os.name == "nt" else 0  # 콘솔 창을 띄우지 않는다
+        saved = {key: os.environ.get(key) for key in env}
+        os.environ.update(env)
+        try:
+            proc = subprocess.Popen(cmd, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, creationflags=creationflags)
+        finally:
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+        tail = collections.deque(maxlen=20)
+
+        def pump():
+            for raw in proc.stdout:
+                line = raw.decode("utf-8", "replace").rstrip()
+                if line.strip():
+                    tail.append(line)
+                print(f"  [installer] {line}", file=sys.stderr)
+
+        reader = threading.Thread(target=pump, daemon=True)
+        reader.start()
+        try:
+            code = proc.wait(timeout=ServerInstaller.INSTALLER_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            force_kill(proc.pid, tree=True)
+            try:
+                proc.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                pass
+            code = None
+        reader.join(timeout=10)
+        return code, list(tail)
+
+    @staticmethod
+    def _install_with_installer(server_type, version_id, source, details, install_path, build_dir, installer_jar,
+                                jar_name, accept_eula, initial_settings):
+        """공식 설치기(Quilt·Forge·NeoForge 설치기, BuildTools)를 받아 고정 판 포터블 Java로 돌린다.
+        설치기는 서버 폴더 안의 build_dir에서 돌고 서버는 build_dir/server에 만든다. 메이븐 저장소와 임시 파일도
+        build_dir에 둔다 (호출한 쪽이 지운다). 고른 종류·판의 서버가 생겼는지 확인한 뒤에만 서버 폴더로 옮긴다:
+        설치가 실패하면 지금 쓰던 서버는 그대로다"""
+        try:
+            download(source["url"], installer_jar, timeout=120, user_agent="saba-chan/1.0",
+                     checksums={"sha256": source.get("sha256"), "sha1": source.get("sha1"), "md5": source.get("md5")})
+            if not (source.get("sha256") or source.get("sha1") or source.get("md5")):
+                with zipfile.ZipFile(installer_jar) as z:  # BuildTools: 공식 체크섬이 없다
+                    bad = z.testzip()
+                if bad is not None:
+                    raise IOError(f"corrupt jar entry: {bad}")
+        except ChecksumMismatch as e:
+            return {"success": False, "message": i18n.t("errors.checksum_mismatch", algorithm=e.algorithm,
+                                                        expected=e.expected, actual=e.actual)}
+        except Exception as e:
+            return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
+
+        # 설치기와 서버는 PC에 깔린 Java가 아니라 버전을 고정한 포터블 Java로 돈다. 서버 폴더에 이미 있는 것이
+        # 고정 판보다 새것이면 바꾼다 (옛 Forge·BuildTools는 너무 새 Java를 거절한다). 새 Java는 설치기 폴더에 받아
+        # 두고 설치가 끝난 뒤에만 서버 폴더로 들인다: 설치가 실패하면 지금 서버의 Java도 그대로다
+        java_req = max(details.get("java_major_version") or required_java(version_id), source.get("java_min") or 0)
+        pinned = JavaDownloader.pinned_major(java_req)
+        java_max = min(source.get("java_max") or pinned or java_req, pinned or java_req)
+        jre = JavaDownloader.bundled_within(install_path, java_req, java_max)
+        staged_java = None
+        if not jre:
+            staged = os.path.join(build_dir, "runtime")
+            os.makedirs(staged, exist_ok=True)
+            jre = JavaDownloader.download_jre(java_req, staged, max_major=java_max)
+            staged_java = os.path.join(staged, "java")
+        if not jre.get("success"):
+            return {"success": False, "message": i18n.t("errors.java_download_failed", error=jre.get("message", ""))}
+        runner = jre
+        if source.get("jdk"):  # 컴파일하는 설치기(BuildTools)는 JDK가 든다: 설치기 폴더에 받아 쓰고 함께 지운다
+            runner = JavaDownloader.download_jre(java_req, build_dir, image_type="jdk", max_major=java_max)
+            if not runner.get("success"):
+                return {"success": False, "message": i18n.t("errors.java_download_failed",
+                                                            error=runner.get("message", ""))}
+
+        target = os.path.join(build_dir, "server")
+        args, cwd = server_types.installer_command(server_type, version_id, source, target, build_dir, jar_name)
+        cmd = [runner["java_path"], f"-Djava.io.tmpdir={os.path.join(build_dir, 'tmp')}", "-jar", installer_jar, *args]
+        env = {"MAVEN_OPTS": f"-Dmaven.repo.local={os.path.join(build_dir, 'm2')}"}
+        progress(None, i18n.t("messages.running_installer", type=server_type, version=version_id))
+        try:
+            code, tail = ServerInstaller._run_installer_process(cmd, cwd, env)
+        except OSError as e:
+            return {"success": False, "message": i18n.t("errors.installer_failed", type=server_type, code="-",
+                                                        detail=str(e))}
+        if code != 0:
+            key = "errors.installer_timeout" if code is None else "errors.installer_failed"
+            return {"success": False, "message": i18n.t(key, type=server_type, code=str(code),
+                                                        detail=_installer_reason(tail))}
+
+        # Forge·NeoForge 설치기는 작업 폴더에 `<설치기 이름>.log`를 남긴다: 서버 폴더로 옮기지 않는다
+        _remove_quietly(os.path.join(target, os.path.basename(installer_jar) + ".log"))
+        name = server_types.installed_jar(server_type, source, target, jar_name)
+        if name is None:
+            return {"success": False, "message": i18n.t("errors.installer_no_server", type=server_type)}
+        try:
+            _move_into(target, install_path)
+            if staged_java:
+                JavaDownloader.swap_in(staged_java, os.path.join(install_path, "java"))
+                jre = {**jre, "java_path": os.path.join(install_path, "java",
+                                                        os.path.relpath(jre["java_path"], staged_java))}
+            # 같은 폴더의 다른 Forge·NeoForge 빌드가 다음 실행을 가로채지 않게 한다
+            server_types.retire_other_builds(server_type, source, install_path)
+        except OSError as e:
+            return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
+        jar_path = os.path.join(install_path, name) if name else None
+
+        result = {
+            "success": True,
+            "install_path": install_path,
+            "jar_path": jar_path,
+            "jar_name": name or None,
+            "server_type": server_type,
+            "build": source.get("build"),
+            "version": version_id,
+            "java_major_version": java_req,
+            "java_ok": True,
+            "java_path": jre["java_path"],
+            "java_version": jre.get("version", ""),
+            "java_bundled": True,
+        }
+        # 1.17+ Forge·NeoForge는 실행 jar 없이 인자 파일로 뜬다 (server_types.launch_target)
+        if jar_path:
+            result["executable_path"] = jar_path
+        ServerInstaller._apply_first_settings(result, install_path, accept_eula, initial_settings)
+        result["message"] = i18n.t("messages.server_installed", version=version_id, path=install_path)
+        return result
+
+
+def _installer_reason(tail):
+    """설치기 출력의 마지막 오류 줄 (사용자에게 실패 이유로 보인다). 없으면 마지막 줄"""
+    errors = [line for line in tail if re.search(r"ERROR|Exception|error:|FAILURE", line)]
+    line = (errors or tail or [""])[-1].strip()
+    return line[:200]
+
+
+def _remove_tree(path):
+    """폴더를 지운다. 읽기 전용 파일(BuildTools가 받은 git 팩 파일, Windows)도 쓰기를 켜고 지운다"""
+    import stat
+
+    def retry(func, target, _exc):
+        try:
+            os.chmod(target, stat.S_IWRITE)
+            func(target)
+        except OSError:
+            pass
+
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=retry)
+    else:
+        shutil.rmtree(path, onerror=retry)
+
+
+def _move_into(src, dst):
+    """src 아래 모든 파일을 dst의 같은 자리로 옮긴다 (있으면 바꾼다). 설치기가 준비 폴더에 만든 서버를 서버 폴더로 넣는다"""
+    for root, dirs, files in os.walk(src):
+        rel = os.path.relpath(root, src)
+        here = dst if rel == "." else os.path.join(dst, rel)
+        os.makedirs(here, exist_ok=True)
+        for name in files:
+            os.replace(os.path.join(root, name), os.path.join(here, name))
 
 
 def list_versions(config):

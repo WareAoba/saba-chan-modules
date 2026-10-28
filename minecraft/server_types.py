@@ -22,19 +22,20 @@ import zipfile
 USER_AGENT = "saba-chan/1.0 (https://github.com/WareAoba/saba-chan)"
 
 # id → 성격. family: 플러그인/모드 폴더 판정에 쓴다 (bukkit = plugins/, mod = mods/)
-# install: install_server가 받을 수 있는 소스 (없으면 직접 설치한 서버를 가져와야 한다)
+# install: install_server가 받을 수 있는 소스 (없으면 직접 설치한 서버를 가져와야 한다).
+# quilt·forge·neoforge·buildtools는 받은 jar가 서버가 아니라 공식 설치기다 (`installer_args`로 돌린다)
 SERVER_TYPES = {
     "vanilla":    {"family": None,     "install": "mojang"},
     "paper":      {"family": "bukkit", "install": "fill"},
     "folia":      {"family": "bukkit", "install": "fill"},
     "purpur":     {"family": "bukkit", "install": "purpur"},
-    "pufferfish": {"family": "bukkit", "install": None},
-    "spigot":     {"family": "bukkit", "install": None},
-    "craftbukkit": {"family": "bukkit", "install": None},
+    "pufferfish": {"family": "bukkit", "install": "pufferfish"},
+    "spigot":     {"family": "bukkit", "install": "buildtools"},
+    "craftbukkit": {"family": "bukkit", "install": "buildtools"},
     "fabric":     {"family": "mod",    "install": "fabric"},
-    "quilt":      {"family": "mod",    "install": None},
-    "forge":      {"family": "mod",    "install": None},
-    "neoforge":   {"family": "mod",    "install": None},
+    "quilt":      {"family": "mod",    "install": "quilt"},
+    "forge":      {"family": "mod",    "install": "forge"},
+    "neoforge":   {"family": "mod",    "install": "neoforge"},
 }
 
 # versions.list 세 번째 칸(번들된 서버 jar 경로)의 파일 이름 접두사 → 서버 종류
@@ -123,16 +124,22 @@ def inspect_jar(path):
         main = manifest.get("Main-Class", "")
 
         # 1.18+ 번들러와 Paperclip: 번들된 실제 서버 jar 이름이 종류와 버전을 알려 준다
+        # (BuildTools의 Spigot·CraftBukkit bootstrap은 `해시 *이름` 한 칸이고 버전은 이름에 있다)
         if "META-INF/versions.list" in names:
             listing = zf.read("META-INF/versions.list").decode("utf-8", "replace")
             for line in listing.splitlines():
                 parts = line.split("\t")
-                if len(parts) < 3:
+                if len(parts) >= 3:
+                    file_name, version = os.path.basename(parts[2]), parts[1] or None
+                elif line.split() and line.split()[-1].startswith("*"):
+                    file_name, version = os.path.basename(line.split()[-1][1:]), None
+                else:
                     continue
-                file_name = os.path.basename(parts[2])
                 for prefix, server_type in _VERSIONS_LIST_PREFIXES:
                     if file_name.startswith(prefix):
-                        version = parts[1] or None
+                        if version is None:
+                            named = _MC_VERSION.match(file_name[len(prefix):])
+                            version = named.group(1) if named else None
                         return {"type": server_type, "version": version,
                                 "evidence": f"{os.path.basename(path)}: META-INF/versions.list → {file_name}"}
 
@@ -247,12 +254,17 @@ def detect(working_dir, server_jar=None):
         result["type"] = marker
         result["evidence"].append(f"{marker_rel} (folder)")
 
+
     if result["type"] in ("forge", "neoforge"):
         args_version = _modern_forge_version(working_dir, result["type"])
         if args_version:
             result["loader_version"] = args_version
             result["version"] = result["version"] or minecraft_version_of(result["type"], args_version)
             result["evidence"].append(f"libraries/…/{args_version}/unix_args.txt")
+    # 로더 런처 jar(Quilt)에 버전이 없으면 그 로더가 띄우는 옆의 바닐라 jar의 버전이다
+    if result["version"] is None and family(result["type"]) == "mod":
+        result["version"] = next((info.get("version") for _, info in infos
+                                  if info["type"] == "vanilla" and info.get("version")), None)
     return result
 
 
@@ -267,8 +279,9 @@ def minecraft_version_of(server_type, loader_version):
         if not numbers:
             return None
         major, minor = int(numbers.group(1)), int(numbers.group(2))
-        if major >= 26:  # 연도 기반 Minecraft 버전
-            return f"{major}.{minor}"
+        if major >= 26:  # 연도 기반 Minecraft 버전: 26.1.0.5 → 26.1, 26.1.2.7 → 26.1.2
+            patch = re.match(r"\d+\.\d+\.(\d+)\.", text)
+            return f"{major}.{minor}" + (f".{patch.group(1)}" if patch and patch.group(1) != "0" else "")
         return f"1.{major}" if minor == 0 else f"1.{major}.{minor}"
     return None
 
@@ -312,11 +325,42 @@ def _get_json(url, timeout=15):
         raise
 
 
+def _get_text(url, timeout=15):
+    """받을 곳의 짧은 글 (maven의 `.sha256` 같은 해시 파일). 없으면(404) ValueError("version_unavailable")"""
+    import urllib.error
+    import urllib.request
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.read(4096).decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            raise ValueError("version_unavailable") from e
+        raise
+
+
+def _maven_sha256(url):
+    """maven 저장소가 jar 옆에 두는 `.sha256`. 형식이 아니면 ValueError"""
+    text = _get_text(url + ".sha256").strip().split()
+    if not text or not re.fullmatch(r"[0-9a-fA-F]{64}", text[0]):
+        raise ValueError("version_unavailable")
+    return text[0].lower()
+
+
+def _stable(version):
+    """`-beta`·`-alpha`·`+…` 같은 꼬리가 없는 판"""
+    return re.fullmatch(r"[\d.]+", version) is not None
+
+
+_BUILDTOOLS_URL = "https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar"
+
+
 def resolve_download(server_type, mc_version):
     """서버 종류와 마인크래프트 버전으로 받을 jar를 정한다.
 
-    돌려주는 값: {"url", "sha256"?, "sha1"?, "build"?} — 받을 수 없으면 ValueError
-    (메시지는 install_server가 사용자 문구로 바꾼다)
+    돌려주는 값: {"url", "sha256"?, "sha1"?, "md5"?, "build"?} — 받을 수 없으면 ValueError
+    (메시지는 install_server가 사용자 문구로 바꾼다). 공식 설치기를 받는 종류는 `installer: True`와
+    설치기를 돌릴 최소 Java(`java_min`, 있을 때)를 더한다
     """
     source = SERVER_TYPES.get(server_type, {}).get("install")
     if source == "fill":
@@ -348,7 +392,124 @@ def resolve_download(server_type, mc_version):
             raise ValueError("version_unavailable")
         return {"url": f"https://meta.fabricmc.net/v2/versions/loader/{mc_version}/{stable[0]}/{installer}/server/jar",
                 "build": stable[0]}
+    if source == "pufferfish":
+        # Pufferfish는 마인크래프트 부 버전마다 Jenkins 작업 하나(Pufferfish-1.21)를 두고, 빌드마다 jar 하나를 낸다.
+        # 공식 체크섬은 없다 (Jenkins 지문 페이지는 받은 파일의 MD5를 다시 계산할 뿐이다)
+        minor = re.match(r"(\d+\.\d+)", mc_version)
+        if not minor:
+            raise ValueError("version_unavailable")
+        job = f"https://ci.pufferfish.host/job/Pufferfish-{minor.group(1)}/"
+        want = re.compile(rf"pufferfish-paperclip-{re.escape(mc_version)}-R\d+\.\d+-SNAPSHOT(-\w+)?\.jar")
+        listing = _get_json(job + "api/json?tree=builds[number,result,artifacts[fileName,relativePath]]")
+        for build in listing.get("builds") or []:
+            if build.get("result") != "SUCCESS":
+                continue
+            for artifact in build.get("artifacts") or []:
+                if want.fullmatch(artifact.get("fileName", "")):
+                    return {"url": f"{job}{build['number']}/artifact/{artifact['relativePath']}", "build": build["number"]}
+        raise ValueError("version_unavailable")
+    if source == "quilt":
+        # 공식 설치기가 로더 라이브러리와 바닐라 server.jar를 받고 quilt-server-launch.jar를 만든다.
+        # 메타 API의 hashes는 maven의 jar와 다를 때가 있어 (2026-10 실측) maven의 .sha256으로 확인한다
+        loaders = [entry["loader"]["version"] for entry in
+                   _get_json(f"https://meta.quiltmc.org/v3/versions/loader/{mc_version}") if entry.get("loader")]
+        stable = [v for v in loaders if _stable(v)]
+        if not stable:
+            raise ValueError("version_unavailable")
+        installers = [i for i in _get_json("https://meta.quiltmc.org/v3/versions/installer")
+                      if _stable(i.get("version", "")) and str(i.get("url", "")).startswith("https://maven.quiltmc.org/")]
+        if not installers:
+            raise ValueError("version_unavailable")
+        installer = max(installers, key=lambda i: _version_key(i["version"]))
+        return {"url": installer["url"], "sha256": _maven_sha256(installer["url"]),
+                "build": max(stable, key=_version_key), "installer": True}
+    if source == "forge":
+        # 추천 판, 없으면 최신 판 (files.minecraftforge.net이 내려받기로 내놓는 두 판)
+        promos = _get_json("https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json").get("promos") or {}
+        build = promos.get(f"{mc_version}-recommended") or promos.get(f"{mc_version}-latest")
+        if not build:
+            raise ValueError("version_unavailable")
+        full = f"{mc_version}-{build}"
+        url = f"https://maven.minecraftforge.net/net/minecraftforge/forge/{full}/forge-{full}-installer.jar"
+        return {"url": url, "sha256": _maven_sha256(url), "build": full, "installer": True}
+    if source == "neoforge":
+        # 그 마인크래프트 버전의 가장 새 안정판, 안정판이 아직 없으면 가장 새 베타
+        versions = _get_json("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge").get("versions") or []
+        mine = [v for v in versions if minecraft_version_of("neoforge", v) == mc_version]
+        if not mine:
+            raise ValueError("version_unavailable")
+        build = max([v for v in mine if _stable(v)] or mine, key=_version_key)
+        url = f"https://maven.neoforged.net/releases/net/neoforged/neoforge/{build}/neoforge-{build}-installer.jar"
+        return {"url": url, "sha256": _maven_sha256(url), "build": build, "installer": True}
+    if source == "buildtools":
+        # Spigot·CraftBukkit은 배포 jar가 없고 공식 BuildTools로 빌드한다. 버전 정보가 없으면 빌드할 수 없는 버전이다.
+        # javaVersions는 BuildTools가 받는 Java의 class 파일 버전 범위다 (65 = Java 21). 컴파일하므로 JRE가 아니라 JDK가 든다.
+        # BuildTools.jar에는 공식 체크섬이 없다
+        info = _get_json(f"https://hub.spigotmc.org/versions/{mc_version}.json")
+        java = [v for v in info.get("javaVersions") or [] if isinstance(v, int)]
+        return {"url": _BUILDTOOLS_URL, "build": str(info.get("name") or ""), "installer": True, "jdk": True,
+                **({"java_min": java[0] - 44, "java_max": java[-1] - 44} if java else {})}
     raise ValueError("install_unsupported")
+
+
+def installer_command(server_type, mc_version, source, target_dir, build_dir, jar_name):
+    """공식 설치기(`java -jar <설치기>`) 뒤에 붙일 인자와 작업 폴더.
+
+    설치기는 서버 폴더가 아니라 비어 있는 target_dir에 서버를 만든다 (호출한 쪽이 확인한 뒤 서버 폴더로 옮긴다).
+    Quilt·Forge·NeoForge는 target_dir에서 돌린다 (옛 Forge 설치기는 경로 인자 없이 작업 폴더에 깐다).
+    BuildTools는 소스·메이븐 작업물을 작업 폴더에 남기므로 build_dir에서 돌리고 완성된 jar만 target_dir에 낸다
+    """
+    kind = SERVER_TYPES[server_type]["install"]
+    if kind == "quilt":
+        return ["install", "server", mc_version, source["build"], "--download-server", f"--install-dir={target_dir}"], target_dir
+    if kind in ("forge", "neoforge"):
+        return ["--installServer", target_dir], target_dir
+    if kind == "buildtools":
+        return ["--rev", mc_version, "--compile", server_type, "--nogui", "--output-dir", target_dir,
+                "--final-name", jar_name], build_dir
+    raise ValueError("install_unsupported")
+
+
+def installed_jar(server_type, source, target_dir, jar_name):
+    """설치기가 target_dir에 만든 서버의 실행 jar 이름. 인자 파일로 뜨는 1.17+ Forge·NeoForge는 ""(shim jar가 있으면 그것).
+    고른 종류·판의 서버가 생기지 않았으면 None"""
+    kind = SERVER_TYPES[server_type]["install"]
+    build = str(source.get("build") or "")
+    if kind in ("forge", "neoforge"):
+        root = {"forge": ("net", "minecraftforge", "forge"), "neoforge": ("net", "neoforged", "neoforge")}[kind]
+        if os.path.isfile(os.path.join(target_dir, "libraries", *root, build, "unix_args.txt")):
+            shim = f"forge-{build}-shim.jar"
+            return shim if kind == "forge" and os.path.isfile(os.path.join(target_dir, shim)) else ""
+        # 1.16 이하 Forge는 실행 jar를 낸다
+        names = [f"forge-{build}.jar", f"forge-{build}-universal.jar"] if kind == "forge" else []
+    elif kind == "quilt":
+        names = ["quilt-server-launch.jar"]
+    else:
+        # BuildTools는 Spigot에만 --final-name을 쓴다 (CraftBukkit은 craftbukkit-<버전>.jar, 2026-10 실측)
+        names = [jar_name] + sorted(n for n in os.listdir(target_dir) if n.endswith(".jar") and n != jar_name)
+    for name in names:
+        info = inspect_jar(os.path.join(target_dir, name))
+        if info and info["type"] == server_type:
+            if kind == "buildtools" and name != jar_name:
+                os.replace(os.path.join(target_dir, name), os.path.join(target_dir, jar_name))
+                return jar_name
+            return name
+    return None
+
+
+def retire_other_builds(server_type, source, server_dir):
+    """방금 깐 Forge·NeoForge 빌드 말고 다른 빌드의 인자 파일을 지운다. launch_target은 인자 파일이 있는 가장 높은
+    빌드로 뜨므로, 낮은 빌드를 다시 깔면 그대로는 옛 빌드가 뜬다. 라이브러리 jar는 그대로 둔다"""
+    kind = SERVER_TYPES[server_type]["install"]
+    if kind not in ("forge", "neoforge"):
+        return
+    root = {"forge": ("net", "minecraftforge", "forge"), "neoforge": ("net", "neoforged", "neoforge")}[kind]
+    build = str(source.get("build") or "")
+    base = os.path.join(server_dir, "libraries", *root)
+    for name in ("unix_args.txt", "win_args.txt"):
+        for path in glob.glob(os.path.join(glob.escape(base), "*", name)):
+            if os.path.basename(os.path.dirname(path)) != build:
+                os.remove(path)
 
 
 def latest_installable(server_type, releases, tries=10, deadline_secs=60):

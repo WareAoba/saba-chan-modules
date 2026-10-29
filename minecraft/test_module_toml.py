@@ -193,6 +193,9 @@ def test_a_live_backup_waits_for_the_flushed_save():
         assert not done.search(head + "Saving the game (this may take a moment!)")
         assert not done.search(head + "<Steve> Saved the game")
         assert not done.search(head + "<Steve> x]: Saved the game")
+    # RCON 답에는 로그 머리가 없다 (데몬이 시작하지 않은 서버는 RCON으로만 저장 명령을 보낸다)
+    assert done.search("Saved the game")
+    assert not done.search("<Steve> Saved the game")
 
 
 def test_folia_rejects_the_backup_save():

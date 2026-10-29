@@ -51,8 +51,9 @@ hook = true
 pause_command = "save-off"
 save_command = "save-flush"
 resume_command = "save-on"
-# 저장이 끝났다는 줄. 데몬은 이 줄이 나올 때까지 기다리고, 서버가 save-all을 거절하면(Folia) 백업을 만들지 않는다
-save_done_pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?Saved the game\s*$'
+# 저장이 끝났다는 줄(콘솔은 로그 머리가 붙고, RCON 답은 머리 없이 온다). 데몬은 이 줄이 나올 때까지 기다리고,
+# 서버가 save-all을 거절하면(Folia) 백업을 만들지 않는다
+save_done_pattern = '^(?:\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: )?(?:System chat: )?Saved the game\s*$'
 exclude = ["session.lock"]
 
 [install]

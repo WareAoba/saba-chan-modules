@@ -884,6 +884,24 @@ def test_chat_and_team_lines_are_not_joins(toml):
         assert _player_name(saba["player_join_patterns"] + saba["player_leave_patterns"], line) is None, line
 
 
+def _chat(patterns, line):
+    for pattern in patterns:
+        m = re.fullmatch(pattern, line)
+        if m:
+            return m.group("name"), m.group("message")
+    return None
+
+
+def test_chat_lines_name_the_player_and_the_message(toml):
+    """게임 채팅 전달: `<이름> 본문`, 프롬프트 ": "가 붙어도 같다. /me 줄과 접속 줄은 채팅이 아니다"""
+    chat = toml["extensions"]["saba-core"]["chat_patterns"]
+    for prefix in ("", ": "):
+        assert _chat(chat, prefix + "<Bob> hello") == ("Bob", "hello")
+        assert _chat(chat, prefix + "<Dr. Who> !d 사바쨩 안녕") == ("Dr. Who", "!d 사바쨩 안녕")
+    for line in ("*Bob waves", "Bob has joined.", "<Bob>no space", "Bob: hi"):
+        assert _chat(chat, line) is None, line
+
+
 # ─── 접속자 (`playing`, 서버 파일 CLI.NoPlayers·OnePlayerConnected·PlayersConnected) ───
 
 def _playing(monkeypatch, lc, response):

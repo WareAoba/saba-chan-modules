@@ -796,3 +796,28 @@ def test_chat_lines_name_the_player_and_the_message():
         "[2026-10-30 07:10:28] [LOG] <KimchiMayo> fake",
     ):
         assert parse(line) is None, line
+
+
+def test_join_and_leave_lines_name_the_player():
+    """접속자 수는 `joined the server`·`left the server` 줄로 센다. `connected the server`와 채팅은 세지 않는다"""
+    import re
+    with open(MODULE_TOML, "rb") as f:
+        saba = tomllib.load(f)["extensions"]["saba-core"]
+
+    def name(patterns, line):
+        for pattern in patterns:
+            m = re.fullmatch(pattern, line)
+            if m:
+                return m.group("name")
+        return None
+
+    join, leave = saba["player_join_patterns"], saba["player_leave_patterns"]
+    assert name(join, "[2026-10-30 07:10:19] [LOG] KimchiMayo joined the server. (User id: steam_76561199507076069, Player id: EAA17A3C000000000000000000000000)") == "KimchiMayo"
+    assert name(leave, "[2026-10-30 07:10:41] [LOG] Dr. Who left the server. (User id: steam_76561199507076069)") == "Dr. Who"
+    for line in (
+        "[2026-10-30 07:10:09] [LOG] KimchiMayo 127.0.0.1 connected the server. (User id: steam_76561199507076069)",
+        "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Bob joined the server. (User id: x)",
+        "[2026-10-30 07:10:41] [LOG] KimchiMayo left the server. (User id: steam_1)",
+    ):
+        assert name(join, line) is None, line
+    assert name(leave, "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Bob left the server. (User id: x)") is None

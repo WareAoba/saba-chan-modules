@@ -770,3 +770,58 @@ def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_ext
     monkeypatch.delattr(extensions.steamcmd, "install_for_module")
     result = lifecycle.install_server({"install_dir": str(tmp_path / "server")})
     assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]
+
+
+# ─── 게임 채팅 전달 (`chat_patterns`, 서버 콘솔 실측 v1.0.5.102999) ───
+
+def test_chat_lines_name_the_player_and_the_message():
+    """채팅은 `[날짜 시각] [CHAT] <이름> 본문`. 접속·퇴장·REST 줄은 채팅이 아니다"""
+    import re
+    with open(MODULE_TOML, "rb") as f:
+        chat = tomllib.load(f)["extensions"]["saba-core"]["chat_patterns"]
+
+    def parse(line):
+        for pattern in chat:
+            m = re.fullmatch(pattern, line)
+            if m:
+                return m.group("name"), m.group("message")
+        return None
+
+    assert parse("[2026-10-30 07:10:28] [CHAT] <KimchiMayo> ㅎㅇ") == ("KimchiMayo", "ㅎㅇ")
+    assert parse("[2026-10-30 07:10:35] [CHAT] <Dr. Who> !d <b> 안녕") == ("Dr. Who", "!d <b> 안녕")
+    # REST 접근 로그는 줄바꿈 없이 찍혀 다음 채팅이 붙어 온다 (line_start는 [LOG]에서만 나눈다)
+    assert parse("[2026-10-30 07:11:04] [LOG] REST accessed endpoint /v1/api/metrics OK[2026-10-30 07:11:05] [CHAT] <KimchiMayo> ㅎㅇ") == ("KimchiMayo", "ㅎㅇ")
+    # 채팅 본문에 시각·[CHAT]을 쳐 넣어도 남의 이름이 되지 않는다
+    assert parse("[2026-10-30 07:11:05] [CHAT] <Mallory> [2026-10-30 07:11:05] [CHAT] <Admin> hi") == ("Mallory", "[2026-10-30 07:11:05] [CHAT] <Admin> hi")
+    for line in (
+        "[2026-10-30 07:10:19] [LOG] KimchiMayo joined the server. (User id: steam_1, Player id: EAA1)",
+        "[2026-10-30 07:10:41] [LOG] KimchiMayo left the server. (User id: steam_1)",
+        "[2026-10-30 07:10:04] [LOG] REST accessed endpoint /v1/api/metrics OK",
+        "[2026-10-30 07:10:28] [LOG] <KimchiMayo> fake",
+    ):
+        assert parse(line) is None, line
+
+
+def test_join_and_leave_lines_name_the_player():
+    """접속자 수는 `joined the server`·`left the server` 줄로 센다. `connected the server`와 채팅은 세지 않는다"""
+    import re
+    with open(MODULE_TOML, "rb") as f:
+        saba = tomllib.load(f)["extensions"]["saba-core"]
+
+    def name(patterns, line):
+        for pattern in patterns:
+            m = re.fullmatch(pattern, line)
+            if m:
+                return m.group("name")
+        return None
+
+    join, leave = saba["player_join_patterns"], saba["player_leave_patterns"]
+    assert name(join, "[2026-10-30 07:10:19] [LOG] KimchiMayo joined the server. (User id: steam_76561199507076069, Player id: EAA17A3C000000000000000000000000)") == "KimchiMayo"
+    assert name(leave, "[2026-10-30 07:10:41] [LOG] Dr. Who left the server. (User id: steam_76561199507076069)") == "Dr. Who"
+    for line in (
+        "[2026-10-30 07:10:09] [LOG] KimchiMayo 127.0.0.1 connected the server. (User id: steam_76561199507076069)",
+        "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Bob joined the server. (User id: x)",
+        "[2026-10-30 07:10:41] [LOG] KimchiMayo left the server. (User id: steam_1)",
+    ):
+        assert name(join, line) is None, line
+    assert name(leave, "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Bob left the server. (User id: x)") is None

@@ -60,6 +60,9 @@ line_start = '\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\]'
 # 돌아가는 CPU (saba-chan 0.1.12 architectures, 0.1.11 데몬은 모르는 키 경고로 무시). x86_64만 있는 이유: 전용 서버 실행 파일이
 # x86_64(PalServer-Win64-Shipping-Cmd)이고, 설치에 쓰는 SteamCMD도 32비트 x86. 에뮬레이션은 하지 않는다
 architectures = ["x86_64"]
+# 게임 채팅 줄 (saba-chan 0.1.12 게임 채팅 전달, name·message 그룹). 콘솔 실측(v1.0.5.102999): `[날짜 시각] [CHAT] <이름> 본문`.
+# 이름에 공백이 들어갈 수 있어 첫 `> `에서 끊는다. 0.1.11 데몬은 모르는 키로 무시한다
+chat_patterns = ['^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[CHAT\] <(?P<name>.{1,32}?)> (?P<message>.*)$']
 
 [install]
 method = "steamcmd"

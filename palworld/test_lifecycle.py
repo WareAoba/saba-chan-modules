@@ -770,3 +770,29 @@ def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_ext
     monkeypatch.delattr(extensions.steamcmd, "install_for_module")
     result = lifecycle.install_server({"install_dir": str(tmp_path / "server")})
     assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]
+
+
+# ─── 게임 채팅 전달 (`chat_patterns`, 서버 콘솔 실측 v1.0.5.102999) ───
+
+def test_chat_lines_name_the_player_and_the_message():
+    """채팅은 `[날짜 시각] [CHAT] <이름> 본문`. 접속·퇴장·REST 줄은 채팅이 아니다"""
+    import re
+    with open(MODULE_TOML, "rb") as f:
+        chat = tomllib.load(f)["extensions"]["saba-core"]["chat_patterns"]
+
+    def parse(line):
+        for pattern in chat:
+            m = re.fullmatch(pattern, line)
+            if m:
+                return m.group("name"), m.group("message")
+        return None
+
+    assert parse("[2026-10-30 07:10:28] [CHAT] <KimchiMayo> ㅎㅇ") == ("KimchiMayo", "ㅎㅇ")
+    assert parse("[2026-10-30 07:10:35] [CHAT] <Dr. Who> !d <b> 안녕") == ("Dr. Who", "!d <b> 안녕")
+    for line in (
+        "[2026-10-30 07:10:19] [LOG] KimchiMayo joined the server. (User id: steam_1, Player id: EAA1)",
+        "[2026-10-30 07:10:41] [LOG] KimchiMayo left the server. (User id: steam_1)",
+        "[2026-10-30 07:10:04] [LOG] REST accessed endpoint /v1/api/metrics OK",
+        "[2026-10-30 07:10:28] [LOG] <KimchiMayo> fake",
+    ):
+        assert parse(line) is None, line

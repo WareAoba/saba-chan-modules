@@ -61,8 +61,9 @@ line_start = '\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\]'
 # x86_64(PalServer-Win64-Shipping-Cmd)이고, 설치에 쓰는 SteamCMD도 32비트 x86. 에뮬레이션은 하지 않는다
 architectures = ["x86_64"]
 # 게임 채팅 줄 (saba-chan 0.1.12 게임 채팅 전달, name·message 그룹). 콘솔 실측(v1.0.5.102999): `[날짜 시각] [CHAT] <이름> 본문`.
-# 이름에 공백이 들어갈 수 있어 첫 `> `에서 끊는다. 0.1.11 데몬은 모르는 키로 무시한다
-chat_patterns = ['^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[CHAT\] <(?P<name>.{1,32}?)> (?P<message>.*)$']
+# 이름에 공백이 들어갈 수 있어 첫 `> `에서 끊는다. REST 접근 로그는 줄바꿈 없이 찍혀 채팅이 그 뒤에 붙어 올 수 있어 앞에 하나 허용한다.
+# [CHAT]은 line_start에 넣지 않는다: 채팅 본문에 시각과 [CHAT]을 쳐 넣어 남의 이름으로 된 줄을 만들 수 있다. 0.1.11 데몬은 모르는 키로 무시한다
+chat_patterns = ['^(?:\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] REST accessed endpoint [^\[\]<>]*)?\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[CHAT\] <(?P<name>.{1,32}?)> (?P<message>.*)$']
 # 접속·퇴장 (콘솔 실측): `[LOG] 이름 joined the server. (User id: …, Player id: …)`, `[LOG] 이름 left the server. (User id: …)`.
 # 그 앞의 `이름 IP connected the server.`는 접속 중이라 세지 않는다. 데몬이 이 두 줄로 접속자를 센다
 player_join_patterns = ['^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] (?P<name>.{1,32}?) joined the server\. \(User id: [^)]*\)\s*$']

@@ -789,6 +789,10 @@ def test_chat_lines_name_the_player_and_the_message():
 
     assert parse("[2026-10-30 07:10:28] [CHAT] <KimchiMayo> ㅎㅇ") == ("KimchiMayo", "ㅎㅇ")
     assert parse("[2026-10-30 07:10:35] [CHAT] <Dr. Who> !d <b> 안녕") == ("Dr. Who", "!d <b> 안녕")
+    # REST 접근 로그는 줄바꿈 없이 찍혀 다음 채팅이 붙어 온다 (line_start는 [LOG]에서만 나눈다)
+    assert parse("[2026-10-30 07:11:04] [LOG] REST accessed endpoint /v1/api/metrics OK[2026-10-30 07:11:05] [CHAT] <KimchiMayo> ㅎㅇ") == ("KimchiMayo", "ㅎㅇ")
+    # 채팅 본문에 시각·[CHAT]을 쳐 넣어도 남의 이름이 되지 않는다
+    assert parse("[2026-10-30 07:11:05] [CHAT] <Mallory> [2026-10-30 07:11:05] [CHAT] <Admin> hi") == ("Mallory", "[2026-10-30 07:11:05] [CHAT] <Admin> hi")
     for line in (
         "[2026-10-30 07:10:19] [LOG] KimchiMayo joined the server. (User id: steam_1, Player id: EAA1)",
         "[2026-10-30 07:10:41] [LOG] KimchiMayo left the server. (User id: steam_1)",

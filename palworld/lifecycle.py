@@ -15,7 +15,7 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-from daemon_rcon import (PathOutside, daemon_rest, diagnose_lines, graceful_stop, is_process_alive, load_diagnose_rules,
+from daemon_rcon import (PathOutside, config_value, daemon_rest, diagnose_lines, graceful_stop, is_process_alive, load_diagnose_rules,
                          safe_join, setting_file_keys, tail_lines)
 
 
@@ -291,8 +291,20 @@ def _rest_client(config):
     return PalworldRestClient(instance_id)
 
 
+def _int_or_none(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def player_count(config):
-    """접속자 수 (module.toml [status] players). 데몬이 켜진 서버에 1분마다 부른다"""
+    """접속자 수 (module.toml [status] players). 데몬이 켜진 서버에 1분마다 부른다.
+    1분 갱신(players_detail 없음)에는 REST를 부르지 않는다: 부를 때마다 서버 로그에 `REST accessed endpoint` 줄이 남는다.
+    그때 수는 데몬이 접속·퇴장 줄로 센다(player_join/leave_patterns). 최대 인원만 알려 준다"""
+    if not config.get("players_detail"):
+        max_players = _int_or_none(config_value(config, "max_players", None))
+        return {"success": True, "max": max_players} if max_players else {"success": True}
     client = _rest_client(config)
     if client is None:
         return {"success": False, "message": i18n.t("errors.player_list_failed", error="AdminPassword")}
@@ -301,9 +313,6 @@ def player_count(config):
         result = {"success": True, "online": int(metrics["currentplayernum"]), "max": int(metrics.get("maxplayernum") or 0)}
     except (RuntimeError, KeyError, TypeError, ValueError) as e:
         return {"success": False, "message": i18n.t("errors.player_list_failed", error=str(e))}
-    # 이름은 데몬이 목록을 물을 때(players_detail)만 읽는다. 1분 갱신은 수만 쓴다
-    if not config.get("players_detail"):
-        return result
     if result["online"] == 0:
         result["players"] = []
         return result

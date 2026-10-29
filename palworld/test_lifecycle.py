@@ -430,14 +430,21 @@ def test_player_count_reads_rest_metrics():
     client = mock.Mock()
     client.metrics.return_value = {"currentplayernum": 2, "maxplayernum": 32, "serverfps": 60}
     with mock.patch.object(lifecycle, "_rest_client", return_value=client):
-        assert lifecycle.player_count({}) == {"success": True, "online": 2, "max": 32}
-    client.players.assert_not_called()
+        assert lifecycle.player_count({"players_detail": True})["online"] == 2
     client.metrics.side_effect = RuntimeError("HTTP 401")
     with mock.patch.object(lifecycle, "_rest_client", return_value=client):
-        assert lifecycle.player_count({})["success"] is False
+        assert lifecycle.player_count({"players_detail": True})["success"] is False
     with mock.patch.object(lifecycle, "_rest_client", return_value=None):
-        assert lifecycle.player_count({})["success"] is False
+        assert lifecycle.player_count({"players_detail": True})["success"] is False
 
+
+def test_the_minute_refresh_sends_no_rest_request():
+    """1분 갱신(players_detail 없음)은 REST를 부르지 않는다: 부를 때마다 서버 로그에
+    `REST accessed endpoint /v1/api/metrics OK`가 남는다(사용자 실측). 수는 데몬이 접속·퇴장 줄로 센다"""
+    from palworld import lifecycle
+    with mock.patch.object(lifecycle, "_rest_client", side_effect=AssertionError("REST 호출")):
+        assert lifecycle.player_count({"module_settings": {"max_players": 16}}) == {"success": True, "max": 16}
+        assert lifecycle.player_count({}) == {"success": True}
 
 
 def test_player_count_names_the_players_from_rest():

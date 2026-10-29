@@ -98,6 +98,9 @@ player_join_patterns = [
 ]
 # Spigot·CraftBukkit은 추방·밴으로 나갈 때 끝에 마침표를 찍는다 (`left the game.`, 클라우드 실측 26.1)
 player_leave_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?P<name>[A-Za-z0-9_]{1,16}) left the game\.?\s*$']
+# 게임 채팅 줄 (saba-chan 0.1.12 게임 채팅 전달, name·message 그룹). 플레이어 채팅은 `<이름> 본문`이고 서명되지 않은 채팅은
+# 앞에 `[Not Secure] `가 붙는다 (1.19.1+). `/say`(`[이름] …`)·`/me`(`* 이름 …`)는 받지 않는다. 0.1.11 데몬은 모르는 키로 무시한다
+chat_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:\[Not Secure\] )?<(?P<name>[A-Za-z0-9_]{1,16})> (?P<message>.*)$']
 
 # ─── Settings (displayed in GUI for instance configuration) ───
 

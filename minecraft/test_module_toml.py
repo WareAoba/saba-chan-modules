@@ -96,6 +96,28 @@ def test_join_and_leave_lines_of_every_server_family():
         assert any(p.search(head + "SabaBot left the game") for p in LEAVE), head
 
 
+CHAT = [re.compile(p) for p in EXT["chat_patterns"]]
+
+
+def _chat(line):
+    for p in CHAT:
+        m = p.search(line)
+        if m:
+            return m.group("name"), m.group("message")
+    return None
+
+
+def test_chat_lines_name_the_player_and_the_message():
+    """게임 채팅 전달: `<이름> 본문`(서명 없는 채팅은 `[Not Secure] ` 앞머리)만 채팅이다"""
+    for head in HEADS:
+        assert _chat(head + "<Steve> Hello everyone!") == ("Steve", "Hello everyone!"), head
+        assert _chat(head + "[Not Secure] <Alex> !d 안녕") == ("Alex", "!d 안녕"), head
+        assert _chat(head + "<Steve> <Bob> fake") == ("Steve", "<Bob> fake"), "a typed name stays in the message"
+        for other in ["[Steve] said by /say", "* Steve waves", "Steve joined the game", "System chat: <Steve> x"]:
+            assert _chat(head + other) is None, other
+    assert _chat("<Steve> no log head") is None
+
+
 RULES = {r["name"]: r for r in MANIFEST["syntax_highlight"]["rules"]}
 
 

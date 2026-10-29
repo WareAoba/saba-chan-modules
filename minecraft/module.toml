@@ -81,6 +81,9 @@ crash_artifacts = ["crash-reports/*.txt", "hs_err_pid*.log"]
 # 데몬이 읽는 0.1.9 선언. 0.1.8 데몬은 schema v1의 모르는 키를 거부하지만 [extensions.*] 표는 검사하지 않으므로
 # 여기에 둔다 (예약 이름 saba-core, 계약 06 §4)
 [extensions.saba-core]
+# 돌아가는 CPU (saba-chan 0.1.12 architectures, 0.1.11 데몬은 모르는 키 경고로 무시). 자바 서버라 JVM이 있는 두 CPU 모두.
+# aarch64는 Oracle A1(Ubuntu 24.04)에서 만들기·시작·명령·정지를 실측 (2026-10-29)
+architectures = ["x86_64", "aarch64"]
 # 게임 stdout 원문(데몬이 러너 머리 없이 맞춘다)의 줄 처음 로그 머리부터 맞춘다: 바닐라 `[시각] [스레드/INFO]: `,
 # Paper 계열 `[시각 INFO]: ` (log_pattern과 같은 두 모양), Forge·NeoForge는 그 뒤에 로거 칸 ` [minecraft/로거]`
 # (fmlloader log4j2.xml). 머리를 줄 처음에 묶어야 채팅에 "]: …"를 쳐도 맞지 않는다

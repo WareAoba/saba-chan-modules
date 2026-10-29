@@ -100,6 +100,7 @@
       "inputs": { "player": { "label": "Nombre del jugador", "placeholder": "Apodo del jugador" }, "item": { "label": "ID del objeto", "placeholder": "Ej: diamond, iron_ore" }, "amount": { "label": "Cantidad" } }
     },
     "save-all": { "label": "Guardar mundo", "description": "Guardar el mundo del juego" },
+    "save-flush": { "label": "Guardar en disco", "description": "Guarda el mundo y espera a que todos los chunks se escriban en el disco" },
     "save-off": { "label": "Pausar autoguardado", "description": "El servidor deja de guardar el mundo automáticamente" },
     "save-on": { "label": "Reanudar autoguardado", "description": "El servidor vuelve a guardar el mundo automáticamente" },
     "list": { "label": "Lista de jugadores", "description": "Ver lista de jugadores conectados" },

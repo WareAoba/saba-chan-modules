@@ -177,3 +177,24 @@ def test_structure_of_the_three_log_heads_is_dimmed():
     assert highlight("plugin_tag", "[19:55:12 INFO]: [Not Secure] [Server] hi") is None
     # JVM이 표준 오류로 내는 경고 (로그 머리 없음)
     assert highlight("jvm_warning", "WARNING: A restricted method in java.lang.System has been called")
+
+
+def test_a_live_backup_waits_for_the_flushed_save():
+    """켜진 서버 백업은 `save-all flush`를 보내고 "Saved the game" 줄을 기다린다 (실측 26.x 11종·1.20.4 4종:
+    1.20.4는 답 뒤 2~3초 지나 이 줄이 나왔다). 채팅으로 같은 말을 쳐도, 저장 시작 줄에도 맞지 않는다"""
+    backup = MANIFEST["backup"]
+    fields = {f["name"]: f for f in MANIFEST["commands"]["fields"]}
+    assert fields[backup["save_command"]]["console_template"] == "save-all flush"
+    assert fields[backup["save_command"]].get("remote") is False
+    done = re.compile(backup["save_done_pattern"])
+    for head in HEADS:
+        for body in ["Saved the game", "System chat: Saved the game"]:
+            assert done.search(head + body), head + body
+        assert not done.search(head + "Saving the game (this may take a moment!)")
+        assert not done.search(head + "<Steve> Saved the game")
+        assert not done.search(head + "<Steve> x]: Saved the game")
+
+
+def test_folia_rejects_the_backup_save():
+    """Folia에는 save-all이 없다: 그 답이 실패 모양에 걸려야 데몬이 저장 없는 백업을 만들지 않는다 (실측 Folia 26.1.2)"""
+    assert failure("[22:30:37 INFO]: Unknown or incomplete command. See below for error") is not None

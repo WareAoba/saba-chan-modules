@@ -1946,3 +1946,21 @@ def test_bundled_java_newer_than_an_installer_allows_is_replaced(tmp_path):
 def lifecycle_module():
     from minecraft import lifecycle
     return lifecycle
+
+
+# ─── 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`, 사용자 요청 2026-10-30) ───
+
+def test_send_chat_tells_everyone_with_tellraw_json():
+    """보낸 사람과 본문만. 본문은 JSON 글자로 넣어 명령·서식이 되지 않는다"""
+    import daemon_rcon
+    from minecraft import lifecycle
+    with mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value={"success": True}) as send:
+        result = lifecycle.FUNCTIONS["send_chat"]({"instance_id": "i1", "chat_name": "김치", "chat_text": 'hi "x" §c'})
+    assert result == {"success": True}
+    line = send.call_args.args[1]
+    assert line.startswith("tellraw @a ")
+    assert json.loads(line[len("tellraw @a "):]) == ["", {"text": "<김치> ", "color": "aqua"}, {"text": 'hi "x" §c'}]
+    assert send.call_args.args[0] == "i1" and "\n" not in line
+
+    with mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value={"success": False, "message": "not running"}):
+        assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False

@@ -156,6 +156,7 @@
     "settings": { "label": "查看设置", "description": "查看当前服务器设置" }
   },
   "errors": {
+    "chat_failed": "无法发送到游戏聊天：{{error}}",
     "backup_paths_failed": "无法读取要备份的存档文件夹:{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
     "auth_failed": "身份验证失败。请检查 REST API 用户名和密码。",

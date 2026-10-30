@@ -162,6 +162,7 @@
     "settings": { "label": "Voir les paramètres", "description": "Voir les paramètres actuels du serveur" }
   },
   "errors": {
+    "chat_failed": "Impossible d'envoyer au chat du jeu : {{error}}",
     "backup_paths_failed": "Impossible de lire le dossier des sauvegardes de jeu : {{error}}",
     "server_not_running": "Le serveur n'est pas démarré. Démarrez d'abord le serveur.",
     "auth_failed": "Échec de l'authentification. Vérifiez le nom d'utilisateur et le mot de passe de l'API REST.",

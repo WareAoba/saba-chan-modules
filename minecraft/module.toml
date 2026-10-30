@@ -85,6 +85,9 @@ crash_artifacts = ["crash-reports/*.txt", "hs_err_pid*.log"]
 # 돌아가는 CPU (saba-chan 0.1.12 architectures, 0.1.11 데몬은 모르는 키 경고로 무시). 자바 서버라 JVM이 있는 두 CPU 모두.
 # aarch64는 Oracle A1(Ubuntu 24.04)에서 만들기·시작·명령·정지를 실측 (2026-10-29)
 architectures = ["x86_64", "aarch64"]
+# 디스코드 → 게임 채팅 (saba-chan 0.1.12 chat_send). 데몬이 이름·본문을 한 줄로 다듬어 이 함수를 부르면 tellraw로 모두에게 알린다.
+# 0.1.11 데몬은 모르는 키 경고로 무시한다
+chat_send = "send_chat"
 # 게임 stdout 원문(데몬이 러너 머리 없이 맞춘다)의 줄 처음 로그 머리부터 맞춘다: 바닐라 `[시각] [스레드/INFO]: `,
 # Paper 계열 `[시각 INFO]: ` (log_pattern과 같은 두 모양), Forge·NeoForge는 그 뒤에 로거 칸 ` [minecraft/로거]`
 # (fmlloader log4j2.xml). 머리를 줄 처음에 묶어야 채팅에 "]: …"를 쳐도 맞지 않는다

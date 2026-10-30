@@ -159,6 +159,7 @@
     "settings": { "label": "Ver configuración", "description": "Ver la configuración actual del servidor" }
   },
   "errors": {
+    "chat_failed": "No se pudo enviar al chat del juego: {{error}}",
     "backup_paths_failed": "No se pudo leer la carpeta de partidas para la copia de seguridad: {{error}}",
     "server_not_running": "El servidor no está en ejecución. Inicia primero el servidor.",
     "auth_failed": "Error de autenticación. Comprueba el usuario y la contraseña de la API REST.",

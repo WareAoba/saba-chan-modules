@@ -1579,6 +1579,23 @@ def command(config):
         return {"success": False, "message": str(e)}
 
 
+def send_chat(config):
+    """디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`). 데몬이 한 줄로 다듬은 이름·본문을 받는다.
+    본문은 tellraw JSON 글자로 넣어 명령·§ 서식으로 읽히지 않는다"""
+    from daemon_rcon import daemon_stdin_command
+    name, text = config.get("chat_name", ""), config.get("chat_text", "")
+    line = "tellraw @a " + json.dumps(["", {"text": f"<{name}> ", "color": "aqua"}, {"text": text}], ensure_ascii=False)
+    try:
+        result = daemon_stdin_command(config.get("instance_id", ""), line, timeout=5) or {}
+    except PathOutside:
+        raise
+    except Exception as e:
+        return {"success": False, "message": i18n.t("errors.chat_failed", error=str(e))}
+    if result.get("success", True):
+        return {"success": True}
+    return {"success": False, "message": i18n.t("errors.chat_failed", error=result.get("message") or result.get("error") or "")}
+
+
 # ─── Helpers ──────────────────────────────────────────────────
 
 def _format_command(cmd, args):
@@ -2325,6 +2342,7 @@ FUNCTIONS = {
     "stop": stop,
     "status": status,
     "command": command,
+    "send_chat": send_chat,
     "validate": validate,
     "get_launch_command": get_launch_command,
     "configure": configure,

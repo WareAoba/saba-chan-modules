@@ -1011,3 +1011,13 @@ def test_join_and_leave_highlight_cover_every_detection_pattern(toml):
             line = (p.replace("^(?::\\s*)?", "").replace("(?P<name>[^<*:\\s].{0,19}?)", "Steve")
                     .replace("\\s*$", "").replace("\\.", "."))
             assert _first_highlight(toml, line) == (token, "Steve"), (p, line)
+
+
+# ─── 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`, 사용자 요청 2026-10-30) ───
+
+def test_send_chat_says_the_sender_and_the_message(lc, monkeypatch):
+    sent = _playing(monkeypatch, lc, "")
+    assert lc.FUNCTIONS["send_chat"]({"instance_id": "inst-1", "chat_name": "김치", "chat_text": "안녕"}) == {"success": True}
+    assert sent == ["say 김치: 안녕"]
+    monkeypatch.setattr(lc, "daemon_stdin_command", lambda *a, **k: {"success": False, "message": "x"})
+    assert lc.send_chat({"instance_id": "inst-1", "chat_name": "a", "chat_text": "b"})["success"] is False

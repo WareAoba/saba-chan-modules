@@ -288,6 +288,7 @@
     }
   },
   "errors": {
+    "chat_failed": "게임 채팅으로 보내지 못했습니다: {{error}}",
     "archive_corrupt": "서버 압축 파일이 손상되었습니다({{file}})",
     "backup_paths_failed": "백업할 파일을 정하지 못했습니다: {{error}}",
     "executable_not_found": "테라리아 서버 실행 파일이 없습니다. 먼저 서버를 설치하세요",

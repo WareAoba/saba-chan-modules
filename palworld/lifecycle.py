@@ -1136,11 +1136,26 @@ def execute_rest_via_daemon(instance_id, endpoint, body, command_text, method="P
         }
 
 
+def send_chat(config):
+    """디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`). 콘솔 입력이 없어 REST 공지로 이름·본문을 알린다"""
+    message = f"{config.get('chat_name', '')}: {config.get('chat_text', '')}"
+    try:
+        result = daemon_rest(config.get("instance_id", ""), "POST", "/v1/api/announce", body={"message": message}, timeout=5) or {}
+    except PathOutside:
+        raise
+    except Exception as e:
+        return {"success": False, "message": i18n.t("errors.chat_failed", error=str(e))}
+    if result.get("success", True):
+        return {"success": True}
+    return {"success": False, "message": i18n.t("errors.chat_failed", error=result.get("message") or result.get("error") or "")}
+
+
 # Function dispatch table (matches daemon's expected interface)
 FUNCTIONS = {
     "stop": stop,
     "status": status,
     "command": command,
+    "send_chat": send_chat,
     "get_launch_command": get_launch_command,
     "get_credentials": get_credentials,
     "validate": validate,

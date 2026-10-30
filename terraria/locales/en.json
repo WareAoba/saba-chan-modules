@@ -288,6 +288,7 @@
     }
   },
   "errors": {
+    "chat_failed": "Could not send to the game chat: {{error}}",
     "archive_corrupt": "The server archive is damaged ({{file}})",
     "backup_paths_failed": "Could not work out the backup files: {{error}}",
     "executable_not_found": "Terraria server executable not found. Install the server first",

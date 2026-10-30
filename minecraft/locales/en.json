@@ -167,6 +167,7 @@
     "stop": { "label": "Stop", "description": "Gracefully stop the server" }
   },
   "errors": {
+    "chat_failed": "Could not send to the game chat: {{error}}",
     "backup_paths_failed": "Could not read the plugin folder to back up: {{error}}",
     "server_not_running": "Server is not running. Please start the server first.",
     "timeout": "Server response timed out. Please check the server status.",

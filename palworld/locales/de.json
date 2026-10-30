@@ -156,6 +156,7 @@
     "settings": { "label": "Einstellungen anzeigen", "description": "Aktuelle Servereinstellungen anzeigen" }
   },
   "errors": {
+    "chat_failed": "Konnte nicht an den Spielchat senden: {{error}}",
     "backup_paths_failed": "Der Spielstand-Ordner für die Sicherung konnte nicht gelesen werden: {{error}}",
     "server_not_running": "Der Server läuft nicht. Bitte starte zuerst den Server.",
     "auth_failed": "Authentifizierung fehlgeschlagen. Bitte prüfe Benutzername und Passwort der REST-API.",

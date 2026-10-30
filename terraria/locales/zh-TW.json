@@ -288,6 +288,7 @@
     }
   },
   "errors": {
+    "chat_failed": "無法傳送到遊戲聊天：{{error}}",
     "archive_corrupt": "伺服器壓縮檔已損壞（{{file}}）",
     "backup_paths_failed": "無法確定要備份的檔案：{{error}}",
     "executable_not_found": "找不到泰拉瑞亞伺服器程式，請先安裝伺服器",

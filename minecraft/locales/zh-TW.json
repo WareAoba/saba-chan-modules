@@ -163,6 +163,7 @@
     "stop": { "label": "停止", "description": "正常停止伺服器" }
   },
   "errors": {
+    "chat_failed": "無法傳送到遊戲聊天：{{error}}",
     "backup_paths_failed": "無法讀取要備份的外掛資料夾:{{error}}",
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
     "timeout": "伺服器回應逾時。請檢查伺服器狀態。",

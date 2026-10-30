@@ -932,3 +932,29 @@ B42_21_LINES = {
 ])
 def test_highlight_follows_b42_21_console(key, part):
     assert part in _highlighted(B42_21_LINES[key], _load_module_toml()["syntax_highlight"]["rules"])
+
+
+# 접속·퇴장 줄: 공개 운영 도구가 콘솔에서 읽는 형식 (CubeCoders AMPTemplates project-zomboid.kvp
+# UserJoinRegex·UserLeaveRegex, 2025-12 B42 갱신 60afb4e). B41은 이름이 있고, B42 Multiplayer 줄은 guid만 있다
+JOIN_LEAVE_LINES = [
+    ('LOG  : Network     , 1703936123456> ConnectionManager: [fully-connected] "" connection: guid=1234 ip=10.0.0.5 '
+     'steam-id=76561198000000000 access= username="Bob the Builder" connection-type="UDPRakNet"',
+     [("[fully-connected]", "success"), ("Bob the Builder", "player")]),
+    ('LOG  : Network     , 1703936123456> Disconnected player "Bob the Builder" 76561198000000000',
+     [("Bob the Builder", "warn")]),
+    ('LOG  : Multiplayer  f:0 st:117,100,000> connection: guid=1234 [fully-connected] ""', [("[fully-connected]", "success")]),
+    ('LOG  : Multiplayer  f:0 st:117,200,000> connection: guid=1234 [disconnect] "receive-disconnect"', [("[disconnect]", "warn")]),
+]
+
+
+@pytest.mark.parametrize("line, parts", JOIN_LEAVE_LINES)
+def test_highlight_marks_join_and_leave_lines(line, parts):
+    painted = _highlighted(line, _load_module_toml()["syntax_highlight"]["rules"])
+    for part in parts:
+        assert part in painted, painted
+
+
+def test_highlight_does_not_guess_player_names_from_words():
+    """`3 clients connected` 같은 줄의 낱말을 플레이어로 칠하지 않는다"""
+    for line in ("LOG  : General      f:0 st:1> 3 clients connected", "LOG  : Network      f:0 st:1> peer disconnected", "LOG  : General      f:0 st:1> it was kicked"):
+        assert not any(c in ("player", "warning", "warn") for _, c in _highlighted(line, _load_module_toml()["syntax_highlight"]["rules"])), line

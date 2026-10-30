@@ -958,3 +958,27 @@ def test_highlight_does_not_guess_player_names_from_words():
     """`3 clients connected` 같은 줄의 낱말을 플레이어로 칠하지 않는다"""
     for line in ("LOG  : General      f:0 st:1> 3 clients connected", "LOG  : Network      f:0 st:1> peer disconnected", "LOG  : General      f:0 st:1> it was kicked"):
         assert not any(c in ("player", "warning", "warn") for _, c in _highlighted(line, _load_module_toml()["syntax_highlight"]["rules"])), line
+
+
+def test_join_and_leave_patterns_count_b41_names_and_b42_connection_ids():
+    """상황판 접속자 수: B41은 이름, B42 Multiplayer 줄은 이름이 없어 접속 번호(guid)로 센다 (사용자 결정 2026-10-30).
+    형식 근거는 CubeCoders AMPTemplates project-zomboid.kvp UserJoinRegex·UserLeaveRegex"""
+    import re
+    saba = _load_module_toml()["extensions"]["saba-core"]
+
+    def name(patterns, line):
+        for p in patterns:
+            m = re.search(p, line)
+            if m:
+                return m.group("name")
+        return None
+
+    join, leave = saba["player_join_patterns"], saba["player_leave_patterns"]
+    assert name(join, JOIN_LEAVE_LINES[0][0]) == "Bob the Builder"
+    assert name(leave, JOIN_LEAVE_LINES[1][0]) == "Bob the Builder"
+    assert name(join, JOIN_LEAVE_LINES[2][0]) == "1234"
+    assert name(leave, JOIN_LEAVE_LINES[3][0]) == "1234"
+    assert name(leave, 'LOG  : Multiplayer  f:0 st:1> connection: guid=1234 [disconnect] "connection-lost"') == "1234"
+    for line in (B41_LINE, B42_21_LINES["console"], "LOG  : General      f:0 st:1> 3 clients connected",
+                 'LOG  : General      f:0 st:1> command entered via server console (System.in): "servermsg Disconnected player \\"x\\""'):
+        assert name(join, line) is None and name(leave, line) is None, line

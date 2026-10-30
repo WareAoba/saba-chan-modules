@@ -44,6 +44,17 @@ snapshots = true
 data_roots = ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
 # 돌아가는 CPU (saba-chan 0.1.12 architectures, 0.1.11 데몬은 모르는 키 경고로 무시). x86_64만 있는 이유: 설치에 쓰는 SteamCMD가 32비트 x86이고, 서버가 동봉 x86_64 JRE(jre64)로 돈다. 에뮬레이션은 하지 않는다
 architectures = ["x86_64"]
+# 접속·퇴장 (상황판 접속자 수, 데몬이 이 줄로 센다). 형식 근거: CubeCoders AMPTemplates project-zomboid.kvp UserJoinRegex·UserLeaveRegex
+# (2025-12 B42 갱신). B41 Network 줄에는 이름이 있다. B42 Multiplayer 줄에는 이름이 없어 접속 번호(guid)로 센다 (사용자 결정 2026-10-30).
+# 줄 머리 `LOG  : Network`/`LOG  : Multiplayer`에 묶어 콘솔 명령(servermsg) 본문 같은 다른 줄로는 세지 않는다. 이 PC에서는 아직 실측하지 못했다
+player_join_patterns = [
+    '^LOG\s*:\s+Network\s.*?> ConnectionManager: \[fully-connected\] .*? username="(?P<name>[^"]+)".*$',
+    '^LOG\s*:\s+Multiplayer\s.*?> connection: guid=(?P<name>\d+) \[fully-connected\] "".*$',
+]
+player_leave_patterns = [
+    '^LOG\s*:\s+Network\s.*?> Disconnected player "(?P<name>[^"]+)".*$',
+    '^LOG\s*:\s+Multiplayer\s.*?> connection: guid=(?P<name>\d+) \[disconnect\] "[^"]*".*$',
+]
 
 [install]
 method = "steamcmd"

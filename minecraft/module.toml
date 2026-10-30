@@ -1404,10 +1404,11 @@ pattern = '(?P<hl>minecraft:[\w/]+)'
 color = "keyword"
 priority = 25
 
-# "the advancement [Name]"
+# 바닐라 발전 과제 알림 세 가지: chat.type.advancement.task·challenge·goal ("has made the advancement [제목]" 등).
+# 제목에는 '·?·숫자도 온다 (Isn't It Iron Pick, Who's the Pillager Now?)
 [[syntax_highlight.rules]]
 name = "advancement"
-pattern = 'the advancement \[(?P<hl>[A-Z][A-Za-z !]+)\]'
+pattern = 'has (?:made the advancement|completed the challenge|reached the goal) \[(?P<hl>[^\]]+)\]'
 color = "success"
 priority = 25
 

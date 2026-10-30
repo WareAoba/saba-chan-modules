@@ -223,3 +223,11 @@ def test_a_live_backup_waits_for_the_flushed_save():
 def test_folia_rejects_the_backup_save():
     """Folia에는 save-all이 없다: 그 답이 실패 모양에 걸려야 데몬이 저장 없는 백업을 만들지 않는다 (실측 Folia 26.1.2)"""
     assert failure("[22:30:37 INFO]: Unknown or incomplete command. See below for error") is not None
+
+
+def test_advancement_challenge_and_goal_titles_are_highlighted():
+    """바닐라 발전 과제 알림 세 가지(advancement·challenge·goal), 제목에 '·?·숫자가 들어가도 칠한다"""
+    head = "[17:50:00] [Server thread/INFO]: "
+    assert highlight("advancement", head + "Steve has made the advancement [Isn't It Iron Pick]") == "Isn't It Iron Pick"
+    assert highlight("advancement", head + "Steve has completed the challenge [Adventuring Time]") == "Adventuring Time"
+    assert highlight("advancement", head + "Steve has reached the goal [Who's the Pillager Now?]") == "Who's the Pillager Now?"

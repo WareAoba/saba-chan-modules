@@ -832,3 +832,47 @@ def test_join_and_leave_lines_name_the_player():
     ):
         assert name(join, line) is None, line
     assert name(leave, "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Bob left the server. (User id: x)") is None
+
+
+# ─── 콘솔 하이라이팅 (데몬 highlight.rs와 같은 방식: priority 큰 규칙부터, 칠한 칸은 덮지 않는다) ───
+
+def _painted(line):
+    """[(조각, 토큰)]"""
+    import re
+    rules = _load_module_toml()["syntax_highlight"]["rules"]
+    order = sorted(range(len(rules)), key=lambda i: (-rules[i].get("priority", 0), i))
+    styles = [None] * len(line)
+    for i in order:
+        for m in re.finditer(rules[i]["pattern"], line):
+            s, e = m.span("hl") if "hl" in m.re.groupindex and m.group("hl") is not None else m.span()
+            for k in range(s, e):
+                if styles[k] is None:
+                    styles[k] = rules[i]["color"]
+    out, start = [], 0
+    for k in range(1, len(line) + 1):
+        if k == len(line) or styles[k] != styles[start]:
+            if styles[start] is not None:
+                out.append((line[start:k], styles[start]))
+            start = k
+    return out
+
+
+@pytest.mark.parametrize("line, part", [
+    # 콘솔 실측 v1.0.5.102999 (2026-10-26·10-30)
+    ("[2026-10-26 08:38:32] [LOG] REST accessed endpoint /v1/api/info OK", ("[2026-10-26 08:38:32]", "timestamp")),
+    ("[2026-10-26 08:38:32] [LOG] REST accessed endpoint /v1/api/info OK", ("/v1/api/info", "path")),
+    ("[2026-10-30 07:10:19] [LOG] KimchiMayo joined the server. (User id: steam_1, Player id: EAA1)", ("KimchiMayo", "success")),
+    ("[2026-10-30 07:10:41] [LOG] Dr. Who left the server. (User id: steam_1)", ("Dr. Who", "warn")),
+    ("[2026-10-30 07:10:09] [LOG] KimchiMayo 127.0.0.1 connected the server. (User id: steam_1)", ("KimchiMayo", "player")),
+    ("[2026-10-30 07:10:35] [CHAT] <Dr. Who> !d <b> 안녕", ("<Dr. Who>", "player")),
+    ("Running Palworld dedicated server on :8211", ("Running Palworld dedicated server on :8211", "success")),
+    ("Game version is v1.0.5.102999", ("v1.0.5.102999", "keyword")),
+])
+def test_highlight_follows_measured_console_lines(line, part):
+    assert part in _painted(line)
+
+
+def test_highlight_leaves_chat_text_alone():
+    """채팅 본문의 낱말·경로·버전 같은 숫자는 서버 문구처럼 칠하지 않는다"""
+    line = "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Error: /home/x Bob joined the server. (User id: x) LogNet: Warning:"
+    assert _painted(line) == [("[2026-10-30 07:10:28]", "timestamp"), ("[CHAT]", "command"), ("<KimchiMayo>", "player")]

@@ -1576,10 +1576,10 @@ color = "warn"
 bold = true
 priority = 75
 
-# 레벨: ERROR / FATAL — 반드시 `:` 앞에서만 (오탐 방지)
+# 레벨: ERROR / FATAL — 줄 머리에서만 (log_pattern과 같다. 본문의 "ERROR:"는 레벨이 아니다)
 [[syntax_highlight.rules]]
 name = "level_error"
-pattern = '\b(?P<hl>ERROR|FATAL)\b\s*:'
+pattern = '^(?P<hl>ERROR|FATAL)\s*:'
 color = "error"
 bold = true
 priority = 70
@@ -1587,7 +1587,7 @@ priority = 70
 # 레벨: WARN / WARNING
 [[syntax_highlight.rules]]
 name = "level_warning"
-pattern = '\b(?P<hl>WARN(?:ING)?)\b\s*:'
+pattern = '^(?P<hl>WARN(?:ING)?)\s*:'
 color = "warn"
 bold = true
 priority = 70
@@ -1595,14 +1595,14 @@ priority = 70
 # 레벨: LOG / INFO
 [[syntax_highlight.rules]]
 name = "level_info"
-pattern = '\b(?P<hl>LOG|INFO)\b\s*:'
+pattern = '^(?P<hl>LOG|INFO)\s*:'
 color = "info"
 priority = 70
 
 # 레벨: DEBUG
 [[syntax_highlight.rules]]
 name = "level_debug"
-pattern = '\b(?P<hl>DEBUG)\b\s*:'
+pattern = '^(?P<hl>DEBUG)\s*:'
 color = "dim"
 italic = true
 priority = 70

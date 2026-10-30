@@ -715,6 +715,16 @@ def test_installed_version_without_a_changelog_is_unknown(lc, tmp_path):
 
 # PC 실측(2026-10-26) 콘솔 원문 → (토큰, 칠할 글자). 데몬처럼 priority가 큰 규칙부터 본다
 _HIGHLIGHT_SAMPLES = [
+    # 접속·퇴장 (player_join_patterns·player_leave_patterns와 같은 번역 문자열)
+    ("Steve has joined.", "success", "Steve"),
+    (": Dr. Who has left.", "warn", "Dr. Who"),
+    ("사바 쨩 님이 참가했습니다.", "success", "사바 쨩"),
+    ("Steve 님이 떠났습니다.", "warn", "Steve"),
+    ("Игрок Steve присоединился.", "success", "Steve"),
+    ("Игрок Steve вышел.", "warn", "Steve"),
+    ("Steve已加入。", "success", "Steve"),
+    ("Steveが去りました。", "warn", "Steve"),
+    ("<Steve> Bob has joined.", "player", "<Steve>"),
     ("Server started", "success", "Server started"),
     (": Server started", "success", "Server started"),
     ("서버 시작", "success", "서버 시작"),
@@ -991,3 +1001,13 @@ def test_a_damaged_zip_is_reported_in_the_users_language(lc, tmp_path, monkeypat
     result = lc.install_server({"version": "1.4.5.8", "install_dir": str(tmp_path / "inst")})
     assert result["success"] is False
     assert "The server archive is damaged" in result["message"]
+
+
+def test_join_and_leave_highlight_cover_every_detection_pattern(toml):
+    """접속·퇴장 감지 문구마다 이름이 칠해져야 한다 (언어를 더할 때 한쪽만 고치지 않게)"""
+    core = toml["extensions"]["saba-core"]
+    for key, token in (("player_join_patterns", "success"), ("player_leave_patterns", "warn")):
+        for p in core[key]:
+            line = (p.replace("^(?::\\s*)?", "").replace("(?P<name>[^<*:\\s].{0,19}?)", "Steve")
+                    .replace("\\s*$", "").replace("\\.", "."))
+            assert _first_highlight(toml, line) == (token, "Steve"), (p, line)

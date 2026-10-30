@@ -1648,38 +1648,36 @@ pattern = '^[A-Z]+\s*:\s+(?P<hl>[A-Z][\w.]+)\s*(?:,|f:\d)'
 color = "keyword"
 priority = 65
 
-# 플레이어 접속 — "PlayerName" 형태 (따옴표)
+# 접속·퇴장: 공개 운영 도구가 콘솔에서 읽는 형식 (CubeCoders AMPTemplates project-zomboid.kvp UserJoinRegex·UserLeaveRegex,
+# 2025-12 B42 갱신). B41: `ConnectionManager: [fully-connected] "" connection: guid=… steam-id=… username="이름" …`,
+# `Disconnected player "이름" <steam-id>`. B42: `Multiplayer …> connection: guid=… [fully-connected] ""`·`[disconnect] "receive-disconnect"`(이름 없음).
+# 이 PC에서는 아직 접속 줄을 실측하지 못했다
 [[syntax_highlight.rules]]
-name = "player_connected_quoted"
-pattern = '"(?P<hl>[^"]+)"\s+(?:fully )?connected'
+name = "fully_connected"
+pattern = '(?P<hl>\[fully-connected\])'
+color = "success"
+bold = true
+priority = 60
+
+[[syntax_highlight.rules]]
+name = "connected_username"
+pattern = '\[fully-connected\].*?\busername="(?P<hl>[^"]+)"'
 color = "player"
 bold = true
 priority = 60
 
-# 플레이어 접속 — 따옴표 없는 plain 형태
 [[syntax_highlight.rules]]
-name = "player_connected"
-pattern = '\b(?P<hl>\w{3,32})\s+(?:fully )?connected\b'
-color = "player"
-bold = true
-priority = 55
+name = "disconnect_tag"
+pattern = '(?P<hl>\[disconnect\])'
+color = "warn"
+priority = 60
 
-# 플레이어 연결 종료
 [[syntax_highlight.rules]]
-name = "player_disconnected"
-pattern = '\b(?P<hl>\w{3,32})\s+disconnected\b'
-color = "warning"
-priority = 55
+name = "disconnected_player"
+pattern = 'Disconnected player "(?P<hl>[^"]+)"'
+color = "warn"
+priority = 60
 
-# 플레이어 추방 — "Player has been kicked" / "Player was kicked"
-[[syntax_highlight.rules]]
-name = "player_kicked"
-pattern = '\b(?P<hl>\w{3,32})\s+(?:has been |was )?kicked\b'
-color = "warning"
-bold = true
-priority = 55
-
-# 채팅 채널 라벨
 [[syntax_highlight.rules]]
 name = "chat_bracket"
 pattern = '\[(?P<hl>General Chat|Chat|Shout|Admin Chat|Faction|Safehouse)\]'

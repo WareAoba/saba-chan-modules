@@ -1553,17 +1553,51 @@ pattern = ',\s+(?P<hl>\d{13})>'
 color = "dim"
 priority = 80
 
-# B42 머리 "f:0, t:1765669004675, st:214 957 507>" (프레임, 에폭 밀리초, 서버 틱)
+# B42 머리: "f:0, t:1765669004675, st:214 957 507>" (프레임, 에폭 밀리초, 서버 틱). B42.21 실측은 t: 없이 "f:0 st:116,904,051>" 또는 " at 클래스.함수 >"
 [[syntax_highlight.rules]]
 name = "b42_header"
-pattern = '\b(?P<hl>f:\d+, t:\d{13}, st:[\d ,]*\d)>'
+pattern = '\b(?P<hl>f:\d+,? (?:t:\d{13}, )?st:[\d ,]*\d)(?: at |\s*>)'
 color = "dim"
 priority = 80
 
 # 서버 시작 (여러 변형)
+# 경고·오류 줄 머리의 부른 곳 (B42.21 실측: `WARN : Script       f:0 st:116,947,061 at VehicleScript.Loaded      > …`)
+[[syntax_highlight.rules]]
+name = "caller"
+pattern = '^[A-Z]+\s*:\s+\S+\s+f:\d+[^>]*? at (?P<hl>[^\s>]+)\s*>'
+color = "keyword"
+priority = 80
+
+# 자바 예외와 스택 (B42.21 실측: 들여쓰기 없는 `zombie.….lookup(IsoPropertyType.java:273)` 줄이 이어진다)
+[[syntax_highlight.rules]]
+name = "exception_class"
+pattern = '\b(?P<hl>[a-z]\w*(?:\.[a-z]\w*)+\.[A-Z][\w$]*(?:Exception|Error))\b'
+color = "error"
+bold = true
+priority = 85
+
+[[syntax_highlight.rules]]
+name = "stack_frame"
+pattern = '^\s*(?:at )?[a-z]\w*(?:\.[\w$<>]+)+\([\w.$ ]*(?::\d+)?\)\s*$'
+color = "dim"
+priority = 85
+
+[[syntax_highlight.rules]]
+name = "stack_header"
+pattern = '^Stack trace:\s*$'
+color = "dim"
+priority = 85
+
+# 서버 콘솔로 친 명령 (B42.21 실측: `command entered via server console (System.in): "servermsg …"`)
+[[syntax_highlight.rules]]
+name = "console_command"
+pattern = 'command entered via server console \(System\.in\): "(?P<hl>[^"]*)"'
+color = "command"
+priority = 60
+
 [[syntax_highlight.rules]]
 name = "server_started"
-pattern = '(?P<hl>SERVER STARTED|Server Started|Server is now listening)'
+pattern = '(?P<hl>SERVER STARTED|Server Started|Server is (?:now )?listening)'
 color = "success"
 bold = true
 priority = 75

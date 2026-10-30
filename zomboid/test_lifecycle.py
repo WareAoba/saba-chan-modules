@@ -907,3 +907,28 @@ def test_highlight_colors_level_prefix_only():
     parts = _highlighted(line, _load_module_toml()["syntax_highlight"]["rules"])
     assert ("LOG", "info") in parts
     assert ("ERROR", "error") not in parts
+
+
+# 콘솔 실측 B42.21 (2026-10-30, 사용자 PC): 머리에 t: 없이 `f:0 st:116,904,051`, 경고·오류는 ` at 클래스.함수   >`
+B42_21_LINES = {
+    "info": "LOG  : Network      f:0 st:116,999,001> *** SERVER STARTED ****",
+    "caller": "WARN : Script       f:0 st:116,947,061 at VehicleScript.Loaded                > vehicle \"RaceCar58\" extents != physicsChassisShape",
+    "listening": "LOG  : General      f:0 st:116,999,010> Server is listening on port 16261 (for Steam connection) and port 16262 (for UDPRakNet connection)",
+    "console": "LOG  : General      f:0 st:117,001,200> command entered via server console (System.in): \"servermsg ㅎㅇㅎㅇ\"",
+    "exception": "zombie.core.properties.IsoPropertyType$IsoPropertyTypeNotFoundException: Property Name not found: ladderW at IsoPropertyType.lookup(IsoPropertyType.java:273). Message: Property Name not found: ladderW",
+    "frame": "zombie.core.properties.IsoPropertyType.lookup(IsoPropertyType.java:273)",
+}
+
+
+@pytest.mark.parametrize("key, part", [
+    ("info", ("f:0 st:116,999,001", "dim")),
+    ("caller", ("f:0 st:116,947,061", "dim")),
+    ("caller", ("VehicleScript.Loaded", "keyword")),
+    ("caller", ("Script", "keyword")),
+    ("listening", ("Server is listening", "success")),
+    ("console", ("servermsg ㅎㅇㅎㅇ", "command")),
+    ("exception", ("zombie.core.properties.IsoPropertyType$IsoPropertyTypeNotFoundException", "error")),
+    ("frame", ("zombie.core.properties.IsoPropertyType.lookup(IsoPropertyType.java:273)", "dim")),
+])
+def test_highlight_follows_b42_21_console(key, part):
+    assert part in _highlighted(B42_21_LINES[key], _load_module_toml()["syntax_highlight"]["rules"])

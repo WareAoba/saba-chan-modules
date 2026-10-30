@@ -340,7 +340,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 
 ### 콘솔 패턴
 
-준비 완료(`[extensions.saba-core] ready_patterns`), 접속·퇴장(`player_join_patterns`, `player_leave_patterns`), 게임 채팅(`chat_patterns`, `name`·`message` 그룹), 정상 종료(`[detection] graceful_exit_patterns`) 패턴은 실측한 원문으로만 쓴다.
+준비 완료(`[extensions.saba-core] ready_patterns`), 접속·퇴장(`player_join_patterns`, `player_leave_patterns`), 게임 채팅(`chat_patterns`, `name`·`message` 그룹. 디스코드 글을 게임으로 보내려면 `chat_send`에 함수 이름을 적고, 그 함수는 `chat_name`·`chat_text`를 받아 게임 채팅으로 알린다), 정상 종료(`[detection] graceful_exit_patterns`) 패턴은 실측한 원문으로만 쓴다.
 
 - 줄 처음과 끝에 묶는다. 채팅에 같은 문구가 찍혀도 맞지 않게 한다(`<Server> Server started`).
 - 줄 앞에 프롬프트가 붙을 수 있으면 `^(?:<프롬프트>)?`로 받는다.

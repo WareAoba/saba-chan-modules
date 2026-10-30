@@ -156,6 +156,7 @@
     "settings": { "label": "檢視設定", "description": "檢視目前的伺服器設定" }
   },
   "errors": {
+    "chat_failed": "無法傳送到遊戲聊天：{{error}}",
     "backup_paths_failed": "無法讀取要備份的存檔資料夾:{{error}}",
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
     "auth_failed": "驗證失敗。請檢查 REST API 使用者名稱與密碼。",

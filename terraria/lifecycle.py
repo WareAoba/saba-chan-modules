@@ -600,6 +600,20 @@ def install_server(config):
             "message": i18n.t("messages.install_complete")}
 
 
+def send_chat(config):
+    """디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`). 데몬이 한 줄로 다듬은 이름·본문을 `say`로 알린다"""
+    line = f"say {config.get('chat_name', '')}: {config.get('chat_text', '')}"
+    try:
+        result = daemon_stdin_command(config.get("instance_id", ""), line, timeout=5) or {}
+    except PathOutside:
+        raise
+    except Exception as e:
+        return {"success": False, "message": i18n.t("errors.chat_failed", error=str(e))}
+    if result.get("success", True):
+        return {"success": True}
+    return {"success": False, "message": i18n.t("errors.chat_failed", error=result.get("message") or result.get("error") or "")}
+
+
 # ╔═══════════════════════════════════════════════════════════╗
 # ║                  Function Registry                        ║
 # ╚═══════════════════════════════════════════════════════════╝
@@ -615,6 +629,7 @@ FUNCTIONS = {
     "backup_paths":       backup_paths,
     "config_files":       config_files,
     "player_count":       player_count,
+    "send_chat":          send_chat,
     "reset_server":       reset_server,
     "list_versions":      list_versions,
     "install_server":     install_server,

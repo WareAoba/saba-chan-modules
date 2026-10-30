@@ -163,6 +163,7 @@
     "stop": { "label": "Arrêter", "description": "Arrêter le serveur proprement" }
   },
   "errors": {
+    "chat_failed": "Impossible d'envoyer au chat du jeu : {{error}}",
     "backup_paths_failed": "Impossible de lire le dossier des plugins à sauvegarder : {{error}}",
     "server_not_running": "Le serveur n'est pas démarré. Démarrez d'abord le serveur.",
     "timeout": "Le serveur n'a pas répondu à temps. Vérifiez l'état du serveur.",

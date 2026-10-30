@@ -288,6 +288,7 @@
     }
   },
   "errors": {
+    "chat_failed": "ゲームチャットに送れませんでした: {{error}}",
     "archive_corrupt": "サーバーアーカイブが壊れています({{file}})",
     "backup_paths_failed": "バックアップするファイルを決められませんでした: {{error}}",
     "executable_not_found": "テラリアのサーバー実行ファイルがありません。先にサーバーをインストールしてください",

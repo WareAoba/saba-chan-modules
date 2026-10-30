@@ -288,6 +288,7 @@
     }
   },
   "errors": {
+    "chat_failed": "Konnte nicht an den Spielchat senden: {{error}}",
     "archive_corrupt": "Das Serverarchiv ist beschädigt ({{file}})",
     "backup_paths_failed": "Sicherungsdateien konnten nicht bestimmt werden: {{error}}",
     "executable_not_found": "Terraria-Serverdatei nicht gefunden. Installiere zuerst den Server",

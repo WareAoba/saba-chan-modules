@@ -156,6 +156,7 @@
     "settings": { "label": "設定を表示", "description": "現在のサーバー設定を表示" }
   },
   "errors": {
+    "chat_failed": "ゲームチャットに送れませんでした: {{error}}",
     "backup_paths_failed": "バックアップするセーブフォルダーを読み込めませんでした: {{error}}",
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
     "auth_failed": "認証に失敗しました。REST API のユーザー名とパスワードを確認してください。",

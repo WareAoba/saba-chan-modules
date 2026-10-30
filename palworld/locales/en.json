@@ -156,6 +156,7 @@
     "settings": { "label": "View Settings", "description": "View current server settings" }
   },
   "errors": {
+    "chat_failed": "Could not send to the game chat: {{error}}",
     "backup_paths_failed": "Could not read the save folder for backup: {{error}}",
     "server_not_running": "Server is not running. Please start the server first.",
     "auth_failed": "Authentication failed. Please check the REST API username and password.",

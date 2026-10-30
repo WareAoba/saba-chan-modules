@@ -288,6 +288,7 @@
     }
   },
   "errors": {
+    "chat_failed": "Não foi possível enviar ao chat do jogo: {{error}}",
     "archive_corrupt": "O arquivo do servidor está danificado ({{file}})",
     "backup_paths_failed": "Não foi possível definir os arquivos de backup: {{error}}",
     "executable_not_found": "Executável do servidor não encontrado. Instale o servidor primeiro",

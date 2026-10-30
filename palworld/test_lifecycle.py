@@ -876,3 +876,14 @@ def test_highlight_leaves_chat_text_alone():
     """채팅 본문의 낱말·경로·버전 같은 숫자는 서버 문구처럼 칠하지 않는다"""
     line = "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Error: /home/x Bob joined the server. (User id: x) LogNet: Warning:"
     assert _painted(line) == [("[2026-10-30 07:10:28]", "timestamp"), ("[CHAT]", "command"), ("<KimchiMayo>", "player")]
+
+
+def test_send_chat_announces_the_sender_and_the_message(monkeypatch):
+    """디스코드 → 게임 채팅 (`chat_send`): REST 공지로 보낸 사람과 본문만"""
+    from palworld import lifecycle
+    rest = mock.Mock(return_value=_daemon_rest_response({}, "POST", "/v1/api/announce"))
+    monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
+    assert lifecycle.FUNCTIONS["send_chat"]({"instance_id": "i1", "chat_name": "김치", "chat_text": "안녕"}) == {"success": True}
+    rest.assert_called_once_with("i1", "POST", "/v1/api/announce", body={"message": "김치: 안녕"}, timeout=5)
+    monkeypatch.setattr(lifecycle, "daemon_rest", mock.Mock(return_value={"success": False, "message": "down"}), raising=False)
+    assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False

@@ -288,6 +288,7 @@
     }
   },
   "errors": {
+    "chat_failed": "Impossible d'envoyer au chat du jeu : {{error}}",
     "archive_corrupt": "L'archive du serveur est endommagée ({{file}})",
     "backup_paths_failed": "Impossible de déterminer les fichiers à sauvegarder : {{error}}",
     "executable_not_found": "Exécutable du serveur introuvable. Installez d'abord le serveur",

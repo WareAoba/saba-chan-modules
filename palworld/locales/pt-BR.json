@@ -162,6 +162,7 @@
     "settings": { "label": "Ver configurações", "description": "Ver as configurações atuais do servidor" }
   },
   "errors": {
+    "chat_failed": "Não foi possível enviar ao chat do jogo: {{error}}",
     "backup_paths_failed": "Não foi possível ler a pasta de saves para o backup: {{error}}",
     "server_not_running": "O servidor não está em execução. Inicie o servidor primeiro.",
     "auth_failed": "Falha na autenticação. Verifique o usuário e a senha da API REST.",

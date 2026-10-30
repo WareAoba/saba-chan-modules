@@ -60,6 +60,9 @@ line_start = '\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\]'
 # 돌아가는 CPU (saba-chan 0.1.12 architectures, 0.1.11 데몬은 모르는 키 경고로 무시). x86_64만 있는 이유: 전용 서버 실행 파일이
 # x86_64(PalServer-Win64-Shipping-Cmd)이고, 설치에 쓰는 SteamCMD도 32비트 x86. 에뮬레이션은 하지 않는다
 architectures = ["x86_64"]
+# 디스코드 → 게임 채팅 (saba-chan 0.1.12 chat_send). 콘솔 입력이 없어 REST 공지(/v1/api/announce)로 이름·본문을 알린다.
+# 0.1.11 데몬은 모르는 키 경고로 무시한다
+chat_send = "send_chat"
 # 게임 채팅 줄 (saba-chan 0.1.12 게임 채팅 전달, name·message 그룹). 콘솔 실측(v1.0.5.102999): `[날짜 시각] [CHAT] <이름> 본문`.
 # 이름에 공백이 들어갈 수 있어 첫 `> `에서 끊는다. REST 접근 로그는 줄바꿈 없이 찍혀 채팅이 그 뒤에 붙어 올 수 있어 앞에 하나 허용한다.
 # [CHAT]은 line_start에 넣지 않는다: 채팅 본문에 시각과 [CHAT]을 쳐 넣어 남의 이름으로 된 줄을 만들 수 있다. 0.1.11 데몬은 모르는 키로 무시한다

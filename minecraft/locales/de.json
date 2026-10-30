@@ -163,6 +163,7 @@
     "stop": { "label": "Stoppen", "description": "Server ordnungsgemäß stoppen" }
   },
   "errors": {
+    "chat_failed": "Konnte nicht an den Spielchat senden: {{error}}",
     "backup_paths_failed": "Der Plugin-Ordner für die Sicherung konnte nicht gelesen werden: {{error}}",
     "server_not_running": "Der Server läuft nicht. Bitte starte zuerst den Server.",
     "timeout": "Zeitüberschreitung bei der Serverantwort. Bitte prüfe den Serverstatus.",

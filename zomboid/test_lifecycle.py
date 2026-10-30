@@ -899,3 +899,11 @@ def test_a_setting_with_a_line_break_is_a_write_failure(tmp_path, monkeypatch):
     result = lifecycle.configure({"settings": {"public_name": "a\nb"}})
     assert result["success"] is False and "properties_write_failed" not in result["message"]
     assert lifecycle._write_initial_ini({"settings": {"public_name": "a\nb"}})["error_code"] == "settings_write_failed"
+
+
+def test_highlight_colors_level_prefix_only():
+    """본문에 나온 ERROR: 같은 낱말은 줄 레벨이 아니다 (log_pattern과 같이 줄 머리만)"""
+    line = "LOG  : General      f:0, t:1765669004675, st:1> mod says ERROR: nope"
+    parts = _highlighted(line, _load_module_toml()["syntax_highlight"]["rules"])
+    assert ("LOG", "info") in parts
+    assert ("ERROR", "error") not in parts

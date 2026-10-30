@@ -1444,50 +1444,111 @@ ban = { aliases = ["밴", "차단", "영구밴"], description = "Ban a player" }
 unban = { aliases = ["언밴", "차단해제"], description = "Unban a player" }
 
 # ─── Console Syntax Highlighting ─────────────────────────
-# Palworld는 보통 commands 모드지만, managed_start 시 콘솔 출력이 표시될 수 있음
+# 의사 콘솔(console = "pty") 실측 v1.0.5.102999 (2026-10-26·10-30): 시작 문구 몇 줄 뒤로는
+# `[날짜 시각] [LOG] …`와 `[날짜 시각] [CHAT] <이름> 본문`만 나온다. 서버 문구는 줄 머리에 묶어
+# 채팅 본문에 같은 낱말이 와도 칠하지 않는다. IP·UUID·따옴표·퍼센트는 데몬 공통 규칙이 칠한다.
 
 [syntax_highlight]
 
-# 1. 로그 레벨
 [[syntax_highlight.rules]]
-name = "level_warning"
-pattern = '(?P<hl>Warning):'
-color = "warn"
-bold = true
+name = "timestamp"
+pattern = '^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]'
+color = "timestamp"
+priority = 90
 
 [[syntax_highlight.rules]]
-name = "level_error"
-pattern = '(?P<hl>Error|Fatal):'
+name = "log_tag"
+pattern = '^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] (?P<hl>\[LOG\])'
+color = "dim"
+priority = 85
+
+# 채팅: chat_patterns와 같은 줄 머리 (REST 접근 로그 뒤에 줄바꿈 없이 붙어 올 수 있다). 이름은 첫 `> `까지
+[[syntax_highlight.rules]]
+name = "chat_tag"
+pattern = '^(?:\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] REST accessed endpoint [^\[\]<>]*)?\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] (?P<hl>\[CHAT\]) <'
+color = "command"
+priority = 85
+
+[[syntax_highlight.rules]]
+name = "chat_name"
+pattern = '^(?:\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] REST accessed endpoint [^\[\]<>]*)?\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[CHAT\] (?P<hl><.{1,32}?>) '
+color = "player"
+bold = true
+priority = 80
+
+# 접속·퇴장: player_join_patterns·player_leave_patterns와 같은 문구
+[[syntax_highlight.rules]]
+name = "player_join"
+pattern = '^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] (?P<hl>.{1,32}?) joined the server\. \(User id: '
+color = "success"
+bold = true
+priority = 75
+
+[[syntax_highlight.rules]]
+name = "player_leave"
+pattern = '^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] (?P<hl>.{1,32}?) left the server\. \(User id: '
+color = "warn"
+priority = 75
+
+# 접속 중(`이름 IP connected the server.`): 아직 들어온 것이 아니라 이름만 칠한다
+[[syntax_highlight.rules]]
+name = "player_connecting"
+pattern = '^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] (?P<hl>.{1,32}?) \S+ connected the server\. \(User id: '
+color = "player"
+priority = 75
+
+[[syntax_highlight.rules]]
+name = "rest_endpoint"
+pattern = '^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] REST accessed endpoint (?P<hl>/\S+)'
+color = "path"
+priority = 60
+
+# 시작 문구 (실측 순서: breakpad → 버전 → REST → 대기 시작)
+[[syntax_highlight.rules]]
+name = "server_listening"
+pattern = '^Running Palworld dedicated server on .*'
+color = "success"
+bold = true
+priority = 60
+
+[[syntax_highlight.rules]]
+name = "rest_started"
+pattern = '^REST API started on port \d+'
+color = "info"
+priority = 55
+
+[[syntax_highlight.rules]]
+name = "game_version"
+pattern = '^Game version is (?P<hl>v\d+(?:\.\d+)+)'
+color = "keyword"
+priority = 55
+
+[[syntax_highlight.rules]]
+name = "breakpad"
+pattern = '^Setting breakpad minidump AppID = \d+'
+color = "dim"
+priority = 50
+
+# UE 엔진 로그(`[2026.10.26-08.38.32:123][  0]LogNet: Warning: …`)는 이 콘솔에서 아직 본 적이 없다.
+# 나오면 같은 줄 머리로만 칠하고, 채팅 줄(`[날짜 시각] [CHAT]`)에는 닿지 않는다
+[[syntax_highlight.rules]]
+name = "ue_category"
+pattern = '^(?:\[[\d.:-]+\]\[\s*\d+\])?(?P<hl>Log\w+):'
+color = "dim"
+priority = 45
+
+[[syntax_highlight.rules]]
+name = "ue_error"
+pattern = '^(?:\[[\d.:-]+\]\[\s*\d+\])?Log\w+: (?P<hl>Error|Fatal):'
 color = "error"
 bold = true
+priority = 45
 
 [[syntax_highlight.rules]]
-name = "level_info"
-pattern = '(?P<hl>Info):'
-color = "info"
-
-# 2. IP 주소
-[[syntax_highlight.rules]]
-name = "ip_address"
-pattern = '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?'
-color = "ip"
-
-# 3. UE 로그 카테고리 [LogXxx]
-[[syntax_highlight.rules]]
-name = "ue_log_category"
-pattern = '\[(?P<hl>Log\w+)\]'
-color = "dim"
-
-# 4. 파일 경로 (Windows/Linux)
-[[syntax_highlight.rules]]
-name = "file_path"
-pattern = '[A-Z]:\\[\w\\./\-]+'
-color = "path"
-
-[[syntax_highlight.rules]]
-name = "unix_path"
-pattern = '/[\w/.\-]+'
-color = "path"
+name = "ue_warning"
+pattern = '^(?:\[[\d.:-]+\]\[\s*\d+\])?Log\w+: (?P<hl>Warning):'
+color = "warn"
+priority = 45
 
 # ── [[diagnose]] 서버 로그 진단 (diagnose_log가 공용 diagnose_lines로 읽는다. 문구: validate.log_<code>·validate.log_<code>_hint) ──
 

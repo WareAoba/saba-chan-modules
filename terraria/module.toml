@@ -740,6 +740,47 @@ bold = true
 priority = 90
 
 # 채팅 "<이름> 말" (say는 <Server>). 채팅 안 낱말이 다른 규칙에 걸리지 않게 먼저 본다
+# 접속·퇴장: 문구는 [extensions.saba-core] player_join_patterns·player_leave_patterns와 같다 (테스트가 맞춘다).
+# 이름 뒤에 띄어 쓰는 언어, 러시아어(이름 앞에 Игрок), 띄어 쓰지 않는 중국어·일본어로 나눈다
+[[syntax_highlight.rules]]
+name = "player_join"
+pattern = '''^(?::\s*)?(?P<hl>[^<*:\s].{0,19}?) (?:has joined|ist beigetreten|si è unito|s'est connecté-e|se ha unido|entrou|dołącza|님이 참가했습니다)\.\s*$'''
+color = "success"
+bold = true
+priority = 90
+
+[[syntax_highlight.rules]]
+name = "player_join_ru"
+pattern = '''^(?::\s*)?Игрок (?P<hl>[^<*:\s].{0,19}?) присоединился\.\s*$'''
+color = "success"
+bold = true
+priority = 90
+
+[[syntax_highlight.rules]]
+name = "player_join_cjk"
+pattern = '''^(?::\s*)?(?P<hl>[^<*:\s].{0,19}?)(?:已加入|が参加しました)。\s*$'''
+color = "success"
+bold = true
+priority = 90
+
+[[syntax_highlight.rules]]
+name = "player_leave"
+pattern = '''^(?::\s*)?(?P<hl>[^<*:\s].{0,19}?) (?:has left|ist gegangen|ha abbandonato|est parti-e|se ha ido|saiu|odchodzi|님이 떠났습니다)\.\s*$'''
+color = "warn"
+priority = 90
+
+[[syntax_highlight.rules]]
+name = "player_leave_ru"
+pattern = '''^(?::\s*)?Игрок (?P<hl>[^<*:\s].{0,19}?) вышел\.\s*$'''
+color = "warn"
+priority = 90
+
+[[syntax_highlight.rules]]
+name = "player_leave_cjk"
+pattern = '''^(?::\s*)?(?P<hl>[^<*:\s].{0,19}?)(?:已离开|が去りました|已離開)。\s*$'''
+color = "warn"
+priority = 90
+
 [[syntax_highlight.rules]]
 name = "chat_sender"
 pattern = '^(?::\s*)?(?P<hl><[^>]+>)\s'

@@ -181,6 +181,19 @@ def test_spigot_kick_leave_line_ends_with_a_period():
     assert highlight("player_leave", line) == "SabaBot"
 
 
+def test_system_chat_join_and_leave_lines_are_counted():
+    """PC 실측 (2026-10-30): 접속·퇴장이 `System chat: ` 뒤에 찍힌다. 채팅 줄은 그대로 `<이름> 본문`"""
+    head = "[05:19:12] [Server thread/INFO]: "
+    for patterns, rule, line in ((JOIN, "player_join", "System chat: KimchiMayo joined the game"),
+                                 (LEAVE, "player_leave", "System chat: KimchiMayo left the game")):
+        m = next((p.search(head + line) for p in patterns if p.search(head + line)), None)
+        assert m and m.group("name") == "KimchiMayo", line
+        assert highlight(rule, head + line) == "KimchiMayo"
+    # 플레이어가 채팅에 같은 문구를 쳐도 세지 않는다
+    assert not any(p.search(head + "<Steve> System chat: Bob joined the game") for p in JOIN)
+    assert not any(p.search(head + "System chat: <Steve> Bob left the game") for p in LEAVE)
+
+
 def test_player_events_are_bound_to_the_message_start():
     head = HEADS[0]
     assert highlight("player_join", head + "SabaBot joined the game") == "SabaBot"

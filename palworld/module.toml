@@ -15,7 +15,7 @@ log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
 # 0.1.11을 발행할 때 ">=0.1.11-0"으로 올린다 (-0이 있어야 0.1.11-beta.N·rc.N 데몬도 받는다)
 saba-core = ">=0.1.11-0"
 ext-steamcmd = ">=0.1.5"
-ext-ue4-ini = ">=0.1.5"
+ext-ue4-ini = ">=0.1.6"
 
 [permissions]
 network = true          # 서버 파일 내려받기, 포트 확인
@@ -335,7 +335,7 @@ type = "select"
 label = "Death Penalty"
 description = "What drops on player death"
 options = ["None", "Item", "ItemAndEquipment", "All"]
-default = "All"
+default = "Item"
 
 [[settings.fields]]
 name = "exp_rate"
@@ -582,6 +582,38 @@ description = "Maximum number of buildable objects per base (0 = unlimited)"
 default = 0
 min = 0
 max = 100000
+group = "advanced"
+
+[[settings.fields]]
+name = "max_building_limit_num_per_player"
+file_key = "MaxBuildingLimitNumPerPlayer"
+type = "number"
+label = "Max Building Count Per Player"
+description = "Maximum number of buildable objects per player (0 = unlimited)"
+default = 0
+min = 0
+max = 100000
+group = "advanced"
+
+[[settings.fields]]
+name = "fishing_difficulty_rate"
+file_key = "FishingDifficultyRate"
+type = "number"
+label = "Fishing Difficulty"
+description = "Fishing difficulty (0.1-1.0)"
+default = 1.0
+min = 0.1
+max = 1.0
+step = 0.1
+group = "advanced"
+
+[[settings.fields]]
+name = "allow_enemy_camp_spawn_near_base_camp"
+file_key = "bAllowEnemyCampSpawnNearBaseCamp"
+type = "boolean"
+label = "Enemy Camps Near Base"
+description = "Allow enemy camps to spawn near player base camps"
+default = false
 group = "advanced"
 
 [[settings.fields]]
@@ -1179,7 +1211,7 @@ file_key = "PalEggDefaultHatchingTime"
 type = "number"
 label = "Egg Hatching Time"
 description = "Default egg hatching time in hours (0-240)"
-default = 72.0
+default = 1.0
 min = 0.0
 max = 240.0
 step = 1.0

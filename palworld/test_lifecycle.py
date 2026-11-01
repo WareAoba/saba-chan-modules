@@ -1018,3 +1018,29 @@ def test_an_admin_password_with_edge_quotes_is_passed_to_the_daemon_as_written(t
     lifecycle._write_option_settings(ini, {"AdminPassword": pw, "RESTAPIEnabled": "True", "RCONEnabled": "False"})
     assert lifecycle._enforce_rest_policy(str(tmp_path), {})["admin_password"] == pw
     assert lifecycle._read_admin_password_from_ini({"working_dir": str(tmp_path)}) == pw
+
+
+def test_module_toml_defaults_match_the_games_default_settings_file():
+    """화면에 보이는 기본값과 DEFAULT_PALWORLD_SETTINGS가 게임이 주는 DefaultPalWorldSettings.ini와 같아야 한다
+    (기본값이 다르면 '초기화'·새 서버가 공식 기본과 다른 값으로 시작한다)"""
+    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
+    official = _load_default_ini_props()
+    by_key = {f["file_key"]: f for f in _load_module_toml()["settings"]["fields"] if f.get("file_key")}
+    toml_bad, dict_bad = [], []
+    for key, raw in official.items():
+        field = by_key.get(key)
+        if field is None:
+            continue
+        want, got = raw.strip('"'), field.get("default")
+        if field["type"] == "boolean":
+            same = (got is True) == (want == "True")
+        elif field["type"] == "number":
+            same = abs(float(want) - float(got)) < 1e-6
+        else:
+            same = str(got) == want
+        if not same:
+            toml_bad.append((key, want, got))
+        if DEFAULT_PALWORLD_SETTINGS.get(key, "").strip('"') != want:
+            dict_bad.append((key, want, DEFAULT_PALWORLD_SETTINGS.get(key)))
+    assert not toml_bad, f"module.toml 기본값이 공식 기본과 다름: {toml_bad}"
+    assert not dict_bad, f"DEFAULT_PALWORLD_SETTINGS가 공식 기본과 다름: {dict_bad}"

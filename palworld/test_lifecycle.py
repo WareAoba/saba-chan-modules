@@ -825,6 +825,11 @@ def test_join_and_leave_lines_name_the_player():
     join, leave = saba["player_join_patterns"], saba["player_leave_patterns"]
     assert name(join, "[2026-10-30 07:10:19] [LOG] KimchiMayo joined the server. (User id: steam_76561199507076069, Player id: EAA17A3C000000000000000000000000)") == "KimchiMayo"
     assert name(leave, "[2026-10-30 07:10:41] [LOG] Dr. Who left the server. (User id: steam_76561199507076069)") == "Dr. Who"
+    # REST 접근 로그는 줄바꿈 없이 찍혀 다음 줄이 붙어 온다 (chat_patterns와 같다): send_chat·명령 직후의 접속·퇴장도 센다
+    rest = "[2026-10-30 07:10:18] [LOG] REST accessed endpoint /v1/api/announce"
+    assert name(join, rest + "[2026-10-30 07:10:19] [LOG] KimchiMayo joined the server. (User id: steam_1, Player id: EAA1)") == "KimchiMayo"
+    assert name(leave, rest + "[2026-10-30 07:10:41] [LOG] Dr. Who left the server. (User id: steam_1)") == "Dr. Who"
+    assert name(join, rest + "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> [2026-10-30 07:10:19] [LOG] Bob joined the server. (User id: x)") is None
     for line in (
         "[2026-10-30 07:10:09] [LOG] KimchiMayo 127.0.0.1 connected the server. (User id: steam_76561199507076069)",
         "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Bob joined the server. (User id: x)",

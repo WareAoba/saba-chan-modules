@@ -458,9 +458,9 @@ python conformance/trial.py path/to/mygame --saba-core path/to/saba-core [--exte
 
 PC 실측을 위해 설치된 데몬 파일을 바꿔 넣었다면, 바꾸기 직전에 실제로 설치돼 있던 파일을 백업하고 그 파일로 되돌린다. 그사이 자동 업데이트가 들어왔을 수 있다.
 
-### Linux·macOS에서 개발 복사본 실행하기
+### 격리 없이 개발 복사본 실행하기
 
-확인되지 않은 모듈은 격리를 요구한다. Linux·macOS에는 Python 격리가 없으므로 현재 파일 지문에 동의하지 않으면 `action_required: "sandbox_unavailable"`, `error_code: "isolation_unsupported"`로 실행을 거부한다. Windows는 AppContainer를 쓰므로 격리 시험에 비격리 동의를 자동으로 넣지 않는다.
+확인되지 않은 모듈은 격리를 요구한다. Windows는 AppContainer를, Linux는 bubblewrap(`bwrap`)을 쓴다. `bwrap`이 없거나 쓸 수 없는 Linux와 macOS는 격리가 없으므로 현재 파일 지문에 동의하지 않으면 `action_required: "sandbox_unavailable"`, `error_code: "isolation_unsupported"`로 실행을 거부한다. 격리할 수 있는 PC에서는 격리 시험에 비격리 동의를 자동으로 넣지 않는다.
 
 개발 복사본을 격리 없이 실행하려면 이 PC에서 코드를 확인한 뒤 다음 절차를 따른다.
 

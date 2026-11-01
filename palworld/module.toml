@@ -1,7 +1,7 @@
 [module]
 schema_version = 1
 name = "palworld"
-version = "0.1.7"
+version = "0.1.8"
 description = "Palworld server management module"
 author = "WareAoba"
 game_name = "Palworld"
@@ -68,9 +68,10 @@ chat_send = "send_chat"
 # [CHAT]은 line_start에 넣지 않는다: 채팅 본문에 시각과 [CHAT]을 쳐 넣어 남의 이름으로 된 줄을 만들 수 있다. 0.1.11 데몬은 모르는 키로 무시한다
 chat_patterns = ['^(?:\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] REST accessed endpoint [^\[\]<>]*)?\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[CHAT\] <(?P<name>.{1,32}?)> (?P<message>.*)$']
 # 접속·퇴장 (콘솔 실측): `[LOG] 이름 joined the server. (User id: …, Player id: …)`, `[LOG] 이름 left the server. (User id: …)`.
-# 그 앞의 `이름 IP connected the server.`는 접속 중이라 세지 않는다. 데몬이 이 두 줄로 접속자를 센다
-player_join_patterns = ['^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] (?P<name>.{1,32}?) joined the server\. \(User id: [^)]*\)\s*$']
-player_leave_patterns = ['^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] (?P<name>.{1,32}?) left the server\. \(User id: [^)]*\)\s*$']
+# 그 앞의 `이름 IP connected the server.`는 접속 중이라 세지 않는다. 데몬이 이 두 줄로 접속자를 센다.
+# chat_patterns처럼 줄바꿈 없이 붙어 오는 REST 접근 로그 하나를 앞에 허용한다 (공지·명령 직후의 접속·퇴장을 놓치지 않게)
+player_join_patterns = ['^(?:\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] REST accessed endpoint [^\[\]<>]*)?\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] (?P<name>.{1,32}?) joined the server\. \(User id: [^)]*\)\s*$']
+player_leave_patterns = ['^(?:\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] REST accessed endpoint [^\[\]<>]*)?\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] (?P<name>.{1,32}?) left the server\. \(User id: [^)]*\)\s*$']
 
 [install]
 method = "steamcmd"

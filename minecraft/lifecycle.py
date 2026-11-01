@@ -1579,11 +1579,15 @@ def command(config):
         return {"success": False, "message": str(e)}
 
 
+# § 서식 코드(§ 뒤 한 글자, 끝에 홀로 남은 § 포함)
+_SECTION_CODE = re.compile(r"§.?", re.S)
+
+
 def send_chat(config):
     """디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`). 데몬이 한 줄로 다듬은 이름·본문을 받는다.
-    본문은 tellraw JSON 글자로 넣어 명령·§ 서식으로 읽히지 않는다"""
+    본문은 tellraw JSON 글자로 넣어 명령으로 읽히지 않는다. 클라이언트는 JSON 글자 안의 § 서식도 읽으므로 § 코드는 뺀다"""
     from daemon_rcon import daemon_stdin_command
-    name, text = config.get("chat_name", ""), config.get("chat_text", "")
+    name, text = (_SECTION_CODE.sub("", config.get(k, "")) for k in ("chat_name", "chat_text"))
     line = "tellraw @a " + json.dumps(["", {"text": f"<{name}> ", "color": "aqua"}, {"text": text}], ensure_ascii=False)
     try:
         result = daemon_stdin_command(config.get("instance_id", ""), line, timeout=5) or {}

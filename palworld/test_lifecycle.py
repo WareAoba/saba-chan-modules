@@ -892,3 +892,129 @@ def test_send_chat_announces_the_sender_and_the_message(monkeypatch):
     rest.assert_called_once_with("i1", "POST", "/v1/api/announce", body={"message": "김치: 안녕"}, timeout=5)
     monkeypatch.setattr(lifecycle, "daemon_rest", mock.Mock(return_value={"success": False, "message": "down"}), raising=False)
     assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False
+
+
+# ─── configure → PalWorldSettings.ini 구문·타입 ─────────────────
+
+def _configure_and_read(tmp_path, settings):
+    from palworld import lifecycle
+    result = lifecycle.configure({"working_dir": str(tmp_path), "settings": settings})
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    text = open(ini, encoding="utf-8").read() if os.path.isfile(ini) else ""
+    return result, text, lifecycle._parse_option_settings(ini)
+
+
+def test_string_fields_stay_quoted_even_when_they_look_like_numbers(tmp_path):
+    """숫자뿐인 서버 비밀번호·이름도 문자열로 쓴다 (공식 기본 파일은 AdminPassword="" 처럼 항상 따옴표)"""
+    _, text, props = _configure_and_read(tmp_path, {
+        "server_password": "12345678", "admin_password": "nan", "server_name": "007", "region": "inf"})
+    for want in ('ServerPassword="12345678"', 'AdminPassword="nan"', 'ServerName="007"', 'Region="inf"'):
+        assert want in text
+    assert props["ServerPassword"] == "12345678"
+
+
+def test_select_fields_are_written_as_bare_enum_names(tmp_path):
+    """Difficulty=None, DeathPenalty=All, LogFormatType=Text — 공식 기본 파일과 같은 모양"""
+    _, text, _ = _configure_and_read(tmp_path, {"difficulty": "Casual", "death_penalty": "Item", "log_format_type": "Json"})
+    assert "Difficulty=Casual" in text and "DeathPenalty=Item" in text and "LogFormatType=Json" in text
+
+
+def test_every_setting_field_is_written_with_a_valid_type(tmp_path):
+    """module.toml의 모든 file_key 필드를 한 번에 써서 다시 읽는다: 불리언 True/False, 숫자 따옴표 없음, 문자열 따옴표, 왕복 동일"""
+    import tomllib
+    with open(MODULE_TOML, "rb") as f:
+        fields = [x for x in tomllib.load(f)["settings"]["fields"] if x.get("file_key")]
+    settings, expect = {}, {}
+    for x in fields:
+        t = x["type"]
+        if t == "boolean":
+            v, e = not bool(x.get("default")), None
+            e = "True" if v else "False"
+        elif t == "number":
+            v = 7 if isinstance(x.get("default"), int) else 2.5
+            e = str(v)
+        elif t == "select":
+            v = e = x["options"][-1] if isinstance(x["options"][-1], str) else x["options"][-1]["value"]
+        else:
+            v = e = 'a "q", b\\c (d)'
+        if x["name"] in ("deny_technology_list", "crossplay_platforms"):
+            v, e = "A, B", "A,B"
+        settings[x["name"]], expect[x["file_key"]] = v, e
+    result, text, props = _configure_and_read(tmp_path, settings)
+    assert result["success"], result
+    from daemon_rcon import coerce_setting  # noqa: F401  (런타임 공용 모듈이 있어야 이 테스트가 의미 있다)
+    for x in fields:
+        key, t = x["file_key"], x["type"]
+        got = props[key]
+        if key in ("DenyTechnologyList", "CrossplayPlatforms"):
+            assert got == "(" + ",".join(f'"{i}"' if key == "DenyTechnologyList" else i for i in ("A", "B")) + ")"
+        elif t in ("boolean", "number", "select"):
+            assert got == expect[key], key
+            assert f'{key}="' not in text if t != "select" else f"{key}={got}" in text
+        else:
+            assert got == expect[key], key
+            assert f'{key}="a \\"q\\", b\\\\c (d)"' in text
+    # 구문: 하나의 OptionSettings 줄, 괄호로 감싼다
+    lines = [l for l in text.splitlines() if l.startswith("OptionSettings=(")]
+    assert len(lines) == 1 and lines[0].endswith(")") and len(text.splitlines()) == 2
+
+
+def test_crossplay_platforms_is_written_as_a_list_not_a_string(tmp_path):
+    """CrossplayPlatforms=(Steam,Xbox) — 화면에서 괄호 없이 Steam,Xbox 로 적어도 목록으로 쓴다"""
+    _, text, _ = _configure_and_read(tmp_path, {"crossplay_platforms": "Steam, Xbox"})
+    assert "CrossplayPlatforms=(Steam,Xbox)" in text
+    _, text, _ = _configure_and_read(tmp_path, {"crossplay_platforms": "(Steam,Xbox,PS5,Mac)"})
+    assert "CrossplayPlatforms=(Steam,Xbox,PS5,Mac)" in text
+
+
+def test_an_empty_deny_technology_list_stays_empty_like_the_default(tmp_path):
+    """기본 파일은 DenyTechnologyList= (빈 값). 빈 문자열 "" 로 쓰면 목록이 아닌 문자열이 된다"""
+    _, text, _ = _configure_and_read(tmp_path, {"deny_technology_list": ""})
+    assert "DenyTechnologyList=," in text or "DenyTechnologyList=)" in text
+
+
+def test_whole_number_floats_do_not_turn_integer_options_into_decimals(tmp_path):
+    """GUI·JSON이 8.0으로 보내도 ServerPlayerMaxNum은 정수 8"""
+    _, text, props = _configure_and_read(tmp_path, {"max_players": 8.0, "exp_rate": 2.0})
+    assert props["ServerPlayerMaxNum"] == "8"
+    assert props["ExpRate"] == "2"
+
+
+def test_a_setting_with_a_line_break_is_refused_without_touching_the_file(tmp_path):
+    from palworld import lifecycle
+    ok, before, _ = _configure_and_read(tmp_path, {"server_name": "keep"})
+    result, after, _ = _configure_and_read(tmp_path, {"server_name": "x\nRCONEnabled=True"})
+    assert ok["success"] and result["success"] is False
+    assert after == before
+
+
+def test_random_admin_password_is_only_for_the_admin_password(tmp_path):
+    """비밀번호가 어디에도 없을 때 만드는 임시 비밀번호는 AdminPassword 한 곳뿐 — ServerPassword는 비워 둔다"""
+    from palworld import lifecycle
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    os.makedirs(os.path.dirname(ini))
+    open(ini, "w", encoding="utf-8").write('[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName="s",ServerPassword="")\n')
+    seen = set()
+    for _ in range(20):
+        open(ini, "w", encoding="utf-8").write('[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName="s",ServerPassword="")\n')
+        r = lifecycle._enforce_rest_policy(str(tmp_path), {})
+        props = lifecycle._parse_option_settings(ini)
+        assert props["ServerPassword"] == "" and props["ServerName"] == "s"
+        assert props["AdminPassword"] == r["admin_password"] and len(r["admin_password"]) >= 16
+        assert props["RESTAPIEnabled"] == "True"
+        seen.add(r["admin_password"])
+    assert len(seen) == 20
+    # 이미 있는 값은 건드리지 않는다
+    r = lifecycle._enforce_rest_policy(str(tmp_path), {"rest_password": "other"})
+    assert r["admin_password"] == props["AdminPassword"]
+
+
+def test_an_admin_password_with_edge_quotes_is_passed_to_the_daemon_as_written(tmp_path):
+    """파서가 이미 따옴표를 벗긴다: 비밀번호 자체가 "로 시작·끝나면 한 번 더 벗기지 않는다"""
+    from palworld import lifecycle
+    pw = '"quoted"'
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    os.makedirs(os.path.dirname(ini))
+    lifecycle._write_option_settings(ini, {"AdminPassword": pw, "RESTAPIEnabled": "True", "RCONEnabled": "False"})
+    assert lifecycle._enforce_rest_policy(str(tmp_path), {})["admin_password"] == pw
+    assert lifecycle._read_admin_password_from_ini({"working_dir": str(tmp_path)}) == pw

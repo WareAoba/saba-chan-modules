@@ -15,8 +15,8 @@ from i18n import I18n
 # PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
-from daemon_rcon import (PathOutside, config_value, daemon_rest, diagnose_lines, graceful_stop, is_process_alive, load_diagnose_rules,
-                         safe_join, setting_file_keys, tail_lines)
+from daemon_rcon import (PathOutside, config_value, daemon_rest, diagnose_lines, format_setting, graceful_stop, is_process_alive, load_diagnose_rules,
+                         load_setting_types, safe_join, setting_file_keys, tail_lines)
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -132,7 +132,7 @@ def _read_admin_password_from_ini(config):
         ini_path = _get_settings_ini_path(config)
         if ini_path and os.path.isfile(ini_path):
             props = _parse_option_settings(ini_path)
-            pw = props.get("AdminPassword", "").strip('"').strip("'")
+            pw = props.get("AdminPassword", "").strip()
             if pw:
                 return pw
     except PathOutside:
@@ -189,7 +189,7 @@ def _enforce_rest_policy(working_dir, config=None):
     # Sync AdminPassword with daemon's rest_password to ensure credentials match.
     # 데몬은 시작할 때 "비밀번호 자동 생성"이 켜져 있으면 빈 rest_password만 채우고, 꺼져 있으면 비워 둔다
     # (ensure_passwords). 그래서 config에 없을 수 있다: 그때는 INI 값을 쓰거나 아래에서 만든다.
-    current_admin_pw = props.get("AdminPassword", "").strip('"').strip("'")
+    current_admin_pw = props.get("AdminPassword", "").strip()
     daemon_pw = (config or {}).get("rest_password") or (config or {}).get("admin_password", "")
 
     ini_admin_pw = current_admin_pw
@@ -544,7 +544,11 @@ def _parse_option_settings(ini_path):
 def _write_option_settings(ini_path, props):
     if write_option_settings is None:
         raise ExtensionMissing("ue4-ini")
-    return write_option_settings(ini_path, props)
+    # 값 모양이 아니라 module.toml 필드 종류로 따옴표를 정한다: 숫자뿐인 비밀번호도 문자열, 열거형은 따옴표 없이
+    keys, types = setting_file_keys(MODULE_DIR), load_setting_types(MODULE_DIR)
+    quoted = {k for name, k in keys.items() if types.get(name) in ("text", "password")} - set(_LIST_KEYS)
+    bare = {k for name, k in keys.items() if types.get(name) == "select"} | set(_LIST_KEYS)
+    return write_option_settings(ini_path, props, quoted_keys=quoted, bare_keys=bare)
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -602,6 +606,7 @@ def validate(config):
 # INI에는 괄호 목록으로 쓴다: DenyTechnologyList=("PALBOX","RepairBench"). 새 목록 키는 여기 한 줄만 추가
 _LIST_KEYS = {
     "DenyTechnologyList": '"',
+    "CrossplayPlatforms": "",  # 플랫폼 이름은 열거형이라 따옴표 없이: (Steam,Xbox,PS5,Mac)
 }
 
 
@@ -631,11 +636,11 @@ def _apply_settings(props, settings):
         ini_key = keys.get(key)
         if ini_key is None or value is None:
             continue
-        if isinstance(value, bool):
-            value = "True" if value else "False"
-        elif ini_key in _LIST_KEYS:
+        # 줄바꿈이 든 값은 거절한다(ValueError): 다른 키를 만들어 내거나 파일을 깨뜨린다
+        value = format_setting(value, true="True", false="False", name=key)
+        if ini_key in _LIST_KEYS:
             value = _to_ini_list(value, _LIST_KEYS[ini_key])
-        props[ini_key] = str(value)
+        props[ini_key] = value
         updated_keys.append(ini_key)
     return updated_keys
 
@@ -652,7 +657,11 @@ def configure(config):
 
     # Read existing properties (or start fresh)
     props = _parse_option_settings(ini_path)
-    updated_keys = _apply_settings(props, settings)
+    try:
+        updated_keys = _apply_settings(props, settings)
+    except ValueError:
+        return {"success": False, "error_code": "settings_invalid_value",
+                "message": i18n.t("errors.settings_invalid_value")}
 
     # RCON은 보안 정책으로 막는다: 손으로 켠 INI라도 저장할 때 끈다
     props["RCONEnabled"] = "False"

@@ -132,8 +132,8 @@
       "description": "全プレイヤーにメッセージを送信",
       "inputs": { "message": { "label": "お知らせメッセージ", "placeholder": "お知らせ内容を入力" } }
     },
-    "info": { "label": "情報", "description": "サーバー情報を表示" },
-    "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧" },
+    "info": { "label": "情報", "description": "サーバー情報を表示", "output": { "version": "Version", "servername": "Server name", "description": "Description", "worldguid": "World GUID" } },
+    "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧", "output": { "players": "Players", "name": "Name", "accountName": "Account name", "playerId": "Player ID", "userId": "User ID", "ip": "IP", "ping": "Ping", "location_x": "X", "location_y": "Y", "level": "Level", "building_count": "Buildings" } },
     "save": { "label": "ワールド保存", "description": "ゲームワールドを保存" },
     "shutdown": {
       "label": "停止",
@@ -155,7 +155,7 @@
       "description": "BANされたプレイヤーを解除",
       "inputs": { "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "指標", "description": "サーバーFPS、プレイヤー数、稼働時間を表示" },
+    "metrics": { "label": "指標", "description": "サーバーFPS、プレイヤー数、稼働時間を表示", "output": { "serverfps": "Server FPS", "currentplayernum": "Players online", "maxplayernum": "Max players", "serverframetime": "Frame time (ms)", "uptime": "Uptime (s)", "days": "In-game days", "basecampnum": "Base camps" } },
     "settings": { "label": "設定を表示", "description": "現在のサーバー設定を表示" }
   },
   "errors": {

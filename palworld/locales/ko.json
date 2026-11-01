@@ -132,8 +132,8 @@
       "description": "서버의 모든 플레이어에게 메시지 보내기",
       "inputs": { "message": { "label": "공지 메시지", "placeholder": "공지할 내용을 입력하세요" } }
     },
-    "info": { "label": "정보", "description": "서버 정보 조회" },
-    "players": { "label": "플레이어 목록", "description": "현재 접속 중인 플레이어 목록" },
+    "info": { "label": "정보", "description": "서버 정보 조회", "output": { "version": "버전", "servername": "서버 이름", "description": "설명", "worldguid": "월드 GUID" } },
+    "players": { "label": "플레이어 목록", "description": "현재 접속 중인 플레이어 목록", "output": { "players": "플레이어", "name": "이름", "accountName": "계정 이름", "playerId": "플레이어 ID", "userId": "유저 ID", "ip": "IP", "ping": "핑", "location_x": "X 좌표", "location_y": "Y 좌표", "level": "레벨", "building_count": "건축 수" } },
     "save": { "label": "월드 저장", "description": "게임 월드 저장" },
     "shutdown": {
       "label": "정지",
@@ -155,7 +155,7 @@
       "description": "차단된 플레이어 해제",
       "inputs": { "userid": { "label": "플레이어 (닉네임 또는 SteamID)", "placeholder": "플레이어 닉네임 또는 steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "지표", "description": "서버 FPS, 접속자 수, 가동 시간 조회" },
+    "metrics": { "label": "지표", "description": "서버 FPS, 접속자 수, 가동 시간 조회", "output": { "serverfps": "서버 FPS", "currentplayernum": "접속자", "maxplayernum": "최대 접속자", "serverframetime": "프레임 시간(ms)", "uptime": "가동 시간(초)", "days": "게임 내 일수", "basecampnum": "거점 수" } },
     "settings": { "label": "설정 보기", "description": "현재 서버 설정 조회" }
   },
   "errors": {

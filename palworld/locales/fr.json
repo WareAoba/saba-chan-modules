@@ -132,8 +132,8 @@
       "description": "Envoyer un message à tous les joueurs",
       "inputs": { "message": { "label": "Message d'annonce", "placeholder": "Saisissez le message d'annonce" } }
     },
-    "info": { "label": "Informations", "description": "Afficher les informations du serveur" },
-    "players": { "label": "Liste des joueurs", "description": "Lister les joueurs actuellement connectés" },
+    "info": { "label": "Informations", "description": "Afficher les informations du serveur", "output": { "version": "Version", "servername": "Server name", "description": "Description", "worldguid": "World GUID" } },
+    "players": { "label": "Liste des joueurs", "description": "Lister les joueurs actuellement connectés", "output": { "players": "Players", "name": "Name", "accountName": "Account name", "playerId": "Player ID", "userId": "User ID", "ip": "IP", "ping": "Ping", "location_x": "X", "location_y": "Y", "level": "Level", "building_count": "Buildings" } },
     "save": { "label": "Sauvegarder le monde", "description": "Sauvegarder le monde du jeu" },
     "shutdown": {
       "label": "Arrêter",
@@ -161,7 +161,7 @@
       "description": "Débannir un joueur banni",
       "inputs": { "userid": { "label": "Joueur (pseudo ou SteamID)", "placeholder": "Pseudo du joueur ou steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "Métriques", "description": "Voir les FPS, le nombre de joueurs et la disponibilité" },
+    "metrics": { "label": "Métriques", "description": "Voir les FPS, le nombre de joueurs et la disponibilité", "output": { "serverfps": "Server FPS", "currentplayernum": "Players online", "maxplayernum": "Max players", "serverframetime": "Frame time (ms)", "uptime": "Uptime (s)", "days": "In-game days", "basecampnum": "Base camps" } },
     "settings": { "label": "Voir les paramètres", "description": "Voir les paramètres actuels du serveur" }
   },
   "errors": {

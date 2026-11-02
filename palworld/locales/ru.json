@@ -132,8 +132,8 @@
       "description": "Отправить сообщение всем игрокам",
       "inputs": { "message": { "label": "Сообщение объявления", "placeholder": "Введите сообщение объявления" } }
     },
-    "info": { "label": "Информация", "description": "Просмотр информации о сервере" },
-    "players": { "label": "Список игроков", "description": "Список подключённых игроков" },
+    "info": { "label": "Информация", "description": "Просмотр информации о сервере", "output": { "version": "Version", "servername": "Server name", "description": "Description", "worldguid": "World GUID" } },
+    "players": { "label": "Список игроков", "description": "Список подключённых игроков", "output": { "players": "Players", "name": "Name", "accountName": "Account name", "playerId": "Player ID", "userId": "User ID", "ip": "IP", "ping": "Ping", "location_x": "X", "location_y": "Y", "level": "Level", "building_count": "Buildings" } },
     "save": { "label": "Сохранить мир", "description": "Сохранить игровой мир" },
     "shutdown": {
       "label": "Остановить",
@@ -155,7 +155,7 @@
       "description": "Разбанить забаненного игрока",
       "inputs": { "userid": { "label": "Игрок (никнейм или SteamID)", "placeholder": "Никнейм игрока или steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "Метрики", "description": "Просмотр FPS, числа игроков и аптайма" },
+    "metrics": { "label": "Метрики", "description": "Просмотр FPS, числа игроков и аптайма", "output": { "serverfps": "Server FPS", "currentplayernum": "Players online", "maxplayernum": "Max players", "serverframetime": "Frame time (ms)", "uptime": "Uptime (s)", "days": "In-game days", "basecampnum": "Base camps" } },
     "settings": { "label": "Просмотр настроек", "description": "Просмотр текущих настроек сервера" }
   },
   "errors": {

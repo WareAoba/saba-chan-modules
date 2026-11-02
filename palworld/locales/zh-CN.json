@@ -132,8 +132,8 @@
       "description": "向所有玩家发送消息",
       "inputs": { "message": { "label": "公告内容", "placeholder": "输入公告内容" } }
     },
-    "info": { "label": "信息", "description": "查看服务器信息" },
-    "players": { "label": "玩家列表", "description": "列出当前连接的玩家" },
+    "info": { "label": "信息", "description": "查看服务器信息", "output": { "version": "Version", "servername": "Server name", "description": "Description", "worldguid": "World GUID" } },
+    "players": { "label": "玩家列表", "description": "列出当前连接的玩家", "output": { "players": "Players", "name": "Name", "accountName": "Account name", "playerId": "Player ID", "userId": "User ID", "ip": "IP", "ping": "Ping", "location_x": "X", "location_y": "Y", "level": "Level", "building_count": "Buildings" } },
     "save": { "label": "保存世界", "description": "保存游戏世界" },
     "shutdown": {
       "label": "停止",
@@ -155,7 +155,7 @@
       "description": "解除已封禁玩家",
       "inputs": { "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "指标", "description": "查看服务器FPS、玩家数量和运行时间" },
+    "metrics": { "label": "指标", "description": "查看服务器FPS、玩家数量和运行时间", "output": { "serverfps": "Server FPS", "currentplayernum": "Players online", "maxplayernum": "Max players", "serverframetime": "Frame time (ms)", "uptime": "Uptime (s)", "days": "In-game days", "basecampnum": "Base camps" } },
     "settings": { "label": "查看设置", "description": "查看当前服务器设置" }
   },
   "errors": {

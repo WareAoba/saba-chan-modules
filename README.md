@@ -1,4 +1,19 @@
-# saba-chan-modules
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/banner-ko-dark.png">
+  <img src="docs/images/banner-ko-light.png" width="312" alt="사바쨩">
+</picture>
+
+### saba-chan-modules
+
+사바쨩이 게임 서버를 다루는 게임별 설명서, 모듈
+
+[웹사이트](https://saba-chan.online/ko) · [사용 안내](https://saba-chan.online/ko/guide) · [사바쨩](https://github.com/WareAoba/saba-chan) · [익스텐션](https://github.com/WareAoba/saba-chan-extensions)
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat-square)](LICENSE)
+
+</div>
 
 [사바쨩](https://saba-chan.online)이 게임 서버를 다룰 때 읽는 게임별 설명서, "모듈"을 모아 둔 저장소예요. 모듈 하나가 게임 하나이고, 설치 방법, 실행 명령, 설정 항목, 서버가 다 켜졌는지 알아보는 법 같은 게임마다 다른 부분이 여기에 들어 있어요. 사바쨩 본체는 [WareAoba/saba-chan](https://github.com/WareAoba/saba-chan)에 있어요.
 

@@ -2,7 +2,7 @@
 [module]
 schema_version = 1
 name = "terraria"
-version = "0.1.2"
+version = "0.1.3"
 description = "Terraria dedicated server"
 game_name = "Terraria"
 display_name = "Terraria"

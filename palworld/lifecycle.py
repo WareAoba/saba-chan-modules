@@ -7,6 +7,7 @@ Always outputs JSON to stdout, logs to stderr.
 import sys
 import json
 import os
+import re
 import struct
 import time
 import random
@@ -159,6 +160,11 @@ def _enforce_rest_policy(working_dir, config=None):
     if not ini_path or not os.path.isfile(ini_path):
         return None  # INI will be generated on first run
 
+    if _option_line_unreadable(ini_path):
+        # 손으로 고친 줄이 깨졌다: 덮어쓰면 사용자 값이 사라지므로 손대지 않고 시작을 막는다
+        print("[Palworld] OptionSettings line in PalWorldSettings.ini is unreadable, leaving it untouched", file=sys.stderr)
+        return {"changed": False, "unreadable": True}
+
     props = _parse_option_settings(ini_path)
     changes = {}
 
@@ -253,6 +259,9 @@ def get_launch_command(config):
     if rest_result and rest_result.get("write_failed"):
         # REST가 꺼진 채 뜨면 데몬이 상태 확인·종료를 못 한다: 띄우지 않고 이유를 알린다
         return {"success": False, "message": i18n.t("errors.rest_policy_write_failed")}
+    if rest_result and rest_result.get("unreadable"):
+        return {"success": False, "error_code": "settings_unreadable",
+                "message": i18n.t("errors.settings_unreadable")}
 
     args = [f"--port={port}"]
 
@@ -544,6 +553,17 @@ def _parse_option_settings(ini_path):
     return parse_option_settings(ini_path)
 
 
+def _option_line_unreadable(ini_path):
+    """파일에 OptionSettings 값이 있는데 읽지 못했는지(닫는 괄호 빠짐·잘림 등).
+    파서는 이때도 빈 dict를 돌려주므로, 빈 파일·헤더만 있는 파일과 가려 사용자 값을 기본값으로 덮지 않는다"""
+    if not os.path.isfile(ini_path) or _parse_option_settings(ini_path):
+        return False
+    with open(ini_path, "rb") as f:
+        raw = f.read()
+    text = raw.decode("utf-16" if raw.startswith((b"\xff\xfe", b"\xfe\xff")) else "latin-1", errors="replace")
+    return any(re.fullmatch(r"\s*OptionSettings\s*=\s*(?!\(\s*\)\s*$)\S.*", line) for line in text.splitlines())
+
+
 def _write_option_settings(ini_path, props):
     if write_option_settings is None:
         raise ExtensionMissing("ue4-ini")
@@ -613,13 +633,24 @@ _LIST_KEYS = {
 }
 
 
+# 목록 항목(기술·플랫폼 이름)에 쓸 수 있는 글자. 목록은 따옴표 없이 OptionSettings 줄에 들어가므로
+# `,` `=` `(` `)` `"`가 들어가면 AdminPassword 같은 다른 키를 만들어 낸다
+_LIST_ITEM = re.compile(r"[A-Za-z0-9_.\-]+")
+
+
 def _to_ini_list(value, quote):
-    """"a, b" → ("a","b"). 이미 괄호 목록이면 그대로, 빈 값은 빈 값"""
+    """"a, b" → ("a","b"). 괄호 목록으로 적어도 항목을 다시 검사한다. 빈 값은 빈 값.
+    항목에 허용하지 않는 글자가 있으면 ValueError"""
     text = str(value).strip()
-    if not text or text.startswith("("):
+    if text.startswith("(") and text.endswith(")"):
+        text = text[1:-1].strip()
+    if not text:
         return text
     items = [item.strip().strip('"') for item in text.split(",")]
-    return "(" + ",".join(f"{quote}{item}{quote}" for item in items if item) + ")"
+    items = [item for item in items if item]
+    if not all(_LIST_ITEM.fullmatch(item) for item in items):
+        raise ValueError("invalid list item")
+    return "(" + ",".join(f"{quote}{item}{quote}" for item in items) + ")"
 
 
 def _from_ini_list(value):
@@ -659,6 +690,9 @@ def configure(config):
         return {"success": False, "message": i18n.t("errors.no_server_dir")}
 
     # Read existing properties (or start fresh)
+    if _option_line_unreadable(ini_path):
+        return {"success": False, "error_code": "settings_unreadable",
+                "message": i18n.t("errors.settings_unreadable")}
     props = _parse_option_settings(ini_path)
     try:
         updated_keys = _apply_settings(props, settings)
@@ -963,7 +997,7 @@ def install_server(config):
             ini_path = safe_join(ini_dir, "PalWorldSettings.ini")
 
             # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
-            if os.path.isfile(ini_path) and _parse_option_settings(ini_path):
+            if os.path.isfile(ini_path) and (_parse_option_settings(ini_path) or _option_line_unreadable(ini_path)):
                 print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
             else:
                 defaults = dict(DEFAULT_PALWORLD_SETTINGS)

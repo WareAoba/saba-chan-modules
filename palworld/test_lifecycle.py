@@ -988,6 +988,62 @@ def test_a_setting_with_a_line_break_is_refused_without_touching_the_file(tmp_pa
     assert after == before
 
 
+@pytest.mark.parametrize("name, value", [
+    ("crossplay_platforms", '(Steam),AdminPassword="pwned",RESTAPIEnabled=True'),
+    ("crossplay_platforms", "Steam,AdminPassword=pwned"),
+    ("deny_technology_list", 'PALBOX",AdminPassword="pwned'),
+    ("deny_technology_list", '("A"),RCONEnabled=True'),
+])
+def test_a_list_setting_cannot_add_other_option_keys(tmp_path, name, value):
+    """목록 칸(따옴표 없이 쓰는 값)에 `,`·`=`·`(`·`"`를 넣어 AdminPassword 같은 다른 키를 만들 수 없다"""
+    ok, before, _ = _configure_and_read(tmp_path, {"admin_password": "secret"})
+    result, after, props = _configure_and_read(tmp_path, {name: value})
+    assert ok["success"] and result["success"] is False
+    assert result["error_code"] == "settings_invalid_value"
+    assert after == before and props["AdminPassword"] == "secret"
+
+
+_BROKEN_OPTION_LINE = ('[/Script/Pal.PalGameWorldSettings]\n'
+                       'OptionSettings=(ServerName="My KR Server",ServerPassword="join123",AdminPassword="adm",ExpRate=3.000000\n')
+
+
+def _broken_ini(tmp_path):
+    from palworld import lifecycle
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    os.makedirs(os.path.dirname(ini), exist_ok=True)
+    with open(ini, "w", encoding="utf-8") as f:
+        f.write(_BROKEN_OPTION_LINE)
+    return ini
+
+
+def test_a_broken_option_line_is_not_replaced_with_defaults(tmp_path):
+    """OptionSettings 줄의 `)`가 빠지면 읽지 못한다. 빈 파일로 보고 기본값·바꾼 키만으로 덮으면 사용자 값이 사라진다"""
+    from palworld import lifecycle
+    ini = _broken_ini(tmp_path)
+    # 시작: 고치지 않고 실패를 알린다
+    assert lifecycle.get_launch_command({"server_executable": __file__, "working_dir": str(tmp_path),
+                                         "rest_password": "x"})["success"] is False
+    assert open(ini, encoding="utf-8").read() == _BROKEN_OPTION_LINE
+    # 설정 저장: 거짓 성공으로 나머지 키를 지우지 않는다
+    result = lifecycle.configure({"working_dir": str(tmp_path), "settings": {"max_players": 10}})
+    assert result["success"] is False and result["error_code"] == "settings_unreadable"
+    assert open(ini, encoding="utf-8").read() == _BROKEN_OPTION_LINE
+    # 업데이트(재설치): 기본값으로 다시 쓰지 않는다
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
+        lifecycle.install_server({"install_dir": str(tmp_path)})
+    assert open(ini, encoding="utf-8").read() == _BROKEN_OPTION_LINE
+
+
+def test_an_ini_with_only_the_section_header_is_still_filled_with_defaults(tmp_path):
+    """게임이 처음 만든 헤더만 있는 파일은 손상이 아니다: 기본값으로 채운다"""
+    from palworld import lifecycle
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    os.makedirs(os.path.dirname(ini))
+    open(ini, "w", encoding="utf-8").write("[/Script/Pal.PalGameWorldSettings]\n")
+    assert lifecycle._enforce_rest_policy(str(tmp_path), {"rest_password": "x"})["changed"] is True
+    assert lifecycle._parse_option_settings(ini)["ServerName"] == lifecycle.DEFAULT_PALWORLD_SETTINGS["ServerName"]
+
+
 def test_random_admin_password_is_only_for_the_admin_password(tmp_path):
     """비밀번호가 어디에도 없을 때 만드는 임시 비밀번호는 AdminPassword 한 곳뿐 — ServerPassword는 비워 둔다"""
     from palworld import lifecycle

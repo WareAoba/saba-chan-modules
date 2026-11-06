@@ -1394,7 +1394,7 @@ inputs = [
 
 [[commands.fields]]
 name = "godmod"
-risk = "danger"
+risk = "caution"
 label = "God Mode"
 description = "Make a player invincible"
 method = "console"
@@ -1406,7 +1406,7 @@ inputs = [
 
 [[commands.fields]]
 name = "invisible"
-risk = "danger"
+risk = "caution"
 label = "Invisible"
 description = "Make a player invisible to zombies"
 method = "console"
@@ -1418,7 +1418,7 @@ inputs = [
 
 [[commands.fields]]
 name = "startrain"
-risk = "caution"
+risk = "safe"
 label = "Start Rain"
 description = "Start raining on the server"
 method = "console"
@@ -1427,7 +1427,7 @@ inputs = []
 
 [[commands.fields]]
 name = "stoprain"
-risk = "caution"
+risk = "safe"
 label = "Stop Rain"
 description = "Stop raining on the server"
 method = "console"
@@ -1454,7 +1454,7 @@ inputs = []
 
 [[commands.fields]]
 name = "additem"
-risk = "danger"
+risk = "caution"
 label = "Give Item"
 description = "Give an item to a player"
 method = "console"
@@ -1467,7 +1467,7 @@ inputs = [
 
 [[commands.fields]]
 name = "addxp"
-risk = "danger"
+risk = "caution"
 label = "Give XP"
 description = "Give experience to a player"
 method = "console"
@@ -1511,6 +1511,7 @@ inputs = [
 [[commands.fields]]
 name = "quit"
 risk = "danger"
+remote = false  # 게임에 직접 끄라고 보낸다. 디스코드에서는 사바쨩 [정지]를 쓴다
 label = "Stop"
 description = "Save and gracefully shut down the server"
 method = "console"

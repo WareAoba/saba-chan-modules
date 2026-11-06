@@ -15,7 +15,7 @@
       "name": "wg-god",
       "label": "Enable god mode",
       "description": "Give another player invincibility.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "worldguard:god {player} {flags}",
       "inputs": [
         {
@@ -38,7 +38,7 @@
       "name": "ungod",
       "label": "Disable god mode",
       "description": "Remove invincibility from another player.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "ungod {player} {flags}",
       "inputs": [
         {
@@ -61,7 +61,7 @@
       "name": "wg-heal",
       "label": "Heal player",
       "description": "Heal another player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "worldguard:heal {player} {flags}",
       "inputs": [
         {
@@ -123,7 +123,7 @@
       "name": "stopfire",
       "label": "Stop fire spread",
       "description": "Immediately stop all fire spread on the given world.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "stopfire {world}",
       "inputs": [
         {
@@ -139,7 +139,7 @@
       "name": "allowfire",
       "label": "Allow fire spread",
       "description": "Lift the fire spread suspension on the given world.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "allowfire {world}",
       "inputs": [
         {
@@ -171,7 +171,7 @@
       "name": "stoplag-off",
       "label": "Disable halt activity",
       "description": "Disable the stop lag mode.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "stoplag -c {flags}",
       "inputs": [
         {
@@ -767,7 +767,7 @@
       "name": "region-save",
       "label": "Save regions (world)",
       "description": "Saves the region data of a world to disk.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "region save -w {world}",
       "inputs": [
         {
@@ -783,7 +783,7 @@
       "name": "region-save-all",
       "label": "Save regions (all worlds)",
       "description": "Saves the region data of all worlds to disk.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "region save",
       "inputs": []
     },

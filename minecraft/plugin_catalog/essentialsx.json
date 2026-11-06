@@ -79,7 +79,7 @@
       "name": "afk",
       "label": "Toggle player AFK",
       "description": "Toggles the AFK status of the specified player with an optional reason.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "afk {player} {message}",
       "inputs": [
         {
@@ -102,7 +102,7 @@
       "name": "back",
       "label": "Send player back",
       "description": "Teleports the specified player to their prior location.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "back {player}",
       "inputs": [
         {
@@ -204,7 +204,7 @@
       "name": "broadcast",
       "label": "Broadcast",
       "description": "Broadcasts the given message to the entire server.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "broadcast {message}",
       "inputs": [
         {
@@ -219,7 +219,7 @@
       "name": "broadcastworld",
       "label": "Broadcast to world",
       "description": "Broadcasts the given message to the specified world.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "broadcastworld {world} {message}",
       "inputs": [
         {
@@ -399,7 +399,7 @@
       "name": "eco-give",
       "label": "Give money",
       "description": "Gives the specified player the specified amount of money.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "eco give {player} {amount}",
       "inputs": [
         {
@@ -484,7 +484,7 @@
       "name": "exp-give",
       "label": "Give XP",
       "description": "Gives the target player the specified amount of xp.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "exp give {player} {amount}",
       "inputs": [
         {
@@ -562,7 +562,7 @@
       "name": "ext",
       "label": "Extinguish player",
       "description": "Extinguishes the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "ext {player}",
       "inputs": [
         {
@@ -578,7 +578,7 @@
       "name": "feed",
       "label": "Feed player",
       "description": "Fully feeds the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "feed {player}",
       "inputs": [
         {
@@ -594,7 +594,7 @@
       "name": "fly",
       "label": "Toggle fly",
       "description": "Toggles fly for the specified player.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "fly {player} {state}",
       "inputs": [
         {
@@ -672,7 +672,7 @@
       "name": "ess-give",
       "label": "Give item",
       "description": "Gives the target player 64 (or the specified amount) of the specified item.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "egive {player} {item} {amount}",
       "inputs": [
         {
@@ -702,7 +702,7 @@
       "name": "ess-give-meta",
       "label": "Give item with metadata",
       "description": "Gives the target player the specified amount of the specified item with the given metadata.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "egive {player} {item} {amount} {meta}",
       "inputs": [
         {
@@ -739,7 +739,7 @@
       "name": "god",
       "label": "Toggle god mode",
       "description": "Toggles god mode for the specified player.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "god {player} {state}",
       "inputs": [
         {
@@ -765,7 +765,7 @@
       "name": "heal",
       "label": "Heal player",
       "description": "Heals the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "heal {player}",
       "inputs": [
         {
@@ -928,7 +928,7 @@
       "name": "kit-give",
       "label": "Give kit",
       "description": "Gives the specified kit to the specified player.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "kit {kit} {player}",
       "inputs": [
         {
@@ -951,7 +951,7 @@
       "name": "kitreset",
       "label": "Reset kit cooldown",
       "description": "Resets the cooldown of the specified kit for the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "kitreset {kit} {player}",
       "inputs": [
         {
@@ -1043,7 +1043,7 @@
       "name": "mail-send",
       "label": "Send mail",
       "description": "Sends the specified player the given message.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "mail send {player} {message}",
       "inputs": [
         {
@@ -1065,7 +1065,7 @@
       "name": "mail-sendall",
       "label": "Send mail to all",
       "description": "Sends all players the given message.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "mail sendall {message}",
       "inputs": [
         {
@@ -1080,7 +1080,7 @@
       "name": "mail-sendtemp",
       "label": "Send expiring mail",
       "description": "Sends the specified player the given message which will expire in the specified time.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "mail sendtemp {player} {expire} {message}",
       "inputs": [
         {
@@ -1109,7 +1109,7 @@
       "name": "mail-sendtempall",
       "label": "Send expiring mail to all",
       "description": "Sends all players the given message which will expire in the specified time.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "mail sendtempall {expire} {message}",
       "inputs": [
         {
@@ -1190,7 +1190,7 @@
       "name": "msgtoggle",
       "label": "Toggle private messages",
       "description": "Toggles private messages for the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "msgtoggle {player} {state}",
       "inputs": [
         {
@@ -1323,7 +1323,7 @@
       "name": "nick-off",
       "label": "Remove nickname",
       "description": "Removes the given player's nickname.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "nick {player} off",
       "inputs": [
         {
@@ -1355,7 +1355,7 @@
       "name": "paytoggle",
       "label": "Toggle payments",
       "description": "Toggles if the specified player is accepting payments.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "paytoggle {player}",
       "inputs": [
         {
@@ -1448,7 +1448,7 @@
       "name": "ptime-set",
       "label": "Set player time",
       "description": "Sets the time for the specified player(s) to the given time.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "ptime {time} {player}",
       "inputs": [
         {
@@ -1471,7 +1471,7 @@
       "name": "ptime-reset",
       "label": "Reset player time",
       "description": "Resets the time for the specified player(s).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "ptime reset {player}",
       "inputs": [
         {
@@ -1511,7 +1511,7 @@
       "name": "pweather-set",
       "label": "Set player weather",
       "description": "Sets the weather for the specified player(s) to the given weather.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "pweather {weather} {player}",
       "inputs": [
         {
@@ -1537,7 +1537,7 @@
       "name": "pweather-reset",
       "label": "Reset player weather",
       "description": "Resets the weather for the specified player(s).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "pweather reset {player}",
       "inputs": [
         {
@@ -1605,7 +1605,7 @@
       "name": "remove",
       "label": "Remove entities",
       "description": "Removes all of the given mob type in the specified world.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "remove {type} {world}",
       "inputs": [
         {
@@ -1628,7 +1628,7 @@
       "name": "rest",
       "label": "Rest player",
       "description": "Resets the time since rest of the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "rest {player}",
       "inputs": [
         {
@@ -1644,7 +1644,7 @@
       "name": "rtoggle",
       "label": "Toggle reply target",
       "description": "Changes whether the recipient of the reply is last recipient or last sender.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "rtoggle {player} {state}",
       "inputs": [
         {
@@ -1708,7 +1708,7 @@
       "name": "setworth",
       "label": "Set item worth",
       "description": "Sets the worth of the specified item to the given price.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "setworth {item} {price}",
       "inputs": [
         {
@@ -1786,7 +1786,7 @@
       "name": "speed",
       "label": "Set speed",
       "description": "Sets the specified type of speed to the given speed for the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "speed {type} {speed} {player}",
       "inputs": [
         {
@@ -1911,7 +1911,7 @@
       "name": "ess-time-set",
       "label": "Set world time",
       "description": "Sets the time in all (or the specified) worlds to the given time.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "etime set {time} {world}",
       "inputs": [
         {
@@ -1934,7 +1934,7 @@
       "name": "ess-time-add",
       "label": "Add world time",
       "description": "Adds the given time to all (or the specified) worlds' time.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "etime add {time} {world}",
       "inputs": [
         {
@@ -2002,7 +2002,7 @@
       "name": "ess-tp",
       "label": "Teleport player to player",
       "description": "Teleports the first specified player to the second.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "etp {player} {target}",
       "inputs": [
         {
@@ -2041,7 +2041,7 @@
       "name": "tpall",
       "label": "Teleport all",
       "description": "Teleports all players to the specified player.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "tpall {player}",
       "inputs": [
         {
@@ -2057,7 +2057,7 @@
       "name": "tpauto",
       "label": "Toggle auto-accept teleports",
       "description": "Toggles if tpa requests are auto accepted for the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "tpauto {player}",
       "inputs": [
         {
@@ -2073,7 +2073,7 @@
       "name": "tppos",
       "label": "Teleport to coordinates",
       "description": "Teleports the specified player to the given coordinates, optionally in another world.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "tppos {player} {x} {y} {z} {world}",
       "inputs": [
         {
@@ -2117,7 +2117,7 @@
       "name": "tppos-rotation",
       "label": "Teleport to coordinates with rotation",
       "description": "Teleports the specified player to the given coordinates with a yaw and pitch, optionally in another world.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "tppos {player} {x} {y} {z} {yaw} {pitch} {world}",
       "inputs": [
         {
@@ -2175,7 +2175,7 @@
       "name": "tpr",
       "label": "Random teleport player",
       "description": "Teleports the specified player to a random location in the specified location.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "tpr {location} {player}",
       "inputs": [
         {
@@ -2198,7 +2198,7 @@
       "name": "tptoggle",
       "label": "Toggle teleports",
       "description": "Toggles if teleports are enabled for the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "tptoggle {player} {state}",
       "inputs": [
         {
@@ -2256,7 +2256,7 @@
       "name": "vanish",
       "label": "Toggle vanish",
       "description": "Toggles vanish for the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "vanish {player} {state}",
       "inputs": [
         {
@@ -2298,7 +2298,7 @@
       "name": "warp-player",
       "label": "Warp player",
       "description": "Teleports the specified player to the given warp.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "warp {warp} {player}",
       "inputs": [
         {
@@ -2335,7 +2335,7 @@
       "name": "ess-weather",
       "label": "Set weather",
       "description": "Sets the weather in the specified world to the given type for an optional duration.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "eweather {world} {weather} {duration}",
       "inputs": [
         {
@@ -2479,7 +2479,7 @@
       "name": "essentials-homes-fix",
       "label": "Fix homes",
       "description": "Removes homes in invalid locations from user data.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "essentials homes fix",
       "inputs": []
     },

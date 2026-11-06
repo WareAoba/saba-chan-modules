@@ -13,7 +13,7 @@
       "name": "toggleshout",
       "label": "Toggle shout mode",
       "description": "Toggles shout mode for the specified player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "toggleshout {player} {state}",
       "inputs": [
         {

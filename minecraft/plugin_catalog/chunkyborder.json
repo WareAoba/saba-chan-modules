@@ -14,7 +14,7 @@
       "name": "chunky-border-add",
       "label": "Add border",
       "description": "Creates a world border from the current selection.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "chunky border add {world}",
       "inputs": [
         {
@@ -30,7 +30,7 @@
       "name": "chunky-border-remove",
       "label": "Remove border",
       "description": "Removes a world border.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "chunky border remove {world}",
       "inputs": [
         {
@@ -46,7 +46,7 @@
       "name": "chunky-border-wrap",
       "label": "Set border wrap",
       "description": "Sets the world border wrap type in the currently selected world; none disables wrapping.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "chunky border wrap {type}",
       "inputs": [
         {
@@ -95,7 +95,7 @@
       "name": "chunky-border-bypass",
       "label": "Toggle border bypass",
       "description": "Temporarily bypasses the world border for the given player.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "chunky border bypass {player}",
       "inputs": [
         {

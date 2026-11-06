@@ -181,7 +181,7 @@
       "name": "claimbook",
       "label": "Give claim book",
       "description": "Gives a player a manual about claiming land.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "claimbook {player}",
       "inputs": [
         {

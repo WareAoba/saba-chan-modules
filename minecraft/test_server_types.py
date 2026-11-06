@@ -629,28 +629,30 @@ def test_a_version_the_source_does_not_have_yet_is_skipped_not_given_up_on():
 
 # 접근 권한·밴 해제·허용 목록·권한 그룹을 바꾸거나 아이템·돈·경험치·무적·게임 모드를 주는 명령은 danger다.
 # caution은 말하는 사바쨩이 확인 없이 실행할 수 있어서, 이런 명령이 caution이면 권한을 바꾸지 않는다는 규칙이 깨진다(L48)
-GRANTING_COMMANDS = {
-    "essentialsx.json": {"eco-give", "eco-take", "exp-give", "exp-set", "exp-reset", "ess-gamemode", "ess-give",
-                         "ess-give-meta", "god", "fly", "kit-give", "unban", "unbanip", "socialspy", "powertool"},
+# 권한·차단·허용 목록·소유·설정을 바꾸거나 빼앗는 명령. 특정 유저에게 큰 영향이거나 설정 파일을 바꾼다(사용자 기준 2026-11-06).
+# 주기만 하는 명령(give·god·fly 등)은 바닐라 give처럼 주의다
+ACCESS_COMMANDS = {
+    "essentialsx.json": {"eco-take", "exp-set", "exp-reset", "ess-gamemode", "unban", "unbanip", "socialspy",
+                         "powertool"},
     "citizens.json": {"npc-owner"},
     "multiverse-core.json": {"mv-config"},
     "multiverse-portals.json": {"mvp-config"},
     "floodgate.json": {"fwhitelist-add", "fwhitelist-remove"},
-    "griefprevention.json": {"adjustbonusclaimblocks", "adjustbonusclaimblocksall", "setaccruedclaimblocks"},
-    "multiverse-inventories.json": {"mvinv-give", "mvinv-config"},
-    "worldguard.json": {"wg-god", "ungod", "region-setparent", "region-addmember", "region-addowner",
-                        "region-removemember", "region-removeowner", "region-flag", "region-define",
-                        "region-setpriority"},
+    # adjust*는 음수로 빼앗을 수도 있다
+    "griefprevention.json": {"setaccruedclaimblocks", "adjustbonusclaimblocks", "adjustbonusclaimblocksall"},
+    "multiverse-inventories.json": {"mvinv-config"},
+    "worldguard.json": {"region-setparent", "region-addmember", "region-addowner", "region-removemember",
+                        "region-removeowner", "region-flag", "region-define", "region-setpriority"},
 }
 
 
-def test_commands_that_change_access_or_grant_things_are_danger():
+def test_commands_that_change_access_are_danger():
     risks = {}
     for path in CATALOG:
         data = json.load(open(path, encoding="utf-8"))
         for cmd in data["commands"]:
             risks[(os.path.basename(path), cmd["name"])] = cmd["risk"]
-    wrong = [key for file, names in GRANTING_COMMANDS.items() for key in ((file, n) for n in names)
+    wrong = [key for file, names in ACCESS_COMMANDS.items() for key in ((file, n) for n in names)
              if risks.get(key) != "danger"]
     # 웹 편집기 생성은 권한 데이터를 외부 사이트에 올리므로 최소 caution이다.
     external_editors = {"lp-editor", "lp-user-editor", "lp-group-editor", "lp-track-editor"}

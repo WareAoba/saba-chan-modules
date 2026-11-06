@@ -843,7 +843,7 @@ inputs = [
 
 [[commands.fields]]
 name = "give"
-risk = "danger"
+risk = "caution"
 label = "Give Item"
 description = "Give an item to a player"
 method = "console"
@@ -909,7 +909,7 @@ remote = false
 
 [[commands.fields]]
 name = "weather"
-risk = "danger"
+risk = "safe"
 label = "Change Weather"
 description = "Change the server weather"
 method = "console"
@@ -921,7 +921,7 @@ inputs = [
 
 [[commands.fields]]
 name = "difficulty"
-risk = "danger"
+risk = "caution"
 label = "Change Difficulty"
 description = "Change the game difficulty"
 method = "console"
@@ -944,7 +944,7 @@ inputs = [
 
 [[commands.fields]]
 name = "time"
-risk = "danger"
+risk = "safe"
 label = "Set Time"
 description = "Change the time of day"
 method = "console"
@@ -955,7 +955,7 @@ inputs = [
 
 [[commands.fields]]
 name = "tp"
-risk = "danger"
+risk = "caution"
 label = "Teleport"
 description = "Teleport a player"
 method = "console"
@@ -1048,6 +1048,7 @@ reply_pattern = 'Seed: \[(?P<seed>-?\d+)\]'
 [[commands.fields]]
 name = "stop"
 risk = "danger"
+remote = false  # 게임에 직접 끄라고 보낸다. 디스코드에서는 사바쨩 [정지]를 쓴다
 label = "Stop"
 description = "Gracefully stop the server"
 method = "console"

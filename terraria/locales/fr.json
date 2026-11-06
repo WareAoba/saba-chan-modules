@@ -18,7 +18,8 @@
     },
     "lobby": {
       "label": "Salon Steam",
-      "description": "Qui peut rejoindre via Steam (-lobby, nécessite Steam)"
+      "description": "Qui peut rejoindre via Steam (-lobby, nécessite Steam)",
+      "options": { "friends": "Amis Steam", "private": "Privé (sur invitation)" }
     },
     "disable_announcement_box": {
       "label": "Désactiver la boîte d'annonce",
@@ -43,7 +44,8 @@
     },
     "difficulty": {
       "label": "Difficulté du nouveau monde",
-      "description": "0 Classique, 1 Expert, 2 Maître, 3 Voyage"
+      "description": "0 Classique, 1 Expert, 2 Maître, 3 Voyage",
+      "options": { "0": "Classique", "1": "Expert", "2": "Maître", "3": "Voyage" }
     },
     "seed": {
       "label": "Graine du nouveau monde",
@@ -71,7 +73,8 @@
     },
     "language": {
       "label": "Langue du serveur",
-      "description": "Langue des messages du serveur"
+      "description": "Langue des messages du serveur",
+      "options": { "en-US": "English", "de-DE": "Deutsch", "it-IT": "Italiano", "fr-FR": "Français", "es-ES": "Español", "ru-RU": "Русский", "zh-Hans": "简体中文", "pt-BR": "Português (Brasil)", "pl-PL": "Polski", "ja-JP": "日本語", "ko-KR": "한국어", "zh-Hant": "繁體中文" }
     },
     "upnp": {
       "label": "Redirection de port UPnP",
@@ -87,67 +90,83 @@
     },
     "priority": {
       "label": "Priorité du processus",
-      "description": "0 Temps réel, 1 Haute, 2 Supérieure à la normale, 3 Normale, 4 Inférieure à la normale, 5 Basse"
+      "description": "0 Temps réel, 1 Haute, 2 Supérieure à la normale, 3 Normale, 4 Inférieure à la normale, 5 Basse",
+      "options": { "0": "Temps réel", "1": "Haute", "2": "Supérieure à la normale", "3": "Normale", "4": "Inférieure à la normale", "5": "Basse" }
     },
     "journeypermission_time_setfrozen": {
       "label": "Voyage : Figer le temps",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_time_setdawn": {
       "label": "Voyage : Aube",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_time_setnoon": {
       "label": "Voyage : Midi",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_time_setdusk": {
       "label": "Voyage : Crépuscule",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_time_setmidnight": {
       "label": "Voyage : Minuit",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_godmode": {
       "label": "Voyage : Mode dieu",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_wind_setstrength": {
       "label": "Voyage : Force du vent",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_rain_setstrength": {
       "label": "Voyage : Force de la pluie",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_time_setspeed": {
       "label": "Voyage : Vitesse du temps",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_rain_setfrozen": {
       "label": "Voyage : Figer la pluie",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_wind_setfrozen": {
       "label": "Voyage : Figer le vent",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_increaseplacementrange": {
       "label": "Voyage : Portée de placement",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_setdifficulty": {
       "label": "Voyage : Difficulté",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_biomespread_setfrozen": {
       "label": "Voyage : Figer la propagation des biomes",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "journeypermission_setspawnrate": {
       "label": "Voyage : Taux d'apparition",
-      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde"
+      "description": "0 verrouillé, 1 hôte seulement, 2 tout le monde",
+      "options": { "0": "Verrouillé", "1": "Hôte seulement", "2": "Tout le monde" }
     },
     "seed_celebration": {
       "label": "Graine de célébration",

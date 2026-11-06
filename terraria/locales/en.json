@@ -18,7 +18,8 @@
     },
     "lobby": {
       "label": "Steam Lobby",
-      "description": "Who can join through Steam (-lobby, needs Steam Support)"
+      "description": "Who can join through Steam (-lobby, needs Steam Support)",
+      "options": { "friends": "Steam friends", "private": "Private (invite only)" }
     },
     "disable_announcement_box": {
       "label": "Disable Announcement Box",
@@ -43,7 +44,8 @@
     },
     "difficulty": {
       "label": "New World Difficulty",
-      "description": "0 Classic, 1 Expert, 2 Master, 3 Journey"
+      "description": "0 Classic, 1 Expert, 2 Master, 3 Journey",
+      "options": { "0": "Classic", "1": "Expert", "2": "Master", "3": "Journey" }
     },
     "seed": {
       "label": "New World Seed",
@@ -71,7 +73,8 @@
     },
     "language": {
       "label": "Server Language",
-      "description": "Language of server messages"
+      "description": "Language of server messages",
+      "options": { "en-US": "English", "de-DE": "Deutsch", "it-IT": "Italiano", "fr-FR": "Français", "es-ES": "Español", "ru-RU": "Русский", "zh-Hans": "简体中文", "pt-BR": "Português (Brasil)", "pl-PL": "Polski", "ja-JP": "日本語", "ko-KR": "한국어", "zh-Hant": "繁體中文" }
     },
     "upnp": {
       "label": "UPnP Port Forwarding",
@@ -87,67 +90,83 @@
     },
     "priority": {
       "label": "Process Priority",
-      "description": "0 Realtime, 1 High, 2 AboveNormal, 3 Normal, 4 BelowNormal, 5 Idle"
+      "description": "0 Realtime, 1 High, 2 AboveNormal, 3 Normal, 4 BelowNormal, 5 Idle",
+      "options": { "0": "Realtime", "1": "High", "2": "AboveNormal", "3": "Normal", "4": "BelowNormal", "5": "Idle" }
     },
     "journeypermission_time_setfrozen": {
       "label": "Journey: Freeze Time",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_time_setdawn": {
       "label": "Journey: Set Dawn",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_time_setnoon": {
       "label": "Journey: Set Noon",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_time_setdusk": {
       "label": "Journey: Set Dusk",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_time_setmidnight": {
       "label": "Journey: Set Midnight",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_godmode": {
       "label": "Journey: God Mode",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_wind_setstrength": {
       "label": "Journey: Wind Strength",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_rain_setstrength": {
       "label": "Journey: Rain Strength",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_time_setspeed": {
       "label": "Journey: Time Speed",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_rain_setfrozen": {
       "label": "Journey: Freeze Rain",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_wind_setfrozen": {
       "label": "Journey: Freeze Wind",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_increaseplacementrange": {
       "label": "Journey: Placement Range",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_setdifficulty": {
       "label": "Journey: Difficulty",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_biomespread_setfrozen": {
       "label": "Journey: Freeze Biome Spread",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "journeypermission_setspawnrate": {
       "label": "Journey: Spawn Rate",
-      "description": "0 locked, 1 host only, 2 everyone"
+      "description": "0 locked, 1 host only, 2 everyone",
+      "options": { "0": "Locked", "1": "Host only", "2": "Everyone" }
     },
     "seed_celebration": {
       "label": "Celebration Seed",

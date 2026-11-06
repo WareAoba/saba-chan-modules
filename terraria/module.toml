@@ -1,6 +1,6 @@
 # Terraria 공식 데디케이티드 서버 모듈. 조사 근거는 RESEARCH.md
 [module]
-schema_version = 1
+schema_version = 2
 name = "terraria"
 version = "0.1.3"
 description = "Terraria dedicated server"
@@ -113,6 +113,7 @@ save_command = "save"
 
 [[settings.fields]]
 name = "managed_start"
+restart_required = true
 type = "boolean"
 label = "Managed Start (Console)"
 description = "Start with the saba-chan console attached"
@@ -121,6 +122,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "ip"
+restart_required = true
 type = "text"
 label = "Listen IP"
 description = "IP address the server listens on (-ip). Empty = all addresses"
@@ -130,6 +132,7 @@ pattern = '[0-9A-Fa-f:.]+'
 
 [[settings.fields]]
 name = "steam"
+restart_required = true
 type = "boolean"
 label = "Steam Support"
 description = "Enable Steam support (-steam)"
@@ -139,6 +142,7 @@ arg = "-steam"
 
 [[settings.fields]]
 name = "lobby"
+restart_required = true
 type = "select"
 label = "Steam Lobby"
 description = "Who can join through Steam (-lobby, needs Steam Support)"
@@ -148,6 +152,7 @@ arg = "-lobby {value}"
 
 [[settings.fields]]
 name = "disable_announcement_box"
+restart_required = true
 type = "boolean"
 label = "Disable Announcement Box"
 description = "Disable Announcement Box messages (-disableannouncementbox)"
@@ -157,6 +162,7 @@ arg = "-disableannouncementbox"
 
 [[settings.fields]]
 name = "announcement_box_range"
+restart_required = true
 type = "number"
 label = "Announcement Box Range"
 description = "Announcement Box message range in pixels, -1 = whole server (-announcementboxrange)"
@@ -168,6 +174,7 @@ arg = "-announcementboxrange {value}"
 
 [[settings.fields]]
 name = "world_name"
+restart_required = true
 file_key = "worldname"
 type = "text"
 label = "World Name"
@@ -177,6 +184,7 @@ pattern = '[^\\/:*?"<>|]*[^\\/:*?"<>|. ]'
 
 [[settings.fields]]
 name = "world_dir"
+restart_required = true
 file_key = "worldpath"
 type = "text"
 label = "World Folder"
@@ -187,6 +195,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "autocreate"
+restart_required = true
 file_key = "autocreate"
 type = "select"
 label = "New World Size"
@@ -197,6 +206,7 @@ install = true
 
 [[settings.fields]]
 name = "difficulty"
+restart_required = true
 file_key = "difficulty"
 type = "select"
 label = "New World Difficulty"
@@ -205,6 +215,7 @@ options = ["0", "1", "2", "3"]
 
 [[settings.fields]]
 name = "seed"
+restart_required = true
 file_key = "seed"
 type = "text"
 label = "New World Seed"
@@ -212,6 +223,7 @@ description = "Seed for a newly created world"
 
 [[settings.fields]]
 name = "seed_celebration"
+restart_required = true
 file_key = "seed_celebration"
 type = "boolean"
 label = "Celebration Seed"
@@ -220,6 +232,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_theconstant"
+restart_required = true
 file_key = "seed_theconstant"
 type = "boolean"
 label = "The Constant"
@@ -228,6 +241,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_notthebees"
+restart_required = true
 file_key = "seed_notthebees"
 type = "boolean"
 label = "Not the Bees!"
@@ -236,6 +250,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_notraps"
+restart_required = true
 file_key = "seed_notraps"
 type = "boolean"
 label = "No Traps"
@@ -244,6 +259,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_fortheworthy"
+restart_required = true
 file_key = "seed_fortheworthy"
 type = "boolean"
 label = "For the Worthy"
@@ -252,6 +268,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_remix"
+restart_required = true
 file_key = "seed_remix"
 type = "boolean"
 label = "Remix"
@@ -260,6 +277,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_drunk"
+restart_required = true
 file_key = "seed_drunk"
 type = "boolean"
 label = "Drunk"
@@ -268,6 +286,7 @@ install = true
 
 [[settings.fields]]
 name = "seed_zenith"
+restart_required = true
 file_key = "seed_zenith"
 type = "boolean"
 label = "Zenith"
@@ -278,6 +297,7 @@ install = true
 
 [[settings.fields]]
 name = "port"
+restart_required = true
 file_key = "port"
 type = "number"
 label = "Port"
@@ -291,6 +311,7 @@ format = "port"
 
 [[settings.fields]]
 name = "max_players"
+restart_required = true
 file_key = "maxplayers"
 type = "number"
 label = "Max Players"
@@ -301,6 +322,7 @@ max = 255
 
 [[settings.fields]]
 name = "password"
+restart_required = true
 file_key = "password"
 type = "password"
 label = "Server Password"
@@ -308,6 +330,7 @@ description = "Password to join (empty = none)"
 
 [[settings.fields]]
 name = "motd"
+restart_required = true
 file_key = "motd"
 type = "text"
 label = "Message of the Day"
@@ -315,6 +338,7 @@ description = "Message shown to joining players"
 
 [[settings.fields]]
 name = "secure"
+restart_required = true
 file_key = "secure"
 type = "boolean"
 label = "Cheat Protection"
@@ -322,6 +346,7 @@ description = "Additional cheat protection (secure)"
 
 [[settings.fields]]
 name = "language"
+restart_required = true
 file_key = "language"
 type = "select"
 label = "Server Language"
@@ -330,6 +355,7 @@ options = ["en-US", "de-DE", "it-IT", "fr-FR", "es-ES", "ru-RU", "zh-Hans", "pt-
 
 [[settings.fields]]
 name = "upnp"
+restart_required = true
 file_key = "upnp"
 type = "boolean"
 label = "UPnP Port Forwarding"
@@ -337,6 +363,7 @@ description = "Forward the port automatically with UPnP"
 
 [[settings.fields]]
 name = "banlist"
+restart_required = true
 file_key = "banlist"
 type = "text"
 label = "Ban List File"
@@ -347,6 +374,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "npcstream"
+restart_required = true
 file_key = "npcstream"
 type = "number"
 label = "NPC Stream"
@@ -356,6 +384,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "worldrollbackstokeep"
+restart_required = true
 file_key = "worldrollbackstokeep"
 type = "number"
 label = "World Rollbacks to Keep"
@@ -365,6 +394,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "slowliquids"
+restart_required = true
 file_key = "slowliquids"
 type = "boolean"
 label = "Slow Liquids"
@@ -373,6 +403,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "priority"
+restart_required = true
 file_key = "priority"
 type = "select"
 label = "Process Priority"
@@ -385,6 +416,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setfrozen"
+restart_required = true
 file_key = "journeypermission_time_setfrozen"
 type = "select"
 label = "Journey: Freeze Time"
@@ -394,6 +426,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setdawn"
+restart_required = true
 file_key = "journeypermission_time_setdawn"
 type = "select"
 label = "Journey: Set Dawn"
@@ -403,6 +436,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setnoon"
+restart_required = true
 file_key = "journeypermission_time_setnoon"
 type = "select"
 label = "Journey: Set Noon"
@@ -412,6 +446,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setdusk"
+restart_required = true
 file_key = "journeypermission_time_setdusk"
 type = "select"
 label = "Journey: Set Dusk"
@@ -421,6 +456,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setmidnight"
+restart_required = true
 file_key = "journeypermission_time_setmidnight"
 type = "select"
 label = "Journey: Set Midnight"
@@ -430,6 +466,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_godmode"
+restart_required = true
 file_key = "journeypermission_godmode"
 type = "select"
 label = "Journey: God Mode"
@@ -439,6 +476,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_wind_setstrength"
+restart_required = true
 file_key = "journeypermission_wind_setstrength"
 type = "select"
 label = "Journey: Wind Strength"
@@ -448,6 +486,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_rain_setstrength"
+restart_required = true
 file_key = "journeypermission_rain_setstrength"
 type = "select"
 label = "Journey: Rain Strength"
@@ -457,6 +496,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_time_setspeed"
+restart_required = true
 file_key = "journeypermission_time_setspeed"
 type = "select"
 label = "Journey: Time Speed"
@@ -466,6 +506,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_rain_setfrozen"
+restart_required = true
 file_key = "journeypermission_rain_setfrozen"
 type = "select"
 label = "Journey: Freeze Rain"
@@ -475,6 +516,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_wind_setfrozen"
+restart_required = true
 file_key = "journeypermission_wind_setfrozen"
 type = "select"
 label = "Journey: Freeze Wind"
@@ -484,6 +526,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_increaseplacementrange"
+restart_required = true
 file_key = "journeypermission_increaseplacementrange"
 type = "select"
 label = "Journey: Placement Range"
@@ -493,6 +536,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_setdifficulty"
+restart_required = true
 file_key = "journeypermission_setdifficulty"
 type = "select"
 label = "Journey: Difficulty"
@@ -502,6 +546,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_biomespread_setfrozen"
+restart_required = true
 file_key = "journeypermission_biomespread_setfrozen"
 type = "select"
 label = "Journey: Freeze Biome Spread"
@@ -511,6 +556,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "journeypermission_setspawnrate"
+restart_required = true
 file_key = "journeypermission_setspawnrate"
 type = "select"
 label = "Journey: Spawn Rate"

@@ -18,7 +18,8 @@
     },
     "lobby": {
       "label": "Steam 大厅",
-      "description": "谁可以通过 Steam 加入（-lobby，需要 Steam 支持）"
+      "description": "谁可以通过 Steam 加入（-lobby，需要 Steam 支持）",
+      "options": { "friends": "Steam 好友", "private": "私密（仅限邀请）" }
     },
     "disable_announcement_box": {
       "label": "禁用公告箱",
@@ -43,7 +44,8 @@
     },
     "difficulty": {
       "label": "新世界难度",
-      "description": "0 经典，1 专家，2 大师，3 旅途"
+      "description": "0 经典，1 专家，2 大师，3 旅途",
+      "options": { "0": "经典", "1": "专家", "2": "大师", "3": "旅途" }
     },
     "seed": {
       "label": "新世界种子",
@@ -71,7 +73,8 @@
     },
     "language": {
       "label": "服务器语言",
-      "description": "服务器消息的语言"
+      "description": "服务器消息的语言",
+      "options": { "en-US": "English", "de-DE": "Deutsch", "it-IT": "Italiano", "fr-FR": "Français", "es-ES": "Español", "ru-RU": "Русский", "zh-Hans": "简体中文", "pt-BR": "Português (Brasil)", "pl-PL": "Polski", "ja-JP": "日本語", "ko-KR": "한국어", "zh-Hant": "繁體中文" }
     },
     "upnp": {
       "label": "UPnP 端口转发",
@@ -87,67 +90,83 @@
     },
     "priority": {
       "label": "进程优先级",
-      "description": "0 实时，1 高，2 高于正常，3 正常，4 低于正常，5 低"
+      "description": "0 实时，1 高，2 高于正常，3 正常，4 低于正常，5 低",
+      "options": { "0": "实时", "1": "高", "2": "高于正常", "3": "正常", "4": "低于正常", "5": "低" }
     },
     "journeypermission_time_setfrozen": {
       "label": "旅途：冻结时间",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_time_setdawn": {
       "label": "旅途：设为黎明",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_time_setnoon": {
       "label": "旅途：设为正午",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_time_setdusk": {
       "label": "旅途：设为黄昏",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_time_setmidnight": {
       "label": "旅途：设为午夜",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_godmode": {
       "label": "旅途：上帝模式",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_wind_setstrength": {
       "label": "旅途：风力",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_rain_setstrength": {
       "label": "旅途：雨量",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_time_setspeed": {
       "label": "旅途：时间速度",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_rain_setfrozen": {
       "label": "旅途：冻结降雨",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_wind_setfrozen": {
       "label": "旅途：冻结风",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_increaseplacementrange": {
       "label": "旅途：放置范围",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_setdifficulty": {
       "label": "旅途：难度",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_biomespread_setfrozen": {
       "label": "旅途：冻结生态蔓延",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "journeypermission_setspawnrate": {
       "label": "旅途：生成率",
-      "description": "0 全部锁定，1 仅主机，2 所有人"
+      "description": "0 全部锁定，1 仅主机，2 所有人",
+      "options": { "0": "全部锁定", "1": "仅主机", "2": "所有人" }
     },
     "seed_celebration": {
       "label": "庆典种子",

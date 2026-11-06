@@ -18,7 +18,8 @@
     },
     "lobby": {
       "label": "Steam 大廳",
-      "description": "誰可以透過 Steam 加入（-lobby，需要 Steam 支援）"
+      "description": "誰可以透過 Steam 加入（-lobby，需要 Steam 支援）",
+      "options": { "friends": "Steam 好友", "private": "私人（僅限邀請）" }
     },
     "disable_announcement_box": {
       "label": "停用公告箱",
@@ -43,7 +44,8 @@
     },
     "difficulty": {
       "label": "新世界難度",
-      "description": "0 經典，1 專家，2 大師，3 旅程"
+      "description": "0 經典，1 專家，2 大師，3 旅程",
+      "options": { "0": "經典", "1": "專家", "2": "大師", "3": "旅程" }
     },
     "seed": {
       "label": "新世界種子",
@@ -71,7 +73,8 @@
     },
     "language": {
       "label": "伺服器語言",
-      "description": "伺服器訊息的語言"
+      "description": "伺服器訊息的語言",
+      "options": { "en-US": "English", "de-DE": "Deutsch", "it-IT": "Italiano", "fr-FR": "Français", "es-ES": "Español", "ru-RU": "Русский", "zh-Hans": "简体中文", "pt-BR": "Português (Brasil)", "pl-PL": "Polski", "ja-JP": "日本語", "ko-KR": "한국어", "zh-Hant": "繁體中文" }
     },
     "upnp": {
       "label": "UPnP 連接埠轉發",
@@ -87,67 +90,83 @@
     },
     "priority": {
       "label": "處理程序優先順序",
-      "description": "0 即時，1 高，2 高於正常，3 正常，4 低於正常，5 低"
+      "description": "0 即時，1 高，2 高於正常，3 正常，4 低於正常，5 低",
+      "options": { "0": "即時", "1": "高", "2": "高於正常", "3": "正常", "4": "低於正常", "5": "低" }
     },
     "journeypermission_time_setfrozen": {
       "label": "旅程：凍結時間",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_time_setdawn": {
       "label": "旅程：設為黎明",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_time_setnoon": {
       "label": "旅程：設為正午",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_time_setdusk": {
       "label": "旅程：設為黃昏",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_time_setmidnight": {
       "label": "旅程：設為午夜",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_godmode": {
       "label": "旅程：上帝模式",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_wind_setstrength": {
       "label": "旅程：風力",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_rain_setstrength": {
       "label": "旅程：雨量",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_time_setspeed": {
       "label": "旅程：時間速度",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_rain_setfrozen": {
       "label": "旅程：凍結降雨",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_wind_setfrozen": {
       "label": "旅程：凍結風",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_increaseplacementrange": {
       "label": "旅程：放置範圍",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_setdifficulty": {
       "label": "旅程：難度",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_biomespread_setfrozen": {
       "label": "旅程：凍結生態蔓延",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "journeypermission_setspawnrate": {
       "label": "旅程：生成率",
-      "description": "0 全部鎖定，1 僅主機，2 所有人"
+      "description": "0 全部鎖定，1 僅主機，2 所有人",
+      "options": { "0": "全部鎖定", "1": "僅主機", "2": "所有人" }
     },
     "seed_celebration": {
       "label": "慶典種子",

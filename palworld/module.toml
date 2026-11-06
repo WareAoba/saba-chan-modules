@@ -1,5 +1,5 @@
 [module]
-schema_version = 1
+schema_version = 2
 name = "palworld"
 version = "0.1.10"
 description = "Palworld server management module"
@@ -100,6 +100,7 @@ crash_artifacts = ["Pal/Saved/Crashes/*"]
 
 [[settings.fields]]
 name = "rest_host"
+restart_required = true
 type = "text"
 label = "REST API Host"
 description = "REST API host (default 127.0.0.1)"
@@ -108,6 +109,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "rest_port"
+restart_required = true
 file_key = "RESTAPIPort"
 type = "number"
 port = true
@@ -122,6 +124,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "server_name"
+restart_required = true
 file_key = "ServerName"
 type = "text"
 label = "Server Name"
@@ -130,6 +133,7 @@ default = "Default Palworld Server"
 
 [[settings.fields]]
 name = "server_description"
+restart_required = true
 file_key = "ServerDescription"
 type = "text"
 label = "Server Description"
@@ -138,6 +142,7 @@ default = ""
 
 [[settings.fields]]
 name = "server_password"
+restart_required = true
 file_key = "ServerPassword"
 type = "password"
 label = "Server Password"
@@ -146,6 +151,7 @@ default = ""
 
 [[settings.fields]]
 name = "admin_password"
+restart_required = true
 file_key = "AdminPassword"
 type = "password"
 label = "Admin Password"
@@ -154,6 +160,7 @@ default = ""
 
 [[settings.fields]]
 name = "max_players"
+restart_required = true
 file_key = "ServerPlayerMaxNum"
 type = "number"
 label = "Max Players"
@@ -164,6 +171,7 @@ max = 32
 
 [[settings.fields]]
 name = "coop_max_players"
+restart_required = true
 file_key = "CoopPlayerMaxNum"
 type = "number"
 label = "Co-op Max Players"
@@ -174,6 +182,7 @@ max = 32
 
 [[settings.fields]]
 name = "port"
+restart_required = true
 file_key = "PublicPort"
 type = "number"
 port = true
@@ -188,6 +197,7 @@ max = 65535
 
 [[settings.fields]]
 name = "public_ip"
+restart_required = true
 file_key = "PublicIP"
 type = "text"
 label = "Public IP"
@@ -196,6 +206,7 @@ default = ""
 
 [[settings.fields]]
 name = "region"
+restart_required = true
 file_key = "Region"
 type = "text"
 label = "Region"
@@ -205,6 +216,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "use_auth"
+restart_required = true
 file_key = "bUseAuth"
 type = "boolean"
 label = "Use Steam Auth"
@@ -214,6 +226,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "allow_client_mod"
+restart_required = true
 file_key = "bAllowClientMod"
 type = "boolean"
 label = "Allow Client Mods"
@@ -223,6 +236,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "ban_list_url"
+restart_required = true
 file_key = "BanListURL"
 type = "text"
 label = "Ban List URL"
@@ -232,6 +246,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "show_player_list"
+restart_required = true
 file_key = "bShowPlayerList"
 type = "boolean"
 label = "Show Player List"
@@ -241,6 +256,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "crossplay_platforms"
+restart_required = true
 file_key = "CrossplayPlatforms"
 type = "text"
 label = "Crossplay Platforms"
@@ -250,6 +266,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "chat_post_limit_per_minute"
+restart_required = true
 file_key = "ChatPostLimitPerMinute"
 type = "number"
 label = "Chat Rate Limit"
@@ -261,6 +278,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "is_show_join_left_message"
+restart_required = true
 file_key = "bIsShowJoinLeftMessage"
 type = "boolean"
 label = "Show Join/Leave Messages"
@@ -270,6 +288,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "enable_voice_chat"
+restart_required = true
 file_key = "bEnableVoiceChat"
 type = "boolean"
 label = "Voice Chat"
@@ -279,6 +298,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "voice_chat_max_volume_distance"
+restart_required = true
 file_key = "VoiceChatMaxVolumeDistance"
 type = "number"
 label = "Voice Chat Max Volume Distance"
@@ -291,6 +311,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "voice_chat_zero_volume_distance"
+restart_required = true
 file_key = "VoiceChatZeroVolumeDistance"
 type = "number"
 label = "Voice Chat Cutoff Distance"
@@ -303,6 +324,7 @@ group = "communication"
 
 [[settings.fields]]
 name = "build_object_hp_rate"
+restart_required = true
 file_key = "BuildObjectHpRate"
 type = "number"
 label = "Structure HP Rate"
@@ -315,6 +337,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "difficulty"
+restart_required = true
 file_key = "Difficulty"
 type = "select"
 label = "Difficulty"
@@ -324,6 +347,7 @@ default = "None"
 
 [[settings.fields]]
 name = "is_pvp"
+restart_required = true
 file_key = "bIsPvP"
 type = "boolean"
 label = "PvP"
@@ -332,6 +356,7 @@ default = false
 
 [[settings.fields]]
 name = "death_penalty"
+restart_required = true
 file_key = "DeathPenalty"
 type = "select"
 label = "Death Penalty"
@@ -341,6 +366,7 @@ default = "Item"
 
 [[settings.fields]]
 name = "exp_rate"
+restart_required = true
 file_key = "ExpRate"
 type = "number"
 label = "EXP Rate"
@@ -352,6 +378,7 @@ step = 0.1
 
 [[settings.fields]]
 name = "day_time_speed_rate"
+restart_required = true
 file_key = "DayTimeSpeedRate"
 type = "number"
 label = "Day Time Speed"
@@ -363,6 +390,7 @@ step = 0.1
 
 [[settings.fields]]
 name = "night_time_speed_rate"
+restart_required = true
 file_key = "NightTimeSpeedRate"
 type = "number"
 label = "Night Time Speed"
@@ -376,6 +404,7 @@ step = 0.1
 
 [[settings.fields]]
 name = "pal_capture_rate"
+restart_required = true
 file_key = "PalCaptureRate"
 type = "number"
 label = "Pal Capture Rate"
@@ -388,6 +417,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_spawn_num_rate"
+restart_required = true
 file_key = "PalSpawnNumRate"
 type = "number"
 label = "Pal Spawn Rate"
@@ -400,6 +430,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_damage_rate_attack"
+restart_required = true
 file_key = "PalDamageRateAttack"
 type = "number"
 label = "Pal Attack Damage"
@@ -412,6 +443,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_damage_rate_defense"
+restart_required = true
 file_key = "PalDamageRateDefense"
 type = "number"
 label = "Pal Defense"
@@ -424,6 +456,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_stomach_decrease_rate"
+restart_required = true
 file_key = "PalStomachDecreaceRate"
 type = "number"
 label = "Pal Hunger Rate"
@@ -436,6 +469,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_stamina_decrease_rate"
+restart_required = true
 file_key = "PalStaminaDecreaceRate"
 type = "number"
 label = "Pal Stamina Rate"
@@ -448,6 +482,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_auto_hp_regen_rate"
+restart_required = true
 file_key = "PalAutoHPRegeneRate"
 type = "number"
 label = "Pal HP Regen"
@@ -460,6 +495,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_auto_hp_regen_rate_in_sleep"
+restart_required = true
 file_key = "PalAutoHpRegeneRateInSleep"
 type = "number"
 label = "Pal Sleep HP Regen"
@@ -472,6 +508,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_damage_rate_attack"
+restart_required = true
 file_key = "PlayerDamageRateAttack"
 type = "number"
 label = "Player Attack Damage"
@@ -484,6 +521,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_damage_rate_defense"
+restart_required = true
 file_key = "PlayerDamageRateDefense"
 type = "number"
 label = "Player Defense"
@@ -496,6 +534,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_stomach_decrease_rate"
+restart_required = true
 file_key = "PlayerStomachDecreaceRate"
 type = "number"
 label = "Player Hunger Rate"
@@ -508,6 +547,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_stamina_decrease_rate"
+restart_required = true
 file_key = "PlayerStaminaDecreaceRate"
 type = "number"
 label = "Player Stamina Rate"
@@ -520,6 +560,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_auto_hp_regen_rate"
+restart_required = true
 file_key = "PlayerAutoHPRegeneRate"
 type = "number"
 label = "Player HP Regen"
@@ -532,6 +573,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_auto_hp_regen_rate_in_sleep"
+restart_required = true
 file_key = "PlayerAutoHpRegeneRateInSleep"
 type = "number"
 label = "Player Sleep HP Regen"
@@ -544,6 +586,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "build_object_damage_rate"
+restart_required = true
 file_key = "BuildObjectDamageRate"
 type = "number"
 label = "Structure Damage Rate"
@@ -556,6 +599,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "build_object_deterioration_damage_rate"
+restart_required = true
 file_key = "BuildObjectDeteriorationDamageRate"
 type = "number"
 label = "Structure Decay Rate"
@@ -568,6 +612,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "build_area_limit"
+restart_required = true
 file_key = "bBuildAreaLimit"
 type = "boolean"
 label = "Building Area Limit"
@@ -577,6 +622,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_building_limit_num"
+restart_required = true
 file_key = "MaxBuildingLimitNum"
 type = "number"
 label = "Max Building Count"
@@ -588,6 +634,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_building_limit_num_per_player"
+restart_required = true
 file_key = "MaxBuildingLimitNumPerPlayer"
 type = "number"
 label = "Max Building Count Per Player"
@@ -599,6 +646,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "fishing_difficulty_rate"
+restart_required = true
 file_key = "FishingDifficultyRate"
 type = "number"
 label = "Fishing Difficulty"
@@ -611,6 +659,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_enemy_camp_spawn_near_base_camp"
+restart_required = true
 file_key = "bAllowEnemyCampSpawnNearBaseCamp"
 type = "boolean"
 label = "Enemy Camps Near Base"
@@ -620,6 +669,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "base_camp_max_num_in_guild"
+restart_required = true
 file_key = "BaseCampMaxNumInGuild"
 type = "number"
 label = "Max Base Camps Per Guild"
@@ -631,6 +681,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "guild_rejoin_cooldown_minutes"
+restart_required = true
 file_key = "GuildRejoinCooldownMinutes"
 type = "number"
 label = "Guild Rejoin Cooldown"
@@ -642,6 +693,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "auto_reset_guild_no_online_players"
+restart_required = true
 file_key = "bAutoResetGuildNoOnlinePlayers"
 type = "boolean"
 label = "Auto-Disband Inactive Guilds"
@@ -651,6 +703,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "auto_reset_guild_time_no_online_players"
+restart_required = true
 file_key = "AutoResetGuildTimeNoOnlinePlayers"
 type = "number"
 label = "Inactive Guild Reset Time"
@@ -663,6 +716,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "can_pickup_other_guild_death_penalty_drop"
+restart_required = true
 file_key = "bCanPickupOtherGuildDeathPenaltyDrop"
 type = "boolean"
 label = "Loot Other Guilds' Death Drops"
@@ -672,6 +726,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_defense_other_guild_player"
+restart_required = true
 file_key = "bEnableDefenseOtherGuildPlayer"
 type = "boolean"
 label = "Defend Against Other Guilds"
@@ -681,6 +736,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "invisible_other_guild_base_camp_area_fx"
+restart_required = true
 file_key = "bInvisibleOtherGuildBaseCampAreaFX"
 type = "boolean"
 label = "Hide Other Guilds' Base Camp FX"
@@ -690,6 +746,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "drop_item_max_num_unko"
+restart_required = true
 file_key = "DropItemMaxNum_UNKO"
 type = "number"
 label = "UNKO Item Cap"
@@ -701,6 +758,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "drop_item_alive_max_hours"
+restart_required = true
 file_key = "DropItemAliveMaxHours"
 type = "number"
 label = "Dropped Item Lifetime"
@@ -713,6 +771,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "active_unko"
+restart_required = true
 file_key = "bActiveUNKO"
 type = "boolean"
 label = "Active UNKO"
@@ -722,6 +781,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "physics_active_drop_item_max_num"
+restart_required = true
 file_key = "PhysicsActiveDropItemMaxNum"
 type = "number"
 label = "Physics-Active Drop Item Cap"
@@ -733,6 +793,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_fast_travel_only_base_camp"
+restart_required = true
 file_key = "bEnableFastTravelOnlyBaseCamp"
 type = "boolean"
 label = "Fast Travel: Base Camps Only"
@@ -742,6 +803,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "is_start_location_select_by_map"
+restart_required = true
 file_key = "bIsStartLocationSelectByMap"
 type = "boolean"
 label = "Select Start Location On Map"
@@ -751,6 +813,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "exist_player_after_logout"
+restart_required = true
 file_key = "bExistPlayerAfterLogout"
 type = "boolean"
 label = "Keep Player Character After Logout"
@@ -760,6 +823,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_non_login_penalty"
+restart_required = true
 file_key = "bEnableNonLoginPenalty"
 type = "boolean"
 label = "Offline Penalty"
@@ -769,6 +833,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_aim_assist_pad"
+restart_required = true
 file_key = "bEnableAimAssistPad"
 type = "boolean"
 label = "Aim Assist (Gamepad)"
@@ -778,6 +843,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_aim_assist_keyboard"
+restart_required = true
 file_key = "bEnableAimAssistKeyboard"
 type = "boolean"
 label = "Aim Assist (Keyboard/Mouse)"
@@ -787,6 +853,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "is_use_backup_save_data"
+restart_required = true
 file_key = "bIsUseBackupSaveData"
 type = "boolean"
 label = "Use Backup Save Data"
@@ -796,6 +863,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "log_format_type"
+restart_required = true
 file_key = "LogFormatType"
 type = "select"
 label = "Log Format"
@@ -806,6 +874,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "server_replicate_pawn_cull_distance"
+restart_required = true
 file_key = "ServerReplicatePawnCullDistance"
 type = "number"
 label = "Character Sync Distance"
@@ -818,6 +887,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_global_palbox_export"
+restart_required = true
 file_key = "bAllowGlobalPalboxExport"
 type = "boolean"
 label = "Allow Global Palbox Export"
@@ -827,6 +897,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_global_palbox_import"
+restart_required = true
 file_key = "bAllowGlobalPalboxImport"
 type = "boolean"
 label = "Allow Global Palbox Import"
@@ -836,6 +907,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "deny_technology_list"
+restart_required = true
 file_key = "DenyTechnologyList"
 type = "text"
 label = "Denied Technology List"
@@ -845,6 +917,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "block_respawn_time"
+restart_required = true
 file_key = "BlockRespawnTime"
 type = "number"
 label = "Respawn Block Time"
@@ -857,6 +930,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "respawn_penalty_duration_threshold"
+restart_required = true
 file_key = "RespawnPenaltyDurationThreshold"
 type = "number"
 label = "Respawn Penalty Threshold"
@@ -869,6 +943,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "respawn_penalty_time_scale"
+restart_required = true
 file_key = "RespawnPenaltyTimeScale"
 type = "number"
 label = "Respawn Penalty Time Scale"
@@ -881,6 +956,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "display_pvp_item_num_on_world_map_base_camp"
+restart_required = true
 file_key = "bDisplayPvPItemNumOnWorldMap_BaseCamp"
 type = "boolean"
 label = "Show PvP Item Count (Base Camps)"
@@ -890,6 +966,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "display_pvp_item_num_on_world_map_player"
+restart_required = true
 file_key = "bDisplayPvPItemNumOnWorldMap_Player"
 type = "boolean"
 label = "Show PvP Item Count (Players)"
@@ -899,6 +976,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "additional_drop_item_when_player_killing_in_pvp_mode_enabled"
+restart_required = true
 file_key = "bAdditionalDropItemWhenPlayerKillingInPvPMode"
 type = "boolean"
 label = "Extra PvP Kill Drop"
@@ -908,6 +986,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "additional_drop_item_when_player_killing_in_pvp_mode"
+restart_required = true
 file_key = "AdditionalDropItemWhenPlayerKillingInPvPMode"
 type = "text"
 label = "Extra PvP Kill Drop Item"
@@ -917,6 +996,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "additional_drop_item_num_when_player_killing_in_pvp_mode"
+restart_required = true
 file_key = "AdditionalDropItemNumWhenPlayerKillingInPvPMode"
 type = "number"
 label = "Extra PvP Kill Drop Count"
@@ -928,6 +1008,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_enhance_stat_health"
+restart_required = true
 file_key = "bAllowEnhanceStat_Health"
 type = "boolean"
 label = "Allow Stat Enhance: Health"
@@ -937,6 +1018,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_enhance_stat_attack"
+restart_required = true
 file_key = "bAllowEnhanceStat_Attack"
 type = "boolean"
 label = "Allow Stat Enhance: Attack"
@@ -946,6 +1028,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_enhance_stat_stamina"
+restart_required = true
 file_key = "bAllowEnhanceStat_Stamina"
 type = "boolean"
 label = "Allow Stat Enhance: Stamina"
@@ -955,6 +1038,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_enhance_stat_weight"
+restart_required = true
 file_key = "bAllowEnhanceStat_Weight"
 type = "boolean"
 label = "Allow Stat Enhance: Weight"
@@ -964,6 +1048,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_enhance_stat_work_speed"
+restart_required = true
 file_key = "bAllowEnhanceStat_WorkSpeed"
 type = "boolean"
 label = "Allow Stat Enhance: Work Speed"
@@ -973,6 +1058,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "item_container_force_mark_dirty_interval"
+restart_required = true
 file_key = "ItemContainerForceMarkDirtyInterval"
 type = "number"
 label = "Item Container Sync Interval"
@@ -985,6 +1071,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "item_corruption_multiplier"
+restart_required = true
 file_key = "ItemCorruptionMultiplier"
 type = "number"
 label = "Item Corruption Multiplier"
@@ -997,6 +1084,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "equipment_durability_damage_rate"
+restart_required = true
 file_key = "EquipmentDurabilityDamageRate"
 type = "number"
 label = "Equipment Durability Loss Rate"
@@ -1009,6 +1097,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "randomizer_type"
+restart_required = true
 file_key = "RandomizerType"
 type = "text"
 label = "Randomizer Type"
@@ -1018,6 +1107,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "randomizer_seed"
+restart_required = true
 file_key = "RandomizerSeed"
 type = "text"
 label = "Randomizer Seed"
@@ -1027,6 +1117,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "randomizer_pal_level_random"
+restart_required = true
 file_key = "bIsRandomizerPalLevelRandom"
 type = "boolean"
 label = "Randomize Pal Levels"
@@ -1036,6 +1127,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hardcore"
+restart_required = true
 file_key = "bHardcore"
 type = "boolean"
 label = "Hardcore Mode"
@@ -1045,6 +1137,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "character_recreate_in_hardcore"
+restart_required = true
 file_key = "bCharacterRecreateInHardcore"
 type = "boolean"
 label = "Recreate Character In Hardcore"
@@ -1054,6 +1147,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "is_multiplay"
+restart_required = true
 file_key = "bIsMultiplay"
 type = "boolean"
 label = "Multiplay Mode"
@@ -1063,6 +1157,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_predator_boss_pal"
+restart_required = true
 file_key = "EnablePredatorBossPal"
 type = "boolean"
 label = "Predator Boss Pals"
@@ -1072,6 +1167,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_data_pal_storage_update_check_tick_interval"
+restart_required = true
 file_key = "PlayerDataPalStorageUpdateCheckTickInterval"
 type = "number"
 label = "Pal Storage Sync Interval"
@@ -1084,6 +1180,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "monster_farm_action_speed_rate"
+restart_required = true
 file_key = "MonsterFarmActionSpeedRate"
 type = "number"
 label = "Monster Farm Action Speed"
@@ -1096,6 +1193,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "auto_transfer_master_check_interval_seconds"
+restart_required = true
 file_key = "AutoTransferMasterCheckIntervalSeconds"
 type = "number"
 label = "Auto-Transfer Ownership Check Interval"
@@ -1108,6 +1206,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "auto_transfer_master_threshold_days"
+restart_required = true
 file_key = "AutoTransferMasterThresholdDays"
 type = "number"
 label = "Auto-Transfer Ownership Threshold"
@@ -1119,6 +1218,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_guilds_per_frame"
+restart_required = true
 file_key = "MaxGuildsPerFrame"
 type = "number"
 label = "Max Guild Updates Per Frame"
@@ -1130,6 +1230,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_building_player_uid_display"
+restart_required = true
 file_key = "bEnableBuildingPlayerUIdDisplay"
 type = "boolean"
 label = "Show Builder Name On Buildings"
@@ -1139,6 +1240,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "building_name_display_cache_ttl_seconds"
+restart_required = true
 file_key = "BuildingNameDisplayCacheTTLSeconds"
 type = "number"
 label = "Building Name Display Cache Time"
@@ -1150,6 +1252,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "drop_item_max_num"
+restart_required = true
 file_key = "DropItemMaxNum"
 type = "number"
 label = "Drop Item Max"
@@ -1161,6 +1264,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "collection_drop_rate"
+restart_required = true
 file_key = "CollectionDropRate"
 type = "number"
 label = "Gathering Drop Rate"
@@ -1173,6 +1277,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "collection_object_hp_rate"
+restart_required = true
 file_key = "CollectionObjectHpRate"
 type = "number"
 label = "Gathering Object HP"
@@ -1185,6 +1290,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "collection_object_respawn_speed_rate"
+restart_required = true
 file_key = "CollectionObjectRespawnSpeedRate"
 type = "number"
 label = "Gathering Respawn Speed"
@@ -1197,6 +1303,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enemy_drop_item_rate"
+restart_required = true
 file_key = "EnemyDropItemRate"
 type = "number"
 label = "Enemy Drop Rate"
@@ -1209,6 +1316,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_egg_default_hatching_time"
+restart_required = true
 file_key = "PalEggDefaultHatchingTime"
 type = "number"
 label = "Egg Hatching Time"
@@ -1221,6 +1329,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_invader_enemy"
+restart_required = true
 file_key = "bEnableInvaderEnemy"
 type = "boolean"
 label = "Raid Events"
@@ -1230,6 +1339,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "guild_player_max_num"
+restart_required = true
 file_key = "GuildPlayerMaxNum"
 type = "number"
 label = "Guild Max Players"
@@ -1241,6 +1351,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_player_to_player_damage"
+restart_required = true
 file_key = "bEnablePlayerToPlayerDamage"
 type = "boolean"
 label = "Player vs Player Damage"
@@ -1250,6 +1361,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_friendly_fire"
+restart_required = true
 file_key = "bEnableFriendlyFire"
 type = "boolean"
 label = "Friendly Fire"
@@ -1259,6 +1371,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "base_camp_worker_max_num"
+restart_required = true
 file_key = "BaseCampWorkerMaxNum"
 type = "number"
 label = "Base Camp Workers"
@@ -1270,6 +1383,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "base_camp_max_num"
+restart_required = true
 file_key = "BaseCampMaxNum"
 type = "number"
 label = "Max Base Camps"
@@ -1281,6 +1395,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "work_speed_rate"
+restart_required = true
 file_key = "WorkSpeedRate"
 type = "number"
 label = "Work Speed Rate"
@@ -1293,6 +1408,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pal_lost"
+restart_required = true
 file_key = "bPalLost"
 type = "boolean"
 label = "Pal Lost"
@@ -1301,6 +1417,7 @@ default = false
 
 [[settings.fields]]
 name = "enable_fast_travel"
+restart_required = true
 file_key = "bEnableFastTravel"
 type = "boolean"
 label = "Fast Travel"
@@ -1309,6 +1426,7 @@ default = true
 
 [[settings.fields]]
 name = "item_weight_rate"
+restart_required = true
 file_key = "ItemWeightRate"
 type = "number"
 label = "Item Weight Rate"
@@ -1320,6 +1438,7 @@ step = 0.1
 
 [[settings.fields]]
 name = "auto_save_span"
+restart_required = true
 file_key = "AutoSaveSpan"
 type = "number"
 label = "Auto-Save Interval"
@@ -1331,6 +1450,7 @@ step = 1.0
 
 [[settings.fields]]
 name = "supply_drop_span"
+restart_required = true
 file_key = "SupplyDropSpan"
 type = "number"
 label = "Supply Drop Interval"

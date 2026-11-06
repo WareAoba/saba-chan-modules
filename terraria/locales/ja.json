@@ -18,7 +18,8 @@
     },
     "lobby": {
       "label": "Steamロビー",
-      "description": "Steamから参加できる人(-lobby、Steam対応が必要)"
+      "description": "Steamから参加できる人(-lobby、Steam対応が必要)",
+      "options": { "friends": "Steamフレンド", "private": "非公開（招待のみ）" }
     },
     "disable_announcement_box": {
       "label": "アナウンスボックスを無効化",
@@ -43,7 +44,8 @@
     },
     "difficulty": {
       "label": "新規ワールドの難易度",
-      "description": "0 クラシック、1 エキスパート、2 マスター、3 ジャーニー"
+      "description": "0 クラシック、1 エキスパート、2 マスター、3 ジャーニー",
+      "options": { "0": "クラシック", "1": "エキスパート", "2": "マスター", "3": "ジャーニー" }
     },
     "seed": {
       "label": "新規ワールドのシード",
@@ -71,7 +73,8 @@
     },
     "language": {
       "label": "サーバー言語",
-      "description": "サーバーメッセージの言語"
+      "description": "サーバーメッセージの言語",
+      "options": { "en-US": "English", "de-DE": "Deutsch", "it-IT": "Italiano", "fr-FR": "Français", "es-ES": "Español", "ru-RU": "Русский", "zh-Hans": "简体中文", "pt-BR": "Português (Brasil)", "pl-PL": "Polski", "ja-JP": "日本語", "ko-KR": "한국어", "zh-Hant": "繁體中文" }
     },
     "upnp": {
       "label": "UPnPポート転送",
@@ -87,67 +90,83 @@
     },
     "priority": {
       "label": "プロセス優先度",
-      "description": "0 リアルタイム、1 高、2 通常以上、3 通常、4 通常以下、5 低"
+      "description": "0 リアルタイム、1 高、2 通常以上、3 通常、4 通常以下、5 低",
+      "options": { "0": "リアルタイム", "1": "高", "2": "通常以上", "3": "通常", "4": "通常以下", "5": "低" }
     },
     "journeypermission_time_setfrozen": {
       "label": "ジャーニー: 時間停止",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_time_setdawn": {
       "label": "ジャーニー: 夜明けにする",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_time_setnoon": {
       "label": "ジャーニー: 正午にする",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_time_setdusk": {
       "label": "ジャーニー: 夕暮れにする",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_time_setmidnight": {
       "label": "ジャーニー: 真夜中にする",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_godmode": {
       "label": "ジャーニー: ゴッドモード",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_wind_setstrength": {
       "label": "ジャーニー: 風の強さ",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_rain_setstrength": {
       "label": "ジャーニー: 雨の強さ",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_time_setspeed": {
       "label": "ジャーニー: 時間の速さ",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_rain_setfrozen": {
       "label": "ジャーニー: 雨の固定",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_wind_setfrozen": {
       "label": "ジャーニー: 風の固定",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_increaseplacementrange": {
       "label": "ジャーニー: 設置範囲",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_setdifficulty": {
       "label": "ジャーニー: 難易度",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_biomespread_setfrozen": {
       "label": "ジャーニー: バイオーム拡散の停止",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "journeypermission_setspawnrate": {
       "label": "ジャーニー: 敵の出現率",
-      "description": "0 全員ロック、1 ホストのみ、2 全員"
+      "description": "0 全員ロック、1 ホストのみ、2 全員",
+      "options": { "0": "全員ロック", "1": "ホストのみ", "2": "全員" }
     },
     "seed_celebration": {
       "label": "お祝いシード",

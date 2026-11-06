@@ -1,5 +1,5 @@
 [module]
-schema_version = 1
+schema_version = 2
 name = "zomboid"
 version = "0.1.9"
 description = "Project Zomboid dedicated server management module"
@@ -87,6 +87,7 @@ crash_artifacts = ["hs_err_pid*.log"]
 
 [[settings.fields]]
 name = "cache_dir"
+restart_required = true
 type = "text"
 # 경로: 원격(디스코드·챗봇)에서 바꿀 수 없다 (다른 서버의 데이터 폴더나 네트워크 경로로 바꾸지 못하게)
 format = "path"
@@ -97,6 +98,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "data_home"
+restart_required = true
 type = "text"
 format = "path"
 label = "Legacy Data Folder"
@@ -106,6 +108,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "ram"
+restart_required = true
 type = "number"
 label = "Memory (RAM)"
 description = "Maximum memory allocation in GB"
@@ -118,6 +121,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "server_name"
+restart_required = true
 type = "text"
 label = "Server Profile Name"
 description = "Name of the server profile (determines INI filename, default: servertest)"
@@ -127,6 +131,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "admin_password"
+restart_required = true
 type = "password"
 label = "Admin Password"
 description = "Default admin account password (set on first launch)"
@@ -136,6 +141,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "no_steam"
+restart_required = true
 type = "boolean"
 label = "No Steam Mode"
 description = "Run server in non-Steam mode (allows GoG players to connect)"
@@ -145,6 +151,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "managed_start"
+restart_required = true
 type = "boolean"
 label = "Managed Start (Console)"
 description = "Start the server through saba-runner so saba-chan can use its console. RCON stays off in every mode. If you turn this off, saba-chan cannot send commands to the server."
@@ -163,6 +170,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "public_name"
+restart_required = true
 file_key = "PublicName"
 type = "text"
 label = "Server Name"
@@ -171,6 +179,7 @@ default = "My PZ Server"
 
 [[settings.fields]]
 name = "public_description"
+restart_required = true
 file_key = "PublicDescription"
 type = "text"
 label = "Server Description"
@@ -179,6 +188,7 @@ default = ""
 
 [[settings.fields]]
 name = "password"
+restart_required = true
 file_key = "Password"
 type = "password"
 label = "Server Password"
@@ -187,6 +197,7 @@ default = ""
 
 [[settings.fields]]
 name = "max_players"
+restart_required = true
 file_key = "MaxPlayers"
 type = "number"
 label = "Max Players"
@@ -197,6 +208,7 @@ max = 100
 
 [[settings.fields]]
 name = "port"
+restart_required = true
 file_key = "DefaultPort"
 type = "number"
 port = true
@@ -209,6 +221,7 @@ max = 65535
 
 [[settings.fields]]
 name = "udp_port"
+restart_required = true
 file_key = "UDPPort"
 type = "number"
 port = true
@@ -221,6 +234,7 @@ max = 65535
 
 [[settings.fields]]
 name = "pvp"
+restart_required = true
 file_key = "PVP"
 type = "boolean"
 label = "PVP"
@@ -229,6 +243,7 @@ default = true
 
 [[settings.fields]]
 name = "open"
+restart_required = true
 file_key = "Open"
 type = "boolean"
 label = "Open Server"
@@ -237,6 +252,7 @@ default = true
 
 [[settings.fields]]
 name = "public"
+restart_required = true
 file_key = "Public"
 type = "boolean"
 label = "Public Visibility"
@@ -245,6 +261,7 @@ default = false
 
 [[settings.fields]]
 name = "pause_empty"
+restart_required = true
 file_key = "PauseEmpty"
 type = "boolean"
 label = "Pause When Empty"
@@ -253,6 +270,7 @@ default = true
 
 [[settings.fields]]
 name = "global_chat"
+restart_required = true
 file_key = "GlobalChat"
 type = "boolean"
 label = "Global Chat"
@@ -261,6 +279,7 @@ default = true
 
 [[settings.fields]]
 name = "map"
+restart_required = true
 file_key = "Map"
 type = "text"
 label = "Map"
@@ -269,6 +288,7 @@ default = "Muldraugh, KY"
 
 [[settings.fields]]
 name = "mods"
+restart_required = true
 file_key = "Mods"
 type = "text"
 label = "Mods"
@@ -277,6 +297,7 @@ default = ""
 
 [[settings.fields]]
 name = "workshop_items"
+restart_required = true
 file_key = "WorkshopItems"
 type = "text"
 label = "Workshop Items"
@@ -285,6 +306,7 @@ default = ""
 
 [[settings.fields]]
 name = "announce_death"
+restart_required = true
 file_key = "AnnounceDeath"
 type = "boolean"
 label = "Announce Death"
@@ -293,6 +315,7 @@ default = false
 
 [[settings.fields]]
 name = "server_welcome_message"
+restart_required = true
 file_key = "ServerWelcomeMessage"
 type = "text"
 label = "Welcome Message"
@@ -301,6 +324,7 @@ default = "Welcome to Project Zomboid Multiplayer!"
 
 [[settings.fields]]
 name = "auto_create_user_in_whitelist"
+restart_required = true
 file_key = "AutoCreateUserInWhiteList"
 type = "boolean"
 label = "Auto-Add to Whitelist"
@@ -309,6 +333,7 @@ default = false
 
 [[settings.fields]]
 name = "display_user_name"
+restart_required = true
 file_key = "DisplayUserName"
 type = "boolean"
 label = "Display Username"
@@ -317,6 +342,7 @@ default = true
 
 [[settings.fields]]
 name = "show_first_and_last_name"
+restart_required = true
 file_key = "ShowFirstAndLastName"
 type = "boolean"
 label = "Show Character Name"
@@ -325,6 +351,7 @@ default = false
 
 [[settings.fields]]
 name = "safety_system"
+restart_required = true
 file_key = "SafetySystem"
 type = "boolean"
 label = "Safety System"
@@ -333,6 +360,7 @@ default = true
 
 [[settings.fields]]
 name = "sleep_allowed"
+restart_required = true
 file_key = "SleepAllowed"
 type = "boolean"
 label = "Sleep Allowed"
@@ -341,6 +369,7 @@ default = false
 
 [[settings.fields]]
 name = "sleep_needed"
+restart_required = true
 file_key = "SleepNeeded"
 type = "boolean"
 label = "Sleep Needed"
@@ -351,6 +380,7 @@ default = false
 
 [[settings.fields]]
 name = "save_world_every_minutes"
+restart_required = true
 file_key = "SaveWorldEveryMinutes"
 type = "number"
 label = "Auto-Save Interval"
@@ -362,6 +392,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "ping_limit"
+restart_required = true
 file_key = "PingLimit"
 type = "number"
 label = "Ping Limit"
@@ -373,6 +404,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hours_for_loot_respawn"
+restart_required = true
 file_key = "HoursForLootRespawn"
 type = "number"
 label = "Loot Respawn Hours"
@@ -384,6 +416,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_items_for_loot_respawn"
+restart_required = true
 file_key = "MaxItemsForLootRespawn"
 type = "number"
 label = "Loot Respawn Threshold"
@@ -395,6 +428,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "no_fire"
+restart_required = true
 file_key = "NoFire"
 type = "boolean"
 label = "Disable Fire"
@@ -404,6 +438,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_safehouse"
+restart_required = true
 file_key = "PlayerSafehouse"
 type = "boolean"
 label = "Player Safehouses"
@@ -413,6 +448,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_allow_trespass"
+restart_required = true
 file_key = "SafehouseAllowTrepass"
 type = "boolean"
 label = "Safehouse Trespassing"
@@ -422,6 +458,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_allow_loot"
+restart_required = true
 file_key = "SafehouseAllowLoot"
 type = "boolean"
 label = "Safehouse Looting"
@@ -431,6 +468,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_allow_respawn"
+restart_required = true
 file_key = "SafehouseAllowRespawn"
 type = "boolean"
 label = "Safehouse Respawn"
@@ -440,6 +478,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "faction"
+restart_required = true
 file_key = "Faction"
 type = "boolean"
 label = "Factions"
@@ -449,6 +488,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_destruction_by_sledgehammer"
+restart_required = true
 file_key = "AllowDestructionBySledgehammer"
 type = "boolean"
 label = "Sledgehammer Destruction"
@@ -458,6 +498,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "speed_limit"
+restart_required = true
 file_key = "SpeedLimit"
 type = "number"
 label = "Speed Limit"
@@ -470,6 +511,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "do_lua_checksum"
+restart_required = true
 file_key = "DoLuaChecksum"
 type = "boolean"
 label = "Lua Checksum"
@@ -479,6 +521,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "steam_vac"
+restart_required = true
 file_key = "SteamVAC"
 type = "boolean"
 label = "Steam VAC"
@@ -488,6 +531,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_enable"
+restart_required = true
 file_key = "VoiceEnable"
 type = "boolean"
 label = "Voice Chat"
@@ -497,6 +541,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "minutes_per_page"
+restart_required = true
 file_key = "MinutesPerPage"
 type = "number"
 label = "Minutes Per Page"
@@ -509,6 +554,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "spawn_point"
+restart_required = true
 file_key = "SpawnPoint"
 type = "text"
 label = "Spawn Point"
@@ -518,6 +564,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_accounts_per_user"
+restart_required = true
 file_key = "MaxAccountsPerUser"
 type = "number"
 label = "Max Accounts Per User"
@@ -531,6 +578,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "show_safety"
+restart_required = true
 file_key = "ShowSafety"
 type = "boolean"
 label = "Show Safety Icon"
@@ -540,6 +588,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safety_toggle_timer"
+restart_required = true
 file_key = "SafetyToggleTimer"
 type = "number"
 label = "Safety Toggle Timer"
@@ -551,6 +600,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safety_cooldown_timer"
+restart_required = true
 file_key = "SafetyCooldownTimer"
 type = "number"
 label = "Safety Cooldown Timer"
@@ -562,6 +612,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pvp_melee_while_hit_reaction"
+restart_required = true
 file_key = "PVPMeleeWhileHitReaction"
 type = "boolean"
 label = "PVP Melee While Hit Reaction"
@@ -571,6 +622,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pvp_melee_damage_modifier"
+restart_required = true
 file_key = "PVPMeleeDamageModifier"
 type = "number"
 label = "PVP Melee Damage %"
@@ -583,6 +635,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pvp_firearm_damage_modifier"
+restart_required = true
 file_key = "PVPFirearmDamageModifier"
 type = "number"
 label = "PVP Firearm Damage %"
@@ -597,6 +650,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "mouse_over_to_see_display_name"
+restart_required = true
 file_key = "MouseOverToSeeDisplayName"
 type = "boolean"
 label = "Mouse Over to See Name"
@@ -606,6 +660,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hide_players_behind_you"
+restart_required = true
 file_key = "HidePlayersBehindYou"
 type = "boolean"
 label = "Hide Players Behind You"
@@ -615,6 +670,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_bump_player"
+restart_required = true
 file_key = "PlayerBumpPlayer"
 type = "boolean"
 label = "Player Collision"
@@ -624,6 +680,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_respawn_with_self"
+restart_required = true
 file_key = "PlayerRespawnWithSelf"
 type = "boolean"
 label = "Respawn at Death"
@@ -633,6 +690,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_respawn_with_other"
+restart_required = true
 file_key = "PlayerRespawnWithOther"
 type = "boolean"
 label = "Respawn at Partner"
@@ -642,6 +700,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "drop_off_whitelist_after_death"
+restart_required = true
 file_key = "DropOffWhiteListAfterDeath"
 type = "boolean"
 label = "Remove from Whitelist on Death"
@@ -651,6 +710,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_non_ascii_username"
+restart_required = true
 file_key = "AllowNonAsciiUsername"
 type = "boolean"
 label = "Allow Non-ASCII Usernames"
@@ -660,6 +720,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "chat_streams"
+restart_required = true
 file_key = "ChatStreams"
 type = "text"
 label = "Chat Streams"
@@ -669,6 +730,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_save_on_damage"
+restart_required = true
 file_key = "PlayerSaveOnDamage"
 type = "boolean"
 label = "Save on Damage"
@@ -680,6 +742,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "admin_safehouse"
+restart_required = true
 file_key = "AdminSafehouse"
 type = "boolean"
 label = "Admin Safehouses"
@@ -689,6 +752,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_allow_fire"
+restart_required = true
 file_key = "SafehouseAllowFire"
 type = "boolean"
 label = "Safehouse Fire Damage"
@@ -698,6 +762,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_day_survived_to_claim"
+restart_required = true
 file_key = "SafehouseDaySurvivedToClaim"
 type = "number"
 label = "Days to Claim Safehouse"
@@ -709,6 +774,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "safehouse_removal_time"
+restart_required = true
 file_key = "SafeHouseRemovalTime"
 type = "number"
 label = "Safehouse Removal Hours"
@@ -720,6 +786,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_safehouse_when_player_connected"
+restart_required = true
 file_key = "DisableSafehouseWhenPlayerConnected"
 type = "boolean"
 label = "Disable Safehouse When Online"
@@ -731,6 +798,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "faction_day_survived_to_create"
+restart_required = true
 file_key = "FactionDaySurvivedToCreate"
 type = "number"
 label = "Days to Create Faction"
@@ -742,6 +810,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "faction_players_required_for_tag"
+restart_required = true
 file_key = "FactionPlayersRequiredForTag"
 type = "number"
 label = "Players for Faction Tag"
@@ -753,6 +822,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_trade_ui"
+restart_required = true
 file_key = "AllowTradeUI"
 type = "boolean"
 label = "Allow Trading"
@@ -764,6 +834,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "construction_prevents_loot_respawn"
+restart_required = true
 file_key = "ConstructionPreventsLootRespawn"
 type = "boolean"
 label = "Construction Blocks Loot Respawn"
@@ -773,6 +844,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hours_for_world_item_removal"
+restart_required = true
 file_key = "HoursForWorldItemRemoval"
 type = "number"
 label = "World Item Removal Hours"
@@ -785,6 +857,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "world_item_removal_list"
+restart_required = true
 file_key = "WorldItemRemovalList"
 type = "text"
 label = "World Item Removal List"
@@ -794,6 +867,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "blood_splat_lifespan_days"
+restart_required = true
 file_key = "BloodSplatLifespanDays"
 type = "number"
 label = "Blood Splat Lifespan"
@@ -805,6 +879,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "item_numbers_limit_per_container"
+restart_required = true
 file_key = "ItemNumbersLimitPerContainer"
 type = "number"
 label = "Item Limit Per Container"
@@ -816,6 +891,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "trash_delete_all"
+restart_required = true
 file_key = "TrashDeleteAll"
 type = "boolean"
 label = "Delete All Trash"
@@ -825,6 +901,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "remove_player_corpses_on_corpse_removal"
+restart_required = true
 file_key = "RemovePlayerCorpsesOnCorpseRemoval"
 type = "boolean"
 label = "Remove Player Corpses"
@@ -836,6 +913,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "ping_frequency"
+restart_required = true
 file_key = "PingFrequency"
 type = "number"
 label = "Ping Frequency"
@@ -847,6 +925,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "deny_login_on_overloaded_server"
+restart_required = true
 file_key = "DenyLoginOnOverloadedServer"
 type = "boolean"
 label = "Deny Login When Overloaded"
@@ -856,6 +935,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "kick_fast_players"
+restart_required = true
 file_key = "KickFastPlayers"
 type = "boolean"
 label = "Kick Speed Hackers"
@@ -865,6 +945,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "steam_port1"
+restart_required = true
 file_key = "SteamPort1"
 type = "number"
 port = true
@@ -877,6 +958,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "steam_port2"
+restart_required = true
 file_key = "SteamPort2"
 type = "number"
 port = true
@@ -889,6 +971,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "steam_scoreboard"
+restart_required = true
 file_key = "SteamScoreboard"
 type = "text"
 label = "Steam Scoreboard"
@@ -898,6 +981,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "upnp"
+restart_required = true
 file_key = "UPnP"
 type = "boolean"
 label = "UPnP"
@@ -907,6 +991,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "upnp_lease_time"
+restart_required = true
 file_key = "UPnPLeaseTime"
 type = "number"
 label = "UPnP Lease Time"
@@ -918,6 +1003,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "upnp_zero_lease_time_fallback"
+restart_required = true
 file_key = "UPnPZeroLeaseTimeFallback"
 type = "boolean"
 label = "UPnP Zero Lease Fallback"
@@ -927,6 +1013,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "upnp_force"
+restart_required = true
 file_key = "UPnPForce"
 type = "boolean"
 label = "Force UPnP"
@@ -936,6 +1023,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "server_browser_announced_ip"
+restart_required = true
 file_key = "server_browser_announced_ip"
 type = "text"
 label = "Announced IP"
@@ -945,6 +1033,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "use_tcp_for_map_downloads"
+restart_required = true
 file_key = "UseTCPForMapDownloads"
 type = "boolean"
 label = "TCP Map Downloads"
@@ -954,6 +1043,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "physics_delay"
+restart_required = true
 file_key = "PhysicsDelay"
 type = "number"
 label = "Physics Delay"
@@ -965,6 +1055,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "fast_forward_multiplier"
+restart_required = true
 file_key = "FastForwardMultiplier"
 type = "number"
 label = "Fast Forward Multiplier"
@@ -977,6 +1068,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "car_engine_attraction_modifier"
+restart_required = true
 file_key = "CarEngineAttractionModifier"
 type = "number"
 label = "Car Engine Attraction"
@@ -991,6 +1083,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "coop_server_launch_timeout"
+restart_required = true
 file_key = "CoopServerLaunchTimeout"
 type = "number"
 label = "Co-op Launch Timeout"
@@ -1002,6 +1095,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "coop_master_ping_timeout"
+restart_required = true
 file_key = "CoopMasterPingTimeout"
 type = "number"
 label = "Co-op Ping Timeout"
@@ -1015,6 +1109,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_complexity"
+restart_required = true
 file_key = "VoiceComplexity"
 type = "number"
 label = "Voice Complexity"
@@ -1026,6 +1121,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_period"
+restart_required = true
 file_key = "VoicePeriod"
 type = "number"
 label = "Voice Period"
@@ -1037,6 +1133,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_sample_rate"
+restart_required = true
 file_key = "VoiceSampleRate"
 type = "number"
 label = "Voice Sample Rate"
@@ -1048,6 +1145,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_buffering"
+restart_required = true
 file_key = "VoiceBuffering"
 type = "number"
 label = "Voice Buffering"
@@ -1059,6 +1157,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_min_distance"
+restart_required = true
 file_key = "VoiceMinDistance"
 type = "number"
 label = "Voice Min Distance"
@@ -1071,6 +1170,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_max_distance"
+restart_required = true
 file_key = "VoiceMaxDistance"
 type = "number"
 label = "Voice Max Distance"
@@ -1083,6 +1183,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "voice_3d"
+restart_required = true
 file_key = "Voice3D"
 type = "boolean"
 label = "3D Voice"
@@ -1094,6 +1195,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "discord_enable"
+restart_required = true
 file_key = "DiscordEnable"
 type = "boolean"
 label = "Discord Integration"
@@ -1103,6 +1205,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "discord_token"
+restart_required = true
 file_key = "DiscordToken"
 type = "password"
 label = "Discord Token"
@@ -1112,6 +1215,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "discord_channel"
+restart_required = true
 file_key = "DiscordChannel"
 type = "text"
 label = "Discord Channel"
@@ -1121,6 +1225,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "discord_channel_id"
+restart_required = true
 file_key = "DiscordChannelID"
 type = "text"
 label = "Discord Channel ID"
@@ -1132,6 +1237,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_staff"
+restart_required = true
 file_key = "DisableRadioStaff"
 type = "boolean"
 label = "Disable Radio (Staff)"
@@ -1141,6 +1247,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_admin"
+restart_required = true
 file_key = "DisableRadioAdmin"
 type = "boolean"
 label = "Disable Radio (Admin)"
@@ -1150,6 +1257,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_gm"
+restart_required = true
 file_key = "DisableRadioGM"
 type = "boolean"
 label = "Disable Radio (GM)"
@@ -1159,6 +1267,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_overseer"
+restart_required = true
 file_key = "DisableRadioOverseer"
 type = "boolean"
 label = "Disable Radio (Overseer)"
@@ -1168,6 +1277,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_moderator"
+restart_required = true
 file_key = "DisableRadioModerator"
 type = "boolean"
 label = "Disable Radio (Moderator)"
@@ -1177,6 +1287,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "disable_radio_invisible"
+restart_required = true
 file_key = "DisableRadioInvisible"
 type = "boolean"
 label = "Disable Radio (Invisible)"
@@ -1188,6 +1299,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "client_command_filter"
+restart_required = true
 file_key = "ClientCommandFilter"
 type = "text"
 label = "Client Command Filter"
@@ -1199,6 +1311,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "zombie_update_max_high_priority"
+restart_required = true
 file_key = "ZombieUpdateMaxHighPriority"
 type = "number"
 label = "Zombie Max High Priority Updates"
@@ -1210,6 +1323,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "zombie_update_delta"
+restart_required = true
 file_key = "ZombieUpdateDelta"
 type = "number"
 label = "Zombie Update Delta"
@@ -1222,6 +1336,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "zombie_update_radius_low_priority"
+restart_required = true
 file_key = "ZombieUpdateRadiusLowPriority"
 type = "number"
 label = "Zombie Low Priority Radius"
@@ -1234,6 +1349,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "zombie_update_radius_high_priority"
+restart_required = true
 file_key = "ZombieUpdateRadiusHighPriority"
 type = "number"
 label = "Zombie High Priority Radius"
@@ -1246,6 +1362,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "ban_kick_global_sound"
+restart_required = true
 file_key = "BanKickGlobalSound"
 type = "boolean"
 label = "Ban/Kick Sound"
@@ -1255,6 +1372,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "save_transaction_id"
+restart_required = true
 file_key = "SaveTransactionID"
 type = "boolean"
 label = "Save Transaction ID"

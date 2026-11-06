@@ -1,6 +1,20 @@
 # lifecycle.py 쓰기
 
-함수마다 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다(testing.md). 공용 도우미 표는 `docs/module-development-guide.md` §5.
+함수마다 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다(testing.md). 공용 도우미 표는 `docs/module-development-guide.md` §5,
+기준은 saba-chan `docs/architecture/02-modules.md` §2.5(이름마다 처음 제공한 saba-core 버전은 `daemon_rcon.py`의 `SINCE`).
+
+모듈마다 따로 만들던 일은 공용 도우미가 맡는다(saba-core 0.1.11부터). 같은 일을 모듈 안에 다시 짜지 않는다.
+
+| 일 | 공용 도우미 |
+|---|---|
+| 설정 이름 ↔ 파일 키 | `setting_file_keys`, `settings_to_file`, `settings_from_file`, `format_setting` (`[[settings.fields]] file_key`) |
+| `키=값` 설정 파일 | `read_key_values`, `update_key_values` (주석·순서·줄바꿈·인코딩을 지킨다) |
+| 정지 | `graceful_stop`, `request_console`, `request_terminate`, `stop_timeout` |
+| 내려받기·풀기 | `download`(`checksums=`, 틀리면 `ChecksumMismatch`), `safe_extract`, `progress` |
+| 경로 | `safe_join` (밖으로 나가면 `PathOutside`) |
+| 로그 진단 | `load_diagnose_rules`, `diagnose_lines`, `tail_lines` |
+| 파일 저장 | `atomic_write` |
+| 어느 게임에나 같은 문구 | `common_locales.json`(정지·설치 문구 등, 모듈 locales에 없을 때 쓰인다) |
 
 ## 공통
 
@@ -22,7 +36,7 @@
 
 ## 설정 (앱에서 고친 값 = 서버가 기대하는 값)
 
-- `[[settings.fields]]` 이름 ↔ 게임 파일 키를 **표 하나**로 잇고 `configure`/`import_settings`/`read_properties`가 같이 쓴다.
+- `[[settings.fields]]` 이름 ↔ 게임 파일 키는 각 설정의 **`file_key` 한 곳**에 두고, `configure`/`import_settings`/`read_properties`가 공용 `settings_to_file`·`settings_from_file`로 같이 쓴다. 코드에 따로 표를 두지 않는다.
 - **그 형식의 공식 문법으로 읽고 쓴다.** 예: Java `.properties`는 `\:`·`\=` 이스케이프와 줄 끝 `\` 이어짐이 있다. 단순 `split("=")` 파서는 왕복할 때 값을 망가뜨린다. 인코딩·줄바꿈·키 대소문자·불리언 표기(`true`/`True`/`1`)·숫자 형식·따옴표·목록 구분자는 공식 기본 파일의 표기를 따른다.
 - **인코딩을 가정하지 않는다.** 동봉 기본 파일의 실제 인코딩(`inspect_dist.py`)으로 읽고, 읽은 인코딩·줄바꿈 그대로 다시 쓴다. UTF-8로만 읽으면 레거시 코드페이지 파일(테라리아 Windows `serverconfig.txt`는 cp1252, 주석에 0x92)에서 시작·설정 저장·가져오기가 모두 실패한다. 테스트에는 공식 파일의 원래 바이트를 쓴다.
 - 파일의 다른 키·주석·순서는 그대로 두고 바뀐 키만 고친다. 실행 전용 설정(JVM 인자 등)은 게임 파일에 쓰지 않는다.
@@ -44,7 +58,7 @@
 - 서버 폴더 전체 복사는 원칙적으로 금지. 데이터를 살리는 데 꼭 필요한 최소 구성만 고른다: 월드 세이브, 플레이어 데이터, 권한(op·화이트리스트·밴), 서버 설정 파일, 플러그인·모드 데이터.
 - 빼는 것: 서버 실행 파일·라이브러리(다시 설치 가능), 로그, 캐시, 크래시 덤프, **게임이 스스로 만든 백업 폴더**, 다른 서버 이름의 세이브.
 - 폴더 안에 뺄 것이 섞여 있으면 폴더째 넣지 말고 `[backup] hook = true` + `backup_paths`가 필요한 파일·하위 폴더만 돌려준다(`paths`는 파일도 받는다). 활성 월드 이름처럼 설정에 따라 달라지는 경로도 hook에서 계산한다.
-- 백업 전에 `save_command`로 디스크에 쓰게 한다. 게임에 공식 쓰기 중지·즉시 기록 절차가 있으면 그것이 기준이다. "저장 명령 + 몇 초 대기"로 대신하지 않는다. 데몬이 그 절차를 지원하지 않으면 범용 지점(백업 전·후 명령)을 요청한다.
+- 백업 전에 `save_command`로 디스크에 쓰게 한다. 게임에 공식 쓰기 중지·즉시 기록 절차가 있으면 그것이 기준이다. "저장 명령 + 몇 초 대기"로 대신하지 않는다. 데몬이 지원한다: 자동 저장 멈춤·되돌림은 `[backup] pause_command`·`resume_command`, 저장이 끝났다는 줄은 `save_done_pattern`(실측 원문), 켜진 서버가 잠그는 파일은 `exclude`. 게임이 스스로 만든 백업은 사바쨩 백업에서 빼되, 가져오게 하려면 `snapshots` + `backup_snapshots()`(optional.md §백업).
 - 테스트: 실제와 같은 구조의 가짜 서버 폴더를 만들어 `backup_paths` 결과에 뺄 것이 없고 필요한 것이 다 있는지 본다. 실측 때 백업 zip 크기와 복원 뒤 접속·플레이어 데이터를 확인한다. `trial.py` backup 단계가 백업에 없는 플레이어 데이터를 경고한다(서버가 첫 시작 때 푸는 라이브러리도 잡힐 수 있으니 경로를 보고 판단한다).
 
 ## 정지: 플레이 데이터 안전
@@ -54,6 +68,7 @@
   - **managed**(stdin이 없거나 REST로 정지하는 서버일 때 불림): 저장·종료 요청을 보낸 뒤 바로 `success: true`로 답한다. 서버가 아직 살아 있어도 요청이 접수됐으면 성공이다. 종료 대기와 강제 종료는 데몬이 맡는다. 모듈은 `wait_for_exit`·`force_kill`을 부르지 않는다.
   - **non-managed**(`managed: false`): 정상 종료 요청 → `wait_for_exit`(데몬이 준 `stop_timeout`) → 그래도 안 끝날 때만 `force_kill`. `force: true`이면 바로 강제 종료하되, 게임에 공식 강제 정지 API(예: REST `/stop`)가 있으면 먼저 쓴다.
   - 둘 다 정상 종료를 요청할 길이 하나도 없으면 죽이지 않고 `{"success": false, "error_code": "graceful_stop_unavailable", "message": <locales>}`로 답한다(사용자가 강제 종료를 고르면 데몬이 처리한다). 저장 요청이 실패했으면 삼키지 말고 응답에 싣는다.
+- 이 절차는 공용 `graceful_stop(config, request, i18n, module_dir=)`가 그대로 한다. 모듈은 저장 후 종료를 요청하는 방법(`request_console(config, "<정지 명령>")`, REST, `request_terminate(pid)`)만 넘긴다. 직접 짤 때도 같은 순서를 지킨다.
 - 데몬이 준 `pid`만 다루고 이름으로 프로세스를 찾지 않는다. 프로세스 확인·종료는 공용 `is_process_alive`·`wait_for_exit`·`force_kill`만 쓴다.
 
 ## 파괴 작업: 초기화·삭제
@@ -69,6 +84,7 @@
 
 - 배포물에 여러 OS 폴더가 있으면 **OS 폴더 이름으로** 고른다(`inspect_dist.py`가 OS 폴더를 보여 준다). 실행 파일 이름 일치·경로 길이·첫 항목으로 고르지 않는다. 고른 폴더가 없거나 둘 이상이면 실패한다. 다른 OS 폴더를 풀면 서버가 바로 죽는다(테라리아: Windows에 Linux용 Mono 파일을 풀었다).
 - 기존 설정·월드를 덮지 않는다. 동봉 예시 설정은 없을 때만 푼다.
+- 받기·풀기는 공용 `download`(`checksums=`로 검증, `dest.part`에 받아 성공해야 바꾼다)와 `safe_extract`(모든 항목을 `safe_join`으로 먼저 검사)로 한다.
 - 받은 파일 검증: 공식 체크섬이 있으면 받는 모든 바이너리에 쓴다. 없으면 HTTPS와 고정된 공식 호스트, 압축 무결성(CRC), 기대 실행 파일 존재로 확인하고, 조사 표에 "공식 체크섬 없음"과 근거 URL을 남긴다. 체크섬을 지어내거나 커뮤니티 해시를 쓰지 않는다.
 - 테스트: 실제 배포물과 같은 구조(모든 OS 폴더)의 가짜 압축 파일로, OS마다 그 OS 파일만 풀리는지 본다.
 - 직접 내려받아 설치하면(`download`) `get_installed_version`도 만든다. `server version`과 업데이트 비교가 이 함수를 쓴다. 서버가 버전을 남기는

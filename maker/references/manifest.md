@@ -13,19 +13,20 @@
 
 ## 절마다
 
-- `[config]`: `server_executable`, `default_port`, `stop_command`, `stop_timeout`(실측한 최대 저장 시간보다 넉넉히), `announce_command`.
+- `[config]`: `server_executable`, `default_port`, `stop_command`, `stop_timeout`(실측한 최대 저장 시간보다 넉넉히), `announce_command`. 추방 명령이 있으면 `kick_command`(조작 가능한 사람만 접속, optional.md).
 - `[launch]`: 서버가 로그를 파일에만 쓰면 `log_files`, 콘솔이 tty를 요구하면 `console = "pty"`. 서버가 로그를 줄바꿈 없이 이어 써서 여러 줄이 한 줄로 붙으면 `line_start`에 실측한 줄 머리 정규식을 둔다. 줄 머리에 시각 같은 앞부분이 있으면 그것까지 넣는다(팰월드: `'\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\]'`, `[LOG]`만 쓰면 시각이 앞 줄에 남는다). 빈 글자에 맞는 정규식은 거절된다. 머리 없이 붙는 문구는 나눌 수 없다.
-- `[detection]`: `graceful_exit_patterns`, `crash_artifacts`, `dir_signatures`(기존 서버 가져오기), `cmd_patterns`. 준비 완료·접속·퇴장 패턴은 `[extensions.saba-core]`의 `ready_patterns`·`player_join_patterns`·`player_leave_patterns`·`chat_patterns`(게임 채팅, `name`·`message` 그룹)에 넣는다. 디스코드 → 게임 채팅은 같은 표의 `chat_send = "<함수>"`로, 그 함수는 데몬이 한 줄로 다듬은 `chat_name`·`chat_text`를 받아 게임 채팅으로 알리고 `{"success": true}`를 돌려준다(마인크래프트 모듈과 같은 자리). 하나만 빠지면 그 게임만 접속자·준비가 안 보인다. 돌아가는 OS·CPU는 같은 표의 `platforms`(`windows`·`linux`·`macos`)·`architectures`(`x86_64`·`aarch64`, saba-chan 0.1.12)에 실측한 것만 적는다. 서버 실행 파일이나 설치 도구(SteamCMD는 32비트 x86)가 x86뿐이면 `architectures = ["x86_64"]`로 막는다(에뮬레이션은 하지 않는다).
+- `[detection]`: `graceful_exit_patterns`, `crash_artifacts`, `dir_signatures`(기존 서버 가져오기), `cmd_patterns`. 준비 완료·접속·퇴장 패턴은 `[extensions.saba-core]`의 `ready_patterns`·`player_join_patterns`·`player_leave_patterns`·`chat_patterns`(게임 채팅, `name`·`message` 그룹)에 넣는다. 디스코드 → 게임 채팅은 같은 표의 `chat_send = "<함수>"`로, 그 함수는 데몬이 한 줄로 다듬은 `chat_name`·`chat_text`를 받아 게임 채팅으로 알리고 `{"success": true}`를 돌려준다(마인크래프트 모듈과 같은 자리). 하나만 빠지면 그 게임만 접속자·준비가 안 보인다. 이 표의 키 전부와 게임마다 넣을지 고르는 법은 optional.md. 돌아가는 OS·CPU는 같은 표의 `platforms`(`windows`·`linux`·`macos`)·`architectures`(`x86_64`·`aarch64`, saba-chan 0.1.12)에 실측한 것만 적는다. 서버 실행 파일이나 설치 도구(SteamCMD는 32비트 x86)가 x86뿐이면 `architectures = ["x86_64"]`로 막는다(에뮬레이션은 하지 않는다).
 - 콘솔 패턴은 `probe_server.py`로 얻은 원문으로만 쓴다. 줄 처음과 끝에 묶어 채팅에 같은 문구가 찍혀도 맞지 않게 한다. 줄 앞에 프롬프트가 붙을 수 있으면 `^(?:<프롬프트>)?`로 받는다. 언어 설정이 문구를 번역하면 언어마다 실측한 문구를 모두 넣는다. 영어만 넣으면 다른 언어로 설정한 서버는 준비·정상 종료가 안 보인다.
 - `[install]`: `method`, `app_id`, `requires_extensions`; 익스텐션 방식이면 `[module.dependencies] ext-<id>`도. 같은 값을 lifecycle.py에 다시 적지 않는다.
-- `[[settings.fields]]`: 조사한 설정 전부. `type`은 `text`·`number`·`password`·`boolean`·`select`·`file`만(그 밖은 GUI에 안 보인다). 범위는 `min`/`max`, 선택지는 `options`, 형식은 `format`/`pattern`, 기본값은 게임 기본 설정 파일의 값. 포트는 `port = true`, 실행 인자로 들어가는 값은 `arg`, 서버를 만들 때 고를 값은 `install = true`, 인스턴스별 폴더 기본값은 `{instance_dir}`, 게임 파일에 없는 실행 전용 값은 `group = "saba-chan"`. **경로 조각이 되는 이름**(서버 이름, 월드 이름)은 `pattern`으로 구분자·`..`를 막는다(코드 검증과 둘 다, lessons.md §사고). 데몬이 아는 이름(`rest_port`, `managed_start`, `auto_restart` …)은 02 §1.2 참고. 지금 타입으로 표현할 수 없는 설정(목록, 여러 줄)은 보고하고 범용 타입을 요청한다.
-- `[[commands.fields]]`: 실제 서버의 `help`와 대조한 명령 전부. 문서에만 있고 서버가 모르는 명령은 넣지 않는다. 콘솔이면 `method = "console"` + `console_template`(공식 명령 이름 그대로), REST면 `method = "rest"` + `endpoint_template`, 여러 단계면 `module`(lifecycle `command`). 콘솔에서 필수인 인자는 `required = true`. 서버 폴더에 따라 달라지는 명령은 `[commands] hook = true` + `instance_commands`. 옵션 이름·값을 아무것이나 받는 setter 명령은 `select`로 제한한다.
-- **위험도(`risk`)는 명령마다 스스로 판단해 반드시 적는다**(빠지면 caution이 된다). 판단 근거를 조사 표에 한 줄씩 남긴다.
-  - `safe`: 읽기만 하거나 알림만 보낸다(목록, 정보, 공지, 저장).
-  - `caution`: 플레이어나 월드에 영향을 주지만 되돌릴 수 있다(날씨·시간, 텔레포트, 화이트리스트 추가).
-  - `danger`: 되돌리기 어렵거나 서버·데이터·권한에 크게 영향을 준다(정지, 추방, 밴, 관리자 권한 부여, 아이템·경험치 지급, 월드·플레이어 데이터 삭제, 서버 옵션 변경, 설정 다시 읽기, 대량 소환). 무엇을 하는지 모르는 명령도 `danger`.
+- `[[settings.fields]]`: 조사한 설정 전부. `type`은 스키마 1이면 `text`·`number`·`password`·`boolean`·`select`·`file`만(그 밖은 로드 실패), 목록·여러 줄 값은 스키마 2의 `list`·`multiline`(optional.md §데몬 버전). 게임 파일 키는 `file_key` 한 곳에 두고 공용 `settings_to_file`·`settings_from_file`이 쓴다. 범위는 `min`/`max`, 선택지는 `options`, 형식은 `format`/`pattern`, 기본값은 게임 기본 설정 파일의 값. 포트는 `port = true`, 실행 인자로 들어가는 값은 `arg`, 서버를 만들 때 고를 값은 `install = true`, 인스턴스별 폴더 기본값은 `{instance_dir}`, 게임 파일에 없는 실행 전용 값은 `group = "saba-chan"`. **경로 조각이 되는 이름**(서버 이름, 월드 이름)은 `pattern`으로 구분자·`..`를 막는다(코드 검증과 둘 다, lessons.md §사고). 친구가 밖에서 접속하는 포트는 `public`, 서버를 만들 때 고를 수 있는 값은 `install_options`. 데몬이 아는 이름(`rest_port`, `managed_start`, `auto_restart` …)은 02 §1.2 참고. 스키마 2로도 표현할 수 없는 설정은 보고하고 범용 타입을 요청한다.
+- `[[commands.fields]]`: 실제 서버의 `help`와 대조한 명령 전부. 문서에만 있고 서버가 모르는 명령은 넣지 않는다. 콘솔이면 `method = "console"` + `console_template`(공식 명령 이름 그대로), REST면 `method = "rest"` + `endpoint_template`, 여러 단계면 `module`(lifecycle `command`). 콘솔에서 필수인 인자는 `required = true`. 서버 폴더에 따라 달라지는 명령은 `[commands] hook = true` + `instance_commands`. 옵션 이름·값을 아무것이나 받는 setter 명령은 `select`로 제한한다. 데몬 기능과 같은 일을 하는 명령과 게임에 직접 끄라고 보내는 명령(`stop`·`shutdown`·`quit`·`exit-nosave`)은 `remote = false`로 디스코드 목록에서 뺀다. 콘솔 답 문구는 `reply_pattern`·`[commands] failure_patterns`(optional.md).
+- **위험도(`risk`)는 명령마다 스스로 판단해 반드시 적는다**(빠지면 caution이 된다). 판단 근거를 조사 표에 한 줄씩 남긴다. 위험도는 그 명령을 쓸 수 있는 기본 권한 단계와 실행 전 확인을 정하므로 아래 기준(사용자 지정 2026-11-06)을 그대로 쓴다.
+  - `safe`: 조회 전부, 단순 변경, 영향이 작은 게임 안 변화(목록, 정보, 공지, 저장, 날씨·시간).
+  - `caution`: 위험할 수도 있는 게임 안 명령(난이도, 텔레포트, 아이템·경험치 지급, 무적·투명), PC 자원을 많이 쓰는 명령(청크 생성, 넓은 영역 편집), 개인정보 조회(IP·위치).
+  - `danger`: 특정 유저에게 큰 영향을 주는 게임 안 명령(추방, 밴, 권한·허용 목록 변경), 설정·로그 파일을 직접 바꾸는 명령, 게임에 직접 끄라고 보내는 명령. 무엇을 하는지 모르는 명령도 `danger`.
+  - 서버 시작·정지·재시작·백업은 명령 위험도가 아니라 데몬의 "조작 가능" 명단이 맡는다. 모듈 명령으로 따로 만들지 않는다.
   - 애매하면 높은 쪽을 고른다. `description`도 꼭 쓴다(AI·권한이 읽는다).
-- 읽기 전용 조회는 `[[queries]]`(function 이름), 접속자 수는 `[status] players`(공식 API·명령으로).
+- 읽기 전용 조회는 `[[queries]]`(function 이름), 접속자 수는 `[status] players`(공식 API·명령으로. 1분 갱신은 명령·REST 요청을 보내지 않는다, optional.md).
 - `[backup]`: lifecycle.md §백업.
 - 약관은 `[[agreements]]`(id, https url) + `accept_agreements`. 모듈이 동의를 가정하지 않는다.
 - 추천 설정 묶음은 `[[presets]]`. 비밀번호·경로 설정은 넣지 않는다.

@@ -47,6 +47,7 @@ MANUAL = (
     "Windows PC 격리(AppContainer) 실측을 했다 (trial.py --saba-core <설치된 saba-core>)",
     "위험 패턴 표(maker/references/lessons.md)를 한 줄씩 지웠다",
     "콘솔 하이라이트 규칙을 실측 저장 로그의 줄 원문으로 만들고 테스트했다 (PC: console?spans=1로 확인)",
+    "선택 기능 표(maker/references/optional.md)의 기능마다 넣었거나, 넣지 않은 이유(게임이 지원하지 않음 등)를 조사 표에 적었다",
 )
 
 
@@ -140,7 +141,8 @@ def version_gate(folder, repo, base):
     expected = before or "0.1.0"
     if version != expected:
         where = f"{base}의 {before}" if before else "새 모듈은 0.1.0"
-        return gate("version", "fail", f"버전은 발행 때만 올린다: {where}인데 {version}")
+        hint = f" (로컬 {base}가 오래됐을 수 있다: git fetch origin main 뒤 다시 잰다)" if before else ""
+        return gate("version", "fail", f"버전은 발행 때만 올린다: {where}인데 {version}{hint}")
     return gate("version", "ok", version)
 
 
@@ -255,10 +257,62 @@ def installed_version_gate(folder):
     return gate("installed-version", "fail", "download 설치인데 FUNCTIONS에 get_installed_version이 없다")
 
 
+# 선택 기능 (references/optional.md): 이름, 선언했는지 보는 함수
+OPTIONAL = (
+    ("준비 감지", lambda m, sc: sc.get("ready_patterns")),
+    ("접속·퇴장", lambda m, sc: sc.get("player_join_patterns") and sc.get("player_leave_patterns")),
+    ("게임 채팅 → 디스코드", lambda m, sc: sc.get("chat_patterns")),
+    ("디스코드 → 게임 채팅", lambda m, sc: sc.get("chat_send")),
+    ("조작 가능한 사람만 접속", lambda m, sc: (m.get("config") or {}).get("kick_command")),
+    ("접속자 수", lambda m, sc: (m.get("status") or {}).get("players")),
+    ("켜진 서버 백업 확인", lambda m, sc: (m.get("backup") or {}).get("save_done_pattern") or (m.get("backup") or {}).get("pause_command")),
+    ("게임 자동 백업 가져오기", lambda m, sc: (m.get("backup") or {}).get("snapshots")),
+    ("로그 진단", lambda m, sc: m.get("diagnose")),
+    ("명령 답 문구", lambda m, sc: (m.get("commands") or {}).get("failure_patterns")
+        or any(f.get("reply_pattern") for f in (m.get("commands") or {}).get("fields", []))),
+    ("조회", lambda m, sc: m.get("queries")),
+    ("추천 설정", lambda m, sc: m.get("presets")),
+    ("포트포워딩 확인", lambda m, sc: any(f.get("public") for f in (m.get("settings") or {}).get("fields", []))),
+    ("OS·CPU 선언", lambda m, sc: sc.get("platforms") or sc.get("architectures")),
+    ("진행 줄 접기", lambda m, sc: sc.get("progress_patterns")),
+)
+
+
+def optional_gate(folder):
+    """선택 기능은 넣지 않아도 통과다. 무엇을 넣었는지 보고에 싣고, 데몬이 경고만 남기고 버리는 잘못된 선언은 막는다"""
+    manifest = read_manifest(folder / "module.toml")
+    if manifest is None:
+        return gate("optional", "fail", "module.toml을 읽지 못했다")
+    table = (manifest.get("extensions") or {}).get("saba-core") or {}
+    problems = []
+    for pattern in table.get("chat_patterns") or []:
+        try:
+            groups = set(re.compile(pattern).groupindex)
+        except re.error as e:
+            problems.append(f"chat_patterns 정규식 오류 {pattern!r}: {e}")
+            continue
+        missing = {"name", "message"} - groups
+        if missing:
+            problems.append(f"chat_patterns {pattern!r}에 그룹 {', '.join(sorted(missing))}이 없다")
+    send = table.get("chat_send")
+    if send:
+        try:
+            code = (folder / "lifecycle.py").read_text(encoding="utf-8")
+        except OSError:
+            code = ""
+        if not re.search(rf"""["']{re.escape(send)}["']\s*:""", code):
+            problems.append(f"chat_send {send}가 FUNCTIONS에 없다")
+    have = [name for name, declared in OPTIONAL if declared(manifest, table)]
+    lacking = [name for name, declared in OPTIONAL if not declared(manifest, table)]
+    summary = f"넣음: {', '.join(have) or '없음'} / 안 넣음: {', '.join(lacking) or '없음'}"
+    return gate("optional", "fail" if problems else "ok", "; ".join(problems + [summary]))
+
+
 def static_gates(folder, repo=REPO, base=None):
     folder, repo = pathlib.Path(folder).resolve(), pathlib.Path(repo).resolve()
     return [placeholders_gate(folder), research_gate(folder), locales_gate(folder), tests_gate(folder, repo),
-            version_gate(folder, repo, base), highlight_gate(folder, repo), installed_version_gate(folder)]
+            version_gate(folder, repo, base), highlight_gate(folder, repo), installed_version_gate(folder),
+            optional_gate(folder)]
 
 
 def run(name, command, cwd, env=None):

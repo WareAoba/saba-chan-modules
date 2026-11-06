@@ -418,11 +418,74 @@ def test_check_version_bump_against_the_base(repo):
     assert "no-such-ref" in unknown["version"]["detail"]
 
 
+def test_check_version_failure_tells_how_to_refresh_a_stale_base(repo):
+    """로컬 origin/main이 오래되면 이미 발행된 버전도 '올렸다'로 보인다: 기준을 새로 받으라고 알린다"""
+    folder = finished_module(repo)
+    subprocess.run(["git", "init", "-q", "-b", "main"], cwd=repo, check=True, capture_output=True, stdin=subprocess.DEVNULL)
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True, capture_output=True, stdin=subprocess.DEVNULL)
+    subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "base"], cwd=repo, check=True, capture_output=True, stdin=subprocess.DEVNULL)
+    toml = folder / "module.toml"
+    toml.write_text(toml.read_text(encoding="utf-8").replace('version = "0.1.0"', 'version = "0.1.1"', 1), encoding="utf-8")
+
+    detail = {r["gate"]: r for r in check.static_gates(folder, repo, base="main")}["version"]["detail"]
+
+    assert "git fetch" in detail
+
+
+SABA_CORE_TABLE = "\n[extensions.saba-core]\n"
+
+
+def add_to_manifest(folder, text):
+    path = folder / "module.toml"
+    path.write_text(path.read_text(encoding="utf-8") + text, encoding="utf-8")
+
+
+def test_check_optional_lists_what_the_module_supports(repo):
+    """선택 기능은 넣지 않아도 통과하되, 무엇을 넣고 무엇을 뺐는지 보고에 보인다"""
+    folder = finished_module(repo)
+
+    bare = {r["gate"]: r for r in check.static_gates(folder, repo)}["optional"]
+    assert bare["status"] == "ok"
+    assert "게임 채팅" in bare["detail"]
+
+    add_to_manifest(folder, SABA_CORE_TABLE + "chat_patterns = ['^<(?P<name>\\w+)> (?P<message>.+)$']\n")
+    declared = {r["gate"]: r for r in check.static_gates(folder, repo)}["optional"]
+    assert declared["status"] == "ok"
+    assert declared["detail"].index("게임 채팅") < declared["detail"].index("안 넣음")
+
+
+def test_check_optional_flags_chat_patterns_without_both_groups(repo):
+    """데몬은 name·message 그룹이 둘 다 없는 채팅 패턴을 경고만 남기고 버린다: 조용히 채팅이 안 온다"""
+    folder = finished_module(repo)
+    add_to_manifest(folder, SABA_CORE_TABLE + "chat_patterns = ['^<(?P<name>\\w+)> .+$']\n")
+
+    result = {r["gate"]: r for r in check.static_gates(folder, repo)}["optional"]
+
+    assert result["status"] == "fail"
+    assert "message" in result["detail"]
+
+
+def test_check_optional_flags_chat_send_without_the_function(repo):
+    """chat_send가 FUNCTIONS에 없는 함수를 가리키면 디스코드 → 게임 채팅이 실패한다"""
+    folder = finished_module(repo)
+    add_to_manifest(folder, SABA_CORE_TABLE + 'chat_send = "send_chat"\n')
+
+    result = {r["gate"]: r for r in check.static_gates(folder, repo)}["optional"]
+    assert result["status"] == "fail"
+    assert "send_chat" in result["detail"]
+
+    lifecycle = folder / "lifecycle.py"
+    lifecycle.write_text(lifecycle.read_text(encoding="utf-8").replace(
+        "FUNCTIONS = {", 'def send_chat(config):\n    return {"success": True}\n\n\n'
+        'FUNCTIONS = {\n    "send_chat": send_chat,', 1), encoding="utf-8")
+    assert {r["gate"]: r for r in check.static_gates(folder, repo)}["optional"]["status"] == "ok"
+
+
 def test_check_reads_its_own_version_and_requirement():
     plugin = json.loads((MAKER / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
 
     assert check.maker_version() == plugin["version"]
-    assert check.requirement() == ">=0.1.10"
+    assert check.requirement() == ">=0.1.12-0"
 
 
 @pytest.mark.parametrize("installed, status", [("0.1.10", "ok"), ("0.1.11", "ok"), ("0.2.0", "ok"), ("0.1.9", "fail")])

@@ -1,8 +1,8 @@
 ---
 name: saba-module-maker
-description: 사바쨩(saba-chan)에 새 게임 서버 모듈을 만들거나 기존 모듈에 기능을 더하거나 고칠 때 쓴다. 사용자 설계 원칙과 PR 전 관문(실물 확인, 실제 서버 실행, 포터블 런타임, 격리 실행)을 지키고, 공식 자료와 실측으로 module.toml·lifecycle.py·locales를 계약대로 쓴 뒤 도구로 검사와 실측까지 마친다.
+description: 사바쨩(saba-chan) 게임 서버 모듈(saba-chan-modules의 module.toml·lifecycle.py·locales)을 새로 만들거나, 기능(게임 채팅, 접속자, 백업 등)을 더하거나, 버그를 고칠 때 쓴다. '모듈'이라는 말이 없어도 마인크래프트·테라리아·팰월드·좀보이드 같은 게임 서버의 명령이 안 먹음, 설정 저장 때 파일 깨짐, 백업·초기화 범위, 설치·실행 실패, 새 게임 지원 요청이면 이 스킬을 먼저 연다. 디버깅 스킬과 함께 써도 된다.
 metadata:
-  saba-core: ">=0.1.10"
+  saba-core: ">=0.1.12-0"
   module-schema: "1"
 ---
 
@@ -48,6 +48,7 @@ Windows PC가 없는 환경(클라우드 Linux 등)에서 잴 수 없는 관문�
 | 12 | **위험 패턴 표를 한 줄씩 지웠다.** "해당 없음"도 이유를 적는다 | 직접 확인 | [lessons.md](references/lessons.md) |
 | 13 | **콘솔 하이라이트를 실측 로그로 만들었다.** 실측 뒤 저장 로그를 모아 줄 모양을 분류하고, 그 원문으로 규칙과 테스트를 썼다. 틀의 예시 규칙만 남기지 않는다 | `check.py` highlight | manifest.md §콘솔 하이라이트 |
 | 14 | **설치된 버전을 알린다.** 모듈이 직접 내려받아 설치하면(`download`) `get_installed_version`도 만든다(`server version`, 업데이트 비교). 서버가 버전을 남기는 곳(동봉 파일, 실행 파일)을 실측으로 찾는다 | `check.py` installed-version | lifecycle.md §설치 |
+| 15 | **선택 기능을 골랐다.** 게임 채팅, 접속·퇴장, 조작 가능한 사람만 접속, 켜진 서버 백업 확인 같은 선택 기능마다 게임이 공식으로 지원하면 실측으로 넣고, 넣지 않은 것은 이유를 조사 표에 적었다 | `check.py` optional | [optional.md](references/optional.md) |
 
 Windows에서만 드러나는 위험은 Linux에서 보이지 않는다: 런타임 누락(XNA류), 파이프 입력 무시, 격리 권한, 레거시 인코딩(cp1252),
 Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"으로 보고한다.
@@ -84,13 +85,14 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
    준비 줄, 명령마다의 응답, 정지 뒤 줄과 종료 코드, 생기거나 바뀐 파일이 원문으로 남는다(`probe/probe-output.log`는 원래 바이트).
    "답 없음"이면 파이프 입력을 읽지 않는 서버일 수 있으니 `[launch] console = "pty"`를 검토한다. 약관(EULA)이 있으면 사용자 동의를 먼저 받는다.
 6. **module.toml을 채운다** → [references/manifest.md](references/manifest.md). 선언으로 되는 것은 선언으로.
+   선택 기능은 [references/optional.md](references/optional.md) 표를 보고 게임이 지원하는 것만 실측으로 넣는다(관문 15).
 7. **lifecycle.py를 쓴다** → [references/lifecycle.md](references/lifecycle.md). 함수마다 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다([references/testing.md](references/testing.md)).
 8. **관문을 검사한다.**
    ```
    python maker/check.py <name>
    ```
    사바쨩이 설치돼 있으면 saba-core와 공용 런타임 경로를 앱에서 얻는다. 없거나 다른 판을 쓰려면 `--saba-core <saba-core 실행 파일>`, `--shared-libs <saba-chan/modules>`를 준다.
-   자리표시·조사 표 출처·10개 언어·테스트 등록·버전·하이라이트·설치된 버전, 모듈 테스트, 적합성 키트, `module validate`, `module audit`를 돌려 표로 보고한다.
+   자리표시·조사 표 출처·10개 언어·테스트 등록·버전·하이라이트·설치된 버전·선택 기능, 모듈 테스트, 적합성 키트, `module validate`, `module audit`를 돌려 표로 보고한다.
    실패나 건너뛴 관문(`--saba-core`를 주지 않으면 validate·audit)이 있으면 종료 코드 1이다. 번역하지 않고 en.json 그대로 둔 언어 파일도 실패다.
    "직접 확인" 목록은 에이전트가 스스로 확인하고 결과를 적는다.
 9. **실측한다.** 진짜 데몬과 격리로 설치 → 설정 → 시작 → 명령 → 정지 → 백업 → 초기화를 밟는다.
@@ -110,7 +112,7 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
 | `maker/new_module.py` | `__example` 틀로 새 모듈 뼈대 + `RESEARCH.md` + 10개 언어 + `pytest.ini` 등록 |
 | `maker/inspect_dist.py` | 배포물 항목 전체, OS 폴더, 같은 이름 실행 파일, 설정 파일 원래 바이트(인코딩·줄바꿈·키) |
 | `maker/probe_server.py` | 서버를 파이프로 띄워 준비·명령 응답·정지·생긴 파일을 원문으로 기록 |
-| `maker/check.py` | PR 전 관문 중 기계로 잴 수 있는 것 전부 + 직접 확인 목록, `--trial`이면 실측까지 |
+| `maker/check.py` | PR 전 관문 중 기계로 잴 수 있는 것 전부(선택 기능 보고 포함) + 직접 확인 목록, `--trial`이면 실측까지 |
 | `conformance/trial.py` | 진짜 데몬·러너·격리로 사용자 흐름 전체를 실측 (`conformance/README.md`) |
 
 ## 조사 원칙 (모든 단계에 적용)

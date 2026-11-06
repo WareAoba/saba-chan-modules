@@ -8,8 +8,6 @@
     "cache_dir": { "label": "Data Folder", "description": "Where this server keeps its settings, saves and logs (-cachedir). Empty uses ~/Zomboid" },
     "ram": { "label": "Memory (RAM)", "description": "Maximum memory allocation in GB" },
     "server_name": { "label": "Server Profile Name", "description": "Name of the server profile (determines INI file name)" },
-    "rcon_port": { "label": "RCON Port", "description": "Port for RCON remote console" },
-    "rcon_password": { "label": "RCON Password", "description": "Password for RCON authentication" },
     "admin_password": { "label": "Admin Password", "description": "Default admin account password (set on first launch)" },
     "no_steam": { "label": "No Steam Mode", "description": "Run server without Steam (allows GoG players)" },
     "public_name": { "label": "Server Name", "description": "Name displayed in the server browser" },

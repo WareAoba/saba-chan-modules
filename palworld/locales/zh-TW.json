@@ -7,7 +7,6 @@
     "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },
     "rest_host": { "label": "REST API 主機", "description": "REST API 主機（預設 127.0.0.1）" },
     "rest_port": { "label": "REST API 連接埠", "description": "REST API 連接埠（預設 8212）" },
-    "rest_username": { "label": "REST 使用者名稱", "description": "用於登入 REST API 的使用者名稱" },
     "server_name": { "label": "伺服器名稱", "description": "在伺服器瀏覽器中顯示的名稱" },
     "server_description": { "label": "伺服器描述", "description": "顯示在伺服器瀏覽器中的簡介" },
     "server_password": { "label": "伺服器密碼", "description": "加入伺服器所需密碼" },
@@ -132,8 +131,8 @@
       "description": "向所有玩家傳送訊息",
       "inputs": { "message": { "label": "公告內容", "placeholder": "輸入公告內容" } }
     },
-    "info": { "label": "資訊", "description": "查看伺服器資訊", "output": { "version": "Version", "servername": "Server name", "description": "Description", "worldguid": "World GUID" } },
-    "players": { "label": "玩家列表", "description": "列出目前連線的玩家", "output": { "players": "Players", "name": "Name", "accountName": "Account name", "playerId": "Player ID", "userId": "User ID", "ip": "IP", "ping": "Ping", "location_x": "X", "location_y": "Y", "level": "Level", "building_count": "Buildings" } },
+    "info": { "label": "資訊", "description": "查看伺服器資訊", "output": { "version": "版本", "servername": "伺服器名稱", "description": "描述", "worldguid": "世界 GUID" } },
+    "players": { "label": "玩家列表", "description": "列出目前連線的玩家", "output": { "players": "玩家", "name": "名稱", "accountName": "帳號名稱", "playerId": "玩家 ID", "userId": "使用者 ID", "ip": "IP", "ping": "延遲", "location_x": "X", "location_y": "Y", "level": "等級", "building_count": "建築數" } },
     "save": { "label": "儲存世界", "description": "儲存遊戲世界" },
     "shutdown": {
       "label": "停止",
@@ -155,7 +154,7 @@
       "description": "解除已封鎖玩家",
       "inputs": { "userid": { "label": "玩家（暱稱或 SteamID）", "placeholder": "玩家暱稱或 steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "指標", "description": "檢視伺服器FPS、玩家數量與運行時間", "output": { "serverfps": "Server FPS", "currentplayernum": "Players online", "maxplayernum": "Max players", "serverframetime": "Frame time (ms)", "uptime": "Uptime (s)", "days": "In-game days", "basecampnum": "Base camps" } },
+    "metrics": { "label": "指標", "description": "檢視伺服器FPS、玩家數量與運行時間", "output": { "serverfps": "伺服器 FPS", "currentplayernum": "線上玩家", "maxplayernum": "最大玩家數", "serverframetime": "影格時間（毫秒）", "uptime": "運行時間（秒）", "days": "遊戲內天數", "basecampnum": "據點數" } },
     "settings": { "label": "檢視設定", "description": "檢視目前的伺服器設定" }
   },
   "errors": {

@@ -7,7 +7,6 @@
     "port": { "label": "服务器端口", "description": "游戏服务器端口" },
     "rest_host": { "label": "REST API 主机", "description": "REST API 主机（默认 127.0.0.1）" },
     "rest_port": { "label": "REST API 端口", "description": "REST API 端口（默认 8212）" },
-    "rest_username": { "label": "REST 用户名", "description": "用于登录 REST API 的用户名" },
     "server_name": { "label": "服务器名称", "description": "在服务器浏览器中显示的名称" },
     "server_description": { "label": "服务器描述", "description": "显示在服务器浏览器中的简介" },
     "server_password": { "label": "服务器密码", "description": "加入服务器所需的密码" },
@@ -132,8 +131,8 @@
       "description": "向所有玩家发送消息",
       "inputs": { "message": { "label": "公告内容", "placeholder": "输入公告内容" } }
     },
-    "info": { "label": "信息", "description": "查看服务器信息", "output": { "version": "Version", "servername": "Server name", "description": "Description", "worldguid": "World GUID" } },
-    "players": { "label": "玩家列表", "description": "列出当前连接的玩家", "output": { "players": "Players", "name": "Name", "accountName": "Account name", "playerId": "Player ID", "userId": "User ID", "ip": "IP", "ping": "Ping", "location_x": "X", "location_y": "Y", "level": "Level", "building_count": "Buildings" } },
+    "info": { "label": "信息", "description": "查看服务器信息", "output": { "version": "版本", "servername": "服务器名称", "description": "描述", "worldguid": "世界 GUID" } },
+    "players": { "label": "玩家列表", "description": "列出当前连接的玩家", "output": { "players": "玩家", "name": "名称", "accountName": "账号名", "playerId": "玩家 ID", "userId": "用户 ID", "ip": "IP", "ping": "延迟", "location_x": "X", "location_y": "Y", "level": "等级", "building_count": "建筑数" } },
     "save": { "label": "保存世界", "description": "保存游戏世界" },
     "shutdown": {
       "label": "停止",
@@ -155,7 +154,7 @@
       "description": "解除已封禁玩家",
       "inputs": { "userid": { "label": "玩家（昵称或 SteamID）", "placeholder": "玩家昵称或 steam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "指标", "description": "查看服务器FPS、玩家数量和运行时间", "output": { "serverfps": "Server FPS", "currentplayernum": "Players online", "maxplayernum": "Max players", "serverframetime": "Frame time (ms)", "uptime": "Uptime (s)", "days": "In-game days", "basecampnum": "Base camps" } },
+    "metrics": { "label": "指标", "description": "查看服务器FPS、玩家数量和运行时间", "output": { "serverfps": "服务器 FPS", "currentplayernum": "在线玩家", "maxplayernum": "最大玩家数", "serverframetime": "帧时间（毫秒）", "uptime": "运行时间（秒）", "days": "游戏内天数", "basecampnum": "据点数" } },
     "settings": { "label": "查看设置", "description": "查看当前服务器设置" }
   },
   "errors": {

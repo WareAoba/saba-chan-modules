@@ -7,7 +7,6 @@
     "port": { "label": "Server Port", "description": "Game server port" },
     "rest_host": { "label": "REST API Host", "description": "REST API host (default 127.0.0.1)" },
     "rest_port": { "label": "REST API Port", "description": "REST API port (default 8212)" },
-    "rest_username": { "label": "REST Username", "description": "Username for REST API login" },
     "server_name": { "label": "Server Name", "description": "Name displayed in the server browser" },
     "server_description": { "label": "Server Description", "description": "Description shown in the server browser" },
     "server_password": { "label": "Server Password", "description": "Password required to join the server" },

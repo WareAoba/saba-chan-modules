@@ -20,14 +20,6 @@
       "label": "Serverprofil-Name",
       "description": "Name des Serverprofils (bestimmt INI-Dateiname)"
     },
-    "rcon_port": {
-      "label": "RCON-Port",
-      "description": "Port für RCON-Fernkonsole"
-    },
-    "rcon_password": {
-      "label": "RCON-Passwort",
-      "description": "Passwort für RCON-Authentifizierung"
-    },
     "admin_password": {
       "label": "Admin-Passwort",
       "description": "Standard-Admin-Konto-Passwort (beim ersten Start)"
@@ -89,48 +81,48 @@
       "description": "Semikolon-getrennte Workshop-IDs"
     },
     "public": {
-      "label": "Public Visibility",
-      "description": "Show server in the Steam server browser"
+      "label": "Öffentlich sichtbar",
+      "description": "Server im Steam-Serverbrowser anzeigen"
     },
     "announce_death": {
-      "label": "Announce Death",
-      "description": "Announce when a character dies"
+      "label": "Tod ankündigen",
+      "description": "Ankündigen, wenn ein Charakter stirbt"
     },
     "safety_system": {
       "label": "Sicherheitssystem",
       "description": "Jeder Spieler kann PvP selbst ein- oder ausschalten (PVP muss aktiviert sein)"
     },
     "sleep_allowed": {
-      "label": "Sleep Allowed",
-      "description": "Allow players to sleep"
+      "label": "Schlafen erlaubt",
+      "description": "Spielern das Schlafen erlauben"
     },
     "sleep_needed": {
-      "label": "Sleep Needed",
-      "description": "Players need to sleep when exhausted"
+      "label": "Schlaf nötig",
+      "description": "Erschöpfte Spieler müssen schlafen"
     },
     "save_world_every_minutes": {
-      "label": "Auto-Save Interval",
-      "description": "Auto-save interval in minutes"
+      "label": "Intervall für automatisches Speichern",
+      "description": "Intervall für automatisches Speichern in Minuten"
     },
     "ping_limit": {
       "label": "Ping-Limit",
       "description": "Spieler mit einem Ping über diesem Wert (ms) werden gekickt (100 = deaktiviert)"
     },
     "hours_for_loot_respawn": {
-      "label": "Loot Respawn Hours",
-      "description": "In-game hours before loot respawn"
+      "label": "Stunden bis zum Loot-Respawn",
+      "description": "Spielstunden, bevor Loot neu erscheint"
     },
     "max_items_for_loot_respawn": {
-      "label": "Loot Respawn Threshold",
-      "description": "Max items for loot respawn trigger"
+      "label": "Schwelle für Loot-Respawn",
+      "description": "Maximale Gegenstandsanzahl, bis zu der Loot neu erscheint"
     },
     "no_fire": {
-      "label": "Disable Fire",
-      "description": "Disable all fire except campfires"
+      "label": "Feuer deaktivieren",
+      "description": "Jegliches Feuer außer Lagerfeuern deaktivieren"
     },
     "player_safehouse": {
-      "label": "Player Safehouses",
-      "description": "Allow safehouse claiming"
+      "label": "Spieler-Unterschlüpfe",
+      "description": "Beanspruchen von Unterschlüpfen erlauben"
     },
     "safehouse_allow_trespass": {
       "label": "Safehouse betreten",
@@ -141,20 +133,20 @@
       "description": "Spielern erlauben, die keine Safehouse-Mitglieder sind, das Safehouse zu plündern"
     },
     "safehouse_allow_respawn": {
-      "label": "Safehouse Respawn",
-      "description": "Respawn in safehouse after death"
+      "label": "Respawn im Unterschlupf",
+      "description": "Nach dem Tod im Unterschlupf respawnen"
     },
     "faction": {
-      "label": "Factions",
-      "description": "Allow factions"
+      "label": "Fraktionen",
+      "description": "Fraktionen erlauben"
     },
     "allow_destruction_by_sledgehammer": {
       "label": "Zerstörung mit Vorschlaghammer",
       "description": "Spielern erlauben, Bauwerke mit einem Vorschlaghammer zu zerstören"
     },
     "speed_limit": {
-      "label": "Speed Limit",
-      "description": "Vehicle speed limit"
+      "label": "Geschwindigkeitsbegrenzung",
+      "description": "Geschwindigkeitsbegrenzung für Fahrzeuge"
     },
     "do_lua_checksum": {
       "label": "Lua-Prüfsumme",
@@ -162,23 +154,23 @@
     },
     "steam_vac": {
       "label": "Steam VAC",
-      "description": "Enable Valve Anti-Cheat"
+      "description": "Valve Anti-Cheat aktivieren"
     },
     "voice_enable": {
-      "label": "Voice Chat",
-      "description": "Enable in-game voice chat"
+      "label": "Sprachchat",
+      "description": "Sprachchat im Spiel aktivieren"
     },
     "minutes_per_page": {
       "label": "Minuten pro Seite",
       "description": "Spielminuten, die zum Lesen einer Buchseite nötig sind"
     },
     "spawn_point": {
-      "label": "Spawn Point",
-      "description": "Custom spawn coordinates"
+      "label": "Spawnpunkt",
+      "description": "Eigene Spawn-Koordinaten"
     },
     "max_accounts_per_user": {
-      "label": "Max Accounts Per User",
-      "description": "Account limit per Steam user"
+      "label": "Max. Konten pro Benutzer",
+      "description": "Kontolimit pro Steam-Benutzer"
     },
     "managed_start": {
       "label": "Verwalteter Start (Konsole)",
@@ -514,11 +506,11 @@
       "inputs": {
         "player": {
           "label": "Spielername",
-          "placeholder": "Player username"
+          "placeholder": "Benutzername des Spielers"
         },
         "reason": {
           "label": "Grund",
-          "placeholder": "Optional reason"
+          "placeholder": "Optionaler Grund"
         }
       }
     },
@@ -528,11 +520,11 @@
       "inputs": {
         "player": {
           "label": "Spielername",
-          "placeholder": "Player username"
+          "placeholder": "Benutzername des Spielers"
         },
         "reason": {
           "label": "Grund",
-          "placeholder": "Optional reason"
+          "placeholder": "Optionaler Grund"
         }
       }
     },
@@ -542,7 +534,7 @@
       "inputs": {
         "player": {
           "label": "Spielername",
-          "placeholder": "Player username"
+          "placeholder": "Benutzername des Spielers"
         }
       }
     },
@@ -551,164 +543,164 @@
       "description": "Speichern und sicher herunterfahren"
     },
     "adduser": {
-      "label": "Add User",
-      "description": "Add a new user to the server",
+      "label": "Benutzer hinzufügen",
+      "description": "Einen neuen Benutzer zum Server hinzufügen",
       "inputs": {
         "username": {
-          "label": "Username",
-          "placeholder": "Account username"
+          "label": "Benutzername",
+          "placeholder": "Benutzername des Kontos"
         },
         "password": {
-          "label": "Password",
-          "placeholder": "Account password"
+          "label": "Passwort",
+          "placeholder": "Kontopasswort"
         }
       }
     },
     "setaccesslevel": {
-      "label": "Set Access Level",
-      "description": "Set a player's access level",
+      "label": "Zugriffsstufe festlegen",
+      "description": "Die Zugriffsstufe eines Spielers festlegen",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Spielername",
+          "placeholder": "Benutzername des Spielers"
         },
         "level": {
-          "label": "Access Level"
+          "label": "Zugriffsstufe"
         }
       }
     },
     "teleport": {
-      "label": "Teleport",
+      "label": "Teleportieren",
       "description": "Teleportiert einen Spieler zu einem anderen Spieler",
       "inputs": {
         "player": {
-          "label": "Player",
-          "placeholder": "Player to teleport"
+          "label": "Spieler",
+          "placeholder": "Zu teleportierender Spieler"
         },
         "target": {
-          "label": "Target",
-          "placeholder": "Destination player"
+          "label": "Ziel",
+          "placeholder": "Zielspieler"
         }
       }
     },
     "teleportto": {
-      "label": "Teleport To Coords",
-      "description": "Teleport to specific coordinates",
+      "label": "Zu Koordinaten teleportieren",
+      "description": "Zu bestimmten Koordinaten teleportieren",
       "inputs": {
         "coords": {
-          "label": "Coordinates",
+          "label": "Koordinaten",
           "placeholder": "x,y,z"
         }
       }
     },
     "createhorde": {
-      "label": "Create Horde",
-      "description": "Spawn a zombie horde near a player",
+      "label": "Horde erzeugen",
+      "description": "Eine Zombiehorde in der Nähe eines Spielers erscheinen lassen",
       "inputs": {
         "count": {
-          "label": "Zombie Count"
+          "label": "Anzahl Zombies"
         },
         "player": {
-          "label": "Player (optional)",
-          "placeholder": "Target player"
+          "label": "Spieler (optional)",
+          "placeholder": "Zielspieler"
         }
       }
     },
     "godmod": {
-      "label": "God Mode",
-      "description": "Make a player invincible",
+      "label": "Gottmodus",
+      "description": "Einen Spieler unverwundbar machen",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Spielername",
+          "placeholder": "Benutzername des Spielers"
         },
         "value": {
-          "label": "Enabled"
+          "label": "Aktiviert"
         }
       }
     },
     "invisible": {
-      "label": "Invisible",
-      "description": "Make a player invisible to zombies",
+      "label": "Unsichtbar",
+      "description": "Einen Spieler für Zombies unsichtbar machen",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Spielername",
+          "placeholder": "Benutzername des Spielers"
         },
         "value": {
-          "label": "Enabled"
+          "label": "Aktiviert"
         }
       }
     },
     "startrain": {
       "label": "Regen starten",
-      "description": "Start raining on the server"
+      "description": "Regen auf dem Server starten"
     },
     "stoprain": {
       "label": "Regen stoppen",
-      "description": "Stop raining on the server"
+      "description": "Regen auf dem Server beenden"
     },
     "chopper": {
-      "label": "Helicopter Event",
-      "description": "Trigger a helicopter event"
+      "label": "Hubschrauber-Ereignis",
+      "description": "Ein Hubschrauber-Ereignis auslösen"
     },
     "gunshot": {
-      "label": "Gunshot Sound",
-      "description": "Place a gunshot sound"
+      "label": "Schussgeräusch",
+      "description": "Ein Schussgeräusch erzeugen"
     },
     "additem": {
-      "label": "Give Item",
-      "description": "Give an item to a player",
+      "label": "Gegenstand geben",
+      "description": "Einem Spieler einen Gegenstand geben",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Spielername",
+          "placeholder": "Benutzername des Spielers"
         },
         "item": {
-          "label": "Item ID",
-          "placeholder": "e.g. Base.Axe"
+          "label": "Gegenstands-ID",
+          "placeholder": "z. B. Base.Axe"
         },
         "count": {
-          "label": "Count"
+          "label": "Anzahl"
         }
       }
     },
     "addxp": {
-      "label": "Give XP",
-      "description": "Give experience to a player",
+      "label": "EP geben",
+      "description": "Einem Spieler Erfahrung geben",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Spielername",
+          "placeholder": "Benutzername des Spielers"
         },
         "perk": {
-          "label": "Perk Name",
-          "placeholder": "e.g. Woodwork"
+          "label": "Fertigkeit",
+          "placeholder": "z. B. Woodwork"
         },
         "amount": {
-          "label": "XP Amount"
+          "label": "EP-Menge"
         }
       }
     },
     "showoptions": {
       "label": "Optionen anzeigen",
-      "description": "Display current server settings"
+      "description": "Aktuelle Servereinstellungen anzeigen"
     },
     "reloadoptions": {
-      "label": "Reload Options",
-      "description": "Reload server options from INI"
+      "label": "Optionen neu laden",
+      "description": "Serveroptionen aus der INI neu laden"
     },
     "changeoption": {
-      "label": "Change Option",
-      "description": "Change a server option at runtime",
+      "label": "Option ändern",
+      "description": "Eine Serveroption im laufenden Betrieb ändern",
       "inputs": {
         "option": {
-          "label": "Option Name",
-          "placeholder": "e.g. MaxPlayers"
+          "label": "Optionsname",
+          "placeholder": "z. B. MaxPlayers"
         },
         "value": {
-          "label": "New Value",
-          "placeholder": "New value"
+          "label": "Neuer Wert",
+          "placeholder": "Neuer Wert"
         }
       }
     }
@@ -724,57 +716,57 @@
     "executable_not_found": "Server-Ausführungsdatei nicht gefunden.",
     "java_not_found": "Gebündeltes Java nicht gefunden.",
     "server_not_running": "Server läuft nicht.",
-    "classpath_not_found": "Could not find Java class files (java/*.jar) in the server directory. The installation may be incomplete.",
-    "properties_write_failed": "Failed to write configuration: {{error}}",
-    "server_reset_partial": "Some items could not be deleted: {{errors}}",
+    "classpath_not_found": "Im Serververzeichnis wurden keine Java-Klassendateien (java/*.jar) gefunden. Die Installation ist möglicherweise unvollständig.",
+    "properties_write_failed": "Konfiguration konnte nicht geschrieben werden: {{error}}",
+    "server_reset_partial": "Einige Elemente konnten nicht gelöscht werden: {{errors}}",
     "invalid_server_name": "Dieser Servername kann nicht verwendet werden: {{name}}. Verwende einen Namen ohne Ordnertrennzeichen (/ \\), ':' oder '..', der nicht mit Leerzeichen oder Punkt endet",
     "extension_not_enabled": "Die SteamCMD-Erweiterung ist nicht aktiviert. Aktivieren Sie sie zuerst unter Einstellungen → Erweiterungen.",
     "detect": {
-      "out_of_memory": "Server ran out of memory (OutOfMemoryError)",
-      "port_in_use": "Port {{port}} is already in use by another application",
+      "out_of_memory": "Dem Server ist der Speicher ausgegangen (OutOfMemoryError)",
+      "port_in_use": "Port {{port}} wird bereits von einer anderen Anwendung verwendet",
       "illegal_termination": "Worker-Thread wurde unzulässig beendet (möglicher Konflikt zwischen Build 41 und 42)",
       "permission_denied": "Zugriff verweigert. Auf erforderliche Dateien kann nicht zugegriffen werden",
       "server_crash": "Der Server ist abgestürzt",
-      "mod_error": "A mod error was detected in the server log",
-      "save_status": "Save operation status detected"
+      "mod_error": "Im Serverlog wurde ein Mod-Fehler erkannt",
+      "save_status": "Status eines Speichervorgangs erkannt"
     },
     "solutions": {
       "admin_password_required": "Gib in den Servereinstellungen ein Admin-Passwort ein und starte erneut.",
-      "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
-      "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
+      "no_server_dir": "Lege in den Instanzeinstellungen den Pfad zur Server-Programmdatei (StartServer64.bat) fest oder installiere den Server über SteamCMD.",
+      "executable_not_found": "Lade den Server über SteamCMD (App ID 380870) oder über Steam herunter. Öffne das Installationsverzeichnis und prüfe, ob StartServer64.bat vorhanden ist.",
       "java_not_found": "Der Server sollte ein mitgeliefertes JRE enthalten. Installieren Sie den Server mit SteamCMD neu oder prüfen Sie die Dateiintegrität.",
-      "classpath_not_found": "The java/ directory in the server folder should contain .jar files. Try verifying the installation via SteamCMD.",
-      "out_of_memory": "Increase the RAM allocation in server settings (Memory). Default is 4 GB; try 8 GB or more for larger servers.",
-      "port_in_use": "Port {{port}} is in use. Stop the conflicting application or change the port in settings.",
-      "illegal_termination": "This usually happens when upgrading from Build 41 to 42. Back up your settings and delete the %USERPROFILE%\\Zomboid folder, then restart the server.",
-      "permission_denied": "Run saba-chan as administrator, or change file permissions to allow read/write access to the server and data directories.",
-      "server_crash": "Check the console.txt log for details. Common causes: mod conflicts, corrupted world data, or insufficient memory.",
-      "mod_error": "A mod is causing errors. Try disabling recently added mods or check the Workshop page for compatibility updates.",
+      "classpath_not_found": "Der Ordner java/ im Serververzeichnis sollte .jar-Dateien enthalten. Prüfe die Installation über SteamCMD.",
+      "out_of_memory": "Erhöhe die RAM-Zuweisung in den Servereinstellungen (Speicher). Standard sind 4 GB; versuche 8 GB oder mehr für größere Server.",
+      "port_in_use": "Port {{port}} ist belegt. Beende die konkurrierende Anwendung oder ändere den Port in den Einstellungen.",
+      "illegal_termination": "Das passiert meist beim Upgrade von Build 41 auf 42. Sichere deine Einstellungen, lösche den Ordner %USERPROFILE%\\Zomboid und starte den Server neu.",
+      "permission_denied": "Starte saba-chan als Administrator oder ändere die Dateiberechtigungen, damit Server- und Datenverzeichnisse gelesen und beschrieben werden können.",
+      "server_crash": "Details stehen im Log console.txt. Häufige Ursachen: Mod-Konflikte, beschädigte Weltdaten oder zu wenig Speicher.",
+      "mod_error": "Ein Mod verursacht Fehler. Deaktiviere zuletzt hinzugefügte Mods oder prüfe auf der Workshop-Seite, ob es Kompatibilitätsupdates gibt.",
       "save_status": "Das ist keine Fehlermeldung, sondern ein Hinweis. Wenn das Speichern fehlschlägt, prüfen Sie Speicherplatz und Dateiberechtigungen.",
-      "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
+      "steamcmd_not_found": "Installiere SteamCMD von https://developer.valvesoftware.com/wiki/SteamCMD und stelle sicher, dass es im PATH liegt."
     },
     "command_send_failed": "Befehl konnte nicht gesendet werden: {{error}}",
     "backup_paths_failed": "Der Speicherordner konnte für die Sicherung nicht gelesen werden: {{error}}"
   },
   "messages": {
     "server_reset_complete": "Server-Weltdaten zurückgesetzt",
-    "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",
+    "server_starting_no_response": "Der Prozess läuft, aber der Server antwortet noch nicht auf RCON-Abfragen",
     "properties_updated": "Serverkonfiguration aktualisiert",
     "properties_using_defaults": "Die Konfigurationsdatei existiert nicht. Standardwerte werden angezeigt",
     "no_mappable_settings": "Keine der angegebenen Einstellungen entspricht einer Servereinstellung",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "rcon_disabled_managed": "RCON ist im verwalteten Modus deaktiviert (Steuerung über stdin)",
     "command_sent": "Befehl an die Konsole gesendet: {{command}}",
     "no_log_files": "Keine Protokolldateien gefunden"
   },
   "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}"
+    "connecting": "Verbinde mit {{host}}:{{port}}...",
+    "connected": "Verbunden!",
+    "authentication_failed": "Authentifizierung fehlgeschlagen",
+    "authenticated": "Authentifiziert!",
+    "connection_failed": "Verbindung fehlgeschlagen: {{error}}",
+    "sending_command": "Sende Befehl: {{command}}",
+    "response_received": "Antwort erhalten: {{response}}",
+    "command_failed": "Befehl fehlgeschlagen: {{error}}"
   },
   "reset": {
     "label": "Welt zurücksetzen",

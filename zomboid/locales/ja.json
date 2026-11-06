@@ -20,14 +20,6 @@
       "label": "サーバープロファイル名",
       "description": "サーバープロファイル名（INIファイル名を決定）"
     },
-    "rcon_port": {
-      "label": "RCONポート",
-      "description": "RCONリモートコンソールのポート"
-    },
-    "rcon_password": {
-      "label": "RCONパスワード",
-      "description": "RCON認証パスワード"
-    },
     "admin_password": {
       "label": "管理者パスワード",
       "description": "デフォルト管理者アカウントのパスワード（初回起動時に設定）"
@@ -514,11 +506,11 @@
       "inputs": {
         "player": {
           "label": "プレイヤー名",
-          "placeholder": "Player username"
+          "placeholder": "プレイヤーのユーザー名"
         },
         "reason": {
           "label": "理由",
-          "placeholder": "Optional reason"
+          "placeholder": "理由（任意）"
         }
       }
     },
@@ -528,11 +520,11 @@
       "inputs": {
         "player": {
           "label": "プレイヤー名",
-          "placeholder": "Player username"
+          "placeholder": "プレイヤーのユーザー名"
         },
         "reason": {
           "label": "理由",
-          "placeholder": "Optional reason"
+          "placeholder": "理由（任意）"
         }
       }
     },
@@ -542,7 +534,7 @@
       "inputs": {
         "player": {
           "label": "プレイヤー名",
-          "placeholder": "Player username"
+          "placeholder": "プレイヤーのユーザー名"
         }
       }
     },
@@ -762,7 +754,7 @@
     "properties_using_defaults": "設定ファイルが存在しません。デフォルト値を表示しています",
     "no_mappable_settings": "指定された設定に、サーバー設定と一致するものがありません",
     "server_reset_complete": "サーバーワールドデータがリセットされました",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "rcon_disabled_managed": "管理モードではRCONを無効にしています（stdinで制御）",
     "command_sent": "コンソールにコマンドを送信しました: {{command}}",
     "no_log_files": "ログファイルが見つかりません"
   },

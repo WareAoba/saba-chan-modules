@@ -8,8 +8,6 @@
     "cache_dir": { "label": "데이터 폴더", "description": "이 서버의 설정, 세이브, 로그를 두는 폴더 (-cachedir). 비우면 ~/Zomboid" },
     "ram": { "label": "메모리 (RAM)", "description": "최대 메모리 할당량 (GB 단위)" },
     "server_name": { "label": "서버 프로필 이름", "description": "서버 프로필 이름 (INI 파일 이름 결정)" },
-    "rcon_port": { "label": "RCON 포트", "description": "RCON 원격 콘솔 포트" },
-    "rcon_password": { "label": "RCON 비밀번호", "description": "RCON 인증 비밀번호" },
     "admin_password": { "label": "관리자 비밀번호", "description": "기본 관리자 계정 비밀번호 (첫 실행 시 설정)" },
     "no_steam": { "label": "비스팀 모드", "description": "Steam 없이 서버 실행 (GoG 플레이어 접속 가능)" },
     "public_name": { "label": "서버 이름", "description": "서버 브라우저에 표시되는 이름" },

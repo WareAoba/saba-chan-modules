@@ -587,13 +587,22 @@ def test_backup_paths_fail_when_the_server_folder_cannot_be_read(tmp_path):
     assert result["success"] is False and result.get("message"), result
 
 
-def test_commands_that_change_access_or_grant_things_are_danger():
-    """권한·밴 해제·계정·서버 옵션을 바꾸거나 아이템·경험치·무적을 주는 명령은 danger.
-    caution은 말하는 사바쨩이 확인 없이 실행할 수 있다(L48)"""
+def test_command_risks_follow_user_rule():
+    """위험도 기준(사용자 지정 2026-11-06): 안전 = 조회·단순 변경·영향이 작은 게임 안 변화,
+    주의 = 위험할 수도 있는 게임 안 명령·PC 자원을 많이 쓰는 명령,
+    위험 = 특정 유저에게 큰 영향을 주는 게임 안 명령·설정/로그 파일을 직접 바꾸는 명령.
+    게임에 직접 끄라고 보내는 명령은 사바쨩 [정지]와 같은 일이라 위험으로 두고 디스코드 목록에서 뺀다"""
     with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
-        risks = {c["name"]: c.get("risk") for c in tomllib.load(f)["commands"]["fields"]}
-    for name in ('unbanuser', 'adduser', 'setaccesslevel', 'banuser', 'additem', 'addxp', 'godmod', 'invisible', 'createhorde', 'changeoption', 'reloadoptions'):
-        assert risks[name] == "danger", name
+        fields = {c["name"]: c for c in tomllib.load(f)["commands"]["fields"]}
+    risks = {n: c.get("risk") for n, c in fields.items()}
+    expected = {"safe": ("servermsg", "players", "save", "showoptions", "startrain", "stoprain"),
+                "caution": ("teleport", "teleportto", "chopper", "gunshot", "additem", "addxp", "godmod", "invisible"),
+                "danger": ("kick", "banuser", "unbanuser", "adduser", "setaccesslevel", "createhorde",
+                           "reloadoptions", "changeoption", "quit")}
+    for risk, names in expected.items():
+        for name in names:
+            assert risks[name] == risk, name
+    assert fields["quit"]["remote"] is False
 
 
 def _worlds(home, *names):

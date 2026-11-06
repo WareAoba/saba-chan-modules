@@ -1363,7 +1363,7 @@ inputs = []
 
 [[commands.fields]]
 name = "players"
-risk = "caution"
+risk = "safe"
 label = "Player List"
 description = "List currently connected players"
 method = "rest"
@@ -1406,6 +1406,7 @@ inputs = []
 [[commands.fields]]
 name = "shutdown"
 risk = "danger"
+remote = false  # 게임에 직접 끄라고 보낸다. 디스코드에서는 사바쨩 [정지]를 쓴다
 label = "Stop"
 description = "Shutdown the server (with optional delay)"
 method = "rest"

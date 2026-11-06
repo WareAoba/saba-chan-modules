@@ -52,10 +52,6 @@ def test_world_and_player_impacting_commands_require_admin():
     assert _catalog_risks("multiverse-inventories.json")["mvinv-playerdata-import"] == "danger"
     assert _catalog_risks("multiverse-netherportals.json")["mvnp-link"] == "danger"
     assert _catalog_risks("worldguard.json")["allowfire"] == "danger"
-    module = tomllib.loads((ROOT / "module.toml").read_text(encoding="utf-8"))
-    vanilla = {command["name"]: command["risk"] for command in module["commands"]["fields"]}
-    for name in ("weather", "time", "tp"):
-        assert vanilla[name] == "danger", name
 
 
 def test_player_network_and_location_commands_are_not_public():
@@ -69,11 +65,8 @@ def test_player_network_and_location_commands_are_not_public():
 
     manifest = tomllib.loads((ROOT.parent / "palworld" / "module.toml").read_text(encoding="utf-8-sig"))
     players = next(field for field in manifest["commands"]["fields"] if field["name"] == "players")
-    assert players["risk"] in ("caution", "danger")
-
-    minecraft = tomllib.loads((ROOT / "module.toml").read_text(encoding="utf-8-sig"))
-    teleport = next(field for field in minecraft["commands"]["fields"] if field["name"] == "tp")
-    assert teleport["risk"] == "danger"
+    # 조회라 안전이지만 접속자 IP·계정 ID가 실리므로 디스코드·챗봇에는 내지 않는다
+    assert players["remote"] is False
 
 
 def test_placeholder_expansion_management_requires_admin():

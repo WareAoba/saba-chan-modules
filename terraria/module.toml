@@ -616,7 +616,7 @@ inputs = []
 
 [[commands.fields]]
 name = "password"
-risk = "caution"
+risk = "safe"
 label = "Show Password"
 description = "Print the server password on the server console"
 method = "console"
@@ -626,7 +626,7 @@ remote = false
 
 [[commands.fields]]
 name = "dawn"
-risk = "caution"
+risk = "safe"
 label = "Dawn"
 description = "Set the time to dawn"
 method = "console"
@@ -635,7 +635,7 @@ inputs = []
 
 [[commands.fields]]
 name = "noon"
-risk = "caution"
+risk = "safe"
 label = "Noon"
 description = "Set the time to noon"
 method = "console"
@@ -644,7 +644,7 @@ inputs = []
 
 [[commands.fields]]
 name = "dusk"
-risk = "caution"
+risk = "safe"
 label = "Dusk"
 description = "Set the time to dusk"
 method = "console"
@@ -653,7 +653,7 @@ inputs = []
 
 [[commands.fields]]
 name = "midnight"
-risk = "caution"
+risk = "safe"
 label = "Midnight"
 description = "Set the time to midnight"
 method = "console"
@@ -699,6 +699,7 @@ inputs = [{ name = "player", type = "text", label = "Player Name", required = tr
 [[commands.fields]]
 name = "exit-nosave"
 risk = "danger"
+remote = false  # 게임에 직접 끄라고 보낸다. 디스코드에서는 사바쨩 [정지]를 쓴다
 label = "Stop Without Saving"
 description = "Shut down the server without saving the world"
 method = "console"

@@ -58,11 +58,12 @@ class PalworldRestClient:
         return self._request("GET", "/metrics")
 
 
-def resolve_player_id(instance_id, player_input, config):
+def resolve_player_id(instance_id, player_input, config, allow_partial=True):
     """
     플레이어 입력값을 SteamID로 변환합니다.
     - 이미 SteamID 형식(steam_xxxxxxxxx 또는 숫자만)이면 그대로 반환
     - 닉네임이면 플레이어 목록에서 검색하여 SteamID로 변환
+    - allow_partial=False 면 이름이 정확히 같은 사람만 찾는다 (내보내기·차단이 엉뚱한 사람에게 가지 않게)
     
     Returns:
         tuple: (success, steamid_or_error_message)
@@ -95,6 +96,9 @@ def resolve_player_id(instance_id, player_input, config):
                 print(f"[Palworld] Found player: {matched_name} (char: {player_name}) -> {player_userid}", file=sys.stderr)
                 return (True, player_userid)
             
+        if not allow_partial:
+            return (False, i18n.t("errors.player_not_found"))
+
         # 부분 일치 검색
         partial_matches = []
         for player in players:
@@ -1053,7 +1057,7 @@ def command(config):
         if command_lower in ["kick", "ban", "unban"]:
             player_input = args.get("userid") or args.get("player_id") or args.get("steam_id") or args.get("name") or args.get("player")
             if player_input:
-                success, result = resolve_player_id(instance_id, player_input, config)
+                success, result = resolve_player_id(instance_id, player_input, config, allow_partial=command_lower == "unban")
                 if success:
                     args = dict(args)  # 원본 수정 방지
                     args["userid"] = result

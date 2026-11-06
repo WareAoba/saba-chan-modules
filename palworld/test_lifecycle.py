@@ -1107,3 +1107,34 @@ def test_module_toml_defaults_match_the_games_default_settings_file():
             dict_bad.append((key, want, DEFAULT_PALWORLD_SETTINGS.get(key)))
     assert not toml_bad, f"module.toml 기본값이 공식 기본과 다름: {toml_bad}"
     assert not dict_bad, f"DEFAULT_PALWORLD_SETTINGS가 공식 기본과 다름: {dict_bad}"
+
+
+def test_player_commands_go_through_lifecycle_so_nicknames_resolve():
+    """kick_command 는 접속한 사람의 닉네임을 넘긴다: REST 로 바로 보내면 닉네임이 userid 자리에 들어간다"""
+    with open(MODULE_TOML, "rb") as f:
+        fields = {f["name"]: f for f in tomllib.load(f)["commands"]["fields"]}
+    for name in ("kick", "ban", "unban"):
+        assert fields[name].get("method", "module") == "module", name
+
+
+def test_kick_by_nickname_sends_the_steam_id(monkeypatch):
+    from palworld import lifecycle
+    players = _daemon_rest_response({"players": [{"name": "Bob", "accountName": "bob_acc", "userId": "steam_7"}]}, "GET", "/v1/api/players")
+    kicked = _daemon_rest_response({"ok": True}, "POST", "/v1/api/kick", {"userid": "steam_7", "message": "x"})
+    rest = mock.Mock(side_effect=[players, kicked])
+    monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
+    result = lifecycle.command({"instance_id": "i1", "command": "kick", "args": {"userid": "Bob", "message": "x"}})
+    assert result["success"] is True, result
+    rest.assert_called_with("i1", "POST", "/v1/api/kick", body={"userid": "steam_7", "message": "x"}, timeout=5)
+
+
+@pytest.mark.parametrize("command", ["kick", "ban"])
+def test_kick_and_ban_never_pick_a_partial_name_match(monkeypatch, command):
+    """막 들어온 'Bob' 이 아직 목록에 없을 때 'Bobby' 를 대신 내보내거나 차단하지 않는다"""
+    from palworld import lifecycle
+    players = _daemon_rest_response({"players": [{"name": "Bobby", "userId": "steam_8"}]}, "GET", "/v1/api/players")
+    rest = mock.Mock(return_value=players)
+    monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
+    result = lifecycle.command({"instance_id": "i1", "command": command, "args": {"userid": "Bob"}})
+    assert result["success"] is False
+    assert rest.call_count == 1

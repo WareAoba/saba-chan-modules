@@ -1544,9 +1544,7 @@ name = "kick"
 risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
-method = "rest"
-http_method = "POST"
-endpoint_template = "/v1/api/kick"
+method = "module"
 inputs = [
     { name = "userid", type = "text", label = "Player (Nickname or SteamID)", required = true, placeholder = "Player nickname or steam_xxxxxxxxx" },
     { name = "message", type = "text", label = "Kick Message", required = false, placeholder = "Optional: kick message" }
@@ -1557,9 +1555,7 @@ name = "ban"
 risk = "danger"
 label = "Ban Player"
 description = "Permanently ban a player"
-method = "rest"
-http_method = "POST"
-endpoint_template = "/v1/api/ban"
+method = "module"
 inputs = [
     { name = "userid", type = "text", label = "Player (Nickname or SteamID)", required = true, placeholder = "Player nickname or steam_xxxxxxxxx" },
     { name = "message", type = "text", label = "Ban Message", required = false, placeholder = "Optional: ban message" }
@@ -1570,9 +1566,7 @@ name = "unban"
 risk = "danger"
 label = "Unban Player"
 description = "Unban a banned player"
-method = "rest"
-http_method = "POST"
-endpoint_template = "/v1/api/unban"
+method = "module"
 inputs = [
     { name = "userid", type = "text", label = "Player (Nickname or SteamID)", required = true, placeholder = "Player nickname or steam_xxxxxxxxx" }
 ]

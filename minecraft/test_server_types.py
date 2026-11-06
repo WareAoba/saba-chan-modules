@@ -638,7 +638,8 @@ ACCESS_COMMANDS = {
     "multiverse-core.json": {"mv-config"},
     "multiverse-portals.json": {"mvp-config"},
     "floodgate.json": {"fwhitelist-add", "fwhitelist-remove"},
-    "griefprevention.json": {"setaccruedclaimblocks"},
+    # adjust*는 음수로 빼앗을 수도 있다
+    "griefprevention.json": {"setaccruedclaimblocks", "adjustbonusclaimblocks", "adjustbonusclaimblocksall"},
     "multiverse-inventories.json": {"mvinv-config"},
     "worldguard.json": {"region-setparent", "region-addmember", "region-addowner", "region-removemember",
                         "region-removeowner", "region-flag", "region-define", "region-setpriority"},

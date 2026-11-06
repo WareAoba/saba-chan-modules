@@ -20,14 +20,6 @@
       "label": "配置文件名称",
       "description": "服务器配置文件名称（决定 INI 文件名）"
     },
-    "rcon_port": {
-      "label": "RCON 端口",
-      "description": "远程控制台 RCON 端口"
-    },
-    "rcon_password": {
-      "label": "RCON 密码",
-      "description": "RCON 认证密码"
-    },
     "admin_password": {
       "label": "管理员密码",
       "description": "默认管理员帐户密码（首次启动时设置）"
@@ -514,11 +506,11 @@
       "inputs": {
         "player": {
           "label": "玩家",
-          "placeholder": "Player username"
+          "placeholder": "玩家用户名"
         },
         "reason": {
           "label": "原因",
-          "placeholder": "Optional reason"
+          "placeholder": "选填原因"
         }
       }
     },
@@ -528,11 +520,11 @@
       "inputs": {
         "player": {
           "label": "玩家",
-          "placeholder": "Player username"
+          "placeholder": "玩家用户名"
         },
         "reason": {
           "label": "原因",
-          "placeholder": "Optional reason"
+          "placeholder": "选填原因"
         }
       }
     },
@@ -542,7 +534,7 @@
       "inputs": {
         "player": {
           "label": "玩家",
-          "placeholder": "Player username"
+          "placeholder": "玩家用户名"
         }
       }
     },
@@ -762,7 +754,7 @@
     "properties_using_defaults": "配置文件不存在，显示默认值",
     "no_mappable_settings": "给定的设置中没有与服务器设置对应的项",
     "server_reset_complete": "服务器世界数据已重置",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "rcon_disabled_managed": "托管模式下已禁用 RCON（通过 stdin 控制）",
     "command_sent": "已向控制台发送命令：{{command}}",
     "no_log_files": "未找到日志文件"
   },

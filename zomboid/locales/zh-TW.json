@@ -20,14 +20,6 @@
       "label": "設定檔名稱",
       "description": "伺服器設定檔名稱（決定 INI 檔案名稱）"
     },
-    "rcon_port": {
-      "label": "RCON 連接埠",
-      "description": "遠端控制台 RCON 連接埠"
-    },
-    "rcon_password": {
-      "label": "RCON 密碼",
-      "description": "RCON 認證密碼"
-    },
     "admin_password": {
       "label": "管理員密碼",
       "description": "預設管理員帳戶密碼（首次啟動時設定）"
@@ -762,7 +754,7 @@
     "properties_using_defaults": "設定檔不存在，顯示預設值",
     "no_mappable_settings": "給定的設定中沒有與伺服器設定對應的項目",
     "server_reset_complete": "伺服器世界資料已重置",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "rcon_disabled_managed": "託管模式下已停用 RCON（透過 stdin 控制）",
     "command_sent": "已向主控台傳送指令：{{command}}",
     "no_log_files": "找不到記錄檔"
   },

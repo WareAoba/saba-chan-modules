@@ -7,7 +7,6 @@
     "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },
     "rest_host": { "label": "REST APIホスト", "description": "REST APIホスト（デフォルト127.0.0.1）" },
     "rest_port": { "label": "REST APIポート", "description": "REST APIポート（デフォルト8212）" },
-    "rest_username": { "label": "RESTユーザー名", "description": "REST APIのログインに使うユーザー名" },
     "server_name": { "label": "サーバー名", "description": "サーバーブラウザに表示される名前" },
     "server_description": { "label": "サーバー説明", "description": "サーバーブラウザに表示される紹介文" },
     "server_password": { "label": "サーバーパスワード", "description": "サーバー参加に必要なパスワード" },
@@ -132,8 +131,8 @@
       "description": "全プレイヤーにメッセージを送信",
       "inputs": { "message": { "label": "お知らせメッセージ", "placeholder": "お知らせ内容を入力" } }
     },
-    "info": { "label": "情報", "description": "サーバー情報を表示", "output": { "version": "Version", "servername": "Server name", "description": "Description", "worldguid": "World GUID" } },
-    "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧", "output": { "players": "Players", "name": "Name", "accountName": "Account name", "playerId": "Player ID", "userId": "User ID", "ip": "IP", "ping": "Ping", "location_x": "X", "location_y": "Y", "level": "Level", "building_count": "Buildings" } },
+    "info": { "label": "情報", "description": "サーバー情報を表示", "output": { "version": "バージョン", "servername": "サーバー名", "description": "説明", "worldguid": "ワールドGUID" } },
+    "players": { "label": "プレイヤー一覧", "description": "接続中のプレイヤー一覧", "output": { "players": "プレイヤー", "name": "名前", "accountName": "アカウント名", "playerId": "プレイヤーID", "userId": "ユーザーID", "ip": "IP", "ping": "Ping", "location_x": "X", "location_y": "Y", "level": "レベル", "building_count": "建築物数" } },
     "save": { "label": "ワールド保存", "description": "ゲームワールドを保存" },
     "shutdown": {
       "label": "停止",
@@ -155,7 +154,7 @@
       "description": "BANされたプレイヤーを解除",
       "inputs": { "userid": { "label": "プレイヤー（ニックネームまたはSteamID）", "placeholder": "プレイヤーのニックネームまたはsteam_xxxxxxxxx" } }
     },
-    "metrics": { "label": "指標", "description": "サーバーFPS、プレイヤー数、稼働時間を表示", "output": { "serverfps": "Server FPS", "currentplayernum": "Players online", "maxplayernum": "Max players", "serverframetime": "Frame time (ms)", "uptime": "Uptime (s)", "days": "In-game days", "basecampnum": "Base camps" } },
+    "metrics": { "label": "指標", "description": "サーバーFPS、プレイヤー数、稼働時間を表示", "output": { "serverfps": "サーバーFPS", "currentplayernum": "接続中のプレイヤー", "maxplayernum": "最大プレイヤー数", "serverframetime": "フレーム時間（ms）", "uptime": "稼働時間（秒）", "days": "ゲーム内日数", "basecampnum": "拠点数" } },
     "settings": { "label": "設定を表示", "description": "現在のサーバー設定を表示" }
   },
   "errors": {

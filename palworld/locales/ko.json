@@ -7,7 +7,6 @@
     "port": { "label": "서버 포트", "description": "게임 서버 포트" },
     "rest_host": { "label": "REST API 호스트", "description": "REST API 호스트 (기본 127.0.0.1)" },
     "rest_port": { "label": "REST API 포트", "description": "REST API 포트 (기본 8212)" },
-    "rest_username": { "label": "REST 사용자 이름", "description": "REST API 로그인에 쓰는 사용자 이름" },
     "server_name": { "label": "서버 이름", "description": "서버 브라우저에 표시되는 이름" },
     "server_description": { "label": "서버 설명", "description": "서버 브라우저에 표시되는 소개 문구" },
     "server_password": { "label": "서버 비밀번호", "description": "서버 입장 시 요구되는 비밀번호" },

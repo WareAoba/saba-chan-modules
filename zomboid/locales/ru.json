@@ -20,14 +20,6 @@
       "label": "Имя профиля",
       "description": "Имя профиля сервера"
     },
-    "rcon_port": {
-      "label": "Порт RCON",
-      "description": "Порт удалённой консоли RCON"
-    },
-    "rcon_password": {
-      "label": "Пароль RCON",
-      "description": "Пароль аутентификации RCON"
-    },
     "admin_password": {
       "label": "Пароль администратора",
       "description": "Пароль учётной записи администратора"
@@ -85,52 +77,52 @@
       "description": "ID Workshop, разделённые точкой с запятой"
     },
     "no_steam": {
-      "label": "No Steam Mode",
-      "description": "Run server without Steam (allows GoG players)"
+      "label": "Режим без Steam",
+      "description": "Запускать сервер без Steam (пускает игроков GOG)"
     },
     "public": {
-      "label": "Public Visibility",
-      "description": "Show server in the Steam server browser"
+      "label": "Публичная видимость",
+      "description": "Показывать сервер в браузере серверов Steam"
     },
     "announce_death": {
-      "label": "Announce Death",
-      "description": "Announce when a character dies"
+      "label": "Объявлять о смерти",
+      "description": "Сообщать, когда персонаж умирает"
     },
     "safety_system": {
       "label": "Система защиты",
       "description": "Каждый игрок сам включает или выключает PvP (нужно, чтобы PVP был включён)"
     },
     "sleep_allowed": {
-      "label": "Sleep Allowed",
-      "description": "Allow players to sleep"
+      "label": "Разрешить сон",
+      "description": "Разрешить игрокам спать"
     },
     "sleep_needed": {
-      "label": "Sleep Needed",
-      "description": "Players need to sleep when exhausted"
+      "label": "Нужен сон",
+      "description": "Уставшим игрокам нужно спать"
     },
     "save_world_every_minutes": {
-      "label": "Auto-Save Interval",
-      "description": "Auto-save interval in minutes"
+      "label": "Интервал автосохранения",
+      "description": "Интервал автосохранения в минутах"
     },
     "ping_limit": {
       "label": "Лимит пинга",
       "description": "Игроки с пингом выше этого значения (мс) исключаются (100 = отключено)"
     },
     "hours_for_loot_respawn": {
-      "label": "Loot Respawn Hours",
-      "description": "In-game hours before loot respawn"
+      "label": "Часы до появления лута",
+      "description": "Игровые часы до повторного появления лута"
     },
     "max_items_for_loot_respawn": {
-      "label": "Loot Respawn Threshold",
-      "description": "Max items for loot respawn trigger"
+      "label": "Порог появления лута",
+      "description": "Максимум предметов, при котором срабатывает появление лута"
     },
     "no_fire": {
-      "label": "Disable Fire",
-      "description": "Disable all fire except campfires"
+      "label": "Отключить огонь",
+      "description": "Отключить весь огонь, кроме костров"
     },
     "player_safehouse": {
-      "label": "Player Safehouses",
-      "description": "Allow safehouse claiming"
+      "label": "Убежища игроков",
+      "description": "Разрешить занимать убежища"
     },
     "safehouse_allow_trespass": {
       "label": "Вход в убежище",
@@ -141,20 +133,20 @@
       "description": "Разрешить грабить убежище игрокам, которые не являются его участниками"
     },
     "safehouse_allow_respawn": {
-      "label": "Safehouse Respawn",
-      "description": "Respawn in safehouse after death"
+      "label": "Возрождение в убежище",
+      "description": "Возрождаться в убежище после смерти"
     },
     "faction": {
-      "label": "Factions",
-      "description": "Allow factions"
+      "label": "Фракции",
+      "description": "Разрешить фракции"
     },
     "allow_destruction_by_sledgehammer": {
       "label": "Разрушение кувалдой",
       "description": "Разрешить игрокам разрушать постройки кувалдой"
     },
     "speed_limit": {
-      "label": "Speed Limit",
-      "description": "Vehicle speed limit"
+      "label": "Ограничение скорости",
+      "description": "Ограничение скорости транспорта"
     },
     "do_lua_checksum": {
       "label": "Контрольная сумма Lua",
@@ -162,23 +154,23 @@
     },
     "steam_vac": {
       "label": "Steam VAC",
-      "description": "Enable Valve Anti-Cheat"
+      "description": "Включить Valve Anti-Cheat"
     },
     "voice_enable": {
-      "label": "Voice Chat",
-      "description": "Enable in-game voice chat"
+      "label": "Голосовой чат",
+      "description": "Включить голосовой чат в игре"
     },
     "minutes_per_page": {
       "label": "Минут на страницу",
       "description": "Игровые минуты, нужные для чтения одной страницы книги"
     },
     "spawn_point": {
-      "label": "Spawn Point",
-      "description": "Custom spawn coordinates"
+      "label": "Точка появления",
+      "description": "Свои координаты точки появления"
     },
     "max_accounts_per_user": {
-      "label": "Max Accounts Per User",
-      "description": "Account limit per Steam user"
+      "label": "Макс. аккаунтов на пользователя",
+      "description": "Лимит аккаунтов на пользователя Steam"
     },
     "managed_start": {
       "label": "Управляемый запуск (консоль)",
@@ -514,11 +506,11 @@
       "inputs": {
         "player": {
           "label": "Игрок",
-          "placeholder": "Player username"
+          "placeholder": "Имя пользователя игрока"
         },
         "reason": {
           "label": "Причина",
-          "placeholder": "Optional reason"
+          "placeholder": "Причина (необязательно)"
         }
       }
     },
@@ -528,11 +520,11 @@
       "inputs": {
         "player": {
           "label": "Игрок",
-          "placeholder": "Player username"
+          "placeholder": "Имя пользователя игрока"
         },
         "reason": {
           "label": "Причина",
-          "placeholder": "Optional reason"
+          "placeholder": "Причина (необязательно)"
         }
       }
     },
@@ -542,7 +534,7 @@
       "inputs": {
         "player": {
           "label": "Игрок",
-          "placeholder": "Player username"
+          "placeholder": "Имя пользователя игрока"
         }
       }
     },
@@ -551,164 +543,164 @@
       "description": "Сохранить и безопасно выключить"
     },
     "adduser": {
-      "label": "Add User",
-      "description": "Add a new user to the server",
+      "label": "Добавить пользователя",
+      "description": "Добавить нового пользователя на сервер",
       "inputs": {
         "username": {
-          "label": "Username",
-          "placeholder": "Account username"
+          "label": "Имя пользователя",
+          "placeholder": "Имя пользователя аккаунта"
         },
         "password": {
-          "label": "Password",
-          "placeholder": "Account password"
+          "label": "Пароль",
+          "placeholder": "Пароль аккаунта"
         }
       }
     },
     "setaccesslevel": {
-      "label": "Set Access Level",
-      "description": "Set a player's access level",
+      "label": "Задать уровень доступа",
+      "description": "Задать уровень доступа игрока",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Имя игрока",
+          "placeholder": "Имя пользователя игрока"
         },
         "level": {
-          "label": "Access Level"
+          "label": "Уровень доступа"
         }
       }
     },
     "teleport": {
-      "label": "Teleport",
+      "label": "Телепорт",
       "description": "Телепортирует игрока к другому игроку",
       "inputs": {
         "player": {
-          "label": "Player",
-          "placeholder": "Player to teleport"
+          "label": "Игрок",
+          "placeholder": "Кого телепортировать"
         },
         "target": {
-          "label": "Target",
-          "placeholder": "Destination player"
+          "label": "Цель",
+          "placeholder": "Игрок-цель"
         }
       }
     },
     "teleportto": {
-      "label": "Teleport To Coords",
-      "description": "Teleport to specific coordinates",
+      "label": "Телепорт по координатам",
+      "description": "Телепортироваться в заданные координаты",
       "inputs": {
         "coords": {
-          "label": "Coordinates",
+          "label": "Координаты",
           "placeholder": "x,y,z"
         }
       }
     },
     "createhorde": {
-      "label": "Create Horde",
-      "description": "Spawn a zombie horde near a player",
+      "label": "Создать орду",
+      "description": "Создать орду зомби рядом с игроком",
       "inputs": {
         "count": {
-          "label": "Zombie Count"
+          "label": "Количество зомби"
         },
         "player": {
-          "label": "Player (optional)",
-          "placeholder": "Target player"
+          "label": "Игрок (необязательно)",
+          "placeholder": "Целевой игрок"
         }
       }
     },
     "godmod": {
-      "label": "God Mode",
-      "description": "Make a player invincible",
+      "label": "Режим бога",
+      "description": "Сделать игрока неуязвимым",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Имя игрока",
+          "placeholder": "Имя пользователя игрока"
         },
         "value": {
-          "label": "Enabled"
+          "label": "Включено"
         }
       }
     },
     "invisible": {
-      "label": "Invisible",
-      "description": "Make a player invisible to zombies",
+      "label": "Невидимость",
+      "description": "Сделать игрока невидимым для зомби",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Имя игрока",
+          "placeholder": "Имя пользователя игрока"
         },
         "value": {
-          "label": "Enabled"
+          "label": "Включено"
         }
       }
     },
     "startrain": {
       "label": "Включить дождь",
-      "description": "Start raining on the server"
+      "description": "Включить дождь на сервере"
     },
     "stoprain": {
       "label": "Выключить дождь",
-      "description": "Stop raining on the server"
+      "description": "Остановить дождь на сервере"
     },
     "chopper": {
-      "label": "Helicopter Event",
-      "description": "Trigger a helicopter event"
+      "label": "Событие с вертолётом",
+      "description": "Запустить событие с вертолётом"
     },
     "gunshot": {
-      "label": "Gunshot Sound",
-      "description": "Place a gunshot sound"
+      "label": "Звук выстрела",
+      "description": "Создать звук выстрела"
     },
     "additem": {
-      "label": "Give Item",
-      "description": "Give an item to a player",
+      "label": "Выдать предмет",
+      "description": "Выдать игроку предмет",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Имя игрока",
+          "placeholder": "Имя пользователя игрока"
         },
         "item": {
-          "label": "Item ID",
-          "placeholder": "e.g. Base.Axe"
+          "label": "ID предмета",
+          "placeholder": "напр. Base.Axe"
         },
         "count": {
-          "label": "Count"
+          "label": "Количество"
         }
       }
     },
     "addxp": {
-      "label": "Give XP",
-      "description": "Give experience to a player",
+      "label": "Выдать опыт",
+      "description": "Выдать игроку опыт",
       "inputs": {
         "player": {
-          "label": "Player Name",
-          "placeholder": "Player username"
+          "label": "Имя игрока",
+          "placeholder": "Имя пользователя игрока"
         },
         "perk": {
-          "label": "Perk Name",
-          "placeholder": "e.g. Woodwork"
+          "label": "Название навыка",
+          "placeholder": "напр. Woodwork"
         },
         "amount": {
-          "label": "XP Amount"
+          "label": "Количество опыта"
         }
       }
     },
     "showoptions": {
       "label": "Показать параметры",
-      "description": "Display current server settings"
+      "description": "Показать текущие настройки сервера"
     },
     "reloadoptions": {
-      "label": "Reload Options",
-      "description": "Reload server options from INI"
+      "label": "Перезагрузить параметры",
+      "description": "Перезагрузить параметры сервера из INI"
     },
     "changeoption": {
-      "label": "Change Option",
-      "description": "Change a server option at runtime",
+      "label": "Изменить параметр",
+      "description": "Изменить параметр сервера во время работы",
       "inputs": {
         "option": {
-          "label": "Option Name",
-          "placeholder": "e.g. MaxPlayers"
+          "label": "Имя параметра",
+          "placeholder": "напр. MaxPlayers"
         },
         "value": {
-          "label": "New Value",
-          "placeholder": "New value"
+          "label": "Новое значение",
+          "placeholder": "Новое значение"
         }
       }
     }
@@ -724,57 +716,57 @@
     "executable_not_found": "Исполняемый файл сервера не найден.",
     "java_not_found": "Встроенная Java не найдена.",
     "server_not_running": "Сервер не запущен.",
-    "classpath_not_found": "Could not find Java class files (java/*.jar) in the server directory. The installation may be incomplete.",
-    "properties_write_failed": "Failed to write configuration: {{error}}",
-    "server_reset_partial": "Some items could not be deleted: {{errors}}",
+    "classpath_not_found": "В папке сервера не найдены файлы классов Java (java/*.jar). Возможно, установка не завершена.",
+    "properties_write_failed": "Не удалось записать конфигурацию: {{error}}",
+    "server_reset_partial": "Некоторые элементы не удалось удалить: {{errors}}",
     "invalid_server_name": "Это имя сервера нельзя использовать: {{name}}. Укажите имя без разделителей папок (/ \\), ':' и '..', не оканчивающееся пробелом или точкой",
     "extension_not_enabled": "Расширение SteamCMD не включено. Сначала включите его в разделе Настройки → Расширения.",
     "detect": {
-      "out_of_memory": "Server ran out of memory (OutOfMemoryError)",
-      "port_in_use": "Port {{port}} is already in use by another application",
+      "out_of_memory": "Серверу не хватило памяти (OutOfMemoryError)",
+      "port_in_use": "Порт {{port}} уже занят другим приложением",
       "illegal_termination": "Рабочий поток завершился аварийно (возможен конфликт Build 41 и 42)",
       "permission_denied": "Доступ запрещён. Нет доступа к нужным файлам",
       "server_crash": "Сервер аварийно завершил работу",
-      "mod_error": "A mod error was detected in the server log",
-      "save_status": "Save operation status detected"
+      "mod_error": "В журнале сервера обнаружена ошибка мода",
+      "save_status": "Обнаружено состояние операции сохранения"
     },
     "solutions": {
       "admin_password_required": "Укажите пароль администратора в настройках сервера и запустите снова.",
-      "no_server_dir": "Set the path to your server executable (StartServer64.bat) in instance settings, or install the server via SteamCMD.",
-      "executable_not_found": "Download the server via SteamCMD (App ID 380870) or through Steam. Navigate to the install directory and verify StartServer64.bat exists.",
+      "no_server_dir": "Укажите путь к исполняемому файлу сервера (StartServer64.bat) в настройках экземпляра или установите сервер через SteamCMD.",
+      "executable_not_found": "Скачайте сервер через SteamCMD (App ID 380870) или Steam. Откройте папку установки и проверьте, что там есть StartServer64.bat.",
       "java_not_found": "В составе сервера должна быть среда JRE. Переустановите сервер через SteamCMD или проверьте целостность файлов.",
-      "classpath_not_found": "The java/ directory in the server folder should contain .jar files. Try verifying the installation via SteamCMD.",
-      "out_of_memory": "Increase the RAM allocation in server settings (Memory). Default is 4 GB; try 8 GB or more for larger servers.",
-      "port_in_use": "Port {{port}} is in use. Stop the conflicting application or change the port in settings.",
-      "illegal_termination": "This usually happens when upgrading from Build 41 to 42. Back up your settings and delete the %USERPROFILE%\\Zomboid folder, then restart the server.",
-      "permission_denied": "Run saba-chan as administrator, or change file permissions to allow read/write access to the server and data directories.",
-      "server_crash": "Check the console.txt log for details. Common causes: mod conflicts, corrupted world data, or insufficient memory.",
-      "mod_error": "A mod is causing errors. Try disabling recently added mods or check the Workshop page for compatibility updates.",
+      "classpath_not_found": "Папка java/ в каталоге сервера должна содержать файлы .jar. Попробуйте проверить установку через SteamCMD.",
+      "out_of_memory": "Увеличьте объём RAM в настройках сервера (Память). По умолчанию 4 ГБ; для больших серверов попробуйте 8 ГБ и больше.",
+      "port_in_use": "Порт {{port}} занят. Закройте конфликтующее приложение или смените порт в настройках.",
+      "illegal_termination": "Обычно это случается при переходе с Build 41 на 42. Сохраните настройки, удалите папку %USERPROFILE%\\Zomboid и перезапустите сервер.",
+      "permission_denied": "Запустите saba-chan от имени администратора или измените права, чтобы разрешить чтение и запись в папки сервера и данных.",
+      "server_crash": "Подробности смотрите в журнале console.txt. Частые причины: конфликты модов, повреждённые данные мира или нехватка памяти.",
+      "mod_error": "Мод вызывает ошибки. Отключите недавно добавленные моды или поищите обновления совместимости на странице Мастерской.",
       "save_status": "Это не ошибка, а справочное сообщение. Если сохранение не удаётся, проверьте место на диске и права доступа к файлам.",
-      "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
+      "steamcmd_not_found": "Установите SteamCMD с https://developer.valvesoftware.com/wiki/SteamCMD и убедитесь, что он есть в PATH."
     },
     "command_send_failed": "Не удалось отправить команду: {{error}}",
     "backup_paths_failed": "Не удалось прочитать папку сохранений для резервной копии: {{error}}"
   },
   "messages": {
     "server_reset_complete": "Данные мира сервера сброшены",
-    "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",
+    "server_starting_no_response": "Процесс запущен, но сервер ещё не отвечает на запросы RCON",
     "properties_updated": "Конфигурация сервера обновлена",
     "properties_using_defaults": "Файл конфигурации не существует. Показаны значения по умолчанию",
     "no_mappable_settings": "Ни одна из указанных настроек не соответствует настройкам сервера",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "rcon_disabled_managed": "В управляемом режиме RCON отключён (управление через stdin)",
     "command_sent": "Команда отправлена в консоль: {{command}}",
     "no_log_files": "Файлы журнала не найдены"
   },
   "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}"
+    "connecting": "Подключение к {{host}}:{{port}}...",
+    "connected": "Подключено!",
+    "authentication_failed": "Ошибка аутентификации",
+    "authenticated": "Аутентификация пройдена!",
+    "connection_failed": "Ошибка подключения: {{error}}",
+    "sending_command": "Отправка команды: {{command}}",
+    "response_received": "Получен ответ: {{response}}",
+    "command_failed": "Ошибка команды: {{error}}"
   },
   "reset": {
     "label": "Сброс мира",

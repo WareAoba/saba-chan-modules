@@ -8,7 +8,8 @@
 4. 부르면 안전한 함수들을 빈 작업 폴더에서 불러, 제한 시간 안에 종료 코드 0으로 끝나고
    stdout 마지막 줄이 JSON 객체이며, stderr의 `PROGRESS:` 줄이 JSON인지
 5. 예약 함수 `functions`가 FUNCTIONS 표의 이름을 돌려준다
-6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일의 키가 en과 같다
+6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일의 키가 en과 같다.
+   en이 아닌 언어 파일에 en과 같은 문구(번역하지 않고 남긴 영어)가 많지 않다
 7. 명령마다 `risk`와 `description`이 있다
 8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다
 9. 콘솔 없는 서버의 일반 정지는 저장 후 종료를 요청하거나, 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 알린다
@@ -18,6 +19,7 @@ import ast
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 import threading
@@ -881,6 +883,72 @@ def test_translation_keys(module, shared_libs):
         if en - keys:
             # 빠진 키는 그 언어에서 영어로 보인다 (사용자 문구는 10개 언어)
             problems.append(f"{f.name}: 번역 안 된 키 {sorted(en - keys)[:5]}")
+    assert not problems, "\n".join(problems)
+
+
+# en과 같아도 되는 문구: 고유명사·상표·약어·게임 안 이름, 언어 자기 이름
+SAME_AS_EN_OK = {
+    "MOTD", "PVP", "PvP", "IP", "JSON", "Deflate", "LZ4", "X", "Y", "x,y,z", "Steam VAC", "UPnP",
+    "Vanilla", "CraftBukkit", "Fabric", "Folia", "Forge", "NeoForge", "Paper", "Pufferfish", "Purpur", "Quilt", "Spigot",
+    "For the Worthy", "The Constant", "Remix", "Zenith",
+    "Deutsch", "English", "Español", "Français", "Italiano", "Polski", "Português (Brasil)", "Русский",
+    "日本語", "한국어", "简体中文", "繁體中文",
+}
+# 그 언어에서도 철자가 같은 낱말
+SAME_AS_EN_OK_BY_LANG = {
+    "de": {"Whitelist", "Hardcore", "Debug", "Normal", "Port", "Version", "Name", "Text", "Region", "Mods", "Ping"},
+    "es": {"Whitelist", "Hardcore", "Normal", "Casual", "Invisible", "Mods", "Ping"},
+    "fr": {"Message", "Destination", "Action", "Arguments", "Description", "Hardcore", "Normal", "Port", "Version",
+           "Expert", "Invisible", "Factions", "Mods", "Ping"},
+    "pt-BR": {"Whitelist", "Hardcore", "Normal", "Casual", "Expert", "Mods", "Ping"},
+    "ja": {"Ping"},
+}
+SAME_AS_EN_MAX_RATIO = 0.01
+
+
+def flat_strings(obj, prefix=""):
+    out = {}
+    for k, v in obj.items():
+        if isinstance(v, dict):
+            out.update(flat_strings(v, f"{prefix}{k}."))
+        elif isinstance(v, str):
+            out[prefix + k] = v
+    return out
+
+
+def untranslated(en, other, lang):
+    """en과 문자가 같은데 허용 목록에 없는 키. 글자 없는 값({{path}}, 숫자)과 module.display_name은 뺀다"""
+    ok = SAME_AS_EN_OK | SAME_AS_EN_OK_BY_LANG.get(lang, set())
+    out = []
+    for key, value in other.items():
+        if key == "module.display_name" or en.get(key) != value or value in ok:
+            continue
+        if not any(c.isalpha() for c in re.sub(r"\{\{.*?\}\}", "", value)):
+            continue
+        out.append(key)
+    return sorted(out)
+
+
+def test_untranslated_detection():
+    en = {"a": "Server Name", "b": "MOTD", "c": "{{path}}", "module.display_name": "Game", "d": "Port"}
+    assert untranslated(en, dict(en), "ja") == ["a", "d"]
+    assert untranslated(en, dict(en), "de") == ["a"]
+
+
+def test_translations_not_left_in_english(module):
+    """en이 아닌 언어에서 en과 같은 문구가 많으면 번역이 빠진 것이다 (사용자에게 영어로 보인다)"""
+    locales = module.dir / "locales"
+    if not (locales / "en.json").is_file():
+        pytest.skip("locales 없음")
+    en = flat_strings(json.loads((locales / "en.json").read_text(encoding="utf-8-sig")))
+    problems = []
+    for f in sorted(locales.glob("*.json")):
+        if f.stem == "en":
+            continue
+        other = flat_strings(json.loads(f.read_text(encoding="utf-8-sig")))
+        left = untranslated(en, other, f.stem)
+        if other and len(left) / len(other) > SAME_AS_EN_MAX_RATIO:
+            problems.append(f"{f.name}: en과 같은 문구 {len(left)}/{len(other)}개 {left[:5]}")
     assert not problems, "\n".join(problems)
 
 

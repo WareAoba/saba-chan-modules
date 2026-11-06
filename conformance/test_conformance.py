@@ -257,6 +257,35 @@ def test_commands_declare_risk_and_description(module):
     assert not missing, "명령에 빠진 선언:\n" + "\n".join(missing)
 
 
+def kick_problems(manifest):
+    """`[config] kick_command`: 그 이름의 명령이 있고 첫 입력이 닉네임을 받는다. 데몬이 접속 줄의 이름을 넣으므로
+    접속 줄(`player_join_patterns`)도 있어야 한다 (조작 가능한 사람만 접속, saba-chan 0.1.12)"""
+    name = (manifest.get("config") or {}).get("kick_command")
+    if not name:
+        return []
+    command = next((c for c in (manifest.get("commands") or {}).get("fields", []) if c.get("name") == name), None)
+    if command is None:
+        return [f"kick_command {name}: 그런 명령이 없다"]
+    problems = [] if command.get("inputs") else [f"kick_command {name}: 닉네임을 받을 입력이 없다"]
+    if not ((manifest.get("extensions") or {}).get("saba-core") or {}).get("player_join_patterns"):
+        problems.append(f"kick_command {name}: player_join_patterns가 없어 접속을 알 수 없다")
+    return problems
+
+
+def test_kick_command_takes_the_joining_nickname(module):
+    problems = kick_problems(module.manifest)
+    assert not problems, "\n".join(problems)
+
+
+def test_kit_catches_a_kick_command_that_cannot_kick():
+    joins = {"extensions": {"saba-core": {"player_join_patterns": ["(?P<name>.+) joined"]}}}
+    kick = {"name": "kick", "inputs": [{"name": "player"}]}
+    assert kick_problems({"config": {"kick_command": "kick"}, "commands": {"fields": [kick]}, **joins}) == []
+    assert kick_problems({"config": {"kick_command": "boot"}, "commands": {"fields": [kick]}, **joins}) == ["kick_command boot: 그런 명령이 없다"]
+    assert kick_problems({"config": {"kick_command": "kick"}, "commands": {"fields": [{"name": "kick"}]}, **joins}) == ["kick_command kick: 닉네임을 받을 입력이 없다"]
+    assert kick_problems({"config": {"kick_command": "kick"}, "commands": {"fields": [kick]}}) == ["kick_command kick: player_join_patterns가 없어 접속을 알 수 없다"]
+
+
 def reply_problems(manifest, locales):
     """`reply_pattern`이 있는 명령: 모든 언어 파일에 `commands.<이름>.done`이 있고, 그 `{{자리}}`가 패턴의 이름 있는 그룹이다"""
     import re

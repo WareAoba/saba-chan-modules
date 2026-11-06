@@ -18,7 +18,8 @@
     },
     "lobby": {
       "label": "Sala de Steam",
-      "description": "Quién puede unirse por Steam (-lobby, requiere Steam)"
+      "description": "Quién puede unirse por Steam (-lobby, requiere Steam)",
+      "options": { "friends": "Amigos de Steam", "private": "Privado (solo invitación)" }
     },
     "disable_announcement_box": {
       "label": "Desactivar caja de anuncios",
@@ -43,7 +44,8 @@
     },
     "difficulty": {
       "label": "Dificultad del mundo nuevo",
-      "description": "0 Clásico, 1 Experto, 2 Maestro, 3 Viaje"
+      "description": "0 Clásico, 1 Experto, 2 Maestro, 3 Viaje",
+      "options": { "0": "Clásico", "1": "Experto", "2": "Maestro", "3": "Viaje" }
     },
     "seed": {
       "label": "Semilla del mundo nuevo",
@@ -71,7 +73,8 @@
     },
     "language": {
       "label": "Idioma del servidor",
-      "description": "Idioma de los mensajes del servidor"
+      "description": "Idioma de los mensajes del servidor",
+      "options": { "en-US": "English", "de-DE": "Deutsch", "it-IT": "Italiano", "fr-FR": "Français", "es-ES": "Español", "ru-RU": "Русский", "zh-Hans": "简体中文", "pt-BR": "Português (Brasil)", "pl-PL": "Polski", "ja-JP": "日本語", "ko-KR": "한국어", "zh-Hant": "繁體中文" }
     },
     "upnp": {
       "label": "Reenvío de puertos UPnP",
@@ -87,67 +90,83 @@
     },
     "priority": {
       "label": "Prioridad del proceso",
-      "description": "0 Tiempo real, 1 Alta, 2 Superior a normal, 3 Normal, 4 Inferior a normal, 5 Baja"
+      "description": "0 Tiempo real, 1 Alta, 2 Superior a normal, 3 Normal, 4 Inferior a normal, 5 Baja",
+      "options": { "0": "Tiempo real", "1": "Alta", "2": "Superior a normal", "3": "Normal", "4": "Inferior a normal", "5": "Baja" }
     },
     "journeypermission_time_setfrozen": {
       "label": "Viaje: Congelar tiempo",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_time_setdawn": {
       "label": "Viaje: Amanecer",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_time_setnoon": {
       "label": "Viaje: Mediodía",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_time_setdusk": {
       "label": "Viaje: Atardecer",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_time_setmidnight": {
       "label": "Viaje: Medianoche",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_godmode": {
       "label": "Viaje: Modo dios",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_wind_setstrength": {
       "label": "Viaje: Fuerza del viento",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_rain_setstrength": {
       "label": "Viaje: Fuerza de la lluvia",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_time_setspeed": {
       "label": "Viaje: Velocidad del tiempo",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_rain_setfrozen": {
       "label": "Viaje: Congelar lluvia",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_wind_setfrozen": {
       "label": "Viaje: Congelar viento",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_increaseplacementrange": {
       "label": "Viaje: Alcance de colocación",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_setdifficulty": {
       "label": "Viaje: Dificultad",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_biomespread_setfrozen": {
       "label": "Viaje: Congelar propagación de biomas",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "journeypermission_setspawnrate": {
       "label": "Viaje: Tasa de aparición",
-      "description": "0 bloqueado, 1 solo anfitrión, 2 todos"
+      "description": "0 bloqueado, 1 solo anfitrión, 2 todos",
+      "options": { "0": "Bloqueado", "1": "Solo anfitrión", "2": "Todos" }
     },
     "seed_celebration": {
       "label": "Semilla de celebración",

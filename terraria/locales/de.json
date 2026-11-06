@@ -18,7 +18,8 @@
     },
     "lobby": {
       "label": "Steam-Lobby",
-      "description": "Wer über Steam beitreten darf (-lobby, benötigt Steam-Unterstützung)"
+      "description": "Wer über Steam beitreten darf (-lobby, benötigt Steam-Unterstützung)",
+      "options": { "friends": "Steam-Freunde", "private": "Privat (nur auf Einladung)" }
     },
     "disable_announcement_box": {
       "label": "Ankündigungsbox deaktivieren",
@@ -43,7 +44,8 @@
     },
     "difficulty": {
       "label": "Schwierigkeit neuer Welt",
-      "description": "0 Klassisch, 1 Experte, 2 Meister, 3 Reise"
+      "description": "0 Klassisch, 1 Experte, 2 Meister, 3 Reise",
+      "options": { "0": "Klassisch", "1": "Experte", "2": "Meister", "3": "Reise" }
     },
     "seed": {
       "label": "Seed neuer Welt",
@@ -71,7 +73,8 @@
     },
     "language": {
       "label": "Serversprache",
-      "description": "Sprache der Servermeldungen"
+      "description": "Sprache der Servermeldungen",
+      "options": { "en-US": "English", "de-DE": "Deutsch", "it-IT": "Italiano", "fr-FR": "Français", "es-ES": "Español", "ru-RU": "Русский", "zh-Hans": "简体中文", "pt-BR": "Português (Brasil)", "pl-PL": "Polski", "ja-JP": "日本語", "ko-KR": "한국어", "zh-Hant": "繁體中文" }
     },
     "upnp": {
       "label": "UPnP-Portweiterleitung",
@@ -87,67 +90,83 @@
     },
     "priority": {
       "label": "Prozesspriorität",
-      "description": "0 Echtzeit, 1 Hoch, 2 Höher als normal, 3 Normal, 4 Niedriger als normal, 5 Leerlauf"
+      "description": "0 Echtzeit, 1 Hoch, 2 Höher als normal, 3 Normal, 4 Niedriger als normal, 5 Leerlauf",
+      "options": { "0": "Echtzeit", "1": "Hoch", "2": "Höher als normal", "3": "Normal", "4": "Niedriger als normal", "5": "Leerlauf" }
     },
     "journeypermission_time_setfrozen": {
       "label": "Reise: Zeit einfrieren",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_time_setdawn": {
       "label": "Reise: Morgengrauen",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_time_setnoon": {
       "label": "Reise: Mittag",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_time_setdusk": {
       "label": "Reise: Abenddämmerung",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_time_setmidnight": {
       "label": "Reise: Mitternacht",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_godmode": {
       "label": "Reise: Gottmodus",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_wind_setstrength": {
       "label": "Reise: Windstärke",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_rain_setstrength": {
       "label": "Reise: Regenstärke",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_time_setspeed": {
       "label": "Reise: Zeitgeschwindigkeit",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_rain_setfrozen": {
       "label": "Reise: Regen einfrieren",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_wind_setfrozen": {
       "label": "Reise: Wind einfrieren",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_increaseplacementrange": {
       "label": "Reise: Platzierungsreichweite",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_setdifficulty": {
       "label": "Reise: Schwierigkeit",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_biomespread_setfrozen": {
       "label": "Reise: Biomausbreitung einfrieren",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "journeypermission_setspawnrate": {
       "label": "Reise: Spawnrate",
-      "description": "0 gesperrt, 1 nur Host, 2 alle"
+      "description": "0 gesperrt, 1 nur Host, 2 alle",
+      "options": { "0": "Gesperrt", "1": "Nur Host", "2": "Alle" }
     },
     "seed_celebration": {
       "label": "Feier-Samen",

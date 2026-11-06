@@ -1,5 +1,5 @@
 [module]
-schema_version = 1
+schema_version = 2
 name = "minecraft"
 version = "0.1.10"
 description = "Minecraft server management module with full lifecycle control"
@@ -115,6 +115,7 @@ chat_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: 
 
 [[settings.fields]]
 name = "server_type"
+restart_required = true
 type = "select"
 label = "Server Type"
 description = "Which server software runs this world. saba-chan can install every type. Spigot and CraftBukkit are built with the official BuildTools and take a few minutes; Pufferfish only has builds for some Minecraft versions."
@@ -125,6 +126,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "java_path"
+restart_required = true
 type = "file"
 label = "Java Path"
 description = "Path to Java executable (auto-detected if left blank)"
@@ -134,6 +136,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "ram"
+restart_required = true
 type = "text"
 # 크기 단위(K·M·G)가 붙은 값, 또는 예전에 GB 숫자로 저장된 값(4, 0.5)
 pattern = '\d+[KMGkmg]|\d{1,3}(\.\d+)?'
@@ -145,6 +148,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "use_aikar_flags"
+restart_required = true
 type = "boolean"
 label = "Aikar's Flags"
 description = "Use the recommended Java options for smoother performance"
@@ -154,6 +158,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "managed_start"
+restart_required = true
 type = "boolean"
 label = "Managed Start (Console)"
 description = "Start the server through saba-runner so saba-chan can use its console. RCON stays off in every mode. If you turn this off, saba-chan cannot send commands to the server."
@@ -172,6 +177,7 @@ group = "saba-chan"
 
 [[settings.fields]]
 name = "accepts_transfers"
+restart_required = true
 file_key = "accepts-transfers"
 type = "boolean"
 label = "Accepts Transfers"
@@ -181,6 +187,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "allow_flight"
+restart_required = true
 file_key = "allow-flight"
 type = "boolean"
 label = "Allow Flight"
@@ -189,6 +196,7 @@ default = false
 
 [[settings.fields]]
 name = "allow_nether"
+restart_required = true
 file_key = "allow-nether"
 type = "boolean"
 label = "Allow Nether"
@@ -197,6 +205,7 @@ default = true
 
 [[settings.fields]]
 name = "broadcast_console_to_ops"
+restart_required = true
 file_key = "broadcast-console-to-ops"
 type = "boolean"
 label = "Broadcast Console to Ops"
@@ -206,6 +215,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "bug_report_link"
+restart_required = true
 file_key = "bug-report-link"
 type = "text"
 label = "Bug Report Link"
@@ -215,6 +225,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "difficulty"
+restart_required = true
 file_key = "difficulty"
 type = "select"
 label = "Difficulty"
@@ -224,6 +235,7 @@ default = "normal"
 
 [[settings.fields]]
 name = "enable_command_block"
+restart_required = true
 file_key = "enable-command-block"
 type = "boolean"
 label = "Command Blocks"
@@ -232,6 +244,7 @@ default = false
 
 [[settings.fields]]
 name = "enable_code_of_conduct"
+restart_required = true
 file_key = "enable-code-of-conduct"
 type = "boolean"
 label = "Code of Conduct"
@@ -241,6 +254,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_jmx_monitoring"
+restart_required = true
 file_key = "enable-jmx-monitoring"
 type = "boolean"
 label = "JMX Monitoring"
@@ -250,6 +264,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_query"
+restart_required = true
 file_key = "enable-query"
 type = "boolean"
 label = "Enable Query"
@@ -259,6 +274,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enable_status"
+restart_required = true
 file_key = "enable-status"
 type = "boolean"
 label = "Enable Status"
@@ -268,6 +284,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enforce_secure_profile"
+restart_required = true
 file_key = "enforce-secure-profile"
 type = "boolean"
 label = "Enforce Secure Profile"
@@ -277,6 +294,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "enforce_whitelist"
+restart_required = true
 file_key = "enforce-whitelist"
 type = "boolean"
 label = "Enforce Whitelist"
@@ -285,6 +303,7 @@ default = false
 
 [[settings.fields]]
 name = "entity_broadcast_range_percentage"
+restart_required = true
 file_key = "entity-broadcast-range-percentage"
 type = "number"
 label = "Entity Broadcast Range %"
@@ -296,6 +315,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "force_gamemode"
+restart_required = true
 file_key = "force-gamemode"
 type = "boolean"
 label = "Force Game Mode"
@@ -305,6 +325,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "function_permission_level"
+restart_required = true
 file_key = "function-permission-level"
 type = "number"
 label = "Function Permission Level"
@@ -316,6 +337,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "gamemode"
+restart_required = true
 file_key = "gamemode"
 type = "select"
 label = "Game Mode"
@@ -325,6 +347,7 @@ default = "survival"
 
 [[settings.fields]]
 name = "generate_structures"
+restart_required = true
 file_key = "generate-structures"
 type = "boolean"
 label = "Generate Structures"
@@ -333,6 +356,7 @@ default = true
 
 [[settings.fields]]
 name = "generator_settings"
+restart_required = true
 file_key = "generator-settings"
 type = "text"
 label = "Generator Settings"
@@ -342,6 +366,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "hardcore"
+restart_required = true
 file_key = "hardcore"
 type = "boolean"
 label = "Hardcore"
@@ -350,6 +375,7 @@ default = false
 
 [[settings.fields]]
 name = "hide_online_players"
+restart_required = true
 file_key = "hide-online-players"
 type = "boolean"
 label = "Hide Online Players"
@@ -359,6 +385,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "initial_disabled_packs"
+restart_required = true
 file_key = "initial-disabled-packs"
 type = "text"
 label = "Initial Disabled Packs"
@@ -368,6 +395,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "initial_enabled_packs"
+restart_required = true
 file_key = "initial-enabled-packs"
 type = "text"
 label = "Initial Enabled Packs"
@@ -377,6 +405,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "level_name"
+restart_required = true
 file_key = "level-name"
 type = "text"
 label = "World Name"
@@ -385,6 +414,7 @@ default = "world"
 
 [[settings.fields]]
 name = "level_seed"
+restart_required = true
 file_key = "level-seed"
 type = "text"
 label = "World Seed"
@@ -393,6 +423,7 @@ default = ""
 
 [[settings.fields]]
 name = "level_type"
+restart_required = true
 file_key = "level-type"
 type = "select"
 label = "World Type"
@@ -402,6 +433,7 @@ default = "minecraft:normal"
 
 [[settings.fields]]
 name = "log_ips"
+restart_required = true
 file_key = "log-ips"
 type = "boolean"
 label = "Log IPs"
@@ -411,6 +443,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_chained_neighbor_updates"
+restart_required = true
 file_key = "max-chained-neighbor-updates"
 type = "number"
 label = "Max Chained Neighbor Updates"
@@ -422,6 +455,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_players"
+restart_required = true
 file_key = "max-players"
 type = "number"
 label = "Max Players"
@@ -432,6 +466,7 @@ max = 1000
 
 [[settings.fields]]
 name = "max_tick_time"
+restart_required = true
 file_key = "max-tick-time"
 type = "number"
 label = "Max Tick Time"
@@ -443,6 +478,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "max_world_size"
+restart_required = true
 file_key = "max-world-size"
 type = "number"
 label = "Max World Size"
@@ -453,6 +489,7 @@ max = 29999984
 
 [[settings.fields]]
 name = "motd"
+restart_required = true
 file_key = "motd"
 type = "text"
 label = "MOTD"
@@ -461,6 +498,7 @@ default = "A Minecraft Server"
 
 [[settings.fields]]
 name = "network_compression_threshold"
+restart_required = true
 file_key = "network-compression-threshold"
 type = "number"
 label = "Network Compression Threshold"
@@ -472,6 +510,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "online_mode"
+restart_required = true
 file_key = "online-mode"
 type = "boolean"
 label = "Online Mode"
@@ -480,6 +519,7 @@ default = true
 
 [[settings.fields]]
 name = "op_permission_level"
+restart_required = true
 file_key = "op-permission-level"
 type = "number"
 label = "Op Permission Level"
@@ -491,6 +531,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "player_idle_timeout"
+restart_required = true
 file_key = "player-idle-timeout"
 type = "number"
 label = "Player Idle Timeout"
@@ -502,6 +543,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "port"
+restart_required = true
 file_key = "server-port"
 type = "number"
 port = true
@@ -514,6 +556,7 @@ max = 65535
 
 [[settings.fields]]
 name = "pause_when_empty_seconds"
+restart_required = true
 file_key = "pause-when-empty-seconds"
 type = "number"
 label = "Pause When Empty"
@@ -525,6 +568,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "prevent_proxy_connections"
+restart_required = true
 file_key = "prevent-proxy-connections"
 type = "boolean"
 label = "Prevent Proxy Connections"
@@ -534,6 +578,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "pvp"
+restart_required = true
 file_key = "pvp"
 type = "boolean"
 label = "PVP"
@@ -542,6 +587,7 @@ default = true
 
 [[settings.fields]]
 name = "debug"
+restart_required = true
 file_key = "debug"
 type = "boolean"
 label = "Debug"
@@ -551,6 +597,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_enabled"
+restart_required = true
 file_key = "management-server-enabled"
 type = "boolean"
 label = "Management Server"
@@ -560,6 +607,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_host"
+restart_required = true
 file_key = "management-server-host"
 type = "text"
 label = "Management Server Host"
@@ -568,6 +616,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_port"
+restart_required = true
 file_key = "management-server-port"
 type = "number"
 label = "Management Server Port"
@@ -578,6 +627,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_secret"
+restart_required = true
 file_key = "management-server-secret"
 type = "password"
 label = "Management Server Secret"
@@ -585,6 +635,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_allowed_origins"
+restart_required = true
 file_key = "management-server-allowed-origins"
 type = "text"
 label = "Management Server Allowed Origins"
@@ -592,6 +643,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_tls_enabled"
+restart_required = true
 file_key = "management-server-tls-enabled"
 type = "boolean"
 label = "Management Server TLS"
@@ -600,6 +652,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_tls_keystore"
+restart_required = true
 file_key = "management-server-tls-keystore"
 type = "text"
 label = "Management Server TLS Keystore"
@@ -607,6 +660,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "management_server_tls_keystore_password"
+restart_required = true
 file_key = "management-server-tls-keystore-password"
 type = "password"
 label = "Management Server TLS Keystore Password"
@@ -614,6 +668,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "query_port"
+restart_required = true
 file_key = "query.port"
 type = "number"
 port = true
@@ -626,6 +681,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "rate_limit"
+restart_required = true
 file_key = "rate-limit"
 type = "number"
 label = "Rate Limit"
@@ -637,6 +693,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "region_file_compression"
+restart_required = true
 file_key = "region-file-compression"
 type = "select"
 label = "Region File Compression"
@@ -647,6 +704,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "require_resource_pack"
+restart_required = true
 file_key = "require-resource-pack"
 type = "boolean"
 label = "Require Resource Pack"
@@ -656,6 +714,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "resource_pack"
+restart_required = true
 file_key = "resource-pack"
 type = "text"
 label = "Resource Pack URL"
@@ -665,6 +724,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "resource_pack_id"
+restart_required = true
 file_key = "resource-pack-id"
 type = "text"
 label = "Resource Pack ID"
@@ -674,6 +734,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "resource_pack_prompt"
+restart_required = true
 file_key = "resource-pack-prompt"
 type = "text"
 label = "Resource Pack Prompt"
@@ -683,6 +744,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "resource_pack_sha1"
+restart_required = true
 file_key = "resource-pack-sha1"
 type = "text"
 label = "Resource Pack SHA-1"
@@ -692,6 +754,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "server_ip"
+restart_required = true
 file_key = "server-ip"
 type = "text"
 label = "Server IP"
@@ -701,6 +764,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "simulation_distance"
+restart_required = true
 file_key = "simulation-distance"
 type = "number"
 label = "Simulation Distance"
@@ -711,6 +775,7 @@ max = 32
 
 [[settings.fields]]
 name = "spawn_animals"
+restart_required = true
 file_key = "spawn-animals"
 type = "boolean"
 label = "Spawn Animals"
@@ -720,6 +785,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "spawn_monsters"
+restart_required = true
 file_key = "spawn-monsters"
 type = "boolean"
 label = "Spawn Monsters"
@@ -729,6 +795,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "spawn_npcs"
+restart_required = true
 file_key = "spawn-npcs"
 type = "boolean"
 label = "Spawn NPCs"
@@ -738,6 +805,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "spawn_protection"
+restart_required = true
 file_key = "spawn-protection"
 type = "number"
 label = "Spawn Protection"
@@ -748,6 +816,7 @@ max = 256
 
 [[settings.fields]]
 name = "status_heartbeat_interval"
+restart_required = true
 file_key = "status-heartbeat-interval"
 type = "number"
 label = "Status Heartbeat Interval"
@@ -759,6 +828,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "sync_chunk_writes"
+restart_required = true
 file_key = "sync-chunk-writes"
 type = "boolean"
 label = "Sync Chunk Writes"
@@ -768,6 +838,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "text_filtering_config"
+restart_required = true
 file_key = "text-filtering-config"
 type = "text"
 label = "Text Filtering Config"
@@ -777,6 +848,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "text_filtering_version"
+restart_required = true
 file_key = "text-filtering-version"
 type = "number"
 label = "Text Filtering Version"
@@ -788,6 +860,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "use_native_transport"
+restart_required = true
 file_key = "use-native-transport"
 type = "boolean"
 label = "Use Native Transport"
@@ -797,6 +870,7 @@ group = "advanced"
 
 [[settings.fields]]
 name = "view_distance"
+restart_required = true
 file_key = "view-distance"
 type = "number"
 label = "View Distance"
@@ -807,6 +881,7 @@ max = 32
 
 [[settings.fields]]
 name = "white_list"
+restart_required = true
 file_key = "white-list"
 type = "boolean"
 label = "Whitelist"

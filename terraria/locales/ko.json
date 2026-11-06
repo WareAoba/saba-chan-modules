@@ -18,7 +18,8 @@
     },
     "lobby": {
       "label": "Steam 로비",
-      "description": "Steam으로 들어올 수 있는 사람(-lobby, Steam 지원 필요)"
+      "description": "Steam으로 들어올 수 있는 사람(-lobby, Steam 지원 필요)",
+      "options": { "friends": "Steam 친구", "private": "비공개 (초대만)" }
     },
     "disable_announcement_box": {
       "label": "알림판 끄기",
@@ -43,7 +44,8 @@
     },
     "difficulty": {
       "label": "새 월드 난이도",
-      "description": "0 클래식, 1 엑스퍼트, 2 마스터, 3 저니"
+      "description": "0 클래식, 1 엑스퍼트, 2 마스터, 3 저니",
+      "options": { "0": "클래식", "1": "엑스퍼트", "2": "마스터", "3": "저니" }
     },
     "seed": {
       "label": "새 월드 시드",
@@ -71,7 +73,8 @@
     },
     "language": {
       "label": "서버 언어",
-      "description": "서버 메시지 언어"
+      "description": "서버 메시지 언어",
+      "options": { "en-US": "English", "de-DE": "Deutsch", "it-IT": "Italiano", "fr-FR": "Français", "es-ES": "Español", "ru-RU": "Русский", "zh-Hans": "简体中文", "pt-BR": "Português (Brasil)", "pl-PL": "Polski", "ja-JP": "日本語", "ko-KR": "한국어", "zh-Hant": "繁體中文" }
     },
     "upnp": {
       "label": "UPnP 포트 포워딩",
@@ -87,67 +90,83 @@
     },
     "priority": {
       "label": "프로세스 우선순위",
-      "description": "0 실시간, 1 높음, 2 보통 이상, 3 보통, 4 보통 이하, 5 낮음"
+      "description": "0 실시간, 1 높음, 2 보통 이상, 3 보통, 4 보통 이하, 5 낮음",
+      "options": { "0": "실시간", "1": "높음", "2": "보통 이상", "3": "보통", "4": "보통 이하", "5": "낮음" }
     },
     "journeypermission_time_setfrozen": {
       "label": "저니: 시간 멈추기",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_time_setdawn": {
       "label": "저니: 새벽으로",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_time_setnoon": {
       "label": "저니: 정오로",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_time_setdusk": {
       "label": "저니: 해 질 녘으로",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_time_setmidnight": {
       "label": "저니: 자정으로",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_godmode": {
       "label": "저니: 무적",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_wind_setstrength": {
       "label": "저니: 바람 세기",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_rain_setstrength": {
       "label": "저니: 비 세기",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_time_setspeed": {
       "label": "저니: 시간 속도",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_rain_setfrozen": {
       "label": "저니: 비 멈추기",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_wind_setfrozen": {
       "label": "저니: 바람 멈추기",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_increaseplacementrange": {
       "label": "저니: 설치 범위",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_setdifficulty": {
       "label": "저니: 난이도",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_biomespread_setfrozen": {
       "label": "저니: 환경 확산 멈추기",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "journeypermission_setspawnrate": {
       "label": "저니: 몬스터 생성률",
-      "description": "0 모두 잠금, 1 호스트만, 2 모두"
+      "description": "0 모두 잠금, 1 호스트만, 2 모두",
+      "options": { "0": "모두 잠금", "1": "호스트만", "2": "모두" }
     },
     "seed_celebration": {
       "label": "축하 시드",

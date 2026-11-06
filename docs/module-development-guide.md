@@ -287,7 +287,7 @@ console_template = "say {message}"
 inputs = [ { name = "message", type = "text", label = "Message", required = true } ]
 ```
 
-- `risk`(`safe`/`caution`/`danger`)와 `description`은 AI 명령 해석이 읽는다. 서버 종료·추방·밴, 권한·밴 해제·허용 목록·계정·서버 옵션 변경, 아이템·돈·경험치·무적·게임 모드 지급은 `danger`. `caution`은 말하는 사바쨩이 확인 없이 실행할 수 있다. 무엇을 하는지 모르는 명령(plugin.yml이 선언한 명령 등)도 `danger`.
+- `risk`(`safe`/`caution`/`danger`)와 `description`은 AI 명령 해석이 읽고, 위험도가 기본 권한 단계와 실행 전 확인을 정한다. 기준(사용자 지정 2026-11-06): `safe` = 조회 전부·단순 변경·영향이 작은 게임 안 변화(날씨·시간, 공지, 저장), `caution` = 위험할 수도 있는 게임 안 명령(난이도, 이동, 아이템·경험치·무적 지급)·PC 자원을 많이 쓰는 명령·개인정보(IP·위치) 조회, `danger` = 특정 유저에게 큰 영향을 주는 게임 안 명령(추방·밴·권한·허용 목록)·설정/로그 파일을 직접 바꾸는 명령·게임에 직접 끄라고 보내는 명령(이것은 `remote = false`도). 무엇을 하는지 모르는 명령(plugin.yml이 선언한 명령 등)도 `danger`.
 - 데몬이 `inputs`의 required·min·max·options를 실행 전에 검사하므로 `command`에서 다시 검사하지 않아도 된다.
 - `command`에서 콘솔에 보내야 하면 `daemon_stdin_command(config["instance_id"], line)`.
 - 예전 이름 `method = "rcon"` / `rcon_template`도 읽히지만 새 모듈은 `console` / `console_template`을 쓴다.

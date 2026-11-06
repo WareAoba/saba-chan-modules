@@ -15,7 +15,7 @@
       "name": "chunky-start",
       "label": "Start generation",
       "description": "Starts a new chunk generation task, using the existing selection or one defined in the command itself.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "chunky start {args}",
       "inputs": [
         {
@@ -31,7 +31,7 @@
       "name": "chunky-pause",
       "label": "Pause generation",
       "description": "Pauses current tasks and saves progress so they can be resumed with continue.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "chunky pause {world}",
       "inputs": [
         {
@@ -47,7 +47,7 @@
       "name": "chunky-continue",
       "label": "Continue generation",
       "description": "Continues current or saved tasks.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "chunky continue {world}",
       "inputs": [
         {
@@ -63,7 +63,7 @@
       "name": "chunky-cancel",
       "label": "Cancel generation",
       "description": "Stops and deletes current or saved tasks, which cannot be resumed afterwards.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "chunky cancel {world}",
       "inputs": [
         {
@@ -79,7 +79,7 @@
       "name": "chunky-world",
       "label": "Select world",
       "description": "Sets the target world.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "chunky world {world}",
       "inputs": [
         {
@@ -95,7 +95,7 @@
       "name": "chunky-shape",
       "label": "Select shape",
       "description": "Sets the shape to generate.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "chunky shape {shape}",
       "inputs": [
         {
@@ -122,7 +122,7 @@
       "name": "chunky-center",
       "label": "Set center",
       "description": "Sets the center block location.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "chunky center {x} {z}",
       "inputs": [
         {
@@ -145,7 +145,7 @@
       "name": "chunky-radius",
       "label": "Set radius",
       "description": "Sets the radius (or radii) in blocks; the second radius is only used for rectangle or ellipse shapes.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "chunky radius {radius} {radius_z}",
       "inputs": [
         {
@@ -168,7 +168,7 @@
       "name": "chunky-worldborder",
       "label": "Use world border",
       "description": "Sets the center and radius to match the world border of the selected or given world.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "chunky worldborder {world}",
       "inputs": [
         {
@@ -184,7 +184,7 @@
       "name": "chunky-spawn",
       "label": "Center on spawn",
       "description": "Sets the center to the default vanilla spawn point in the currently selected world.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "chunky spawn",
       "inputs": []
     },
@@ -192,7 +192,7 @@
       "name": "chunky-corners",
       "label": "Select by corners",
       "description": "Sets the center and radius automatically based on the two XZ corner coordinates provided.",
-      "risk": "danger",
+      "risk": "safe",
       "console_template": "chunky corners {x1} {z1} {x2} {z2}",
       "inputs": [
         {
@@ -229,7 +229,7 @@
       "name": "chunky-pattern",
       "label": "Set pattern",
       "description": "Sets the generation pattern, which determines the order that chunks are generated.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "chunky pattern {pattern} {value}",
       "inputs": [
         {
@@ -268,7 +268,7 @@
       "name": "chunky-silent",
       "label": "Toggle silent",
       "description": "Toggles displaying update messages from pre-generation tasks.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "chunky silent",
       "inputs": []
     },
@@ -276,7 +276,7 @@
       "name": "chunky-quiet",
       "label": "Set quiet interval",
       "description": "Sets the quiet interval in seconds for update messages from pre-generation tasks.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "chunky quiet {interval}",
       "inputs": [
         {

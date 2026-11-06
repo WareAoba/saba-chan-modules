@@ -13,7 +13,7 @@
       "name": "discordbroadcast",
       "label": "Broadcast to Discord",
       "description": "Sends the given message to the specified Discord channel.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "discordbroadcast {channel} {message}",
       "inputs": [
         {

@@ -18,40 +18,39 @@ def _catalog_commands(filename):
     return {command["console_template"]: command for command in catalog["commands"]}
 
 
-def test_world_and_player_impacting_commands_require_admin():
+def test_plugin_risks_follow_user_rule():
+    """위험도 기준(사용자 지정 2026-11-06): 안전 = 조회·단순 변경·영향이 작은 게임 안 변화,
+    주의 = 위험할 수도 있는 게임 안 명령·PC 자원을 많이 쓰는 명령,
+    위험 = 특정 유저에게 큰 영향을 주는 게임 안 명령·설정/로그 파일을 직접 바꾸는 명령"""
     expected = {
-        "worldedit.json": ["we-world", "we-pos", "we-pos1", "we-pos2", "we-chunk", "we-set",
-                           "we-replace", "we-cut", "we-drain", "removenear", "replacenear",
-                           "we-contract", "we-shift", "we-outset", "we-inset", "we-trim", "we-sel",
-                           "we-expand", "we-expand-vert", "toggleplace", "placement",
-                           "we-line", "we-curve", "we-overlay", "we-center", "we-naturalize",
-                           "we-walls", "we-faces", "we-smooth", "we-snowsmooth", "we-move",
-                           "we-stack", "we-deform", "we-hollow", "we-forest", "we-flora",
-                           "we-update", "we-hcyl", "we-cyl", "we-cone", "we-hsphere", "we-sphere",
-                           "forestgen", "pumpkins", "we-feature", "we-structure", "we-hpyramid",
-                           "we-pyramid", "we-generate", "we-generatebiome", "we-copy", "we-paste",
-                           "we-rotate", "we-flip", "we-revolve", "we-setbiome", "we-replacebiome",
-                           "we-fill", "we-fillr", "fixlava", "fixwater", "removeabove", "removebelow",
-                           "snow", "thaw", "green", "undo", "redo"],
-        "essentialsx.json": ["back", "burn", "lightning", "spawnmob", "tppos", "tppos-rotation", "ess-tp",
-                             "tpall", "tpr", "togglejail", "warp-player", "ess-time-set",
-                             "ess-time-add", "ess-weather"],
-        "essentialsx-spawn.json": ["spawn"],
-        "multiverse-core.json": ["mv-create", "mv-import", "mv-unload", "mv-remove", "mv-clone",
-                                 "mv-gamerule-set", "mv-gamerule-reset"],
-        "chunky.json": ["chunky-start", "chunky-continue"],
+        # 단순 변경·영향이 작은 게임 안 변화
+        "safe": {"essentialsx.json": ["ess-time-set", "ess-weather", "heal", "feed", "broadcast"],
+                 "worldedit.json": ["we-pos1", "we-sel", "we-expand", "we-copy"],
+                 "citizens.json": ["npc-create", "npc-rename", "npc-skin"],
+                 "chunky.json": ["chunky-center", "chunky-radius", "chunky-pause"],
+                 "worldguard.json": ["stopfire", "wg-heal"]},
+        # 위험할 수도 있는 게임 안 명령, PC 자원을 많이 쓰는 명령
+        "caution": {"worldedit.json": ["we-set", "we-replace", "we-paste", "undo", "butcher"],
+                    "chunky.json": ["chunky-start", "chunky-continue"],
+                    "essentialsx.json": ["ess-tp", "tppos", "ess-give", "god", "fly"],
+                    "multiverse-core.json": ["mv-teleport", "mv-gamerule-set", "mv-worldborder-set"],
+                    "worldguard.json": ["allowfire", "wg-god"],
+                    "citizens.json": ["npc-aggressive", "npc-tpto"]},
+        # 특정 유저에게 큰 영향, 설정·데이터 파일을 직접 바꿈
+        "danger": {"essentialsx.json": ["ess-ban", "ess-kick", "kill", "clearinventory", "eco-take", "sudo",
+                                        "setworth", "essentials-reload"],
+                   "luckperms.json": ["lp-user-permission-set", "lp-user-parent-add", "lp-import"],
+                   "multiverse-core.json": ["mv-delete", "mv-modify", "mv-config"],
+                   "worldedit.json": ["delchunks", "schematic-delete", "worldedit-reload"],
+                   "coreprotect.json": ["co-rollback", "co-purge"],
+                   "worldguard.json": ["slay", "stoplag", "worldguard-reload", "region-addmember"],
+                   "citizens.json": ["npc-command-add", "npc-command-execute"]},
     }
-    for filename, names in expected.items():
-        risks = _catalog_risks(filename)
-        for name in names:
-            assert risks[name] == "danger", f"{filename}: {name}"
-
-    assert _catalog_risks("citizens.json")["npc-tpto"] == "danger"
-    assert _catalog_risks("multiverse-core.json")["mv-teleport"] == "danger"
-    assert _catalog_risks("multiverse-core.json")["mv-worldborder-damage-amount"] == "danger"
-    assert _catalog_risks("multiverse-inventories.json")["mvinv-playerdata-import"] == "danger"
-    assert _catalog_risks("multiverse-netherportals.json")["mvnp-link"] == "danger"
-    assert _catalog_risks("worldguard.json")["allowfire"] == "danger"
+    for risk, files in expected.items():
+        for filename, names in files.items():
+            risks = _catalog_risks(filename)
+            for name in names:
+                assert risks[name] == risk, f"{filename}: {name}"
 
 
 def test_player_network_and_location_commands_are_not_public():

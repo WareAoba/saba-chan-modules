@@ -39,7 +39,7 @@
       "name": "adjustbonusclaimblocks",
       "label": "Adjust bonus claim blocks",
       "description": "Adds or subtracts bonus claim blocks for a player.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "adjustbonusclaimblocks {player} {amount}",
       "inputs": [
         {
@@ -62,7 +62,7 @@
       "name": "adjustbonusclaimblocksall",
       "label": "Adjust bonus claim blocks (all)",
       "description": "Adds or subtracts bonus claim blocks for all online players.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "adjustbonusclaimblocksall {amount}",
       "inputs": [
         {
@@ -181,7 +181,7 @@
       "name": "claimbook",
       "label": "Give claim book",
       "description": "Gives a player a manual about claiming land.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "claimbook {player}",
       "inputs": [
         {

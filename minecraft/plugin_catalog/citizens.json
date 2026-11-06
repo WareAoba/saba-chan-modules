@@ -46,7 +46,7 @@
       "name": "citizens-save",
       "label": "Save NPCs",
       "description": "Saves all NPCs to disk.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "citizens save",
       "inputs": []
     },
@@ -54,7 +54,7 @@
       "name": "npc-create",
       "label": "Create NPC",
       "description": "Creates a new NPC at the given location; extra flags such as -b, -u, -s, -t, --trait or --nameplate may be appended to the name.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc create --at {location} --type {type} {name}",
       "inputs": [
         {
@@ -125,7 +125,7 @@
       "name": "npc-spawn",
       "label": "Spawn NPC",
       "description": "Spawns an existing NPC at its stored location.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc spawn {npc}",
       "inputs": [
         {
@@ -141,7 +141,7 @@
       "name": "npc-despawn",
       "label": "Despawn NPC",
       "description": "Despawns an NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc despawn {npc}",
       "inputs": [
         {
@@ -157,7 +157,7 @@
       "name": "npc-remove",
       "label": "Remove NPC",
       "description": "Removes an NPC by ID or name, or all NPCs with all (also accepts --owner, --eid or --world).",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "npc remove {target}",
       "inputs": [
         {
@@ -173,7 +173,7 @@
       "name": "npc-tpto",
       "label": "Teleport entity to entity",
       "description": "Teleports an NPC or player to another NPC or player.",
-      "risk": "danger",
+      "risk": "caution",
       "console_template": "npc tpto {from} {to}",
       "inputs": [
         {
@@ -196,7 +196,7 @@
       "name": "npc-undo",
       "label": "Undo",
       "description": "Undoes the last action (currently only create/remove supported).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc undo {all}",
       "inputs": [
         {
@@ -236,7 +236,7 @@
       "name": "npc-shopitem-reset_purchases",
       "label": "Reset shop purchases",
       "description": "Resets purchase records for a shop item, or for all items with all.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc shopitem {shop} reset_purchases {item}",
       "inputs": [
         {
@@ -267,7 +267,7 @@
       "name": "npc-tphere",
       "label": "Teleport NPC to location",
       "description": "Teleports the NPC to the given location (console uses --location).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc tphere --id {id} --location {location}",
       "inputs": [
         {
@@ -290,7 +290,7 @@
       "name": "npc-rename",
       "label": "Rename NPC",
       "description": "Renames an NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc rename --id {id} {name}",
       "inputs": [
         {
@@ -312,7 +312,7 @@
       "name": "npc-copy",
       "label": "Copy NPC",
       "description": "Copies an NPC, optionally giving the copy a new name with --name.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc copy --id {id} {flags}",
       "inputs": [
         {
@@ -335,7 +335,7 @@
       "name": "npc-type",
       "label": "Set entity type",
       "description": "Sets an NPC's entity type.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc type --id {id} {type}",
       "inputs": [
         {
@@ -381,7 +381,7 @@
       "name": "npc-skin",
       "label": "Set skin",
       "description": "Sets an NPC's skin from a player name; use -l to always update to the latest skin, or --url / -t for custom skins.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc skin --id {id} {args}",
       "inputs": [
         {
@@ -404,7 +404,7 @@
       "name": "npc-skinlayers",
       "label": "Skin layers",
       "description": "Sets an NPC's skin layer visibility.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc skinlayers --id {id} {flags}",
       "inputs": [
         {
@@ -427,7 +427,7 @@
       "name": "npc-name",
       "label": "Nameplate visibility",
       "description": "Toggles nameplate visibility, or only shows names on hover with -h.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc name --id {id} {flags}",
       "inputs": [
         {
@@ -450,7 +450,7 @@
       "name": "npc-respawn",
       "label": "Respawn delay",
       "description": "Sets an NPC's respawn delay.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc respawn --id {id} {delay}",
       "inputs": [
         {
@@ -473,7 +473,7 @@
       "name": "npc-moveto",
       "label": "Move to location",
       "description": "Teleports an NPC to a given location.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc moveto --id {id} {location}",
       "inputs": [
         {
@@ -496,7 +496,7 @@
       "name": "npc-speak",
       "label": "Speak",
       "description": "Says a message from the NPC (supports --target, --range and --bubble).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc speak --id {id} {message}",
       "inputs": [
         {
@@ -518,7 +518,7 @@
       "name": "npc-speed",
       "label": "Set speed",
       "description": "Sets the movement speed of an NPC as a percentage.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc speed --id {id} {speed}",
       "inputs": [
         {
@@ -541,7 +541,7 @@
       "name": "npc-hurt",
       "label": "Damage NPC",
       "description": "Damages the NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hurt --id {id} {damage}",
       "inputs": [
         {
@@ -564,7 +564,7 @@
       "name": "npc-jump",
       "label": "Jump",
       "description": "Makes the NPC jump.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc jump --id {id}",
       "inputs": [
         {
@@ -580,7 +580,7 @@
       "name": "npc-velocity",
       "label": "Set velocity",
       "description": "Sets the NPC's velocity.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc velocity --id {id} {x} {y} {z}",
       "inputs": [
         {
@@ -614,7 +614,7 @@
       "name": "npc-scaledmaxhealth",
       "label": "Max health",
       "description": "Controls the max health of an NPC, can use large numbers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc scaledmaxhealth --id {id} {health}",
       "inputs": [
         {
@@ -637,7 +637,7 @@
       "name": "npc-attribute",
       "label": "Set attribute",
       "description": "Sets various NPC attributes.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc attribute --id {id} {attribute} {value}",
       "inputs": [
         {
@@ -666,7 +666,7 @@
       "name": "npc-age",
       "label": "Set age",
       "description": "Sets the age of an NPC; use -l to lock age over time.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc age --id {id} {age} {flags}",
       "inputs": [
         {
@@ -696,7 +696,7 @@
       "name": "npc-activationrange",
       "label": "Activation range",
       "description": "Sets the activation range.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc activationrange --id {id} {range}",
       "inputs": [
         {
@@ -719,7 +719,7 @@
       "name": "npc-trackingrange",
       "label": "Tracking range",
       "description": "Sets the tracking range.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc trackingrange --id {id} {range}",
       "inputs": [
         {
@@ -742,7 +742,7 @@
       "name": "npc-entitypose",
       "label": "Entity pose",
       "description": "Controls entity pose.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc entitypose --id {id} {pose}",
       "inputs": [
         {
@@ -765,7 +765,7 @@
       "name": "npc-metadata",
       "label": "Metadata",
       "description": "Manages NPC metadata (set, get or remove a key; -t for temporary).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc metadata --id {id} {action} {key} {value}",
       "inputs": [
         {
@@ -804,7 +804,7 @@
       "name": "npc-item",
       "label": "Set item",
       "description": "Sets the NPC's item.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc item --id {id} {item}",
       "inputs": [
         {
@@ -827,7 +827,7 @@
       "name": "npc-setequipment",
       "label": "Set equipment",
       "description": "Sets equipment via commands (-c for cosmetic).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc setequipment --id {id} {slot} {item}",
       "inputs": [
         {
@@ -857,7 +857,7 @@
       "name": "npc-playsound",
       "label": "Play sound",
       "description": "Plays a sound at the NPC's location (optionally category, volume, pitch, --to, --at).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc playsound --id {id} {sound} {args}",
       "inputs": [
         {
@@ -887,7 +887,7 @@
       "name": "npc-panimate",
       "label": "Player animation",
       "description": "Plays a player animation.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc panimate --id {id} {animation}",
       "inputs": [
         {
@@ -910,7 +910,7 @@
       "name": "npc-ai",
       "label": "Vanilla AI",
       "description": "Sets whether the NPC should use vanilla AI.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc ai --id {id} {value}",
       "inputs": [
         {
@@ -936,7 +936,7 @@
       "name": "npc-flyable",
       "label": "Flyable",
       "description": "Toggles or sets an NPC's flyable status.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc flyable --id {id} {value}",
       "inputs": [
         {
@@ -988,7 +988,7 @@
       "name": "npc-gravity",
       "label": "Toggle gravity",
       "description": "Toggles gravity.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc gravity --id {id}",
       "inputs": [
         {
@@ -1004,7 +1004,7 @@
       "name": "npc-targetable",
       "label": "Toggle targetable",
       "description": "Toggles an NPC's targetability.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc targetable --id {id}",
       "inputs": [
         {
@@ -1020,7 +1020,7 @@
       "name": "npc-leashable",
       "label": "Toggle leashable",
       "description": "Toggles leashability.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc leashable --id {id}",
       "inputs": [
         {
@@ -1036,7 +1036,7 @@
       "name": "npc-vulnerable",
       "label": "Toggle vulnerable",
       "description": "Toggles an NPC's vulnerability (-t for temporary).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc vulnerable --id {id} {flags}",
       "inputs": [
         {
@@ -1082,7 +1082,7 @@
       "name": "npc-collidable",
       "label": "Toggle collidable",
       "description": "Toggles an NPC's collidability.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc collidable --id {id} {flags}",
       "inputs": [
         {
@@ -1105,7 +1105,7 @@
       "name": "npc-knockback",
       "label": "Toggle knockback",
       "description": "Toggles NPC knockback.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc knockback --id {id} {flags}",
       "inputs": [
         {
@@ -1128,7 +1128,7 @@
       "name": "npc-nophysics",
       "label": "No physics",
       "description": "Manages no physics settings.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc nophysics --id {id} {flags}",
       "inputs": [
         {
@@ -1151,7 +1151,7 @@
       "name": "npc-glowing",
       "label": "Toggle glowing",
       "description": "Toggles an NPC's glowing status.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc glowing --id {id} {flags}",
       "inputs": [
         {
@@ -1174,7 +1174,7 @@
       "name": "npc-passive",
       "label": "Passive",
       "description": "Sets whether an NPC damages other entities or not.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc passive --id {id} {flags}",
       "inputs": [
         {
@@ -1197,7 +1197,7 @@
       "name": "npc-pickupitems",
       "label": "Pick up items",
       "description": "Allows the NPC to pick up items.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc pickupitems --id {id} {flags}",
       "inputs": [
         {
@@ -1220,7 +1220,7 @@
       "name": "npc-swim",
       "label": "Swim",
       "description": "Sets an NPC to swim or not.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc swim --id {id} {flags}",
       "inputs": [
         {
@@ -1243,7 +1243,7 @@
       "name": "npc-useitem",
       "label": "Use held item",
       "description": "Sets an NPC to be using their held items (-o for offhand).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc useitem --id {id} {flags}",
       "inputs": [
         {
@@ -1266,7 +1266,7 @@
       "name": "npc-sitting",
       "label": "Sitting",
       "description": "Sets the NPC sitting.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc sitting --id {id} {flags}",
       "inputs": [
         {
@@ -1289,7 +1289,7 @@
       "name": "npc-packet",
       "label": "Packet NPC",
       "description": "Controls packet NPC settings.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc packet --id {id} {flags}",
       "inputs": [
         {
@@ -1312,7 +1312,7 @@
       "name": "npc-mirror",
       "label": "Mirror",
       "description": "Controls mirroring of NPC skins and more.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc mirror --id {id} {flags}",
       "inputs": [
         {
@@ -1335,7 +1335,7 @@
       "name": "npc-controllable",
       "label": "Controllable",
       "description": "Toggles whether the NPC can be ridden and controlled.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc controllable --id {id} {flags}",
       "inputs": [
         {
@@ -1358,7 +1358,7 @@
       "name": "npc-lookclose",
       "label": "Look close",
       "description": "Toggles whether an NPC will look when a player is near.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc lookclose --id {id} {flags}",
       "inputs": [
         {
@@ -1381,7 +1381,7 @@
       "name": "npc-sound",
       "label": "Sounds",
       "description": "Sets an NPC's played sounds.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc sound --id {id} {flags}",
       "inputs": [
         {
@@ -1404,7 +1404,7 @@
       "name": "npc-disguise",
       "label": "Disguise",
       "description": "Manages entity disguises.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc disguise --id {id} {flags}",
       "inputs": [
         {
@@ -1427,7 +1427,7 @@
       "name": "npc-hitbox",
       "label": "Hitbox",
       "description": "Sets the NPC hitbox.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hitbox --id {id} {flags}",
       "inputs": [
         {
@@ -1450,7 +1450,7 @@
       "name": "npc-forcefield",
       "label": "Forcefield",
       "description": "Creates a forcefield which pushes players close to the NPC away.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc forcefield --id {id} {flags}",
       "inputs": [
         {
@@ -1473,7 +1473,7 @@
       "name": "npc-pathopt",
       "label": "Pathfinding options",
       "description": "Sets an NPC's pathfinding options.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc pathopt --id {id} {flags}",
       "inputs": [
         {
@@ -1496,7 +1496,7 @@
       "name": "npc-pausepathfinding",
       "label": "Pathfinding pause",
       "description": "Sets pathfinding pause.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc pausepathfinding --id {id} {flags}",
       "inputs": [
         {
@@ -1519,7 +1519,7 @@
       "name": "npc-playerfilter",
       "label": "Player filter",
       "description": "Manages the NPC's player filter.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc playerfilter --id {id} {flags}",
       "inputs": [
         {
@@ -1542,7 +1542,7 @@
       "name": "npc-home",
       "label": "Home location",
       "description": "Controls home location (use --location from console).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc home --id {id} {flags}",
       "inputs": [
         {
@@ -1565,7 +1565,7 @@
       "name": "npc-pose",
       "label": "Poses",
       "description": "Manages NPC poses.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc pose --id {id} {flags}",
       "inputs": [
         {
@@ -1588,7 +1588,7 @@
       "name": "npc-rotate",
       "label": "Rotate",
       "description": "Rotates the NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc rotate --id {id} {flags}",
       "inputs": [
         {
@@ -1611,7 +1611,7 @@
       "name": "npc-anchor",
       "label": "Anchors",
       "description": "Manages the NPC's location anchors; without flags lists them (from console, --save uses --location).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc anchor --id {id} {flags}",
       "inputs": [
         {
@@ -1634,7 +1634,7 @@
       "name": "npc-debug",
       "label": "Debug",
       "description": "Displays debugging information.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc debug --id {id} {flags}",
       "inputs": [
         {
@@ -1657,7 +1657,7 @@
       "name": "npc-armorstand",
       "label": "Armor stand",
       "description": "Edits armorstand properties.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc armorstand --id {id} {flags}",
       "inputs": [
         {
@@ -1680,7 +1680,7 @@
       "name": "npc-bat",
       "label": "Bat",
       "description": "Sets bat modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc bat --id {id} {flags}",
       "inputs": [
         {
@@ -1703,7 +1703,7 @@
       "name": "npc-endercrystal",
       "label": "End crystal",
       "description": "Edits endercrystal modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc endercrystal --id {id} {flags}",
       "inputs": [
         {
@@ -1726,7 +1726,7 @@
       "name": "npc-enderman",
       "label": "Enderman",
       "description": "Sets enderman modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc enderman --id {id} {flags}",
       "inputs": [
         {
@@ -1749,7 +1749,7 @@
       "name": "npc-horse",
       "label": "Horse",
       "description": "Sets horse and horse-like entity modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc horse --id {id} {flags}",
       "inputs": [
         {
@@ -1772,7 +1772,7 @@
       "name": "npc-itemframe",
       "label": "Item frame",
       "description": "Sets itemframe modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc itemframe --id {id} {flags}",
       "inputs": [
         {
@@ -1795,7 +1795,7 @@
       "name": "npc-minecart",
       "label": "Minecart",
       "description": "Sets minecart item.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc minecart --id {id} {flags}",
       "inputs": [
         {
@@ -1818,7 +1818,7 @@
       "name": "npc-ocelot",
       "label": "Ocelot",
       "description": "Sets the ocelot type of an NPC and whether it is sitting.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc ocelot --id {id} {flags}",
       "inputs": [
         {
@@ -1841,7 +1841,7 @@
       "name": "npc-painting",
       "label": "Painting",
       "description": "Sets painting modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc painting --id {id} {flags}",
       "inputs": [
         {
@@ -1864,7 +1864,7 @@
       "name": "npc-powered",
       "label": "Powered creeper",
       "description": "Toggles a creeper NPC as powered.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc powered --id {id} {flags}",
       "inputs": [
         {
@@ -1887,7 +1887,7 @@
       "name": "npc-sheep",
       "label": "Sheep",
       "description": "Sets sheep modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc sheep --id {id} {flags}",
       "inputs": [
         {
@@ -1910,7 +1910,7 @@
       "name": "npc-wither",
       "label": "Wither",
       "description": "Sets wither modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc wither --id {id} {flags}",
       "inputs": [
         {
@@ -1933,7 +1933,7 @@
       "name": "npc-wolf",
       "label": "Wolf",
       "description": "Sets wolf modifiers.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc wolf --id {id} {flags}",
       "inputs": [
         {
@@ -1956,7 +1956,7 @@
       "name": "npc-playerlist",
       "label": "Player list",
       "description": "Sets whether the NPC is put in the playerlist.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc playerlist --id {id} {flags}",
       "inputs": [
         {
@@ -1979,7 +1979,7 @@
       "name": "npc-wander",
       "label": "Wander",
       "description": "Sets the NPC to wander around.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc wander --id {id} {flags}",
       "inputs": [
         {
@@ -2002,7 +2002,7 @@
       "name": "npc-gamemode",
       "label": "Game mode",
       "description": "Changes the gamemode.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc gamemode --id {id} {gamemode}",
       "inputs": [
         {
@@ -2030,7 +2030,7 @@
       "name": "npc-rabbittype",
       "label": "Rabbit type",
       "description": "Sets the NPC's rabbit type.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc rabbittype --id {id} {type}",
       "inputs": [
         {
@@ -2053,7 +2053,7 @@
       "name": "npc-slimesize",
       "label": "Slime size",
       "description": "Sets the NPC's slime size.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc slimesize --id {id} {size}",
       "inputs": [
         {
@@ -2076,7 +2076,7 @@
       "name": "npc-rotationsettings",
       "label": "Rotation settings",
       "description": "Edits NPC rotation settings.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc rotationsettings --id {id} {mode} {flags}",
       "inputs": [
         {
@@ -2109,7 +2109,7 @@
       "name": "npc-follow",
       "label": "Follow",
       "description": "Toggles the NPC following the given player or NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc follow --id {id} {target} {flags}",
       "inputs": [
         {
@@ -2169,7 +2169,7 @@
       "name": "npc-pathto",
       "label": "Pathfind to",
       "description": "Starts pathfinding to a certain location.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc pathto --id {id} {x} {y} {z} {flags}",
       "inputs": [
         {
@@ -2233,7 +2233,7 @@
       "name": "npc-hologram-add",
       "label": "Add hologram line",
       "description": "Adds a hologram line (optionally with --duration).",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram add --id {id} {text}",
       "inputs": [
         {
@@ -2255,7 +2255,7 @@
       "name": "npc-hologram-insert",
       "label": "Insert hologram line",
       "description": "Inserts a hologram line at the given index.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram insert --id {id} {line} {text}",
       "inputs": [
         {
@@ -2284,7 +2284,7 @@
       "name": "npc-hologram-set",
       "label": "Set hologram line",
       "description": "Sets the text of a hologram line.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram set --id {id} {line} {text}",
       "inputs": [
         {
@@ -2313,7 +2313,7 @@
       "name": "npc-hologram-remove",
       "label": "Remove hologram line",
       "description": "Removes a hologram line.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram remove --id {id} {line}",
       "inputs": [
         {
@@ -2336,7 +2336,7 @@
       "name": "npc-hologram-clear",
       "label": "Clear hologram",
       "description": "Clears all hologram lines.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram clear --id {id}",
       "inputs": [
         {
@@ -2352,7 +2352,7 @@
       "name": "npc-hologram-lineheight",
       "label": "Hologram line height",
       "description": "Sets the hologram line height.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram lineheight --id {id} {height}",
       "inputs": [
         {
@@ -2374,7 +2374,7 @@
       "name": "npc-hologram-viewrange",
       "label": "Hologram view range",
       "description": "Sets the hologram view range.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram viewrange --id {id} {range}",
       "inputs": [
         {
@@ -2397,7 +2397,7 @@
       "name": "npc-hologram-verticalviewrange",
       "label": "Hologram vertical view range",
       "description": "Sets the hologram vertical view range.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram verticalviewrange --id {id} {range}",
       "inputs": [
         {
@@ -2420,7 +2420,7 @@
       "name": "npc-hologram-updaterate",
       "label": "Hologram update rate",
       "description": "Sets the hologram update rate in ticks.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram updaterate --id {id} {ticks}",
       "inputs": [
         {
@@ -2443,7 +2443,7 @@
       "name": "npc-hologram-margintop",
       "label": "Hologram top margin",
       "description": "Sets the top margin of a hologram line.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram margintop --id {id} {line} {margin}",
       "inputs": [
         {
@@ -2472,7 +2472,7 @@
       "name": "npc-hologram-marginbottom",
       "label": "Hologram bottom margin",
       "description": "Sets the bottom margin of a hologram line.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram marginbottom --id {id} {line} {margin}",
       "inputs": [
         {
@@ -2501,7 +2501,7 @@
       "name": "npc-hologram-bgcolor",
       "label": "Hologram background color",
       "description": "Sets the background color of a hologram line.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc hologram bgcolor --id {id} {line} {color}",
       "inputs": [
         {
@@ -2569,7 +2569,7 @@
       "name": "npc-command-remove",
       "label": "Remove NPC command",
       "description": "Removes an NPC command by ID, or all commands.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command remove --id {id} {command_id}",
       "inputs": [
         {
@@ -2656,7 +2656,7 @@
       "name": "npc-command-cost",
       "label": "Command cost",
       "description": "Sets the money cost of the NPC commands.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command cost --id {id} {cost}",
       "inputs": [
         {
@@ -2679,7 +2679,7 @@
       "name": "npc-command-expcost",
       "label": "Command experience cost",
       "description": "Sets the experience cost of the NPC commands.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command expcost --id {id} {cost}",
       "inputs": [
         {
@@ -2702,7 +2702,7 @@
       "name": "npc-command-sequential",
       "label": "Toggle sequential mode",
       "description": "Toggles running NPC commands sequentially.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command sequential --id {id}",
       "inputs": [
         {
@@ -2718,7 +2718,7 @@
       "name": "npc-command-cycle",
       "label": "Toggle cycle mode",
       "description": "Toggles cycling through NPC commands.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command cycle --id {id}",
       "inputs": [
         {
@@ -2734,7 +2734,7 @@
       "name": "npc-command-random",
       "label": "Toggle random mode",
       "description": "Toggles running a random NPC command.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command random --id {id}",
       "inputs": [
         {
@@ -2750,7 +2750,7 @@
       "name": "npc-command-hideerrors",
       "label": "Toggle error messages",
       "description": "Toggles hiding of NPC command error messages.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command hideerrors --id {id}",
       "inputs": [
         {
@@ -2766,7 +2766,7 @@
       "name": "npc-command-forgetplayer",
       "label": "Forget player",
       "description": "Forgets command usage data for a player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command forgetplayer --id {id} {player}",
       "inputs": [
         {
@@ -2789,7 +2789,7 @@
       "name": "npc-command-clearerror",
       "label": "Clear command errors",
       "description": "Clears stored command errors of the given type for a player.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command clearerror --id {id} {type} {player}",
       "inputs": [
         {
@@ -2828,7 +2828,7 @@
       "name": "npc-command-errormessage",
       "label": "Custom error message",
       "description": "Sets a custom error message for the given error type.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "npc command errormessage --id {id} {type} {message}",
       "inputs": [
         {
@@ -2866,7 +2866,7 @@
       "name": "trait",
       "label": "Toggle traits",
       "description": "Toggles traits on the NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "trait --id {id} {traits}",
       "inputs": [
         {
@@ -2889,7 +2889,7 @@
       "name": "trait-add",
       "label": "Add traits",
       "description": "Adds traits to the NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "trait add --id {id} {traits}",
       "inputs": [
         {
@@ -2912,7 +2912,7 @@
       "name": "trait-remove",
       "label": "Remove traits",
       "description": "Removes traits on the NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "trait remove --id {id} {traits}",
       "inputs": [
         {
@@ -2965,7 +2965,7 @@
       "name": "template-apply",
       "label": "Apply template",
       "description": "Applies a template to the NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "template apply --id {id} {template}",
       "inputs": [
         {
@@ -2988,7 +2988,7 @@
       "name": "template-generate",
       "label": "Generate template",
       "description": "Generates a template from the NPC.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "template generate --id {id} {name}",
       "inputs": [
         {
@@ -3011,7 +3011,7 @@
       "name": "waypoints-add",
       "label": "Add waypoint",
       "description": "Adds a waypoint at a point.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "waypoints add --id {id} {x} {y} {z} {world}",
       "inputs": [
         {
@@ -3051,7 +3051,7 @@
       "name": "waypoints-remove",
       "label": "Remove waypoint",
       "description": "Removes a waypoint at a point or by --index.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "waypoints remove --id {id} {args}",
       "inputs": [
         {
@@ -3074,7 +3074,7 @@
       "name": "waypoints-provider",
       "label": "Waypoint provider",
       "description": "Sets the current waypoint provider.",
-      "risk": "caution",
+      "risk": "safe",
       "console_template": "waypoints provider --id {id} {provider}",
       "inputs": [
         {

@@ -1,7 +1,7 @@
 [module]
 schema_version = 2
 name = "palworld"
-version = "0.1.10"
+version = "0.1.11"
 description = "Palworld server management module"
 author = "WareAoba"
 game_name = "Palworld"
@@ -39,7 +39,7 @@ default_port = 8211
 stop_command = "Shutdown"  # stdin으로 전송하는 graceful 종료 명령어
 stop_timeout = 60  # REST 저장·종료 뒤 끝나기를 기다리는 시간(초)
 announce_command = "announce"
-# 조작 가능한 사람만 접속(saba-chan 0.1.12): 명단에 없는 닉네임이 들어오면 데몬이 이 명령으로 내보낸다 (첫 입력 닉네임, 둘째 입력 이유)
+# 조작 가능한 사람만 접속(saba-chan 0.1.13): 명단에 없는 닉네임이 들어오면 데몬이 이 명령으로 내보낸다 (첫 입력 닉네임, 둘째 입력 이유)
 kick_command = "kick"
 
 [backup]

@@ -20,7 +20,7 @@ python maker/prior_art.py "<게임 이름>" [--egg <에그 검색어>] [--lgsm <
 | app_id, 익명 설치 | SteamDB나 공식 서버 문서, 실제 `app_update` 결과 | `[install] app_id`, 로그인 필요 여부 |
 | 실행 줄·인자 | 공식 서버 문서, `probe_server.py` 실측 | `[launch]`, `[[settings.fields]] arg` |
 | 준비 줄 | `probe_server.py` 원문 | `ready_patterns` |
-| 정지 `^C`(에그) / `stopmode` 2·16(LinuxGSM) | 공식 문서의 종료 방법, 실측에서 Ctrl+C 뒤 저장 줄 | `[config] stop_signal = "interrupt"` (0.1.13 다음 판의 saba-core) |
+| 정지 `^C`(에그) / `stopmode` 2·16(LinuxGSM) | 공식 문서의 종료 방법, 실측에서 Ctrl+C 뒤 저장 줄 | `[config] stop_signal = "interrupt"` (saba-core 0.1.13) |
 | 정지 명령(`quit`, `stop` 등) | 서버 `help`, 실측 | `[config] stop_command` |
 | 포트 | 공식 문서, 실측으로 열린 포트 | `port = true` 설정 |
 | wine·proton, `steamcmdforcewindows` | 공식 배포물의 OS 목록 | Linux 미지원이면 `platforms = ["windows"]` |

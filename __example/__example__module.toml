@@ -175,7 +175,7 @@ dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해�
 name = "managed_start"                  # 내부 키 이름 (config에서 참조)
 type = "boolean"
 label = "Managed Start (Console)"
-description = "Start in managed mode with stdin/stdout console"
+description = "saba-runner holds the server console, so saba-chan shows it and can send commands to stdin. If you turn this off, the server runs as a separate process in its own window without the saba-chan console or stdin."
 default = true
 group = "saba-chan"
 

@@ -4,6 +4,7 @@
     "description": "幻兽帕鲁服务器管理模块"
   },
   "settings": {
+    "managed_start": { "label": "托管启动（控制台）", "description": "由 saba-runner 接管服务器控制台，让你在 saba-chan 中查看控制台输出。关闭后，服务器会在单独窗口中作为独立进程运行，无法使用 saba-chan 控制台和从中读取的游戏聊天。命令通过 REST 发送，关闭后仍可使用。" },
     "port": { "label": "服务器端口", "description": "游戏服务器端口" },
     "rest_host": { "label": "REST API 主机", "description": "REST API 主机（默认 127.0.0.1）" },
     "rest_port": { "label": "REST API 端口", "description": "REST API 端口（默认 8212）" },

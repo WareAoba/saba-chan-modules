@@ -389,13 +389,32 @@ def test_unknown_function_returns_graceful_json_with_zero_exit():
     assert "available" in payload
 
 
-def test_launch_turns_rcon_off(tmp_path):
-    """RCON is blocked for security: an empty RCONPassword disables it in Project Zomboid."""
+def test_managed_launch_turns_rcon_off(tmp_path):
+    """관리형 시작은 콘솔(stdin)로 명령을 보낸다: 빈 RCONPassword로 RCON을 끈다."""
     from zomboid.lifecycle import _enforce_rcon_policy, IniManager
     ini = tmp_path / "servertest.ini"
     ini.write_text("RCONPassword=secret\nRCONPort=27015\n", encoding="utf-8")
-    assert _enforce_rcon_policy(str(ini)) == ""
+    assert _enforce_rcon_policy(str(ini), {"managed": True, "rcon_password": "daemon-pw", "rcon_port": 27020}) == ""
     assert IniManager.read(str(ini))["RCONPassword"] == ""
+
+
+def test_unmanaged_launch_turns_rcon_on_with_the_daemon_access(tmp_path):
+    """관리형 시작을 끄면 콘솔이 없다: 데몬이 만든 포트·비밀번호로 RCON을 켜고, 접속 정보가 없으면 끈다."""
+    from zomboid.lifecycle import _enforce_rcon_policy, IniManager
+    ini = tmp_path / "servertest.ini"
+    ini.write_text("RCONPassword=\nRCONPort=27015\n", encoding="utf-8")
+    assert _enforce_rcon_policy(str(ini), {"managed": False, "rcon_password": "daemon-pw", "rcon_port": 27020}) == "daemon-pw"
+    props = IniManager.read(str(ini))
+    assert (props["RCONPassword"], props["RCONPort"]) == ("daemon-pw", "27020")
+    assert _enforce_rcon_policy(str(ini), {"managed": False}) == ""
+    assert IniManager.read(str(ini))["RCONPassword"] == ""
+
+    # 첫 시작이라 설정 파일이 아직 없어도 RCON을 켠 채로 만든다
+    fresh = tmp_path / "Server" / "first.ini"
+    assert _enforce_rcon_policy(str(fresh), {"managed": False, "rcon_password": "daemon-pw", "rcon_port": 27021}) == "daemon-pw"
+    props = IniManager.read(str(fresh))
+    assert (props["RCONPassword"], props["RCONPort"]) == ("daemon-pw", "27021")
+    assert props["DefaultPort"] == "16261"
 
 
 def test_commands_go_to_the_console():

@@ -116,7 +116,7 @@ name = "managed_start"
 restart_required = true
 type = "boolean"
 label = "Managed Start (Console)"
-description = "Start with the saba-chan console attached"
+description = "saba-runner holds the server console, so you can see it and type commands in saba-chan. If you turn this off, the server runs as a separate process in its own window, and the saba-chan console and command input (stdin) do not work."
 default = true
 group = "saba-chan"
 

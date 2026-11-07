@@ -172,10 +172,7 @@
       "label": "Comptes max par utilisateur",
       "description": "Limite de comptes par utilisateur Steam"
     },
-    "managed_start": {
-      "label": "Démarrage géré (console)",
-      "description": "Démarre le serveur avec saba-runner pour que saba-chan puisse utiliser sa console. RCON reste désactivé dans tous les modes. Si vous désactivez cette option, saba-chan ne peut plus envoyer de commandes au serveur."
-    },
+    "managed_start": { "label": "Démarrage géré (console)", "description": "saba-runner prend la console du serveur pour que vous la voyiez et tapiez des commandes dans saba-chan. Si vous désactivez ceci, le serveur tourne comme un processus séparé dans sa propre fenêtre : la console de saba-chan ne fonctionne pas et saba-chan envoie les commandes par RCON (port et mot de passe choisis par saba-chan)." },
     "graceful_stop": {
       "label": "Arrêt propre",
       "description": "Envoie la commande 'quit' (sauvegarde le monde puis quitte) et attend l'arrêt du serveur. Si vous désactivez cette option, saba-chan termine le processus du serveur immédiatement."
@@ -754,7 +751,7 @@
     "properties_updated": "Configuration du serveur mise à jour",
     "properties_using_defaults": "Le fichier de configuration n'existe pas. Affichage des valeurs par défaut",
     "no_mappable_settings": "Aucun des paramètres indiqués ne correspond à un paramètre du serveur",
-    "rcon_disabled_managed": "RCON est désactivé en mode géré (le contrôle passe par stdin)",
+    "rcon_disabled_managed": "RCON désactivé pour le démarrage géré (les commandes passent par la console, stdin)",
     "command_sent": "Commande envoyée à la console : {{command}}",
     "no_log_files": "Aucun fichier journal trouvé"
   },

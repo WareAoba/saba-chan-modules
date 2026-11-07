@@ -6,7 +6,7 @@
   "settings": {
     "managed_start": {
       "label": "Inicio gestionado (consola)",
-      "description": "Iniciar con la consola de saba-chan conectada"
+      "description": "saba-runner toma la consola del servidor para que la veas y escribas comandos en saba-chan. Si lo desactivas, el servidor se ejecuta como un proceso aparte en su propia ventana, y la consola de saba-chan y la entrada de comandos (stdin) no funcionan."
     },
     "ip": {
       "label": "IP de escucha",

@@ -27,7 +27,7 @@
     "level_type": { "label": "월드 유형", "description": "월드 생성 유형", "options": { "minecraft:normal": "기본", "minecraft:flat": "완전한 평지", "minecraft:large_biomes": "넓은 생물 군계", "minecraft:amplified": "증폭", "minecraft:single_biome_surface": "단일 생물 군계" } },
     "max_world_size": { "label": "최대 월드 크기", "description": "최대 월드 경계 반경" },
     "use_aikar_flags": { "label": "Aikar 플래그", "description": "서버를 더 부드럽게 돌리는 권장 Java 실행 옵션 사용" },
-    "managed_start": { "label": "관리형 시작 (콘솔)", "description": "saba-runner로 서버를 시작해 사바쨩이 콘솔을 쓸 수 있게 합니다. RCON은 어떤 모드에서도 꺼져 있습니다. 끄면 사바쨩이 서버에 명령을 보낼 수 없습니다." },
+    "managed_start": { "label": "관리형 시작 (콘솔)", "description": "saba-runner가 서버 콘솔을 붙잡아, 사바쨩 안에서 콘솔을 보고 명령을 넣을 수 있게 시작합니다. 끄면 서버가 별도 창에서 별도 프로세스로 실행되어 사바쨩 콘솔은 쓸 수 없고, 사바쨩은 명령을 RCON(사바쨩이 정한 포트·비밀번호)으로 보냅니다." },
     "graceful_stop": { "label": "안전 정지", "description": "'stop' 명령을 보내고 서버가 저장한 뒤 종료할 때까지 기다립니다. 끄면 사바쨩이 서버 프로세스를 바로 종료합니다." },
     "enforce_whitelist": { "label": "화이트리스트 강제 적용", "description": "화이트리스트를 다시 불러올 때 목록에 없는 플레이어를 추방함" },
     "generate_structures": { "label": "구조물 생성", "description": "마을, 폐광 같은 구조물을 생성함" },

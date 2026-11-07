@@ -5,8 +5,8 @@
   },
   "settings": {
     "managed_start": {
-      "label": "콘솔 연결 시작",
-      "description": "사바쨩 콘솔을 붙여서 시작합니다"
+      "label": "관리형 시작 (콘솔)",
+      "description": "saba-runner가 서버 콘솔을 붙잡아, 사바쨩 안에서 콘솔을 보고 명령을 넣을 수 있게 시작합니다. 끄면 서버가 별도 창에서 별도 프로세스로 실행되어 사바쨩 콘솔과 명령 입력(stdin)을 쓸 수 없습니다."
     },
     "ip": {
       "label": "수신 IP",

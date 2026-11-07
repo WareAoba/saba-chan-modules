@@ -19,7 +19,8 @@ network = true          # 서버 파일 내려받기, 포트 확인
 spawn_process = true    # 서버 실행 파일 호출, PID로 종료
 
 [protocols]
-supported = ["stdin"]
+supported = ["stdin", "rcon"]
+rcon_port = 25575  # 관리형 시작을 끈 서버의 명령 길 (데몬이 빈 포트·비밀번호를 정해 넘긴다)
 default = "stdin"
 interaction_mode = "console"  # console: stdin 지원, 콘솔 UI 표시 | commands: 정해진 명령어만 실행
 
@@ -161,7 +162,7 @@ name = "managed_start"
 restart_required = true
 type = "boolean"
 label = "Managed Start (Console)"
-description = "Start the server through saba-runner so saba-chan can use its console. RCON stays off in every mode. If you turn this off, saba-chan cannot send commands to the server."
+description = "saba-runner holds the server console, so you can see it and type commands in saba-chan. If you turn this off, the server runs as a separate process in its own window: the saba-chan console does not work, and saba-chan sends commands over RCON (port and password set by saba-chan)."
 default = true
 group = "saba-chan"
 

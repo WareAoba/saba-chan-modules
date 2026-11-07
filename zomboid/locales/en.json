@@ -46,7 +46,7 @@
     "minutes_per_page": { "label": "Minutes Per Page", "description": "In-game minutes needed to read one page of a book" },
     "spawn_point": { "label": "Spawn Point", "description": "Custom spawn coordinates" },
     "max_accounts_per_user": { "label": "Max Accounts Per User", "description": "Account limit per Steam user" },
-    "managed_start": { "label": "Managed Start (Console)", "description": "Start the server through saba-runner so saba-chan can use its console. RCON stays off in every mode. If you turn this off, saba-chan cannot send commands to the server." },
+    "managed_start": { "label": "Managed Start (Console)", "description": "saba-runner holds the server console, so you can see it and type commands in saba-chan. If you turn this off, the server runs as a separate process in its own window: the saba-chan console does not work, and saba-chan sends commands over RCON (port and password set by saba-chan)." },
     "graceful_stop": { "label": "Graceful Stop", "description": "Send the 'quit' command (saves the world, then exits) and wait for the server to stop. If you turn this off, saba-chan ends the server process at once." },
     "server_welcome_message": { "label": "Welcome Message", "description": "Welcome message displayed to players after connecting (use <LINE> for line breaks)" },
     "auto_create_user_in_whitelist": { "label": "Auto-Add to Whitelist", "description": "Automatically add new players to the whitelist when they join" },
@@ -289,7 +289,7 @@
     "properties_using_defaults": "Configuration file does not exist. Showing defaults",
     "no_mappable_settings": "None of the given settings match a server setting",
     "server_reset_complete": "Server world data reset complete",
-    "rcon_disabled_managed": "RCON disabled in managed mode (stdin is used for control)",
+    "rcon_disabled_managed": "RCON turned off for managed start (commands go to the console stdin)",
     "command_sent": "Command sent to the console: {{command}}",
     "no_log_files": "No log files found"
   },

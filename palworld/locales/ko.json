@@ -4,6 +4,7 @@
     "description": "팰월드 서버 관리 모듈"
   },
   "settings": {
+    "managed_start": { "label": "관리형 시작 (콘솔)", "description": "saba-runner가 서버 콘솔을 붙잡아, 사바쨩 안에서 콘솔 출력을 볼 수 있게 시작합니다. 끄면 서버가 별도 창에서 별도 프로세스로 실행되어 사바쨩 콘솔과 콘솔로 읽는 게임 채팅을 쓸 수 없습니다. 명령은 REST로 보내므로 꺼도 쓸 수 있습니다." },
     "port": { "label": "서버 포트", "description": "게임 서버 포트" },
     "rest_host": { "label": "REST API 호스트", "description": "REST API 호스트 (기본 127.0.0.1)" },
     "rest_port": { "label": "REST API 포트", "description": "REST API 포트 (기본 8212)" },

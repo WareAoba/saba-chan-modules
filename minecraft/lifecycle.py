@@ -595,7 +595,7 @@ def _unescape_property(value):
 
 def _load_default_properties():
     """Load vanilla defaults from server.properties reference file,
-    then apply saba-chan-specific overrides (RCON stays off: commands go through the console)."""
+    then apply saba-chan-specific overrides (RCON starts off; a launch with managed start off turns it on)."""
     defaults = {}
     ref_path = os.path.join(MODULE_DIR, "server.properties")
     if os.path.isfile(ref_path):
@@ -979,14 +979,24 @@ def validate(config):
 
 def _enforce_rcon_policy(working_dir, config=None):
     """
-    Keep RCON off before every launch, in every mode.
+    RCON은 관리형 시작을 끈 서버에서만 켠다 (실행 직전마다).
 
-    saba-chan blocks RCON for security: commands reach the server through its console (stdin),
-    which saba-runner keeps open across daemon restarts. The daemon's RCON password/port are not synced.
+    관리형 시작은 saba-runner가 쥔 콘솔(stdin)로 명령을 보낸다: RCON을 끈다. 관리형 시작을 끄면 콘솔이 없으므로
+    데몬이 만든 포트·비밀번호(config `rcon_port`·`rcon_password`)로 RCON을 켠다. 접속 정보가 없으면 끈다.
 
     Returns dict with details of what was changed, or None if server.properties does not exist yet.
     """
     mgr = ServerPropertiesManager(working_dir)
+    config = config or {}
+    if config.get("managed", True) is False and config.get("rcon_password") and config.get("rcon_port"):
+        changes = {"enable-rcon": "true", "rcon.port": str(config["rcon_port"]),
+                   "rcon.password": str(config["rcon_password"]), "broadcast-rcon-to-ops": "false"}
+        props = mgr.read() if mgr.exists() else {}
+        if all(props.get(k) == v for k, v in changes.items()):
+            return {"changed": False}
+        mgr.update(changes)  # 파일이 없으면 기본값 위에 만든다
+        print("[Minecraft] RCON turned on for saba-chan (managed start is off)", file=sys.stderr)
+        return {"changed": True, "changes": {"enable-rcon": "true"}}
     if not mgr.exists():
         return None  # server.properties will be generated on first run (defaults keep RCON off)
 
@@ -1371,7 +1381,7 @@ def diagnose_log(config):
 
 
 def _request_stop(config):
-    """저장 후 종료 요청: 콘솔 `stop` → SIGTERM (RCON은 보안 정책으로 꺼져 있다)"""
+    """저장 후 종료 요청: 콘솔 `stop`(관리형 시작을 끄면 데몬이 RCON으로 보낸다) → SIGTERM"""
     return request_console(config, "stop") or request_terminate(config.get("pid"))
 
 

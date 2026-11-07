@@ -27,7 +27,7 @@
     "level_type": { "label": "Tipo de mundo", "description": "Tipo de geração do mundo", "options": { "minecraft:normal": "Padrão", "minecraft:flat": "Plano", "minecraft:large_biomes": "Biomas vastos", "minecraft:amplified": "AMPLIFICADO", "minecraft:single_biome_surface": "Bioma único" } },
     "max_world_size": { "label": "Tamanho máximo do mundo", "description": "Raio máximo da borda do mundo" },
     "use_aikar_flags": { "label": "Flags do Aikar", "description": "Usar as opções de Java recomendadas para um desempenho mais fluido" },
-    "managed_start": { "label": "Início gerenciado (console)", "description": "Inicia o servidor pelo saba-runner para que o saba-chan possa usar o console dele. O RCON fica desativado em todos os modos. Se você desativar esta opção, o saba-chan não consegue enviar comandos ao servidor." },
+    "managed_start": { "label": "Início gerenciado (console)", "description": "O saba-runner assume o console do servidor para você vê-lo e digitar comandos no saba-chan. Se você desativar isso, o servidor roda como um processo separado na própria janela: o console do saba-chan não funciona e o saba-chan envia os comandos por RCON (porta e senha definidas pelo saba-chan)." },
     "graceful_stop": { "label": "Parada segura", "description": "Envia o comando 'stop' e espera o servidor salvar e desligar. Se você desativar esta opção, o saba-chan encerra o processo do servidor imediatamente." },
     "enforce_whitelist": { "label": "Forçar whitelist", "description": "Expulsar jogadores que não estão na whitelist quando ela é recarregada" },
     "generate_structures": { "label": "Gerar estruturas", "description": "Gerar estruturas como vilarejos e minas abandonadas" },

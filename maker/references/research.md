@@ -3,6 +3,32 @@
 조사 결과를 `<game>/RESEARCH.md`(`new_module.py`가 만든 표, 또는 PR 본문)에 남긴다. 항목마다 출처 URL이나 실측 근거를 붙인다.
 지난 점검 기록(버그 목록, 모듈 패턴 감사)이 있으면 같은 함수를 고치기 전에 열린 항목이 있는지 먼저 본다.
 
+## 다른 관리 도구의 단서 (`maker/prior_art.py`)
+
+조사를 시작할 때 다른 서버 관리 도구가 이 게임을 어떻게 다루는지 먼저 본다. 어디를 확인할지 알려 줄 뿐이고 출처는 아니다.
+
+```
+python maker/prior_art.py "<게임 이름>" [--egg <에그 검색어>] [--lgsm <LinuxGSM 검색어>] --out prior-art.md
+```
+
+- **Pelican 에그**(`pelican-eggs/games-steamcmd`, `games-standalone`, `minecraft`, MIT): 실행 줄(`startup`), 준비 줄(`config.startup`의 `done`), 정지(`config.stop`), 변수(`SRCDS_APPID`·`STEAMCMD_APPID`, `STEAM_USER`가 필수인지), 설정 파일, wine·proton 이미지(= Windows 전용 서버).
+- **LinuxGSM**(`GameServerManagers/LinuxGSM`, MIT): `serverlist.csv`의 이름과 `config-default/config-lgsm/<서버>/_default.cfg`의 `appid`, `steamuser`, `stopmode`, `executable`, `startparameters`, 포트, `steamcmdforcewindows`.
+- 단서를 공식 자료로 옮기는 법:
+
+| 단서 | 확인할 것 | 모듈에 옮기는 자리 |
+|---|---|---|
+| app_id, 익명 설치 | SteamDB나 공식 서버 문서, 실제 `app_update` 결과 | `[install] app_id`, 로그인 필요 여부 |
+| 실행 줄·인자 | 공식 서버 문서, `probe_server.py` 실측 | `[launch]`, `[[settings.fields]] arg` |
+| 준비 줄 | `probe_server.py` 원문 | `ready_patterns` |
+| 정지 `^C`(에그) / `stopmode="2"`(LinuxGSM) | 공식 문서의 종료 방법, 실측에서 Ctrl+C 뒤 저장 줄 | `[config] stop_signal = "interrupt"` (saba-core 0.1.13) |
+| 정지 명령(`quit`, `stop` 등) | 서버 `help`, 실측 | `[config] stop_command` |
+| 포트 | 공식 문서, 실측으로 열린 포트 | `port = true` 설정 |
+| wine·proton, `steamcmdforcewindows` | 공식 배포물의 OS 목록 | Linux 미지원이면 `platforms = ["windows"]` |
+
+- 두 도구는 Linux·Docker 기준이다. Windows 폴더 구조·런타임·콘솔 동작은 따로 실측한다.
+- 단서와 공식 자료가 다르면 공식 자료와 실측을 따르고, 다른 점을 조사 표 "다른 모듈과 방식이 다른 곳" 아래에 적는다.
+- 조사 표 출처 칸에 에그·LinuxGSM 주소만 있으면 `check.py` research가 실패한다.
+
 ## 조사할 것
 
 - 서버 실행 파일(런처가 아닌 실제 서버 exe/jar), 실행 인자 전체(공식 표기 그대로, 예: `-port=8211`이지 `--port`가 아님), 기본 포트(게임·쿼리·REST), 정상 종료 명령과 종료 때 저장하는지

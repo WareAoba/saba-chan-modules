@@ -46,7 +46,7 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 RCON만 받는 모듈: 데몬이 인스턴스마다 포트·무작위 비밀번호를 정해 config에 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 이 값을 게임 설정에 쓰고 RCON을 127.0.0.1에서만 받게 한다. 콘솔 명령과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 정지는 모듈 `stop()`이 데몬 `/api/instance/:id/rcon`으로 보낸다. 계약 원문은 saba-chan `docs/architecture/02-modules.md` RCON 정책.
 
 ### `[config]` ○
-`server_executable`(작업 폴더 안 실행 파일 이름), `executable_path`, `process_name`, `default_port`, `stop_command`(stdin으로 보낼 정지 명령), `stop_timeout`(초, 기본 30), `announce_command`(게임 안 공지에 쓰는 `[[commands.fields]]` 이름, `message` 입력 하나. 예약 재시작·업데이트 예고와 공지 예약에 쓴다).
+`server_executable`(작업 폴더 안 실행 파일 이름), `executable_path`, `process_name`, `default_port`, `stop_command`(stdin으로 보낼 정지 명령), `stop_timeout`(초, 기본 30), `stop_signal`(`"interrupt"`면 managed 정지 때 `stop_command`보다 먼저 Ctrl+C를 보낸다. saba-core 0.1.13), `announce_command`(게임 안 공지에 쓰는 `[[commands.fields]]` 이름, `message` 입력 하나. 예약 재시작·업데이트 예고와 공지 예약에 쓴다).
 
 ### `[launch]` ○
 `log_files`: 서버가 콘솔 대신 파일에만 로그를 쓸 때, 그 파일들을 콘솔에 합친다. 와일드카드 `*` `?`는 마지막 칸에만.

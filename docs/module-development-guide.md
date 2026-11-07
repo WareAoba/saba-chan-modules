@@ -206,7 +206,7 @@ def validate(config):
 
 ### stop: managed는 요청 뒤 반환
 
-콘솔이 있는 managed 서버는 데몬이 `stop_command`를 보내고 기다린다. stdin이 없거나 REST로 정지하는 managed 서버는 모듈의 `stop`을 부른다. 이때 모듈은 저장·종료 요청을 보낸 뒤 바로 `success: true`로 답한다. 서버가 아직 살아 있어도 요청이 접수됐으면 성공이다. 종료 대기와 강제 종료는 데몬이 맡는다.
+콘솔이 있는 managed 서버는 데몬이 `stop_command`를 보내고 기다린다. `[config] stop_signal = "interrupt"`면 데몬이 그보다 먼저 Ctrl+C를 보내고 기다린다(saba-core 0.1.13, Ctrl+C를 받으면 저장하고 끝나는 서버용). 보내지 못하면 `stop_command`·`stop` 순서로 넘어간다. stdin이 없거나 REST로 정지하는 managed 서버는 모듈의 `stop`을 부른다. 이때 모듈은 저장·종료 요청을 보낸 뒤 바로 `success: true`로 답한다. 서버가 아직 살아 있어도 요청이 접수됐으면 성공이다. 종료 대기와 강제 종료는 데몬이 맡는다.
 
 요청할 길이 없으면 서버를 끝내지 않고 `{"success": false, "error_code": "graceful_stop_unavailable", "message": <모듈 locales>}`로 답한다. 데몬은 기다리거나 강제 종료하지 않고 사용자에게 알린다. 사용자가 강제 종료를 고르면 데몬이 처리한다.
 

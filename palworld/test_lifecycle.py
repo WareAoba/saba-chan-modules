@@ -638,6 +638,20 @@ def test_nickname_resolution_uses_the_sdk_player_list(monkeypatch):
     rest.assert_called_once_with("i1", "GET", "/v1/api/players", body=None, timeout=5)
 
 
+def test_numeric_nickname_is_looked_up_before_treating_it_as_an_id(monkeypatch):
+    """숫자만 있는 닉네임(예: 12345)도 목록에서 먼저 찾는다 — 없으면 ID로 보고 그대로 넘긴다 (리뷰 11-07)"""
+    from palworld import lifecycle
+    players = {"players": [{"name": "12345", "userId": "steam_7"}]}
+    rest = mock.Mock(return_value=_daemon_rest_response(players, "GET", "/v1/api/players"))
+    monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
+    assert lifecycle.resolve_player_id("i1", "12345", {}, allow_partial=False) == (True, "steam_7")
+    # 이름이 같은 사람이 없으면 ID 로 보고, 부분 일치로 엉뚱한 사람을 고르지 않는다
+    assert lifecycle.resolve_player_id("i1", "234", {}) == (True, "234")
+    # 목록을 못 읽어도 ID 입력은 그대로 진행한다
+    rest.side_effect = ConnectionError("down")
+    assert lifecycle.resolve_player_id("i1", "765611", {}, allow_partial=False) == (True, "765611")
+
+
 def test_rest_failure_keeps_the_daemon_error_code(monkeypatch):
     from palworld import lifecycle
     error = ConnectionError("요청 거부")

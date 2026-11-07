@@ -34,7 +34,7 @@ Windows PC가 없는 환경(클라우드 Linux 등)에서 잴 수 없는 관문�
 
 | # | 관문 | 도구 | 자세히 |
 |---|---|---|---|
-| 1 | **조사 표**가 있다. 모든 명령·설정·포트·경로·콘솔 문구에 출처가 붙고 "문서"와 "실측"이 구별돼 있다 | `new_module.py`가 만든 `RESEARCH.md`, `check.py` research | [research.md](references/research.md) |
+| 1 | **조사 표**가 있다. 모든 명령·설정·포트·경로·콘솔 문구에 출처가 붙고 "문서"와 "실측"이 구별돼 있다 | `new_module.py`가 만든 `RESEARCH.md`, `prior_art.py`(단서), `check.py` research | [research.md](references/research.md) |
 | 2 | **실물을 열어 봤다.** 배포물 항목 전체 목록, 동봉 기본 파일의 원래 바이트(인코딩·줄바꿈·주석 키)를 확인했다 | `inspect_dist.py` | research.md §실물 |
 | 3 | **서버를 실제로 띄웠다.** 데몬과 같은 방식으로 띄워 준비·정상 종료 줄 원문, `help` 출력, 저장 뒤 생긴 파일을 기록했다. 다른 OS 빌드밖에 못 돌려도 돌린다 | `probe_server.py` | research.md §실물 |
 | 4 | **명령은 `help`와 한 줄씩 맞다.** 서버가 모르는 명령이 없고, 아는 명령이 빠지지 않았다. 모든 명령에 `risk`·`description`이 있다 | `probe_server.py --send help`, `check.py` conformance, `trial.py` help | [manifest.md](references/manifest.md) |
@@ -71,7 +71,13 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
    ```
    `__example/` 틀이 `<name>/`으로 복사되고, `[module]` 이름·설명·별명, 10개 언어 파일, 조사 표 `RESEARCH.md`, `pytest.ini` 등록이 채워진다.
    실행 파일 이름 같은 나머지 자리표시(`MyGameServer`)는 조사로 채운다.
-3. **조사한다** → [references/research.md](references/research.md). 기억이 아니라 웹 검색으로 공식 출처를 찾고, 결과를 `RESEARCH.md` 표에 출처와 함께 적는다.
+3. **조사한다** → [references/research.md](references/research.md). 먼저 다른 관리 도구(Pelican 에그, LinuxGSM)가 이 게임을 어떻게 띄우는지 단서를 모은다.
+   ```
+   python maker/prior_art.py "<게임 이름>" --out prior-art.md
+   ```
+   SteamCMD app_id와 익명 설치 여부, 실행 인자, 준비 줄, 정지 방식(`^C`면 `stop_signal = "interrupt"` 후보), 포트, 설정 파일, Windows 전용 여부가 나온다.
+   이 값은 **단서**다. 항목마다 공식 출처나 실측으로 확인한 뒤에만 `RESEARCH.md` 표에 적고, 출처 칸에 에그·LinuxGSM 주소만 두지 않는다(`check.py` research가 거절한다).
+   그다음 기억이 아니라 웹 검색으로 공식 출처를 찾고, 결과를 `RESEARCH.md` 표에 출처와 함께 적는다.
 4. **실물을 본다.** 서버 배포물을 받아(공식 주소) 풀지 않고 점검한다.
    ```
    python maker/inspect_dist.py <zip | tar | 풀어 둔 폴더> --out inspect.md
@@ -110,6 +116,7 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
 | 도구 | 하는 일 |
 |---|---|
 | `maker/new_module.py` | `__example` 틀로 새 모듈 뼈대 + `RESEARCH.md` + 10개 언어 + `pytest.ini` 등록 |
+| `maker/prior_art.py` | Pelican 에그·LinuxGSM에서 이 게임의 실행·설치·정지 단서를 모은다(출처가 아니라 단서) |
 | `maker/inspect_dist.py` | 배포물 항목 전체, OS 폴더, 같은 이름 실행 파일, 설정 파일 원래 바이트(인코딩·줄바꿈·키) |
 | `maker/probe_server.py` | 서버를 파이프로 띄워 준비·명령 응답·정지·생긴 파일을 원문으로 기록 |
 | `maker/check.py` | PR 전 관문 중 기계로 잴 수 있는 것 전부(선택 기능 보고 포함) + 직접 확인 목록, `--trial`이면 실측까지 |
@@ -120,6 +127,7 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
 1. **추측 금지.** 모든 명령·설정 키·기본값·포트·파일 경로·종료 문구는 출처(공식 문서 URL, 서버가 실제로 만든 파일, 실측 로그) 하나 이상에 묶는다. 출처를 찾지 못한 항목은 비워 두고 "확인 못 함"으로 보고한다.
 2. **문서보다 실물.** 배포물 목록, 동봉 기본 파일의 원래 바이트, `help` 출력, 콘솔 문구 원문이 문서·위키·커뮤니티 자료보다 우선한다. 위키는 옛 버전 기준일 수 있다.
 3. **기억이 아니라 공식 자료.** 게임 정보는 기억으로 쓰지 않는다. 매번 웹 검색으로 공식 출처를 찾아 읽고 URL을 조사 표에 남긴다. 공식 출처가 없을 때만 커뮤니티 자료를 쓰고, 그때는 실측으로 한 번 더 확인한다.
+   다른 관리 도구(Pelican 에그, LinuxGSM)는 어디를 볼지 알려 주는 단서일 뿐 출처가 아니다. 그 도구의 값은 Linux·Docker 기준이고 옛 판일 수 있다.
 4. **공식 기능이 먼저.** 게임이 명령·API·실행 인자·기본 파일·백업 절차를 공식으로 제공하면 그것을 쓴다. kill·sleep·파일 짐작으로 대신하지 않는다.
 5. **전부 지원.** 게임 서버가 가진 명령과 사용자가 조정할 수 있는 설정은 빠짐없이 옮긴다. 옮기지 못한 것은 목록과 이유를 보고하고, 데몬에 범용 지점을 먼저 만든다.
 6. **다른 모듈과 같은 방식으로.** 같은 일(정지, 초기화, 백업, 접속자, 진단, 기본값)은 다른 모듈이 어떻게 하는지 먼저 열어 보고 맞춘다([lessons.md](references/lessons.md) §모듈 간 불일치).

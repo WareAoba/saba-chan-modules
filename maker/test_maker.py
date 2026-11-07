@@ -28,6 +28,7 @@ new_module = load("new_module")
 inspect_dist = load("inspect_dist")
 probe_server = load("probe_server")
 check = load("check")
+prior_art = load("prior_art")
 
 
 @pytest.fixture
@@ -514,3 +515,147 @@ def test_check_trial_needs_saba_core(repo):
 
     assert done.returncode == 2
     assert "--saba-core" in done.stderr
+
+
+# ─── prior_art: 다른 관리 도구(Pelican eggs, LinuxGSM)의 단서 ────────────────
+
+EGG = {
+    "meta": {"version": "PLCN_v3"},
+    "name": "Valheim",
+    "docker_images": {"Wine": "ghcr.io/parkervcp/yolks:wine_latest"},
+    "startup_commands": {"Default": "wine ./valheim_server.exe -port {{SERVER_PORT}} -world \"{{WORLD}}\""},
+    "config": {"files": "{\"BepInEx/config.cfg\": {}}", "startup": "{\r\n    \"done\": \"DungeonDB Start\"\r\n}", "logs": "{}", "stop": "^C"},
+    "scripts": {"installation": {"script": "./steamcmd.sh +login anonymous +app_update ${SRCDS_APPID} validate +quit"}},
+    "variables": [
+        {"name": "World", "env_variable": "WORLD", "default_value": "Dedicated", "description": "World name"},
+        {"name": "App ID", "env_variable": "SRCDS_APPID", "default_value": "896660", "description": ""},
+        {"name": "Query Port", "env_variable": "QUERY_PORT", "default_value": "2457", "description": "Steam query"},
+    ],
+}
+
+LGSM_CSV = "shortname,gameservername,gamename,os\nvh,vhserver,Valheim,ubuntu-26.04\npz,pzserver,Project Zomboid,ubuntu-26.04\n"
+
+LGSM_CFG = """# comment
+port="2456"
+startparameters="-name '${servername}' -port ${port}"
+appid="896660"
+steamcmdforcewindows="no"
+stopmode="2"
+executable="./valheim_server.x86_64"
+discordalert="off"
+"""
+
+
+def test_prior_art_reads_the_leads_an_egg_gives():
+    """egg에서 조사 표 칸으로 옮길 단서: app id, 익명 설치, 실행 인자, 준비 줄, 정지 방법(^C = Ctrl+C), 포트, 변수"""
+    lead = prior_art.read_egg(EGG, "https://example.invalid/egg-valheim.json")
+
+    assert lead["app_id"] == "896660"
+    assert lead["anonymous"] is True
+    assert lead["startup"] == ["wine ./valheim_server.exe -port {{SERVER_PORT}} -world \"{{WORLD}}\""]
+    assert lead["ready"] == ["DungeonDB Start"]
+    assert lead["stop"] == "^C" and lead["stop_signal"] == "interrupt"
+    assert lead["ports"] == {"QUERY_PORT": "2457"}
+    assert lead["windows_via_wine"] is True
+    assert lead["config_files"] == ["BepInEx/config.cfg"]
+    assert ("WORLD", "Dedicated", "World name") in lead["variables"]
+
+
+def test_prior_art_names_the_stop_command_when_it_is_not_ctrl_c():
+    egg = dict(EGG, config=dict(EGG["config"], stop="quit"), docker_images={"Java": "ghcr.io/parkervcp/yolks:java_21"})
+    egg["scripts"] = {"installation": {"script": "steamcmd +login ${STEAM_USER} ${STEAM_PASS} +app_update ${STEAMCMD_APPID}"}}
+    egg["variables"] = [{"env_variable": "STEAM_USER", "default_value": "", "rules": ["required", "string"]},
+                        {"env_variable": "STEAMCMD_APPID", "default_value": "233780", "rules": "required|integer"}]
+    egg["startup_commands"] = {"Default": "./arma3server_x64 -port={{SERVER_PORT}}"}
+
+    lead = prior_art.read_egg(egg, "u")
+
+    assert lead["stop"] == "quit" and lead["stop_signal"] is None
+    assert lead["app_id"] == "233780"
+    assert lead["anonymous"] is False, "a required Steam user means the server needs an account"
+    assert lead["windows_via_wine"] is False
+
+
+def test_prior_art_treats_the_shared_installer_fallback_as_anonymous():
+    """Pelican 공용 설치 스크립트는 STEAM_USER가 비면 anonymous로 로그인한다 (계정이 필요한 게임은 STEAM_USER가 필수 변수)"""
+    egg = dict(EGG, scripts={"installation": {"script": 'if [[ "${STEAM_USER}" == "" ]]; then\r\n    STEAM_USER=anonymous\r\nfi\r\n./steamcmd.sh +login ${STEAM_USER} ${STEAM_PASS} +app_update ${SRCDS_APPID}'}})
+
+    assert prior_art.read_egg(egg, "u")["anonymous"] is True
+
+
+def test_prior_art_finds_eggs_by_name_and_prefers_the_pelican_copy():
+    tree = [
+        "valheim/valheim_vanilla/egg-valheim.json",
+        "valheim/valheim_vanilla/egg-pterodactyl-valheim.json",
+        "valheim/valheim_bepinex/egg-pterodactyl-valheim-bep-i-nex.json",
+        "v_rising/v_rising_vanilla/egg-v-rising.json",
+        "team_fortress_2/egg-team-fortress2.yaml",
+        "valheim/README.md",
+    ]
+
+    assert prior_art.match_eggs("Valheim", tree) == [
+        "valheim/valheim_bepinex/egg-pterodactyl-valheim-bep-i-nex.json",
+        "valheim/valheim_vanilla/egg-valheim.json",
+    ]
+    assert prior_art.match_eggs("V Rising", tree) == ["v_rising/v_rising_vanilla/egg-v-rising.json"]
+    assert prior_art.match_eggs("Team Fortress 2", tree) == ["team_fortress_2/egg-team-fortress2.yaml"]
+
+
+def test_prior_art_reads_linuxgsm_rows_and_the_keys_a_module_needs():
+    assert prior_art.match_lgsm("valheim", LGSM_CSV) == [{"shortname": "vh", "gameservername": "vhserver", "gamename": "Valheim"}]
+    assert prior_art.match_lgsm("pz", LGSM_CSV)[0]["gameservername"] == "pzserver"
+    assert prior_art.match_lgsm("Rust", LGSM_CSV) == []
+
+    lead = prior_art.read_lgsm_cfg(LGSM_CFG)
+
+    assert lead["keys"]["appid"] == "896660"
+    assert lead["keys"]["port"] == "2456"
+    assert "discordalert" not in lead["keys"], "LinuxGSM's own alert settings are not leads"
+    assert lead["stop"] == "Ctrl+C" and lead["stop_signal"] == "interrupt"
+    assert lead["needs_login"] is False
+    # stopmode 16도 Ctrl+C로 끝낸다(command_stop.sh fn_stop_graceful_ce). 콘솔 명령 모드는 후보가 아니다
+    assert prior_art.read_lgsm_cfg('stopmode="16"')["stop_signal"] == "interrupt"
+    assert prior_art.read_lgsm_cfg('stopmode="3"')["stop_signal"] is None
+
+
+def test_prior_art_report_marks_everything_as_a_lead_with_its_source(tmp_path):
+    """보고서는 단서다: 출처 URL을 달되, 조사 표의 근거(문서·실측)로 쓰지 말라고 적는다"""
+    egg = prior_art.read_egg(EGG, "https://raw.githubusercontent.com/pelican-eggs/games-steamcmd/main/valheim/valheim_vanilla/egg-valheim.json")
+    lgsm = dict(prior_art.read_lgsm_cfg(LGSM_CFG), url="https://raw.githubusercontent.com/GameServerManagers/LinuxGSM/master/lgsm/config-default/config-lgsm/vhserver/_default.cfg", name="vhserver")
+
+    text = prior_art.markdown("Valheim", [egg], [lgsm], missing=[])
+
+    assert "단서" in text and "RESEARCH.md" in text
+    assert "stop_signal = \"interrupt\"" in text
+    assert "896660" in text and "DungeonDB Start" in text
+    assert egg["url"] in text and lgsm["url"] in text
+    assert "MIT" in text
+
+
+def test_prior_art_runs_offline_from_saved_files(tmp_path):
+    egg_file = tmp_path / "egg.json"
+    egg_file.write_text(json.dumps(EGG), encoding="utf-8")
+    cfg_file = tmp_path / "_default.cfg"
+    cfg_file.write_text(LGSM_CFG, encoding="utf-8")
+    out = tmp_path / "prior-art.md"
+
+    code = prior_art.main(["Valheim", "--egg-file", str(egg_file), "--lgsm-file", str(cfg_file), "--out", str(out)])
+
+    assert code == 0
+    assert "DungeonDB Start" in out.read_text(encoding="utf-8")
+
+
+def test_check_research_refuses_rows_that_cite_only_other_tools(repo):
+    """다른 관리 도구는 단서일 뿐 출처가 아니다: 출처가 egg·LinuxGSM뿐인 조사 표 줄은 관문을 막는다"""
+    folder = finished_module(repo)
+    (folder / "RESEARCH.md").write_text(
+        "| 항목 | 값 | 근거 | 출처 |\n|---|---|---|---|\n"
+        "| 포트 | 2456 | 문서 | https://valheimgame.com/support/a-guide-to-dedicated-servers/ |\n"
+        "| 정지 | Ctrl+C | 문서 | https://github.com/pelican-eggs/games-steamcmd/blob/main/valheim/valheim_vanilla/egg-valheim.json |\n",
+        encoding="utf-8",
+    )
+
+    result = check.research_gate(folder)
+
+    assert result["status"] == "fail"
+    assert "정지" in result["detail"]

@@ -81,12 +81,29 @@ def placeholders_gate(folder):
     return gate("placeholders", "fail" if hits else "ok", ("틀 자리표시가 남았다: " + ", ".join(hits)) if hits else "")
 
 
+# 다른 관리 도구(maker/prior_art.py). 단서일 뿐 조사 표의 출처가 아니다
+LEAD_ONLY = re.compile(r"https?://(?:[^/\s]*\.)?(?:github\.com|githubusercontent\.com)/(?:pelican-eggs|pterodactyl|parkervcp|GameServerManagers)/|https?://(?:www\.)?linuxgsm\.com", re.IGNORECASE)
+
+
 def research_gate(folder):
     path = folder / "RESEARCH.md"
     if not path.is_file():
         return gate("research", "fail", "RESEARCH.md가 없다 (조사 표를 PR 본문에 둔다면 이 관문은 직접 확인)")
-    urls = URL.findall(path.read_text(encoding="utf-8"))
-    return gate("research", "ok" if urls else "fail", f"출처 URL {len(urls)}개" if urls else "조사 표에 출처 URL이 없다")
+    text = path.read_text(encoding="utf-8")
+    urls = URL.findall(text)
+    if not urls:
+        return gate("research", "fail", "조사 표에 출처 URL이 없다")
+    leads_only = []
+    for line in text.splitlines():
+        found = URL.findall(line) if line.lstrip().startswith("|") else []
+        # 근거 칸이 실측이면 근거는 실측 로그다. 곁들인 egg·LinuxGSM 링크는 막지 않는다
+        measured = any(cell.strip().startswith("실측") for cell in line.split("|"))
+        if found and not measured and all(LEAD_ONLY.match(u) for u in found):
+            leads_only.append(line.strip("| ").split("|")[0].strip())
+    if leads_only:
+        return gate("research", "fail", "출처가 다른 관리 도구(egg·LinuxGSM)뿐인 줄: " + ", ".join(leads_only)
+                    + " (단서는 공식 문서·실측으로 확인해 그 출처를 쓴다)")
+    return gate("research", "ok", f"출처 URL {len(urls)}개")
 
 
 def locales_gate(folder):

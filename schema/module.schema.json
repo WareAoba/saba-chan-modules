@@ -238,7 +238,8 @@
         "default_port": {
           "default": null,
           "format": "uint16",
-          "minimum": 0.0,
+          "maximum": 65535,
+          "minimum": 0,
           "type": [
             "integer",
             "null"
@@ -280,11 +281,23 @@
             "null"
           ]
         },
+        "stop_signal": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/StopSignal"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "일반 정지에 콘솔 명령 대신 보낼 신호. `interrupt`면 Ctrl+C(unix는 SIGINT)를 보내고 서버가 끝나기를 기다린다"
+        },
         "stop_timeout": {
           "default": null,
           "description": "Graceful stop 타임아웃 (초). 예: Minecraft=30, ARK=120",
           "format": "uint64",
-          "minimum": 0.0,
+          "minimum": 0,
           "type": [
             "integer",
             "null"
@@ -356,7 +369,7 @@
     },
     "DiagnoseRule": {
       "additionalProperties": false,
-      "description": "`[[diagnose]]` — 콘솔 줄에서 알려진 문제를 찾는 규칙. 문구는 모듈 locales의 `errors.detect.<소문자 code>`·`errors.solutions.<소문자 code>`(모듈이 다른 키를 고를 수 있다)",
+      "description": "`[[diagnose]]` — 콘솔 줄에서 알려진 문제를 찾는 규칙. 문구는 모듈 locales의\n`errors.detect.<소문자 code>`·`errors.solutions.<소문자 code>`(모듈이 다른 키를 고를 수 있다)",
       "properties": {
         "code": {
           "description": "문제 코드 (모듈 안에서 겹치지 않음, 예: \"PORT_IN_USE\")",
@@ -421,9 +434,9 @@
         }
       },
       "required": [
-        "color",
         "name",
-        "pattern"
+        "pattern",
+        "color"
       ],
       "type": "object"
     },
@@ -441,7 +454,7 @@
         "app_id": {
           "default": null,
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "type": [
             "integer",
             "null"
@@ -486,7 +499,7 @@
         },
         "requires_extensions": {
           "default": [],
-          "description": "이 설치 방식이 요구하는 익스텐션 ID 목록 예: requires_extensions = [\"steamcmd\"]",
+          "description": "이 설치 방식이 요구하는 익스텐션 ID 목록\n예: requires_extensions = [\"steamcmd\"]",
           "items": {
             "type": "string"
           },
@@ -505,11 +518,11 @@
             }
           ],
           "default": "pipe",
-          "description": "\"pipe\"(기본) | \"pty\". 출력을 파이프로 주면 끝날 때까지 모아 두는 서버(stdout 블록 버퍼링)는 \"pty\"로 의사 콘솔(Windows ConPTY)에 띄워 줄마다 받는다. stdout과 stderr가 한 갈래로 합쳐진다."
+          "description": "\"pipe\"(기본) | \"pty\". 출력을 파이프로 주면 끝날 때까지 모아 두는 서버(stdout 블록 버퍼링)는\n\"pty\"로 의사 콘솔(Windows ConPTY)에 띄워 줄마다 받는다. stdout과 stderr가 한 갈래로 합쳐진다."
         },
         "line_start": {
           "default": null,
-          "description": "줄 머리 정규식. 서버가 줄바꿈 없이 이어 쓴 출력(예: 팰월드 REST 접근 로그)을 맞는 자리마다 새 줄로 나눈다. 없으면 나누지 않는다. 빈 글자에 맞는 정규식은 받지 않는다",
+          "description": "줄 머리 정규식. 서버가 줄바꿈 없이 이어 쓴 출력(예: 팰월드 REST 접근 로그)을 맞는 자리마다 새 줄로 나눈다.\n없으면 나누지 않는다. 빈 글자에 맞는 정규식은 받지 않는다",
           "type": [
             "string",
             "null"
@@ -528,7 +541,7 @@
     },
     "ModuleAgreement": {
       "additionalProperties": false,
-      "description": "`[[agreements]]` — 사용자가 원문을 읽고 동의해야 서버를 켤 수 있는 약관. 이름은 모듈 locales의 `agreements.<id>`, 동의는 인스턴스 레코드 `accepted_agreements`에 남는다",
+      "description": "`[[agreements]]` — 사용자가 원문을 읽고 동의해야 서버를 켤 수 있는 약관.\n이름은 모듈 locales의 `agreements.<id>`, 동의는 인스턴스 레코드 `accepted_agreements`에 남는다",
       "properties": {
         "id": {
           "description": "소문자·숫자·`-`·`_` (모듈 안에서 겹치지 않음, 예: \"eula\")",
@@ -558,19 +571,19 @@
         },
         "hook": {
           "default": false,
-          "description": "true면 lifecycle `backup_paths(config)`가 `{\"success\": true, \"paths\": [...]}`로 경로를 준다 (세이브 위치를 모듈 코드가 계산하는 게임용). `paths`에 더해진다",
+          "description": "true면 lifecycle `backup_paths(config)`가 `{\"success\": true, \"paths\": [...]}`로 경로를 준다\n(세이브 위치를 모듈 코드가 계산하는 게임용). `paths`에 더해진다",
           "type": "boolean"
         },
         "paths": {
           "default": [],
-          "description": "백업할 폴더·파일 (서버 작업 폴더 기준, 절대 경로 가능). `{설정 이름}`은 인스턴스 설정 값으로 바뀌고 값이 비면 그 경로는 빠진다. 없는 경로도 빠진다. 예: [\"{level_name}\", \"{level_name}_nether\"]",
+          "description": "백업할 폴더·파일 (서버 작업 폴더 기준, 절대 경로 가능). `{설정 이름}`은 인스턴스 설정 값으로 바뀌고\n값이 비면 그 경로는 빠진다. 없는 경로도 빠진다. 예: [\"{level_name}\", \"{level_name}_nether\"]",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
         "pause_command": {
-          "description": "서버가 켜져 있을 때 `save_command` 전에 실행해 백업하는 동안 서버의 자동 저장을 멈추는 `[commands.fields]` 이름 (예: \"save-off\"). 있으면 `resume_command`도 있어야 한다",
+          "description": "서버가 켜져 있을 때 `save_command` 전에 실행해 백업하는 동안 서버의 자동 저장을 멈추는 `[commands.fields]` 이름\n(예: \"save-off\"). 있으면 `resume_command`도 있어야 한다",
           "type": [
             "string",
             "null"
@@ -591,14 +604,14 @@
           ]
         },
         "save_done_pattern": {
-          "description": "켜진 서버에서 `save_command`가 디스크에 다 썼다고 알리는 콘솔 줄의 정규식 (예: \"Saved the game$\"). 있으면 데몬이 고정 대기 대신 이 줄을 기다리고(최대 120초), 나오지 않으면 백업을 만들지 않는다",
+          "description": "켜진 서버에서 `save_command`가 디스크에 다 썼다고 알리는 콘솔 줄의 정규식 (예: \"Saved the game$\").\n있으면 데몬이 고정 대기 대신 이 줄을 기다리고(최대 120초), 나오지 않으면 백업을 만들지 않는다",
           "type": [
             "string",
             "null"
           ]
         },
         "snapshots": {
-          "description": "true면 lifecycle `backup_snapshots(config)`가 게임이 스스로 만든 자동 백업(스냅샷)을 `{\"success\": true, \"snapshots\": [{\"id\", \"created\", \"paths\": [{\"from\", \"to\"}]}]}`(새것부터)로 준다. 백업 목록에 함께 보이고, 사바쨩 백업으로 보관하거나 바로 복원할 수 있다",
+          "description": "true면 lifecycle `backup_snapshots(config)`가 게임이 스스로 만든 자동 백업(스냅샷)을\n`{\"success\": true, \"snapshots\": [{\"id\", \"created\", \"paths\": [{\"from\", \"to\"}]}]}`(새것부터)로 준다.\n백업 목록에 함께 보이고, 사바쨩 백업으로 보관하거나 바로 복원할 수 있다",
           "type": "boolean"
         }
       },
@@ -606,7 +619,7 @@
     },
     "ModulePermissions": {
       "additionalProperties": false,
-      "description": "`[permissions]` — 모듈 Python 코드가 쓰는 능력 (M12). 선언하지 않은 능력을 코드에서 찾으면 `saba-core module audit`과 `GET /api/module/:name/audit`이 알린다. 새 권한은 여기와 `PERMISSIONS`, `modules/saba_audit.py` 표에 한 줄씩 더한다",
+      "description": "`[permissions]` — 모듈 Python 코드가 쓰는 능력 (M12). 선언하지 않은 능력을 코드에서 찾으면\n`saba-core module audit`과 `GET /api/module/:name/audit`이 알린다. 새 권한은 여기와\n`PERMISSIONS`, `modules/saba_audit.py` 표에 한 줄씩 더한다",
       "properties": {
         "dynamic_code": {
           "default": false,
@@ -643,7 +656,7 @@
     },
     "ModulePreset": {
       "additionalProperties": false,
-      "description": "`[[presets]]` — 서버를 만들 때 고르는 추천 설정 묶음 (예: \"친구용 소규모\", \"하드코어\"). 표시 문구는 모듈 locales의 `presets.<id>.label`·`description`이 덮는다",
+      "description": "`[[presets]]` — 서버를 만들 때 고르는 추천 설정 묶음 (예: \"친구용 소규모\", \"하드코어\").\n표시 문구는 모듈 locales의 `presets.<id>.label`·`description`이 덮는다",
       "properties": {
         "description": {
           "type": [
@@ -688,7 +701,7 @@
             "type": "string"
           },
           "default": {},
-          "description": "컴포넌트 의존성 — 이 모듈이 요구하는 다른 컴포넌트의 최소 버전 예: { \"saba-core\" = \">=0.3.0\", \"ext-steamcmd\" = \">=1.0.0\" }",
+          "description": "컴포넌트 의존성 — 이 모듈이 요구하는 다른 컴포넌트의 최소 버전\n예: { \"saba-core\" = \">=0.3.0\", \"ext-steamcmd\" = \">=1.0.0\" }",
           "type": "object"
         },
         "description": {
@@ -748,9 +761,9 @@
         }
       },
       "required": [
-        "entry",
         "name",
-        "version"
+        "version",
+        "entry"
       ],
       "type": "object"
     },
@@ -790,7 +803,8 @@
           "default": null,
           "description": "게임의 기본 RCON 포트. `supported`에 rcon만 있을 때 데몬이 이 포트로 접속한다",
           "format": "uint16",
-          "minimum": 0.0,
+          "maximum": 65535,
+          "minimum": 0,
           "type": [
             "integer",
             "null"
@@ -849,8 +863,8 @@
         }
       },
       "required": [
-        "function",
-        "name"
+        "name",
+        "function"
       ],
       "type": "object"
     },
@@ -935,7 +949,7 @@
         "max_items": {
           "default": null,
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "type": [
             "integer",
             "null"
@@ -945,7 +959,7 @@
           "default": null,
           "description": "스키마 2: `multiline` 글자 수 상한",
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "type": [
             "integer",
             "null"
@@ -963,7 +977,7 @@
           "default": null,
           "description": "스키마 2: `list` 항목 수 범위",
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "type": [
             "integer",
             "null"
@@ -1064,7 +1078,7 @@
       "properties": {
         "players": {
           "default": null,
-          "description": "접속자 수를 돌려주는 lifecycle.py 함수 이름. 데몬이 켜진 서버마다 1분에 한 번 부른다. `validate`와 같은 config를 받고 `{\"success\": true, \"online\": <정수>, \"max\": <정수>?}`를 돌려준다",
+          "description": "접속자 수를 돌려주는 lifecycle.py 함수 이름. 데몬이 켜진 서버마다 1분에 한 번 부른다.\n`validate`와 같은 config를 받고 `{\"success\": true, \"online\": <정수>, \"max\": <정수>?}`를 돌려준다",
           "type": [
             "string",
             "null"
@@ -1072,6 +1086,16 @@
         }
       },
       "type": "object"
+    },
+    "StopSignal": {
+      "description": "일반 정지 때 서버에 보내는 신호 (`[config] stop_signal`). 없으면 콘솔에 `stop_command`를 보낸다",
+      "oneOf": [
+        {
+          "const": "interrupt",
+          "description": "Ctrl+C (unix는 SIGINT). 저장 처리기가 Ctrl+C에만 붙은 서버용",
+          "type": "string"
+        }
+      ]
     },
     "SyntaxHighlightSection": {
       "additionalProperties": false,
@@ -1165,7 +1189,7 @@
         "type": "string"
       },
       "default": null,
-      "description": "[credential_map] 데몬 표준 키 ↔ 게임별 설정 키 매핑 예: rest_password = \"AdminPassword\" → 데몬의 rest_password가 게임 INI의 AdminPassword에 대응",
+      "description": "[credential_map] 데몬 표준 키 ↔ 게임별 설정 키 매핑\n예: rest_password = \"AdminPassword\" → 데몬의 rest_password가 게임 INI의 AdminPassword에 대응",
       "type": [
         "object",
         "null"
@@ -1203,7 +1227,7 @@
         "type": "object"
       },
       "default": {},
-      "description": "[extensions.<익스텐션 id>] 익스텐션이 읽는 모듈별 설정. 데몬은 내용을 보지 않고 `ModuleMetadata.extensions`에 그대로 넘긴다 (익스텐션이 늘어나도 스키마는 그대로)",
+      "description": "[extensions.<익스텐션 id>] 익스텐션이 읽는 모듈별 설정. 데몬은 내용을 보지 않고\n`ModuleMetadata.extensions`에 그대로 넘긴다 (익스텐션이 늘어나도 스키마는 그대로)",
       "type": "object"
     },
     "install": {

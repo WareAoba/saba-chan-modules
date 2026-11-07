@@ -1,7 +1,7 @@
 [module]
 schema_version = 2
 name = "zomboid"
-version = "0.1.10"
+version = "0.1.11"
 description = "Project Zomboid dedicated server management module"
 author = "WareAoba"
 game_name = "Project Zomboid"

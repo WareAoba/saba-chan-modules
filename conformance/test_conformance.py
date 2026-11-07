@@ -261,7 +261,7 @@ def test_commands_declare_risk_and_description(module):
 
 def kick_problems(manifest):
     """`[config] kick_command`: 그 이름의 명령이 있고 첫 입력이 닉네임을 받는다. 데몬이 접속 줄의 이름을 넣으므로
-    접속 줄(`player_join_patterns`)도 있어야 한다 (조작 가능한 사람만 접속, saba-chan 0.1.12)"""
+    접속 줄(`player_join_patterns`)도 있어야 한다 (조작 가능한 사람만 접속, saba-chan 0.1.13)"""
     name = (manifest.get("config") or {}).get("kick_command")
     if not name:
         return []

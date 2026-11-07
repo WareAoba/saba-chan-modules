@@ -1,7 +1,7 @@
 [module]
 schema_version = 2
 name = "minecraft"
-version = "0.1.10"
+version = "0.1.11"
 description = "Minecraft server management module with full lifecycle control"
 author = "WareAoba"
 game_name = "Minecraft"
@@ -31,7 +31,7 @@ server_executable = "server.jar"
 process_name = "java.exe"
 default_port = 25565
 announce_command = "say"
-# 조작 가능한 사람만 접속(saba-chan 0.1.12): 명단에 없는 닉네임이 들어오면 데몬이 이 명령으로 내보낸다 (첫 입력 닉네임, 둘째 입력 이유)
+# 조작 가능한 사람만 접속(saba-chan 0.1.13): 명단에 없는 닉네임이 들어오면 데몬이 이 명령으로 내보낸다 (첫 입력 닉네임, 둘째 입력 이유)
 kick_command = "kick"
 
 # 월드 백업 (A2). Bukkit 계열은 네더·엔드를 따로 둔다 (없으면 빠진다)

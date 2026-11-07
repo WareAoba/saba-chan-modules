@@ -33,7 +33,7 @@
 
 | 기능 | 넣는 것 | 지킬 것 |
 |---|---|---|
-| 조작 가능한 사람만 접속 (0.1.12) | `[config] kick_command = "<명령 이름>"` | `[[commands.fields]]`의 추방 명령을 가리킨다. 그 명령의 첫 입력에 닉네임, 둘째 입력이 있으면 이유를 넣는다. 접속 줄(`player_join_patterns`)이 이름을 줘야 한다(적합성 키트가 잰다). 밴 명령을 가리키지 않는다 |
+| 조작 가능한 사람만 접속 (0.1.13) | `[config] kick_command = "<명령 이름>"` | `[[commands.fields]]`의 추방 명령을 가리킨다. 그 명령의 첫 입력에 닉네임, 둘째 입력이 있으면 이유를 넣는다. 접속 줄(`player_join_patterns`)이 이름을 줘야 한다(적합성 키트가 잰다). 밴 명령을 가리키지 않는다 |
 | 접속자 수 | `[status] players = "<함수>"` | 1분 갱신은 콘솔·RCON 명령이나 REST 요청을 보내지 않는다. config에 `players_detail: true`가 있을 때만(플레이어 목록 요청) 목록 명령을 보내 `players:[{name}]`를 더한다. 수를 알 수 없으면 실패 대신 `{"success": true}`(실패가 5분 이어지면 "응답 없음"으로 보인다) |
 | 명령 답 문구 | `reply_pattern`(명령마다) + locales `commands.<이름>.done`, `[commands] failure_patterns` | 실측한 콘솔 답 원문으로 쓴다. 실패 답(권한 없음, 모르는 플레이어)을 `failure_patterns`로 잡으면 디스코드 답이 실패로 알린다. `(?P<reason>…)`이 있으면 그것이 이유다 |
 | 디스코드에서 숨길 명령 | `remote = false` | 데몬 기능이 같은 일을 하는 명령. 게임에 직접 끄라고 보내는 명령(`stop`·`shutdown`·`quit`·`exit-nosave`)은 `danger` + `remote = false`다. 디스코드에서 끄는 길은 사바쨩 정지 하나다 |

@@ -6,7 +6,7 @@
   "settings": {
     "managed_start": {
       "label": "Verwalteter Start (Konsole)",
-      "description": "Mit angehängter saba-chan-Konsole starten"
+      "description": "saba-runner übernimmt die Serverkonsole, damit du sie in saba-chan siehst und Befehle eingeben kannst. Wenn du das ausschaltest, läuft der Server als eigener Prozess in einem eigenen Fenster, und die saba-chan-Konsole und Befehlseingabe (stdin) funktionieren nicht."
     },
     "ip": {
       "label": "Lausch-IP",

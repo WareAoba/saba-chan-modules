@@ -4,6 +4,7 @@
     "description": "Module de gestion de serveur Palworld"
   },
   "settings": {
+    "managed_start": { "label": "Démarrage géré (console)", "description": "saba-runner prend la console du serveur pour que vous voyiez sa sortie dans saba-chan. Si vous désactivez ceci, le serveur tourne comme un processus séparé dans sa propre fenêtre, et la console de saba-chan et le chat du jeu lu depuis celle-ci ne fonctionnent pas. Les commandes passent par REST et fonctionnent toujours." },
     "port": { "label": "Port du serveur", "description": "Port du serveur de jeu" },
     "rest_host": { "label": "Hôte REST API", "description": "Hôte REST API (par défaut 127.0.0.1)" },
     "rest_port": { "label": "Port REST API", "description": "Port REST API (par défaut 8212)" },

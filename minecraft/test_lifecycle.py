@@ -312,27 +312,36 @@ def test_eula_is_written_only_when_the_user_accepted_it(tmp_path):
     assert EulaManager.check_eula(str(tmp_path))[0]
 
 
-@pytest.mark.parametrize("managed", [True, False])
-def test_launch_turns_rcon_off_in_every_mode(managed):
-    """RCON is blocked for security: every launch turns it off and does not sync the daemon's password/port."""
+def test_managed_launch_turns_rcon_off():
+    """관리형 시작은 콘솔(stdin)로 명령을 보낸다: RCON을 끄고 데몬 값도 쓰지 않는다."""
     from minecraft.lifecycle import get_launch_command, ServerPropertiesManager
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         mgr = ServerPropertiesManager(tmpdir)
         mgr.write({"enable-rcon": "true", "rcon.password": "old", "rcon.port": "25575"})
 
-        get_launch_command({
-            "server_jar": jar,
-            "working_dir": tmpdir,
-            "ram": 2,
-            "managed": managed,
-            "rcon_password": "daemon-pw",
-            "rcon_port": 25580,
-        })
+        get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2, "managed": True,
+                            "rcon_password": "daemon-pw", "rcon_port": 25580})
         props = mgr.read()
         assert props.get("enable-rcon") == "false"
         assert props.get("rcon.password") == "old"
-        assert props.get("rcon.port") == "25575"
+
+
+def test_unmanaged_launch_turns_rcon_on_with_the_daemon_access():
+    """관리형 시작을 끄면 콘솔이 없다: 데몬이 만든 포트·비밀번호로 RCON을 켜고, 그 밖에서는 끈다."""
+    from minecraft.lifecycle import get_launch_command, ServerPropertiesManager
+    with tempfile.TemporaryDirectory() as tmpdir:
+        jar = _make_fake_jar(tmpdir)
+        mgr = ServerPropertiesManager(tmpdir)
+        get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2, "managed": False,
+                            "rcon_password": "daemon-pw", "rcon_port": 25580})
+        props = mgr.read()
+        assert (props.get("enable-rcon"), props.get("rcon.port"), props.get("rcon.password")) == ("true", "25580", "daemon-pw")
+        assert props.get("broadcast-rcon-to-ops") == "false"
+
+        # 데몬 접속 정보가 없으면(RCON 경로 없음) 켜지 않는다
+        get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2, "managed": False})
+        assert mgr.read().get("enable-rcon") == "false"
 
 
 def test_rcon_cannot_be_turned_on_from_settings():

@@ -172,10 +172,7 @@
       "label": "每用户最大账号数",
       "description": "每个 Steam 用户的账号限制"
     },
-    "managed_start": {
-      "label": "托管启动（控制台）",
-      "description": "通过 saba-runner 启动服务器，让 saba-chan 可以使用其控制台。RCON 在所有模式下都保持关闭。关闭此选项后，saba-chan 无法向服务器发送命令。"
-    },
+    "managed_start": { "label": "托管启动（控制台）", "description": "由 saba-runner 接管服务器控制台，让你在 saba-chan 中查看控制台并输入命令。关闭后，服务器会在单独窗口中作为独立进程运行：无法使用 saba-chan 控制台，saba-chan 通过 RCON（端口和密码由 saba-chan 设定）发送命令。" },
     "graceful_stop": {
       "label": "安全停止",
       "description": "发送 'quit' 命令（保存世界后退出），并等待服务器停止。关闭此选项后，saba-chan 会立即结束服务器进程。"
@@ -754,7 +751,7 @@
     "properties_using_defaults": "配置文件不存在，显示默认值",
     "no_mappable_settings": "给定的设置中没有与服务器设置对应的项",
     "server_reset_complete": "服务器世界数据已重置",
-    "rcon_disabled_managed": "托管模式下已禁用 RCON（通过 stdin 控制）",
+    "rcon_disabled_managed": "托管启动已关闭 RCON（命令通过控制台 stdin 发送）",
     "command_sent": "已向控制台发送命令：{{command}}",
     "no_log_files": "未找到日志文件"
   },

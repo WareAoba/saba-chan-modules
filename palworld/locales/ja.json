@@ -4,6 +4,7 @@
     "description": "パルワールドサーバー管理モジュール"
   },
   "settings": {
+    "managed_start": { "label": "管理型起動（コンソール）", "description": "saba-runnerがサーバーのコンソールをつかみ、サバちゃんの中でコンソール出力を見られるように起動します。オフにすると、サーバーは別ウィンドウの別プロセスとして動き、サバちゃんのコンソールとコンソールから読むゲームチャットは使えません。コマンドはRESTで送るので、オフでも使えます。" },
     "port": { "label": "サーバーポート", "description": "ゲームサーバーポート" },
     "rest_host": { "label": "REST APIホスト", "description": "REST APIホスト（デフォルト127.0.0.1）" },
     "rest_port": { "label": "REST APIポート", "description": "REST APIポート（デフォルト8212）" },

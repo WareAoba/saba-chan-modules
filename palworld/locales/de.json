@@ -4,6 +4,7 @@
     "description": "Palworld-Server-Verwaltungsmodul"
   },
   "settings": {
+    "managed_start": { "label": "Verwalteter Start (Konsole)", "description": "saba-runner übernimmt die Serverkonsole, damit du ihre Ausgabe in saba-chan siehst. Wenn du das ausschaltest, läuft der Server als eigener Prozess in einem eigenen Fenster, und die saba-chan-Konsole und der daraus gelesene Spielchat funktionieren nicht. Befehle gehen über REST und funktionieren weiter." },
     "port": { "label": "Server-Port", "description": "Spielserver-Port" },
     "rest_host": { "label": "REST-API-Host", "description": "REST-API-Host (Standard 127.0.0.1)" },
     "rest_port": { "label": "REST-API-Port", "description": "REST-API-Port (Standard 8212)" },

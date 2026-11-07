@@ -27,7 +27,7 @@
     "level_type": { "label": "Welttyp", "description": "Weltgenerierungstyp", "options": { "minecraft:normal": "Standard", "minecraft:flat": "Flachland", "minecraft:large_biomes": "Große Biome", "minecraft:amplified": "ZERKLÜFTET", "minecraft:single_biome_surface": "Einzelnes Biom" } },
     "max_world_size": { "label": "Max. Weltgröße", "description": "Maximaler Weltgrenzen-Radius" },
     "use_aikar_flags": { "label": "Aikars Flags", "description": "Empfohlene Java-Optionen für flüssigere Leistung verwenden" },
-    "managed_start": { "label": "Verwalteter Start (Konsole)", "description": "Startet den Server über saba-runner, damit saba-chan seine Konsole nutzen kann. RCON bleibt in jedem Modus aus. Wenn Sie diese Option ausschalten, kann saba-chan keine Befehle an den Server senden." },
+    "managed_start": { "label": "Verwalteter Start (Konsole)", "description": "saba-runner übernimmt die Serverkonsole, damit du sie in saba-chan siehst und Befehle eingeben kannst. Wenn du das ausschaltest, läuft der Server als eigener Prozess in einem eigenen Fenster: Die saba-chan-Konsole funktioniert nicht, und saba-chan sendet Befehle über RCON (Port und Passwort legt saba-chan fest)." },
     "graceful_stop": { "label": "Sauberes Beenden", "description": "Sendet den Befehl 'stop' und wartet, bis der Server speichert und herunterfährt. Wenn Sie diese Option ausschalten, beendet saba-chan den Serverprozess sofort." },
     "enforce_whitelist": { "label": "Whitelist erzwingen", "description": "Spieler, die nicht auf der Whitelist stehen, werden beim Neuladen der Whitelist gekickt" },
     "generate_structures": { "label": "Strukturen generieren", "description": "Strukturen wie Dörfer und Minen generieren" },

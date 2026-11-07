@@ -328,18 +328,17 @@ def test_kit_catches_command_without_risk():
     assert commands_missing_risk({"commands": {"fields": [{"name": "a", "risk": "safe", "description": "d"}]}}) == []
 
 def protocol_problems(manifest):
-    """명령 경로는 stdin → rest → rcon. rcon은 둘 다 없을 때만 선언하고, 그때 rcon_port가 있어야 한다
-    (데몬은 다른 경로가 있으면 rcon을 쓰지 않고, rcon뿐인데 포트가 없으면 로드를 거부한다)"""
+    """명령 경로는 stdin → rest → rcon. rcon은 rest가 없을 때만 선언하고, 그때 rcon_port가 있어야 한다
+    (rcon만 있거나, stdin과 함께라면 관리형 시작을 꺼 콘솔이 없는 인스턴스의 명령 길이다. 포트가 없으면 데몬이 로드를 거부한다)"""
     protocols = manifest.get("protocols") or {}
     supported = protocols.get("supported") or []
     if "rcon" not in supported:
         return []
-    others = sorted(set(supported) & {"stdin", "rest"})
-    if others:
-        return [f"{'·'.join(others)}이 있는데 rcon도 선언했다 (다른 경로가 있으면 RCON은 빼고 게임 설정에서 끈다)"]
+    if "rest" in supported:
+        return ["rest가 있는데 rcon도 선언했다 (REST는 콘솔 없이도 되므로 RCON은 빼고 게임 설정에서 끈다)"]
     port = protocols.get("rcon_port")
     if port is None:
-        return ["rcon만 선언했는데 [protocols] rcon_port가 없다"]
+        return ["rcon을 선언했는데 [protocols] rcon_port가 없다"]
     # 데몬은 u16으로 읽는다. 스키마 format uint16은 검사기가 상한을 보지 않으므로 여기서 본다
     if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:
         return [f"rcon_port {port!r}는 1~65535 정수가 아니다"]
@@ -352,9 +351,11 @@ def test_protocols_follow_the_priority(module):
 
 
 def test_kit_catches_rcon_misuse():
-    assert protocol_problems({"protocols": {"supported": ["stdin", "rcon"]}}) == [
-        "stdin이 있는데 rcon도 선언했다 (다른 경로가 있으면 RCON은 빼고 게임 설정에서 끈다)"]
-    assert protocol_problems({"protocols": {"supported": ["rcon"]}}) == ["rcon만 선언했는데 [protocols] rcon_port가 없다"]
+    assert protocol_problems({"protocols": {"supported": ["rest", "rcon"], "rcon_port": 27015}}) == [
+        "rest가 있는데 rcon도 선언했다 (REST는 콘솔 없이도 되므로 RCON은 빼고 게임 설정에서 끈다)"]
+    assert protocol_problems({"protocols": {"supported": ["stdin", "rcon"]}}) == ["rcon을 선언했는데 [protocols] rcon_port가 없다"]
+    assert protocol_problems({"protocols": {"supported": ["stdin", "rcon"], "rcon_port": 25575}}) == []
+    assert protocol_problems({"protocols": {"supported": ["rcon"]}}) == ["rcon을 선언했는데 [protocols] rcon_port가 없다"]
     assert protocol_problems({"protocols": {"supported": ["rcon"], "rcon_port": 27015}}) == []
     for bad in (0, 65536, -1, "27015", True):
         assert protocol_problems({"protocols": {"supported": ["rcon"], "rcon_port": bad}}) == [

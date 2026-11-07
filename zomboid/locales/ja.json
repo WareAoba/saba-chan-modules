@@ -172,10 +172,7 @@
       "label": "ユーザー当たり最大アカウント",
       "description": "Steamユーザー当たりのアカウント制限"
     },
-    "managed_start": {
-      "label": "管理起動（コンソール）",
-      "description": "saba-runner経由でサーバーを起動し、saba-chanがコンソールを使えるようにします。RCONはどのモードでも無効です。オフにすると、saba-chanはサーバーにコマンドを送れません。"
-    },
+    "managed_start": { "label": "管理型起動（コンソール）", "description": "saba-runnerがサーバーのコンソールをつかみ、サバちゃんの中でコンソールを見てコマンドを入力できるように起動します。オフにすると、サーバーは別ウィンドウの別プロセスとして動き、サバちゃんのコンソールは使えず、コマンドはRCON（サバちゃんが決めたポート・パスワード）で送ります。" },
     "graceful_stop": {
       "label": "安全停止",
       "description": "「quit」コマンド（ワールドを保存して終了）を送り、サーバーが停止するまで待ちます。オフにすると、saba-chanはサーバープロセスをすぐに終了します。"
@@ -754,7 +751,7 @@
     "properties_using_defaults": "設定ファイルが存在しません。デフォルト値を表示しています",
     "no_mappable_settings": "指定された設定に、サーバー設定と一致するものがありません",
     "server_reset_complete": "サーバーワールドデータがリセットされました",
-    "rcon_disabled_managed": "管理モードではRCONを無効にしています（stdinで制御）",
+    "rcon_disabled_managed": "管理型起動のためRCONをオフにしました（コマンドはコンソールのstdinに送ります）",
     "command_sent": "コンソールにコマンドを送信しました: {{command}}",
     "no_log_files": "ログファイルが見つかりません"
   },

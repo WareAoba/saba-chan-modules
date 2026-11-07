@@ -9,7 +9,7 @@ graceful shutdown, settings synchronization, and installation via SteamCMD.
 Project Zomboid is a Java-based game server (Steam App 380870) that:
   - Uses a bundled JRE (jre64/bin/java.exe) with custom classpath
   - Stores configs in ~/Zomboid/Server/{servername}.ini (separate from install dir)
-  - Takes commands on its console (stdin); RCON stays off (saba-chan security policy)
+  - Takes commands on its console (stdin) with managed start; with managed start off, through RCON on the daemon-made port and password
 """
 
 import sys
@@ -578,13 +578,31 @@ def _get_native_libs(server_dir):
     return ";".join(paths) if sys.platform == "win32" else ":".join(paths)
 
 
-def _enforce_rcon_policy(ini_path):
-    """Keep RCON off in every mode (an empty RCONPassword disables it in Project Zomboid).
+def _rcon_access(config):
+    """관리형 시작을 끈 서버의 RCON 접속 정보 (데몬이 만든 포트·비밀번호). 관리형이거나 데몬이 주지 않았으면 None"""
+    config = config or {}
+    if config.get("managed", True) is not False:
+        return None
+    password, port = config.get("rcon_password"), config.get("rcon_port")
+    return (str(port), str(password)) if password and port else None
 
-    saba-chan blocks RCON for security: commands go through the server console (stdin).
-    Returns the RCON password, always "".
+
+def _enforce_rcon_policy(ini_path, config=None):
+    """RCON은 관리형 시작을 끈 서버에서만 켠다 (Project Zomboid는 RCONPassword가 비면 RCON을 끈다).
+
+    관리형 시작은 콘솔(stdin)로 명령을 보낸다. 끄면 콘솔이 없어 데몬이 만든 포트·비밀번호의 RCON으로 보낸다.
+    Returns the RCON password written ("" when RCON is off).
     """
     props = IniManager.read(ini_path) if os.path.exists(ini_path) else {}
+    access = _rcon_access(config)
+    if access:
+        port, password = access
+        if not os.path.exists(ini_path):
+            # 첫 시작: 서버가 만들 기본값 위에 RCON을 얹어 미리 만든다 (콘솔도 RCON도 없이 뜨지 않게)
+            IniManager.update(ini_path, {**DEFAULT_INI_PROPERTIES, "RCONPort": port, "RCONPassword": password})
+        elif (props.get("RCONPort"), props.get("RCONPassword")) != (port, password):
+            IniManager.update(ini_path, {"RCONPort": port, "RCONPassword": password})
+        return password
     if props.get("RCONPassword", ""):
         IniManager.update(ini_path, {"RCONPassword": ""})
         print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
@@ -692,7 +710,7 @@ def get_launch_command(config):
     server_name = _server_name(config)
     preview = bool(config.get("preview"))  # 미리보기는 파일·폴더를 만들거나 고치지 않는다
     if not preview:
-        _enforce_rcon_policy(IniManager.get_ini_path(config))
+        _enforce_rcon_policy(IniManager.get_ini_path(config), config)
 
     # ── 1차: 배치/쉘 스크립트 파싱 ──
     parsed = _parse_launch_info(config, server_dir)
@@ -834,7 +852,7 @@ def stop(config):
     """Stop the server.
 
     Ask for a save-and-exit (console `quit`, else SIGTERM); waiting, force kill, managed and
-    `graceful_stop_unavailable` are handled by the shared procedure (graceful_stop). RCON is off by policy.
+    `graceful_stop_unavailable` are handled by the shared procedure (graceful_stop). With managed start off, the console `quit` goes over RCON (daemon).
     The daemon stops managed servers with a console itself, so this runs mostly without one.
     """
     return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)

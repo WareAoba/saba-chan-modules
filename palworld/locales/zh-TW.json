@@ -4,6 +4,7 @@
     "description": "帕魯世界 伺服器管理模組"
   },
   "settings": {
+    "managed_start": { "label": "託管啟動（主控台）", "description": "由 saba-runner 接管伺服器主控台，讓你在 saba-chan 中查看主控台輸出。關閉後，伺服器會在單獨視窗中作為獨立程序執行，無法使用 saba-chan 主控台和從中讀取的遊戲聊天。指令透過 REST 傳送，關閉後仍可使用。" },
     "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },
     "rest_host": { "label": "REST API 主機", "description": "REST API 主機（預設 127.0.0.1）" },
     "rest_port": { "label": "REST API 連接埠", "description": "REST API 連接埠（預設 8212）" },

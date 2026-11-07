@@ -4,6 +4,7 @@
     "description": "Модуль управления сервером Palworld"
   },
   "settings": {
+    "managed_start": { "label": "Управляемый запуск (консоль)", "description": "saba-runner держит консоль сервера, чтобы вы видели её вывод в saba-chan. Если выключить, сервер работает отдельным процессом в своём окне, и консоль saba-chan и игровой чат, читаемый из неё, не работают. Команды идут через REST, поэтому они работают." },
     "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },
     "rest_host": { "label": "Хост REST API", "description": "Хост REST API (по умолчанию 127.0.0.1)" },
     "rest_port": { "label": "Порт REST API", "description": "Порт REST API (по умолчанию 8212)" },

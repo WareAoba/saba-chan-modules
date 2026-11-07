@@ -172,10 +172,7 @@
       "label": "Max. Konten pro Benutzer",
       "description": "Kontolimit pro Steam-Benutzer"
     },
-    "managed_start": {
-      "label": "Verwalteter Start (Konsole)",
-      "description": "Startet den Server über saba-runner, damit saba-chan die Konsole nutzen kann. RCON bleibt in jedem Modus aus. Wenn Sie diese Option ausschalten, kann saba-chan keine Befehle an den Server senden."
-    },
+    "managed_start": { "label": "Verwalteter Start (Konsole)", "description": "saba-runner übernimmt die Serverkonsole, damit du sie in saba-chan siehst und Befehle eingeben kannst. Wenn du das ausschaltest, läuft der Server als eigener Prozess in einem eigenen Fenster: Die saba-chan-Konsole funktioniert nicht, und saba-chan sendet Befehle über RCON (Port und Passwort legt saba-chan fest)." },
     "graceful_stop": {
       "label": "Sicheres Beenden",
       "description": "Sendet den Befehl 'quit' (speichert die Welt und beendet sich) und wartet, bis der Server gestoppt ist. Wenn Sie diese Option ausschalten, beendet saba-chan den Serverprozess sofort."
@@ -754,7 +751,7 @@
     "properties_updated": "Serverkonfiguration aktualisiert",
     "properties_using_defaults": "Die Konfigurationsdatei existiert nicht. Standardwerte werden angezeigt",
     "no_mappable_settings": "Keine der angegebenen Einstellungen entspricht einer Servereinstellung",
-    "rcon_disabled_managed": "RCON ist im verwalteten Modus deaktiviert (Steuerung über stdin)",
+    "rcon_disabled_managed": "RCON für den verwalteten Start ausgeschaltet (Befehle gehen an die Konsole, stdin)",
     "command_sent": "Befehl an die Konsole gesendet: {{command}}",
     "no_log_files": "Keine Protokolldateien gefunden"
   },

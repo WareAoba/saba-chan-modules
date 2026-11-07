@@ -27,7 +27,7 @@
     "level_type": { "label": "ワールドタイプ", "description": "ワールド生成タイプ", "options": { "minecraft:normal": "デフォルト", "minecraft:flat": "スーパーフラット", "minecraft:large_biomes": "大きなバイオーム", "minecraft:amplified": "アンプリファイド", "minecraft:single_biome_surface": "シングルバイオーム" } },
     "max_world_size": { "label": "最大ワールドサイズ", "description": "ワールド境界の最大半径" },
     "use_aikar_flags": { "label": "Aikarフラグ", "description": "動作を滑らかにする推奨Javaオプションを使用する" },
-    "managed_start": { "label": "管理起動（コンソール）", "description": "saba-runner経由でサーバーを起動し、saba-chanがコンソールを使えるようにします。RCONはどのモードでもオフのままです。オフにすると、saba-chanはサーバーにコマンドを送れません。" },
+    "managed_start": { "label": "管理型起動（コンソール）", "description": "saba-runnerがサーバーのコンソールをつかみ、サバちゃんの中でコンソールを見てコマンドを入力できるように起動します。オフにすると、サーバーは別ウィンドウの別プロセスとして動き、サバちゃんのコンソールは使えず、コマンドはRCON（サバちゃんが決めたポート・パスワード）で送ります。" },
     "graceful_stop": { "label": "正常終了", "description": "'stop'コマンドを送り、サーバーが保存して終了するまで待ちます。オフにすると、saba-chanはサーバープロセスをすぐに終了します。" },
     "enforce_whitelist": { "label": "ホワイトリストを強制", "description": "ホワイトリストの再読み込み時に、リストにないプレイヤーをキックする" },
     "generate_structures": { "label": "構造物を生成", "description": "村や廃坑などの構造物を生成する" },

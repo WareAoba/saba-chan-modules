@@ -27,7 +27,7 @@
     "level_type": { "label": "世界類型", "description": "世界生成類型", "options": { "minecraft:normal": "預設", "minecraft:flat": "超平坦", "minecraft:large_biomes": "大型生態域", "minecraft:amplified": "巨大化世界", "minecraft:single_biome_surface": "單一生態域" } },
     "max_world_size": { "label": "最大世界大小", "description": "世界邊界最大半徑" },
     "use_aikar_flags": { "label": "Aikar標誌", "description": "使用建議的 Java 選項，讓執行更流暢" },
-    "managed_start": { "label": "託管啟動（主控台）", "description": "透過 saba-runner 啟動伺服器，讓 saba-chan 可以使用其主控台。在所有模式下，RCON 都保持關閉。如果關閉此項，saba-chan 無法向伺服器傳送指令。" },
+    "managed_start": { "label": "託管啟動（主控台）", "description": "由 saba-runner 接管伺服器主控台，讓你在 saba-chan 中查看主控台並輸入指令。關閉後，伺服器會在單獨視窗中作為獨立程序執行：無法使用 saba-chan 主控台，saba-chan 透過 RCON（連接埠和密碼由 saba-chan 設定）傳送指令。" },
     "graceful_stop": { "label": "正常停止", "description": "傳送「stop」指令，並等待伺服器儲存和關閉。如果關閉此項，saba-chan 會立即結束伺服器程序。" },
     "enforce_whitelist": { "label": "強制白名單", "description": "重新載入白名單時，踢出不在白名單上的玩家" },
     "generate_structures": { "label": "生成結構", "description": "生成村莊和廢棄礦坑等結構" },

@@ -6,7 +6,7 @@
   "settings": {
     "managed_start": {
       "label": "托管启动（控制台）",
-      "description": "连接 saba-chan 控制台启动"
+      "description": "由 saba-runner 接管服务器控制台，让你在 saba-chan 中查看控制台并输入命令。关闭后，服务器会在单独窗口中作为独立进程运行，无法使用 saba-chan 控制台和命令输入（stdin）。"
     },
     "ip": {
       "label": "监听 IP",

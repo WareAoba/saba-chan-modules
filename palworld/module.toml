@@ -36,7 +36,7 @@ executable_path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\PalServer\
 server_executable = "PalServer.exe"
 process_name = "PalServer-Win64-Shipping-Cmd"
 default_port = 8211
-stop_command = "Shutdown"  # stdin으로 전송하는 graceful 종료 명령어
+stop_command = "Shutdown"  # 데몬은 stdin을 받는 모듈에만 이 명령을 보낸다. 팰월드는 stdin이 없어 정지는 lifecycle stop()이 REST로 한다
 stop_timeout = 60  # REST 저장·종료 뒤 끝나기를 기다리는 시간(초)
 announce_command = "announce"
 # 조작 가능한 사람만 접속(saba-chan 0.1.13): 명단에 없는 닉네임이 들어오면 데몬이 이 명령으로 내보낸다 (첫 입력 닉네임, 둘째 입력 이유)
@@ -118,6 +118,15 @@ description = "REST API port (default 8212)"
 default = 8212
 min = 1
 max = 65535
+group = "saba-chan"
+
+[[settings.fields]]
+name = "managed_start"
+restart_required = true
+type = "boolean"
+label = "Managed Start (Console)"
+description = "saba-runner holds the server console, so you can see its output in saba-chan. If you turn this off, the server runs as a separate process in its own window, and the saba-chan console and game chat read from it do not work. Commands go through REST, so they still work."
+default = true
 group = "saba-chan"
 
 # ========== PalWorldSettings.ini - 기본 설정 ==========

@@ -613,6 +613,9 @@ def test_prior_art_reads_linuxgsm_rows_and_the_keys_a_module_needs():
     assert "discordalert" not in lead["keys"], "LinuxGSM's own alert settings are not leads"
     assert lead["stop"] == "Ctrl+C" and lead["stop_signal"] == "interrupt"
     assert lead["needs_login"] is False
+    # stopmode 16도 Ctrl+C로 끝낸다(command_stop.sh fn_stop_graceful_ce). 콘솔 명령 모드는 후보가 아니다
+    assert prior_art.read_lgsm_cfg('stopmode="16"')["stop_signal"] == "interrupt"
+    assert prior_art.read_lgsm_cfg('stopmode="3"')["stop_signal"] is None
 
 
 def test_prior_art_report_marks_everything_as_a_lead_with_its_source(tmp_path):

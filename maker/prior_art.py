@@ -35,13 +35,15 @@ LGSM_LIST = f"{LGSM_RAW}/lgsm/data/serverlist.csv"
 USER_AGENT = "saba-module-maker (https://github.com/WareAoba/saba-chan-modules)"
 TIMEOUT = 20
 
+# stopmode 중 Ctrl+C로 끝내는 것 (`stop_signal = "interrupt"` 후보)
+LGSM_CTRL_C = ("2", "16")
 # 조사 표 칸에 닿는 LinuxGSM 키. 알림·백업 주기 같은 LinuxGSM 자체 설정은 단서가 아니다
 LGSM_KEYS = re.compile(
     r"^(appid|steamuser|steamcmdforcewindows|branch|stopmode|querymode|querytype|startparameters|executable|executabledir|"
     r"servercfg|servercfgdefault|servercfgdir|servercfgfullpath|savedir|gamelogdir|engine|glibc|consoleinteract|ip|"
     r"[a-z]*port)$"
 )
-# LinuxGSM `command_stop.sh` `fn_stop_graceful_select`의 stopmode 번호
+# LinuxGSM `lgsm/modules/command_stop.sh` `fn_stop_graceful_select`의 stopmode 번호
 LGSM_STOPMODES = {
     "1": "tmux 세션 종료 (정상 종료 없음)",
     "2": "Ctrl+C",
@@ -52,13 +54,13 @@ LGSM_STOPMODES = {
     "7": "콘솔 `exit`",
     "8": "텔넷 `shutdown` (7 Days to Die)",
     "9": "GoldSrc 콘솔 `quit`",
-    "10": "Avorion 전용 절차",
+    "10": "콘솔 `/save` → `/stop`",
     "11": "콘솔 `end`",
     "12": "콘솔 `shutdown`",
     "13": "텔넷 `saveworld 1` → `quit 1`",
-    "14": "Rising World 전용 절차",
-    "15": "Rising World 전용 절차",
-    "16": "전용 절차",
+    "14": "콘솔 `save_profiles` → `stop_server` → Ctrl+C",
+    "15": "콘솔 `shutdown` (10초마다 다시, 120초)",
+    "16": "Ctrl+C 두 번 (5초 간격)",
 }
 PLACEHOLDER = re.compile(r"\{\{\s*([A-Za-z0-9_]+)\s*\}\}")
 
@@ -164,7 +166,7 @@ def read_lgsm_cfg(text):
         "source": "lgsm",
         "keys": keys,
         "stop": LGSM_STOPMODES.get(mode, f"stopmode {mode}") if mode else None,
-        "stop_signal": "interrupt" if mode == "2" else None,
+        "stop_signal": "interrupt" if mode in LGSM_CTRL_C else None,
         "needs_login": "steamuser" in keys if "appid" in keys else None,
         "windows_only": keys.get("steamcmdforcewindows") == "yes",
     }

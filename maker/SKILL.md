@@ -76,7 +76,7 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
    python maker/prior_art.py "<게임 이름>" --out prior-art.md
    ```
    SteamCMD app_id와 익명 설치 여부, 실행 인자, 준비 줄, 정지 방식(`^C`면 `stop_signal = "interrupt"` 후보), 포트, 설정 파일, Windows 전용 여부가 나온다.
-   이 값은 **단서**다. 항목마다 공식 출처나 실측으로 확인한 뒤에만 `RESEARCH.md` 표에 적고, 출처 칸에 에그·LinuxGSM 주소만 두지 않는다(`check.py` research가 거절한다).
+   이 값은 **단서**다. 항목마다 공식 출처나 실측으로 확인한 뒤에만 `RESEARCH.md` 표에 적고, 출처 칸에 에그·LinuxGSM 주소만 두지 않는다(근거가 `실측`인 줄이 아니면 `check.py` research가 거절한다).
    그다음 기억이 아니라 웹 검색으로 공식 출처를 찾고, 결과를 `RESEARCH.md` 표에 출처와 함께 적는다.
 4. **실물을 본다.** 서버 배포물을 받아(공식 주소) 풀지 않고 점검한다.
    ```

@@ -77,7 +77,8 @@ def squash(text):
 # ─── Pelican eggs ──────────────────────────────────────────────
 
 def match_eggs(query, paths):
-    """egg 파일 경로 중 게임 이름에 맞는 것. 같은 폴더에 Pelican판과 Pterodactyl판이 함께 있으면 Pelican판만"""
+    """egg 파일 경로 중 게임 이름에 맞는 것. 같은 폴더에 Pelican JSON이 있으면 Pterodactyl판은 뺀다
+    (Pelican판이 YAML뿐이면 이 도구가 읽지 못하므로 Pterodactyl JSON을 남긴다)"""
     want = squash(query)
     found = []
     for path in paths:
@@ -86,7 +87,7 @@ def match_eggs(query, paths):
             continue
         if want and want in squash(path.rsplit("/", 1)[0]) + squash(name):
             found.append(path)
-    pelican = {p.rsplit("/", 1)[0] for p in found if "pterodactyl" not in p.rsplit("/", 1)[-1]}
+    pelican = {p.rsplit("/", 1)[0] for p in found if "pterodactyl" not in p.rsplit("/", 1)[-1] and p.endswith(".json")}
     return sorted(p for p in found if "pterodactyl" not in p.rsplit("/", 1)[-1] or p.rsplit("/", 1)[0] not in pelican)
 
 

@@ -598,6 +598,12 @@ def test_prior_art_finds_eggs_by_name_and_prefers_the_pelican_copy():
         "valheim/valheim_vanilla/egg-valheim.json",
     ]
     assert prior_art.match_eggs("V Rising", tree) == ["v_rising/v_rising_vanilla/egg-v-rising.json"]
+    # Pelican판이 YAML이면 이 도구가 읽지 못한다: 같은 폴더의 Pterodactyl JSON을 버리지 않는다
+    yaml_beside_json = [
+        "valheim/valheim_bepinex/egg-valheim-bep-in-ex.yaml",
+        "valheim/valheim_bepinex/egg-pterodactyl-valheim-bep-i-nex.json",
+    ]
+    assert prior_art.match_eggs("Valheim", yaml_beside_json) == yaml_beside_json[::-1]
     assert prior_art.match_eggs("Team Fortress 2", tree) == ["team_fortress_2/egg-team-fortress2.yaml"]
 
 
@@ -659,3 +665,15 @@ def test_check_research_refuses_rows_that_cite_only_other_tools(repo):
 
     assert result["status"] == "fail"
     assert "정지" in result["detail"]
+
+
+def test_check_research_accepts_a_measured_row_that_also_links_another_tool(repo):
+    """근거가 실측이면 출처 칸에 egg 링크를 곁들여도 된다: 근거는 실측 로그다"""
+    folder = finished_module(repo)
+    (folder / "RESEARCH.md").write_text(
+        "| 항목 | 값 | 근거 | 출처 |\n|---|---|---|---|\n"
+        "| 정지 | Ctrl+C | 실측 | probe/probe-output.log, https://github.com/pelican-eggs/games-steamcmd/blob/main/valheim/valheim_vanilla/egg-valheim.json |\n",
+        encoding="utf-8",
+    )
+
+    assert check.research_gate(folder)["status"] == "ok"

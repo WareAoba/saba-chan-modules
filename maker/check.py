@@ -96,7 +96,9 @@ def research_gate(folder):
     leads_only = []
     for line in text.splitlines():
         found = URL.findall(line) if line.lstrip().startswith("|") else []
-        if found and all(LEAD_ONLY.match(u) for u in found):
+        # 근거 칸이 실측이면 근거는 실측 로그다. 곁들인 egg·LinuxGSM 링크는 막지 않는다
+        measured = any(cell.strip().startswith("실측") for cell in line.split("|"))
+        if found and not measured and all(LEAD_ONLY.match(u) for u in found):
             leads_only.append(line.strip("| ").split("|")[0].strip())
     if leads_only:
         return gate("research", "fail", "출처가 다른 관리 도구(egg·LinuxGSM)뿐인 줄: " + ", ".join(leads_only)

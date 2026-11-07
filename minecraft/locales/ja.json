@@ -1,4 +1,7 @@
 {
+  "aliases": {
+    "module": ["マイクラ"]
+  },
   "module": {
     "display_name": "マインクラフト",
     "description": "完全なライフサイクル制御を備えたマインクラフトサーバー管理モジュール"

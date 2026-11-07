@@ -12,7 +12,7 @@ icon = "icon.png"
 log_pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
 [module.dependencies]
-saba-core = ">=0.1.11-0"
+saba-core = ">=0.1.13-0"
 
 [permissions]
 network = true          # 서버 파일 내려받기, 포트 확인
@@ -1143,27 +1143,28 @@ internal_server_error = "Internal server error occurred"
 # ─── Aliases ──────────────────────────────────────────────────
 
 [aliases]
-module_aliases = ["마인크래프트", "마크", "mc", "minecraft"]
+# 언어 없는 낱말(약어)만 둔다. 언어마다의 별명은 locales/<lang>.json "aliases"에 둔다 (그 언어로 답할 때만 맞춘다)
+module_aliases = ["mc"]
 
 [aliases.commands]
-start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
-stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
-status = { aliases = ["상태", "상황", "확인", "정보", "info"], description = "Check server status" }
-say = { aliases = ["말", "채팅", "메시지"], description = "Broadcast a message" }
-give = { aliases = ["지급", "줘", "item"], description = "Give an item to a player" }
-save-all = { aliases = ["저장"], description = "Save the world" }
-players = { aliases = ["목록", "플레이어", "유저", "접속자", "list"], description = "View connected players" }
-weather = { aliases = ["날씨", "웨더"], description = "Change the weather" }
-difficulty = { aliases = ["난이도", "어려움"], description = "Change game difficulty" }
-gamemode = { aliases = ["겜모드", "게임모드"], description = "Change game mode" }
-time = { aliases = ["시간"], description = "Set time of day" }
-tp = { aliases = ["텔레포트", "이동"], description = "Teleport a player" }
-kick = { aliases = ["킥", "추방"], description = "Kick a player" }
-ban = { aliases = ["밴", "차단"], description = "Ban a player" }
-pardon = { aliases = ["언밴", "해제"], description = "Unban a player" }
-op = { aliases = ["오피"], description = "Give operator permissions" }
-deop = { aliases = ["디옵"], description = "Remove operator permissions" }
-whitelist = { aliases = ["화이트리스트", "화리"], description = "Manage whitelist" }
+start = { description = "Start the server" }
+stop = { description = "Stop the server" }
+status = { description = "Check server status" }
+say = { description = "Broadcast a message" }
+give = { description = "Give an item to a player" }
+save-all = { description = "Save the world" }
+players = { description = "View connected players" }
+weather = { description = "Change the weather" }
+difficulty = { description = "Change game difficulty" }
+gamemode = { description = "Change game mode" }
+time = { description = "Set time of day" }
+tp = { description = "Teleport a player" }
+kick = { description = "Kick a player" }
+ban = { description = "Ban a player" }
+pardon = { description = "Unban a player" }
+op = { description = "Give operator permissions" }
+deop = { description = "Remove operator permissions" }
+whitelist = { description = "Manage whitelist" }
 
 # ─── Console Syntax Highlighting ─────────────────────────
 # 콘솔 출력에 적용할 하이라이팅 규칙 (GUI에서 렌더링)

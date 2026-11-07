@@ -13,7 +13,7 @@ log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
 [module.dependencies]
 # [launch] line_start·[backup] snapshots는 0.1.10 발행본이 모르는 키다. 발행 전 main 데몬도 0.1.10으로 보고하므로
 # 0.1.11을 발행할 때 ">=0.1.11-0"으로 올린다 (-0이 있어야 0.1.11-beta.N·rc.N 데몬도 받는다)
-saba-core = ">=0.1.11-0"
+saba-core = ">=0.1.13-0"
 ext-steamcmd = ">=0.1.5"
 ext-ue4-ini = ">=0.1.7"
 
@@ -1590,20 +1590,21 @@ rest_api_disabled = "REST API is disabled. It will be auto-enabled on next serve
 internal_server_error = "Internal server error occurred"
 
 [aliases]
-module_aliases = ["팰월드", "팔월드", "pw", "palworld"]
+# 언어 없는 낱말(약어)만 둔다. 언어마다의 별명은 locales/<lang>.json "aliases"에 둔다 (그 언어로 답할 때만 맞춘다)
+module_aliases = ["pw"]
 
 [aliases.commands]
-start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
-stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
-status = { aliases = ["상태", "상황", "확인"], description = "Check server status" }
-announce = { aliases = ["공지", "공지사항", "알림"], description = "Send a broadcast announcement" }
-save = { aliases = ["저장"], description = "Save the game world" }
-info = { aliases = ["정보", "인포"], description = "View server information" }
-players = { aliases = ["플레이어", "접속자", "유저"], description = "List connected players" }
-shutdown = { aliases = ["종료", "셧다운"], description = "Shutdown the server" }
-kick = { aliases = ["킥", "강퇴", "추방"], description = "Kick a player" }
-ban = { aliases = ["밴", "차단", "영구밴"], description = "Ban a player" }
-unban = { aliases = ["언밴", "차단해제"], description = "Unban a player" }
+start = { description = "Start the server" }
+stop = { description = "Stop the server" }
+status = { description = "Check server status" }
+announce = { description = "Send a broadcast announcement" }
+save = { description = "Save the game world" }
+info = { description = "View server information" }
+players = { description = "List connected players" }
+shutdown = { description = "Shutdown the server" }
+kick = { description = "Kick a player" }
+ban = { description = "Ban a player" }
+unban = { description = "Unban a player" }
 
 # ─── Console Syntax Highlighting ─────────────────────────
 # 의사 콘솔(console = "pty") 실측 v1.0.5.102999 (2026-10-26·10-30): 시작 문구 몇 줄 뒤로는

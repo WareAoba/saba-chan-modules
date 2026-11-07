@@ -1,4 +1,11 @@
 {
+  "aliases": {
+    "commands": {
+      "status": ["info"],
+      "give": ["item"],
+      "players": ["list"]
+    }
+  },
   "module": {
     "display_name": "Minecraft",
     "description": "Minecraft server management module with full lifecycle control"

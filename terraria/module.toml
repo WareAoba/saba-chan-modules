@@ -12,7 +12,7 @@ author = "WareAoba"
 
 # safe_join·PathOutside·atomic_write
 [module.dependencies]
-saba-core = ">=0.1.11-0"
+saba-core = ">=0.1.13-0"
 ext-xna = ">=0.1.0"
 
 [permissions]
@@ -758,17 +758,18 @@ inputs = []
 server_not_running = "Server is not running. Please start the server first"
 
 [aliases]
-module_aliases = ["테라리아", "테라", "terraria"]
+# 언어 없는 낱말(약어)만 둔다. 언어마다의 별명은 locales/<lang>.json "aliases"에 둔다 (그 언어로 답할 때만 맞춘다)
+module_aliases = []
 
 [aliases.commands]
-start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
-stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
-status = { aliases = ["상태", "확인"], description = "Check server status" }
-say = { aliases = ["말", "공지", "채팅"], description = "Send a message" }
-save = { aliases = ["저장"], description = "Save the world" }
-playing = { aliases = ["접속자", "플레이어", "목록"], description = "List players" }
-kick = { aliases = ["킥", "추방"], description = "Kick a player" }
-ban = { aliases = ["밴", "차단"], description = "Ban a player" }
+start = { description = "Start the server" }
+stop = { description = "Stop the server" }
+status = { description = "Check server status" }
+say = { description = "Send a message" }
+save = { description = "Save the world" }
+playing = { description = "List players" }
+kick = { description = "Kick a player" }
+ban = { description = "Ban a player" }
 
 # ─── 콘솔 하이라이트 (PC 실측 2026-10-26, 저장 로그 6회분의 줄 모양을 분류) ───
 # 데몬 토큰화는 Rust regex(lookaround 없음)와 토큰 16개를 쓴다. priority가 큰 규칙이 이긴다.

@@ -11,7 +11,7 @@ icon = "icon.png"
 log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
-saba-core = ">=0.1.11-0"
+saba-core = ">=0.1.13-0"
 ext-steamcmd = ">=0.1.5"
 
 [permissions]
@@ -1649,20 +1649,21 @@ timeout = "Server response timeout. Please check server status"
 java_not_found = "Could not find bundled Java — the server installation may be incomplete"
 
 [aliases]
-module_aliases = ["좀보이드", "프로젝트 좀보이드", "프좀", "pz", "zomboid", "project zomboid"]
+# 언어 없는 낱말(약어)만 둔다. 언어마다의 별명은 locales/<lang>.json "aliases"에 둔다 (그 언어로 답할 때만 맞춘다)
+module_aliases = ["pz"]
 
 [aliases.commands]
-start = { aliases = ["시작", "실행", "켜기"], description = "Start the server" }
-stop = { aliases = ["정지", "끝내기", "끄기"], description = "Stop the server" }
-status = { aliases = ["상태", "상황", "확인"], description = "Check server status" }
-servermsg = { aliases = ["공지", "공지사항", "알림", "메시지"], description = "Broadcast a message" }
-save = { aliases = ["저장", "세이브"], description = "Save the game world" }
-players = { aliases = ["플레이어", "접속자", "유저"], description = "List connected players" }
-quit = { aliases = ["종료", "셧다운"], description = "Shutdown the server" }
-kick = { aliases = ["킥", "강퇴", "추방"], description = "Kick a player" }
-banuser = { aliases = ["밴", "차단", "영구밴"], description = "Ban a player" }
-unbanuser = { aliases = ["언밴", "차단해제"], description = "Unban a player" }
-adduser = { aliases = ["유저추가", "계정추가"], description = "Add a user" }
+start = { description = "Start the server" }
+stop = { description = "Stop the server" }
+status = { description = "Check server status" }
+servermsg = { description = "Broadcast a message" }
+save = { description = "Save the game world" }
+players = { description = "List connected players" }
+quit = { description = "Shutdown the server" }
+kick = { description = "Kick a player" }
+banuser = { description = "Ban a player" }
+unbanuser = { description = "Unban a player" }
+adduser = { description = "Add a user" }
 
 # ═══════════════════════════════════════════════════════════
 #                   SYNTAX HIGHLIGHTING

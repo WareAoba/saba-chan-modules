@@ -700,6 +700,9 @@ def test_locales_have_the_same_keys():
     def keys(d, prefix=""):
         out = set()
         for k, v in d.items():
+            # 별명(`aliases`)은 그 언어로 답할 때만 맞추는 낱말이라 언어마다 있어도 없어도 된다
+            if not prefix and k == "aliases":
+                continue
             out |= keys(v, f"{prefix}{k}.") if isinstance(v, dict) else {prefix + k}
         return out
 

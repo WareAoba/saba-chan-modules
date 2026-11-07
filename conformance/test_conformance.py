@@ -170,6 +170,30 @@ def hook_functions_missing(manifest, table):
             if (manifest.get(section) or {}).get(key) is True and function not in table]
 
 
+def without_aliases(locale):
+    return {k: v for k, v in locale.items() if k != "aliases"}
+
+
+def alias_problems(aliases, manifest):
+    """locales `aliases`: {module: [낱말], commands: {<명령 이름>: [낱말]}}. 명령 이름은 내장(start·stop·status), 접속자 조회(players), [[commands.fields]]"""
+    if aliases is None:
+        return []
+    # 쉼표 꼴은 데몬 `chat::words::is_comma`와 같다 (쉼표가 든 낱말은 데몬이 버린다)
+    words = lambda v: isinstance(v, list) and all(isinstance(w, str) and w.strip() and not set(w) & set(",，、､") for w in v)
+    out = []
+    if not isinstance(aliases, dict) or set(aliases) - {"module", "commands"}:
+        return ["aliases는 module·commands만 가진다"]
+    if "module" in aliases and not words(aliases["module"]):
+        out.append("aliases.module은 쉼표 없는 낱말 목록이다")
+    known = {"start", "stop", "status", "players"} | {f.get("name") for f in manifest.get("commands", {}).get("fields", [])}
+    for name, v in (aliases.get("commands") or {}).items():
+        if name not in known:
+            out.append(f"aliases.commands.{name}: 없는 명령")
+        elif not words(v):
+            out.append(f"aliases.commands.{name}은 쉼표 없는 낱말 목록이다")
+    return out
+
+
 def flat_keys(obj, prefix=""):
     keys = set()
     for k, v in obj.items():
@@ -858,7 +882,8 @@ def test_translation_keys(module, shared_libs):
         pytest.skip("locales 없음")
     en_file = locales / "en.json"
     assert en_file.is_file(), "locales/en.json이 없다 (다른 언어의 기준)"
-    en = flat_keys(json.loads(en_file.read_text(encoding="utf-8-sig")))
+    # 별명(`aliases`)은 그 언어로 답할 때만 맞추는 낱말이라 언어마다 있어도 없어도 된다
+    en = flat_keys(without_aliases(json.loads(en_file.read_text(encoding="utf-8-sig"))))
 
     used = set()
     tree = ast.parse(module.entry.read_text(encoding="utf-8-sig"))
@@ -874,10 +899,12 @@ def test_translation_keys(module, shared_libs):
     problems = []
     for f in sorted(locales.glob("*.json")):
         try:
-            keys = flat_keys(json.loads(f.read_text(encoding="utf-8-sig")))
+            data = json.loads(f.read_text(encoding="utf-8-sig"))
         except json.JSONDecodeError as e:
             problems.append(f"{f.name}: JSON 오류 {e}")
             continue
+        problems += [f"{f.name}: {p}" for p in alias_problems(data.get("aliases"), module.manifest)]
+        keys = flat_keys(without_aliases(data))
         if keys - en:
             problems.append(f"{f.name}: en.json에 없는 키 {sorted(keys - en)[:5]}")
         if en - keys:

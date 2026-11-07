@@ -1448,7 +1448,7 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     assert not any(p.search('[20:08:00] [Server thread/INFO]: <Steve> ]: Done (1.0s)! For help, type "help"') for p in patterns)
     assert "ready_patterns" not in toml["detection"]
     # 정지·설정 파일이 공용 도우미(graceful_stop·update_key_values, saba-core 0.1.11부터)를 쓴다
-    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.11-0"
+    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.13-0"
 
 
 def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():

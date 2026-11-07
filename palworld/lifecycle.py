@@ -58,19 +58,47 @@ class PalworldRestClient:
         return self._request("GET", "/metrics")
 
 
+def _exact_player_id(players, player_input):
+    """name(캐릭터 이름)이나 accountName(Steam 계정 이름)이 정확히 같은 사람의 ID (대소문자 무시)"""
+    player_input_lower = player_input.lower()
+    for player in players:
+        player_name = player.get("name", "")
+        account_name = player.get("accountName", "")
+        if player_name.lower() == player_input_lower or account_name.lower() == player_input_lower:
+            player_userid = player.get("userId") or player.get("playerId") or player.get("steamId")
+            matched_name = account_name if account_name.lower() == player_input_lower else player_name
+            print(f"[Palworld] Found player: {matched_name} (char: {player_name}) -> {player_userid}", file=sys.stderr)
+            return player_userid
+    return None
+
+
 def resolve_player_id(instance_id, player_input, config, allow_partial=True):
     """
     플레이어 입력값을 SteamID로 변환합니다.
-    - 이미 SteamID 형식(steam_xxxxxxxxx 또는 숫자만)이면 그대로 반환
+    - steam_ 로 시작하면 그대로 반환
+    - 숫자만 있으면 이름이 정확히 같은 사람을 먼저 찾고, 없으면(목록을 못 읽어도) ID로 보고 그대로 반환
     - 닉네임이면 플레이어 목록에서 검색하여 SteamID로 변환
     - allow_partial=False 면 이름이 정확히 같은 사람만 찾는다 (내보내기·차단이 엉뚱한 사람에게 가지 않게)
     
     Returns:
         tuple: (success, steamid_or_error_message)
     """
-    # 이미 SteamID 형식인지 확인 (steam_로 시작하거나 숫자만 있는 경우)
-    if player_input.startswith("steam_") or player_input.isdigit():
+    if player_input.startswith("steam_"):
         print(f"[Palworld] Input '{player_input}' is already a SteamID format", file=sys.stderr)
+        return (True, player_input)
+
+    # 숫자만 있는 입력은 닉네임(예: 12345)일 수도 있으니 정확히 같은 이름을 먼저 찾는다
+    if player_input.isdigit():
+        try:
+            matched = _exact_player_id(PalworldRestClient(instance_id).players().get("players", []), player_input)
+        except PathOutside:
+            raise
+        except Exception as e:
+            print(f"[Palworld] Player list unavailable for '{player_input}': {e}", file=sys.stderr)
+            matched = None
+        if matched:
+            return (True, matched)
+        print(f"[Palworld] Input '{player_input}' treated as an ID", file=sys.stderr)
         return (True, player_input)
     
     # 닉네임으로 간주하고 플레이어 목록에서 검색
@@ -82,20 +110,11 @@ def resolve_player_id(instance_id, player_input, config, allow_partial=True):
             
         print(f"[Palworld] Found {len(players)} online players", file=sys.stderr)
             
-        # 닉네임으로 플레이어 검색 (대소문자 무시)
-        # name (캐릭터 이름)과 accountName (Steam 계정 이름) 둘 다 검색
+        matched = _exact_player_id(players, player_input)
+        if matched:
+            return (True, matched)
+
         player_input_lower = player_input.lower()
-        for player in players:
-            player_name = player.get("name", "")
-            account_name = player.get("accountName", "")
-            player_userid = player.get("userId") or player.get("playerId") or player.get("steamId")
-                
-            # 정확 일치 (캐릭터 이름 또는 Steam 계정 이름)
-            if player_name.lower() == player_input_lower or account_name.lower() == player_input_lower:
-                matched_name = account_name if account_name.lower() == player_input_lower else player_name
-                print(f"[Palworld] Found player: {matched_name} (char: {player_name}) -> {player_userid}", file=sys.stderr)
-                return (True, player_userid)
-            
         if not allow_partial:
             return (False, i18n.t("errors.player_not_found"))
 

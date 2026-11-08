@@ -55,7 +55,7 @@ def console_verbs(manifest):
     """콘솔로 보내는 선언 명령의 첫 낱말과 정지 명령 (정렬)"""
     verbs = set()
     for field in manifest.get("commands", {}).get("fields", []):
-        if field.get("method") not in ("console", "rcon"):
+        if field.get("method") != "console":
             continue
         words = field.get("console_template", "").split()
         if words and not words[0].startswith("{"):

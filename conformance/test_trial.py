@@ -20,7 +20,7 @@ def test_console_verbs_come_from_console_commands_and_the_stop_command():
         "config": {"stop_command": "stop"},
         "commands": {"fields": [
             {"name": "say", "method": "console", "console_template": "say {message}"},
-            {"name": "save", "method": "rcon", "console_template": "/save-all flush"},
+            {"name": "save", "method": "console", "console_template": "/save-all flush"},
             {"name": "players", "method": "rest", "endpoint_template": "/players"},
             {"name": "custom", "method": "module"},
             {"name": "raw", "method": "console", "console_template": "{line}"},

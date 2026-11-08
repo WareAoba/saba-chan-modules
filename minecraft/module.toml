@@ -82,14 +82,12 @@ dir_signatures = ["server.jar|paper-*.jar|purpur-*.jar|fabric-server-*.jar|minec
 graceful_exit_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:System chat: )?Stopping the server']
 crash_artifacts = ["crash-reports/*.txt", "hs_err_pid*.log"]
 
-# 데몬이 읽는 0.1.9 선언. 0.1.8 데몬은 schema v1의 모르는 키를 거부하지만 [extensions.*] 표는 검사하지 않으므로
-# 여기에 둔다 (예약 이름 saba-core, 계약 06 §4)
+# 데몬이 읽는 선언 (예약 이름 saba-core, 계약 06 §4)
 [extensions.saba-core]
-# 돌아가는 CPU (saba-chan 0.1.12 architectures, 0.1.11 데몬은 모르는 키 경고로 무시). 자바 서버라 JVM이 있는 두 CPU 모두.
+# 돌아가는 CPU (saba-chan 0.1.12 architectures). 자바 서버라 JVM이 있는 두 CPU 모두.
 # aarch64는 Oracle A1(Ubuntu 24.04)에서 만들기·시작·명령·정지를 실측 (2026-10-29)
 architectures = ["x86_64", "aarch64"]
 # 디스코드 → 게임 채팅 (saba-chan 0.1.12 chat_send). 데몬이 이름·본문을 한 줄로 다듬어 이 함수를 부르면 tellraw로 모두에게 알린다.
-# 0.1.11 데몬은 모르는 키 경고로 무시한다
 chat_send = "send_chat"
 # 게임 stdout 원문(데몬이 러너 머리 없이 맞춘다)의 줄 처음 로그 머리부터 맞춘다: 바닐라 `[시각] [스레드/INFO]: `,
 # Paper 계열 `[시각 INFO]: ` (log_pattern과 같은 두 모양), Forge·NeoForge는 그 뒤에 로거 칸 ` [minecraft/로거]`
@@ -105,7 +103,7 @@ player_join_patterns = [
 # Spigot·CraftBukkit은 추방·밴으로 나갈 때 끝에 마침표를 찍는다 (`left the game.`, 클라우드 실측 26.1)
 player_leave_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:System chat: )?(?P<name>[A-Za-z0-9_]{1,16}) left the game\.?\s*$']
 # 게임 채팅 줄 (saba-chan 0.1.12 게임 채팅 전달, name·message 그룹). 플레이어 채팅은 `<이름> 본문`이고 서명되지 않은 채팅은
-# 앞에 `[Not Secure] `가 붙는다 (1.19.1+). `/say`(`[이름] …`)·`/me`(`* 이름 …`)는 받지 않는다. 0.1.11 데몬은 모르는 키로 무시한다
+# 앞에 `[Not Secure] `가 붙는다 (1.19.1+). `/say`(`[이름] …`)·`/me`(`* 이름 …`)는 받지 않는다
 chat_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:\[Not Secure\] )?<(?P<name>[A-Za-z0-9_]{1,16})> (?P<message>.*)$']
 
 # ─── Settings (displayed in GUI for instance configuration) ───

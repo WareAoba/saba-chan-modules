@@ -792,15 +792,11 @@ class MinecraftPing:
 def _resolve_server_jar(config):
     """Resolve the server jar path from config.
 
-    Checks keys in order: server_executable → executable_path → server_jar (예전 데몬이 넘기던 이름).
+    Checks keys in order: server_executable → executable_path.
     If the path is relative, resolves it against working_dir (if set).
     Returns an absolute path string or None.
     """
-    jar = (
-        config.get("server_executable")
-        or config.get("executable_path")
-        or config.get("server_jar")
-    )
+    jar = config.get("server_executable") or config.get("executable_path")
     if not jar:
         return None
 
@@ -1531,12 +1527,9 @@ def get_installed_version(config):
     """Detect installed Minecraft server version by parsing version.json inside server.jar.
 
     데몬은 시작·점검과 같은 config(server_executable 전체 경로, working_dir)를 넘긴다.
-    예전 데몬은 install_dir·jar_name을 넘겼다.
     """
     jar_path = _resolve_server_jar(config)
-    if not jar_path and config.get("install_dir"):
-        jar_path = str(safe_join(config["install_dir"], config.get("jar_name", "server.jar")))
-    install_dir = config.get("working_dir") or config.get("install_dir") or (os.path.dirname(jar_path) if jar_path else "")
+    install_dir = config.get("working_dir") or (os.path.dirname(jar_path) if jar_path else "")
 
     if not install_dir:
         return {"success": False, "message": i18n.t("errors.no_install_dir")}
@@ -2272,7 +2265,7 @@ def install_server(config):
     Config options:
         version (str): Minecraft version (e.g., "1.21.11")
         install_dir (str): Directory to install into
-        server_executable (str): Name for server jar (default: "server.jar", 예전 이름 jar_name)
+        server_executable (str): Name for server jar (default: "server.jar")
         accepted_agreements (list): 사용자가 동의한 약관 id. "eula"가 있으면 eula.txt에 동의를 쓴다
         settings (dict): 인스턴스 설정. server.properties 키는 처음 값으로 쓴다
         initial_settings (dict): Optional initial server.properties values (settings보다 우선)
@@ -2286,7 +2279,7 @@ def install_server(config):
         if not install_dir:
             return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-        jar_name = os.path.basename(config.get("server_executable") or config.get("jar_name") or "server.jar")
+        jar_name = os.path.basename(config.get("server_executable") or "server.jar")
         do_eula = "eula" in (config.get("accepted_agreements") or [])
         settings = config.get("settings") or {}
         # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다

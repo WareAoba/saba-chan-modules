@@ -111,7 +111,7 @@ def test_folder_markers_alone_are_enough(tmp_path):
 def test_validate_warns_when_the_chosen_type_is_not_what_is_installed(tmp_path):
     jar = bundler(str(tmp_path / "server.jar"), "paper-1.21.4.jar")
     (tmp_path / "eula.txt").write_text("eula=true\n")
-    result = lifecycle.validate({"server_type": "vanilla", "server_jar": jar, "working_dir": str(tmp_path), "port": 0})
+    result = lifecycle.validate({"server_type": "vanilla", "server_executable": jar, "working_dir": str(tmp_path), "port": 0})
     assert "SERVER_TYPE_MISMATCH" in [i["code"] for i in result["issues"]]
 
 

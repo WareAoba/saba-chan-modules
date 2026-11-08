@@ -362,11 +362,11 @@ def test_status_and_stop_work_without_ue4_extension():
     assert _run_cli("nope", {})["success"] is False
 
 
-def test_validate_accepts_daemon_server_jar_key(tmp_path):
+def test_validate_accepts_daemon_server_executable_key(tmp_path):
     from palworld.lifecycle import validate
     exe = tmp_path / "PalServer.exe"
     exe.write_text("x")
-    codes = {i["code"] for i in validate({"server_jar": str(exe), "port": 1})["issues"]}
+    codes = {i["code"] for i in validate({"server_executable": str(exe), "port": 1})["issues"]}
     assert "NO_EXECUTABLE" not in codes and "EXECUTABLE_NOT_FOUND" not in codes
 
 
@@ -758,7 +758,7 @@ def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
         s.bind(("127.0.0.1", 0))
         s.listen(1)
         port = s.getsockname()[1]
-        result = lifecycle.validate({"server_jar": str(exe), "port": port})
+        result = lifecycle.validate({"server_executable": str(exe), "port": port})
     assert "PORT_IN_USE" not in [i["code"] for i in result.get("issues", [])]
 
 

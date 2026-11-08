@@ -604,7 +604,7 @@ def _write_option_settings(ini_path, props):
 def validate(config):
     """Validate prerequisites before starting Palworld server."""
     issues = []
-    executable = config.get("server_executable") or config.get("server_jar")
+    executable = config.get("server_executable")
 
     # 실행 파일 검사
     if not executable:

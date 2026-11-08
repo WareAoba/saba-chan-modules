@@ -1986,7 +1986,7 @@
       "name": "togglejail-release",
       "label": "Unjail player",
       "description": "Releases the specified player from jail.",
-      "risk": "caution",
+      "risk": "danger",
       "console_template": "togglejail {player}",
       "inputs": [
         {

@@ -34,6 +34,7 @@ from i18n import I18n
 
 from daemon_rcon import (PathOutside, safe_join, daemon_stdin_command, diagnose_lines, graceful_stop, is_process_alive,
                          load_diagnose_rules, read_key_values, request_console, request_terminate, setting_file_keys,
+                         delete_paths, setting_defaults_to_file, stop_command,
                          settings_to_file, tail_lines, update_key_values)
 
 i18n = I18n(MODULE_DIR)
@@ -41,145 +42,6 @@ i18n = I18n(MODULE_DIR)
 
 # ─── Constants ───────────────────────────────────────────
 
-# Default servertest.ini values
-DEFAULT_INI_PROPERTIES = {
-    "PVP": "true",
-    "PauseEmpty": "true",
-    "GlobalChat": "true",
-    "Open": "true",
-    "ServerWelcomeMessage": "Welcome to Project Zomboid Multiplayer!",
-    "AutoCreateUserInWhiteList": "false",
-    "DisplayUserName": "true",
-    "ShowFirstAndLastName": "false",
-    "SpawnPoint": "0,0,0",
-    "SafetySystem": "true",
-    "ShowSafety": "true",
-    "SafetyToggleTimer": "2",
-    "SafetyCooldownTimer": "3",
-    "SpawnItems": "",
-    "DefaultPort": "16261",
-    "Mods": "",
-    "Map": "Muldraugh, KY",
-    "DoLuaChecksum": "true",
-    "DenyLoginOnOverloadedServer": "true",
-    "Public": "false",
-    "PublicName": "My PZ Server",
-    "PublicDescription": "",
-    "MaxPlayers": "16",
-    "PingFrequency": "10",
-    "PingLimit": "400",
-    "HoursForLootRespawn": "0",
-    "MaxItemsForLootRespawn": "4",
-    "ConstructionPreventsLootRespawn": "true",
-    "DropOffWhiteListAfterDeath": "false",
-    "NoFire": "false",
-    "AnnounceDeath": "false",
-    "MinutesPerPage": "1.0",
-    "SaveWorldEveryMinutes": "0",
-    "PlayerSafehouse": "true",
-    "AdminSafehouse": "false",
-    "SafehouseAllowTrepass": "true",
-    "SafehouseAllowFire": "true",
-    "SafehouseAllowLoot": "true",
-    "SafehouseAllowRespawn": "false",
-    "SafehouseDaySurvivedToClaim": "0",
-    "SafeHouseRemovalTime": "144",
-    "AllowDestructionBySledgehammer": "true",
-    "KickFastPlayers": "false",
-    "RCONPort": "27015",
-    "RCONPassword": "",
-    "Password": "",
-    "MaxAccountsPerUser": "0",
-    "SleepAllowed": "false",
-    "SleepNeeded": "false",
-    "SteamVAC": "true",
-    "WorkshopItems": "",
-    "SteamScoreboard": "true",
-    "UPnP": "true",
-    "VoiceEnable": "true",
-    "SpeedLimit": "70.0",
-    "Faction": "true",
-    "FactionDaySurvivedToCreate": "0",
-    "FactionPlayersRequiredForTag": "1",
-    "AllowTradeUI": "true",
-    # ── Player / Display ──
-    "ChatStreams": "s,r,a,w,y,sh,f,all",
-    "ShowSafety": "true",
-    "SafetyToggleTimer": "2",
-    "SafetyCooldownTimer": "3",
-    "DenyLoginOnOverloadedServer": "true",
-    "PingFrequency": "10",
-    "ConstructionPreventsLootRespawn": "true",
-    "DropOffWhiteListAfterDeath": "false",
-    "AdminSafehouse": "false",
-    "SafehouseAllowFire": "true",
-    "SafehouseDaySurvivedToClaim": "0",
-    "SafeHouseRemovalTime": "144",
-    "KickFastPlayers": "false",
-    # ── Network / Steam ──
-    "SteamPort1": "8766",
-    "SteamPort2": "8767",
-    "SteamScoreboard": "true",
-    "UPnP": "true",
-    "UPnPLeaseTime": "86400",
-    "UPnPZeroLeaseTimeFallback": "true",
-    "UPnPForce": "true",
-    "CoopServerLaunchTimeout": "20",
-    "CoopMasterPingTimeout": "60",
-    # ── Voice ──
-    "VoiceComplexity": "5",
-    "VoicePeriod": "20",
-    "VoiceSampleRate": "24000",
-    "VoiceBuffering": "8000",
-    "VoiceMinDistance": "10.0",
-    "VoiceMaxDistance": "300.0",
-    "Voice3D": "true",
-    # ── Misc ──
-    "PhysicsDelay": "500",
-    "server_browser_announced_ip": "",
-    "UseTCPForMapDownloads": "false",
-    "PlayerRespawnWithSelf": "false",
-    "PlayerRespawnWithOther": "false",
-    "FastForwardMultiplier": "40.0",
-    "PlayerSaveOnDamage": "true",
-    "SaveTransactionID": "false",
-    "DisableSafehouseWhenPlayerConnected": "false",
-    # ── Discord ──
-    "DiscordEnable": "false",
-    "DiscordToken": "",
-    "DiscordChannel": "",
-    "DiscordChannelID": "",
-    # ── Radio ──
-    "DisableRadioStaff": "false",
-    "DisableRadioAdmin": "true",
-    "DisableRadioGM": "true",
-    "DisableRadioOverseer": "false",
-    "DisableRadioModerator": "false",
-    "DisableRadioInvisible": "true",
-    # ── PVP / Combat ──
-    "PVPMeleeWhileHitReaction": "false",
-    "PVPMeleeDamageModifier": "30.0",
-    "PVPFirearmDamageModifier": "50.0",
-    "MouseOverToSeeDisplayName": "true",
-    "HidePlayersBehindYou": "true",
-    "CarEngineAttractionModifier": "0.5",
-    "PlayerBumpPlayer": "false",
-    # ── Item / World cleanup ──
-    "ClientCommandFilter": "-vehicle.*;+vehicle.damageWindow;+vehicle.fixPart;+vehicle.installPart;+vehicle.uninstallPart",
-    "ItemNumbersLimitPerContainer": "0",
-    "BloodSplatLifespanDays": "0",
-    "AllowNonAsciiUsername": "false",
-    "BanKickGlobalSound": "true",
-    "RemovePlayerCorpsesOnCorpseRemoval": "false",
-    "TrashDeleteAll": "false",
-    "HoursForWorldItemRemoval": "0.0",
-    "WorldItemRemovalList": "Base.Vest,Base.Shirt,Base.Blouse,Base.Skirt,Base.Shoes",
-    # ── Zombie performance ──
-    "ZombieUpdateMaxHighPriority": "50",
-    "ZombieUpdateDelta": "0.5",
-    "ZombieUpdateRadiusLowPriority": "45.0",
-    "ZombieUpdateRadiusHighPriority": "10.0",
-}
 
 
 # ═══════════════════════════════════════════════════════════
@@ -599,7 +461,7 @@ def _enforce_rcon_policy(ini_path, config=None):
         port, password = access
         if not os.path.exists(ini_path):
             # 첫 시작: 서버가 만들 기본값 위에 RCON을 얹어 미리 만든다 (콘솔도 RCON도 없이 뜨지 않게)
-            IniManager.update(ini_path, {**DEFAULT_INI_PROPERTIES, "RCONPort": port, "RCONPassword": password})
+            IniManager.update(ini_path, {**setting_defaults_to_file(MODULE_DIR), "RCONPort": port, "RCONPassword": password})
         elif (props.get("RCONPort"), props.get("RCONPassword")) != (port, password):
             IniManager.update(ini_path, {"RCONPort": port, "RCONPassword": password})
         return password
@@ -844,8 +706,8 @@ def status(config):
 # ╚═══════════════════════════════════════════════════════════╝
 
 def _request_stop(config):
-    """저장 후 종료 요청: 콘솔 `quit`(서버가 저장하고 끝난다, PZ 위키 "Server commands") → SIGTERM"""
-    return request_console(config, "quit") or request_terminate(config.get("pid"))
+    """저장 후 종료 요청: 콘솔 `[config] stop_command`(quit: 서버가 저장하고 끝난다, PZ 위키 "Server commands") → SIGTERM"""
+    return request_console(config, stop_command(MODULE_DIR)) or request_terminate(config.get("pid"))
 
 
 def stop(config):
@@ -1000,7 +862,7 @@ def read_properties(config):
     if not os.path.exists(ini_path):
         # Return defaults mapped to internal keys
         mapped_defaults = {}
-        for ini_key, value in DEFAULT_INI_PROPERTIES.items():
+        for ini_key, value in setting_defaults_to_file(MODULE_DIR).items():
             internal_key = names.get(ini_key, ini_key)
             mapped_defaults[internal_key] = value
         return {
@@ -1140,26 +1002,8 @@ def reset_server(config):
         return {"success": False, "message": i18n.t("errors.invalid_server_name", name=server_name)}
     saves_dir = str(safe_join(_zomboid_home(config), "Saves", "Multiplayer", server_name))
     
-    deleted = []
-    errors = []
-    
-    # 접근할 수 없는 폴더를 '없음'으로 보고 성공을 돌려주지 않는다 (os.path.isdir은 권한 오류를 삼킨다)
-    try:
-        os.stat(saves_dir)
-        exists = os.path.isdir(saves_dir)
-    except FileNotFoundError:
-        exists = False
-    except OSError as e:
-        return {"success": False, "message": i18n.t("errors.server_reset_partial", errors=f"{saves_dir}: {e}")}
-    if exists:
-        import shutil
-        try:
-            shutil.rmtree(saves_dir)
-            deleted.append(saves_dir)
-        except PathOutside:
-            raise
-        except Exception as e:
-            errors.append(f"{saves_dir}: {e}")
+    # 접근할 수 없는 폴더를 '없음'으로 보고 성공을 돌려주지 않는다 (delete_paths는 권한 오류를 오류로 센다)
+    deleted, errors = delete_paths([saves_dir])
     
     if errors:
         return {

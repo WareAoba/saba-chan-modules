@@ -189,7 +189,6 @@
     "settings_not_found": "Fichier de paramètres introuvable. Démarrez le serveur une fois pour le générer.",
     "no_instance_id": "Aucun identifiant d'instance indiqué",
     "command_failed": "Impossible d'exécuter la commande : {{error}}",
-    "message_required": "Un message est requis",
     "userid_required": "Un identifiant de joueur (userid) est requis",
     "unknown_command": "Commande inconnue : {{command}}",
     "player_ambiguous": "Plusieurs joueurs correspondent à « {{player}} » : {{names}}. Veuillez préciser."

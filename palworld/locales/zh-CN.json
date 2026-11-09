@@ -183,7 +183,6 @@
     "settings_not_found": "未找到设置文件。请先启动一次服务器以生成文件。",
     "no_instance_id": "未指定实例 ID",
     "command_failed": "执行命令失败：{{error}}",
-    "message_required": "需要填写消息",
     "userid_required": "需要玩家 ID（userid）",
     "unknown_command": "未知命令：{{command}}",
     "player_ambiguous": "有多名玩家匹配 '{{player}}'：{{names}}。请输入更准确的名称。"

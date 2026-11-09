@@ -35,7 +35,7 @@ import server_types
 from daemon_rcon import (ChecksumMismatch, PathOutside, atomic_write, diagnose_lines, download, force_kill, graceful_stop,
                          is_process_alive, load_diagnose_rules, progress, read_key_values, request_console,
                          request_terminate, safe_extract, safe_join, setting_file_keys, settings_from_file,
-                         settings_to_file, tail_lines, update_key_values)
+                         settings_to_file, tail_lines, update_key_values, chat_reply, delete_paths, stop_command)
 
 # ─── Init ─────────────────────────────────────────────────────
 
@@ -316,21 +316,17 @@ class JavaDownloader:
     @staticmethod
     def _release_package(release, os_name, arch, image_type="jre"):
         """고정 판 release의 이 플랫폼 JRE(또는 JDK) 압축 정보({link, checksum, ...}). 이 플랫폼용이 없으면 None"""
-        import urllib.error
         import urllib.parse
-        import urllib.request
         url = (
             f"{JavaDownloader._API_BASE}/assets/release_name/eclipse/{urllib.parse.quote(release, safe='')}?"
             + urllib.parse.urlencode({"os": os_name, "architecture": arch, "image_type": image_type,
                                       "jvm_impl": "hotspot", "heap_size": "normal", "project": "jdk"})
         )
         print(f"  Release: {url}", file=sys.stderr)
-        req = urllib.request.Request(url, headers={"User-Agent": "saba-chan/1.0"})
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            if e.code == 404:  # 이 플랫폼용 JRE가 없는 판
+            data = server_types._get_json(url, timeout=30)
+        except ValueError as e:
+            if str(e) == "version_unavailable":  # 404: 이 플랫폼용 JRE가 없는 판
                 return None
             raise
         for binary in data.get("binaries") or []:
@@ -1284,7 +1280,6 @@ def reset_server(config):
     사용자가 둔 다른 파일과 데몬 파일(인스턴스 폴더에 서버를 둔 경우)은 남긴다.
     server.properties will be recreated from module defaults on next configure().
     """
-    import shutil
 
     working_dir = config.get("working_dir")
     if not working_dir:
@@ -1310,21 +1305,7 @@ def reset_server(config):
         return {"success": False, "message": i18n.t("errors.unsafe_world_name", name=str(name))}
     targets += worlds
 
-    deleted = []
-    errors = []
-
-    for name in targets:
-        item = working_path / name
-        if not os.path.lexists(item):
-            continue
-        try:
-            if item.is_dir() and not item.is_symlink():
-                shutil.rmtree(item)
-            else:
-                item.unlink()
-            deleted.append(name)
-        except OSError as e:
-            errors.append(f"{name}: {e}")
+    deleted, errors = delete_paths(targets, root=working_path)
 
     success = len(errors) == 0
     msg_parts = []
@@ -1377,8 +1358,8 @@ def diagnose_log(config):
 
 
 def _request_stop(config):
-    """저장 후 종료 요청: 콘솔 `stop`(관리형 시작을 끄면 데몬이 RCON으로 보낸다) → SIGTERM"""
-    return request_console(config, "stop") or request_terminate(config.get("pid"))
+    """저장 후 종료 요청: 콘솔 `stop_command`(stop, 관리형 시작을 끄면 데몬이 RCON으로 보낸다) → SIGTERM"""
+    return request_console(config, stop_command(MODULE_DIR)) or request_terminate(config.get("pid"))
 
 
 def stop(config):
@@ -1592,15 +1573,7 @@ def send_chat(config):
     from daemon_rcon import daemon_stdin_command
     name, text = (_SECTION_CODE.sub("", config.get(k, "")) for k in ("chat_name", "chat_text"))
     line = "tellraw @a " + json.dumps(["", {"text": f"<{name}> ", "color": "aqua"}, {"text": text}], ensure_ascii=False)
-    try:
-        result = daemon_stdin_command(config.get("instance_id", ""), line, timeout=5) or {}
-    except PathOutside:
-        raise
-    except Exception as e:
-        return {"success": False, "message": i18n.t("errors.chat_failed", error=str(e))}
-    if result.get("success", True):
-        return {"success": True}
-    return {"success": False, "message": i18n.t("errors.chat_failed", error=result.get("message") or result.get("error") or "")}
+    return chat_reply(lambda: daemon_stdin_command(config.get("instance_id", ""), line, timeout=5), i18n)
 
 
 # ─── Helpers ──────────────────────────────────────────────────
@@ -1672,13 +1645,8 @@ class ServerInstaller:
     def fetch_version_manifest():
         """Fetch the version manifest from Mojang.
         Returns dict with 'latest' and 'versions' keys."""
-        import urllib.request
         try:
-            req = urllib.request.Request(VERSION_MANIFEST_URL, headers={
-                "User-Agent": "saba-chan/1.0"
-            })
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                return json.loads(resp.read().decode("utf-8"))
+            return server_types._get_json(VERSION_MANIFEST_URL)
         except Exception as e:
             raise ConnectionError(f"Failed to fetch version manifest: {e}")
 
@@ -1750,11 +1718,7 @@ class ServerInstaller:
             return None
 
         # Fetch version-specific metadata
-        import urllib.request
-        meta_url = version_entry["url"]
-        req = urllib.request.Request(meta_url, headers={"User-Agent": "saba-chan/1.0"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            meta = json.loads(resp.read().decode("utf-8"))
+        meta = server_types._get_json(version_entry["url"])
 
         server_dl = meta.get("downloads", {}).get("server")
         if not server_dl:

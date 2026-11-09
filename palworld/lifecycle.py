@@ -17,7 +17,7 @@ from i18n import I18n
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 
 from daemon_rcon import (PathOutside, config_value, daemon_rest, diagnose_lines, format_setting, graceful_stop, is_process_alive, load_diagnose_rules,
-                         load_setting_types, safe_join, setting_file_keys, tail_lines)
+                         load_setting_types, safe_join, setting_file_keys, tail_lines, chat_reply)
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -194,7 +194,7 @@ def _enforce_rest_policy(working_dir, config=None):
     # INI 파일이 존재하지만 비어있는 경우(빈 파일/파싱 실패) → 기본 설정으로 채움
     if not props:
         print("[Palworld] INI file is empty/corrupt, populating with defaults", file=sys.stderr)
-        props = dict(DEFAULT_PALWORLD_SETTINGS)
+        props = _default_settings()
         changes["__populated_defaults"] = True
 
     # Force REST API enabled
@@ -421,131 +421,9 @@ def status(config):
 # ║            PalWorldSettings.ini Manager                   ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-# Default values from DefaultPalWorldSettings.ini
-DEFAULT_PALWORLD_SETTINGS = {
-    "Difficulty": "None",
-    "RandomizerType": "None",
-    "RandomizerSeed": "",
-    "bIsRandomizerPalLevelRandom": "False",
-    "DayTimeSpeedRate": "1.000000",
-    "NightTimeSpeedRate": "1.000000",
-    "ExpRate": "1.000000",
-    "PalCaptureRate": "1.000000",
-    "PalSpawnNumRate": "1.000000",
-    "PalDamageRateAttack": "1.000000",
-    "PalDamageRateDefense": "1.000000",
-    "PlayerDamageRateAttack": "1.000000",
-    "PlayerDamageRateDefense": "1.000000",
-    "PlayerStomachDecreaceRate": "1.000000",
-    "PlayerStaminaDecreaceRate": "1.000000",
-    "PlayerAutoHPRegeneRate": "1.000000",
-    "PlayerAutoHpRegeneRateInSleep": "1.000000",
-    "PalStomachDecreaceRate": "1.000000",
-    "PalStaminaDecreaceRate": "1.000000",
-    "PalAutoHPRegeneRate": "1.000000",
-    "PalAutoHpRegeneRateInSleep": "1.000000",
-    "BuildObjectHpRate": "1.000000",
-    "BuildObjectDamageRate": "1.000000",
-    "BuildObjectDeteriorationDamageRate": "1.000000",
-    "CollectionDropRate": "1.000000",
-    "CollectionObjectHpRate": "1.000000",
-    "CollectionObjectRespawnSpeedRate": "1.000000",
-    "EnemyDropItemRate": "1.000000",
-    "DeathPenalty": "Item",
-    "bEnablePlayerToPlayerDamage": "False",
-    "bEnableFriendlyFire": "False",
-    "bEnableInvaderEnemy": "True",
-    "bActiveUNKO": "False",
-    "bEnableAimAssistPad": "True",
-    "bEnableAimAssistKeyboard": "False",
-    "DropItemMaxNum": "3000",
-    "DropItemMaxNum_UNKO": "100",
-    "BaseCampMaxNum": "128",
-    "BaseCampWorkerMaxNum": "15",
-    "DropItemAliveMaxHours": "1.000000",
-    "bAutoResetGuildNoOnlinePlayers": "False",
-    "AutoResetGuildTimeNoOnlinePlayers": "72.000000",
-    "GuildPlayerMaxNum": "20",
-    "BaseCampMaxNumInGuild": "4",
-    "PalEggDefaultHatchingTime": "1.000000",
-    "MaxBuildingLimitNumPerPlayer": "0",
-    "FishingDifficultyRate": "1.000000",
-    "bAllowEnemyCampSpawnNearBaseCamp": "False",
-    "WorkSpeedRate": "1.000000",
-    "AutoSaveSpan": "30.000000",
-    "bIsMultiplay": "False",
-    "bIsPvP": "False",
-    "bHardcore": "False",
-    "bPalLost": "False",
-    "bCharacterRecreateInHardcore": "False",
-    "bCanPickupOtherGuildDeathPenaltyDrop": "False",
-    "bEnableNonLoginPenalty": "True",
-    "bEnableFastTravel": "True",
-    "bEnableFastTravelOnlyBaseCamp": "False",
-    "bIsStartLocationSelectByMap": "False",
-    "bExistPlayerAfterLogout": "False",
-    "bEnableDefenseOtherGuildPlayer": "False",
-    "bInvisibleOtherGuildBaseCampAreaFX": "False",
-    "bBuildAreaLimit": "False",
-    "ItemWeightRate": "1.000000",
-    "CoopPlayerMaxNum": "4",
-    "ServerPlayerMaxNum": "32",
-    "ServerName": "Default Palworld Server",
-    "ServerDescription": "",
-    "AdminPassword": "",
-    "ServerPassword": "",
-    "bAllowClientMod": "True",
-    "PublicPort": "8211",
-    "PublicIP": "",
-    "RCONEnabled": "False",
-    "RCONPort": "25575",
-    "Region": "",
-    "bUseAuth": "True",
-    "BanListURL": "https://b.palworldgame.com/api/banlist.txt",
-    "RESTAPIEnabled": "False",
-    "RESTAPIPort": "8212",
-    "bShowPlayerList": "False",
-    "ChatPostLimitPerMinute": "30",
-    "CrossplayPlatforms": "(Steam,Xbox,PS5,Mac)",
-    "bIsUseBackupSaveData": "True",
-    "LogFormatType": "Text",
-    "bIsShowJoinLeftMessage": "True",
-    "SupplyDropSpan": "180",
-    "EnablePredatorBossPal": "True",
-    "MaxBuildingLimitNum": "0",
-    "ServerReplicatePawnCullDistance": "15000.000000",
-    "bAllowGlobalPalboxExport": "True",
-    "bAllowGlobalPalboxImport": "False",
-    "EquipmentDurabilityDamageRate": "1.000000",
-    "ItemContainerForceMarkDirtyInterval": "1.000000",
-    "ItemCorruptionMultiplier": "1.000000",
-    "DenyTechnologyList": "",
-    "GuildRejoinCooldownMinutes": "0",
-    "BlockRespawnTime": "5.000000",
-    "RespawnPenaltyDurationThreshold": "0.000000",
-    "RespawnPenaltyTimeScale": "2.000000",
-    "bDisplayPvPItemNumOnWorldMap_BaseCamp": "False",
-    "bDisplayPvPItemNumOnWorldMap_Player": "False",
-    "AdditionalDropItemWhenPlayerKillingInPvPMode": "PlayerDropItem",
-    "AdditionalDropItemNumWhenPlayerKillingInPvPMode": "1",
-    "bAdditionalDropItemWhenPlayerKillingInPvPMode": "False",
-    "bAllowEnhanceStat_Health": "True",
-    "bAllowEnhanceStat_Attack": "True",
-    "bAllowEnhanceStat_Stamina": "True",
-    "bAllowEnhanceStat_Weight": "True",
-    "bAllowEnhanceStat_WorkSpeed": "True",
-    "PhysicsActiveDropItemMaxNum": "-1",
-    "PlayerDataPalStorageUpdateCheckTickInterval": "1.000000",
-    "MonsterFarmActionSpeedRate": "1.000000",
-    "AutoTransferMasterCheckIntervalSeconds": "3600.000000",
-    "AutoTransferMasterThresholdDays": "14",
-    "MaxGuildsPerFrame": "10",
-    "bEnableVoiceChat": "False",
-    "VoiceChatMaxVolumeDistance": "3000.000000",
-    "VoiceChatZeroVolumeDistance": "15000.000000",
-    "bEnableBuildingPlayerUIdDisplay": "False",
-    "BuildingNameDisplayCacheTTLSeconds": "60",
-}
+def _default_settings():
+    """게임이 주는 공식 기본값 (모듈에 실린 DefaultPalWorldSettings.ini). 기본값은 이 파일 한 곳에만 둔다"""
+    return _parse_option_settings(os.path.join(MODULE_DIR, "DefaultPalWorldSettings.ini"))
 
 def _get_settings_ini_path(config):
     """Resolve path to PalWorldSettings.ini from config."""
@@ -833,7 +711,7 @@ def reset_properties(config):
     if not os.path.isfile(ini_path):
         return {"success": False, "message": i18n.t("reset.not_found")}
 
-    ok = _write_option_settings(ini_path, dict(DEFAULT_PALWORLD_SETTINGS))
+    ok = _write_option_settings(ini_path, _default_settings())
     return {
         "success": ok,
         "message": i18n.t("reset.settings_success") if ok else i18n.t("reset.settings_failed"),
@@ -1023,7 +901,7 @@ def install_server(config):
             if os.path.isfile(ini_path) and (_parse_option_settings(ini_path) or _option_line_unreadable(ini_path)):
                 print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
             else:
-                defaults = dict(DEFAULT_PALWORLD_SETTINGS)
+                defaults = _default_settings()
                 defaults["RESTAPIEnabled"] = "True"
                 # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
                 _apply_settings(defaults, config.get("settings"))
@@ -1101,71 +979,20 @@ def command(config):
 
 
 def execute_command_via_rest(instance_id, command_lower, args, config):
-    """명령의 HTTP 메서드와 endpoint를 보존해 데몬에 보낸다."""
-    endpoint = None
-    body = None
-    method = "POST"
-    
-    if command_lower == "announce":
-        message = args.get("message", "")
-        if not message:
-            return {"success": False, "message": i18n.t("errors.message_required")}
-        endpoint = "/v1/api/announce"
-        body = {"message": message}
-    
-    elif command_lower == "kick":
-        userid = args.get("userid")
-        if not userid:
-            return {"success": False, "message": i18n.t("errors.userid_required")}
-        message = args.get("message", "Kicked from server")
-        endpoint = "/v1/api/kick"
-        body = {"userid": userid, "message": message}
-    
+    """method = "module" 명령(kick·ban·unban)을 데몬 REST 경로로 보낸다.
+    method = "rest" 명령은 module.toml 정의대로 데몬이 직접 보내므로 여기 오지 않는다"""
+    userid = args.get("userid")
+    if command_lower == "kick":
+        body = {"userid": userid, "message": args.get("message", "Kicked from server")}
     elif command_lower == "ban":
-        userid = args.get("userid")
-        if not userid:
-            return {"success": False, "message": i18n.t("errors.userid_required")}
-        message = args.get("message", "Banned from server")
-        endpoint = "/v1/api/ban"
-        body = {"userid": userid, "message": message}
-    
+        body = {"userid": userid, "message": args.get("message", "Banned from server")}
     elif command_lower == "unban":
-        userid = args.get("userid")
-        if not userid:
-            return {"success": False, "message": i18n.t("errors.userid_required")}
-        endpoint = "/v1/api/unban"
         body = {"userid": userid}
-    
-    elif command_lower == "info":
-        endpoint = "/v1/api/info"
-        method = "GET"
-    
-    elif command_lower == "players":
-        endpoint = "/v1/api/players"
-        method = "GET"
-    
-    elif command_lower == "metrics":
-        endpoint = "/v1/api/metrics"
-        method = "GET"
-    
-    elif command_lower == "settings":
-        endpoint = "/v1/api/settings"
-        method = "GET"
-    
-    elif command_lower == "save":
-        endpoint = "/v1/api/save"
-        body = {}
-    
-    elif command_lower == "shutdown":
-        waittime = int(args.get("waittime", args.get("seconds", 30)))
-        message = args.get("message", "Server shutting down")
-        endpoint = "/v1/api/shutdown"
-        body = {"waittime": waittime, "message": message}
-    
     else:
         return {"success": False, "message": i18n.t("errors.unknown_command", command=command_lower)}
-    
-    return execute_rest_via_daemon(instance_id, endpoint, body, command_lower, method=method)
+    if not userid:
+        return {"success": False, "message": i18n.t("errors.userid_required")}
+    return execute_rest_via_daemon(instance_id, f"/v1/api/{command_lower}", body, command_lower)
 
 
 def execute_rest_via_daemon(instance_id, endpoint, body, command_text, method="POST"):
@@ -1208,15 +1035,7 @@ def execute_rest_via_daemon(instance_id, endpoint, body, command_text, method="P
 def send_chat(config):
     """디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`). 콘솔 입력이 없어 REST 공지로 이름·본문을 알린다"""
     message = f"{config.get('chat_name', '')}: {config.get('chat_text', '')}"
-    try:
-        result = daemon_rest(config.get("instance_id", ""), "POST", "/v1/api/announce", body={"message": message}, timeout=5) or {}
-    except PathOutside:
-        raise
-    except Exception as e:
-        return {"success": False, "message": i18n.t("errors.chat_failed", error=str(e))}
-    if result.get("success", True):
-        return {"success": True}
-    return {"success": False, "message": i18n.t("errors.chat_failed", error=result.get("message") or result.get("error") or "")}
+    return chat_reply(lambda: daemon_rest(config.get("instance_id", ""), "POST", "/v1/api/announce", body={"message": message}, timeout=5), i18n)
 
 
 # Function dispatch table (matches daemon's expected interface)

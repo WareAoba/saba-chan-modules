@@ -183,7 +183,6 @@
     "settings_not_found": "Settings file not found. Start the server once to generate it.",
     "no_instance_id": "No instance ID specified",
     "command_failed": "Failed to execute command: {{error}}",
-    "message_required": "A message is required",
     "userid_required": "A player ID (userid) is required",
     "unknown_command": "Unknown command: {{command}}",
     "player_ambiguous": "Multiple players match '{{player}}': {{names}}. Please be more specific."

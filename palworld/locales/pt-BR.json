@@ -189,7 +189,6 @@
     "settings_not_found": "Arquivo de configurações não encontrado. Inicie o servidor uma vez para gerá-lo.",
     "no_instance_id": "Nenhum ID de instância especificado",
     "command_failed": "Falha ao executar o comando: {{error}}",
-    "message_required": "É necessário informar uma mensagem",
     "userid_required": "É necessário um ID de jogador (userid)",
     "unknown_command": "Comando desconhecido: {{command}}",
     "player_ambiguous": "Vários jogadores correspondem a '{{player}}': {{names}}. Seja mais específico."

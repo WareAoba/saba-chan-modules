@@ -183,7 +183,6 @@
     "settings_not_found": "設定ファイルが見つかりません。一度サーバーを起動して生成してください。",
     "no_instance_id": "インスタンス ID が指定されていません",
     "command_failed": "コマンドの実行に失敗しました: {{error}}",
-    "message_required": "メッセージを入力してください",
     "userid_required": "プレイヤー ID (userid) が必要です",
     "unknown_command": "不明なコマンドです: {{command}}",
     "player_ambiguous": "'{{player}}' に一致するプレイヤーが複数います: {{names}}。より正確に入力してください。"

@@ -11,7 +11,7 @@ icon = "icon.png"
 log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
-saba-core = ">=0.1.13-0"
+saba-core = ">=0.1.14-0"
 ext-steamcmd = ">=0.1.5"
 
 [permissions]

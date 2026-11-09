@@ -186,7 +186,6 @@
     "settings_not_found": "No se encontró el archivo de configuración. Inicie el servidor una vez para generarlo.",
     "no_instance_id": "No se especificó el ID de la instancia",
     "command_failed": "No se pudo ejecutar el comando: {{error}}",
-    "message_required": "Se requiere un mensaje",
     "userid_required": "Se requiere un ID de jugador (userid)",
     "unknown_command": "Comando desconocido: {{command}}",
     "player_ambiguous": "Varios jugadores coinciden con '{{player}}': {{names}}. Sé más específico."

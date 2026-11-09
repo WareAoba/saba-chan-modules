@@ -8,6 +8,7 @@ import os
 import sys
 
 import pytest
+from unittest import mock
 
 try:
     import tomllib
@@ -42,20 +43,15 @@ def test_module_toml_required_sections_present():
 
 # ─── 2. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
 
-def test_ini_key_map_values_mostly_in_defaults():
-    """module.toml file_key가 가리키는 INI 키의 상당수는 DEFAULT_INI_PROPERTIES에 있어야 한다.
-    모두 있어야 한다고 강제하진 않는다 (PZ는 기본값이 서버 최초 실행 시 생성되는
-    필드도 있음). 단 coverage가 극도로 낮으면 매핑이 깨진 것."""
-    from zomboid.lifecycle import DEFAULT_INI_PROPERTIES, MODULE_DIR
-    from daemon_rcon import setting_file_keys
-    _INI_KEY_MAP = setting_file_keys(MODULE_DIR)
-
-    covered = sum(1 for v in _INI_KEY_MAP.values() if v in DEFAULT_INI_PROPERTIES)
-    ratio = covered / max(1, len(_INI_KEY_MAP))
-    assert ratio >= 0.3, (
-        f"_INI_KEY_MAP → DEFAULT_INI_PROPERTIES coverage가 비정상적으로 낮음 "
-        f"({covered}/{len(_INI_KEY_MAP)} = {ratio:.1%}). 필드명 drift 의심."
-    )
+def test_defaults_for_a_new_server_come_from_module_toml(tmp_path):
+    """servertest.ini가 아직 없을 때 보이는 값은 module.toml 설정 기본값이다 (기본값을 코드에 따로 두지 않는다)"""
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle.IniManager, "get_ini_path", return_value=str(tmp_path / "servertest.ini")):
+        props = lifecycle.read_properties({})["properties"]
+    assert props["max_players"] == "16"
+    assert props["public_name"] == "My PZ Server"
+    assert props["pvp"] == "true"
+    assert props["speed_limit"] == "70"
 
 
 def test_ini_key_map_no_duplicate_targets():
@@ -70,24 +66,6 @@ def test_ini_key_map_no_duplicate_targets():
     dupes = {k: v for k, v in reverse.items() if len(v) > 1}
     assert not dupes, f"중복 매핑된 INI 키: {dupes}"
 
-
-def test_default_ini_no_duplicate_keys_case_insensitive():
-    """INI 키는 대소문자 구분을 않는 경우가 많다. DEFAULT_INI_PROPERTIES에
-    동일 키가 대소문자만 다르게 중복되면 예측 불가."""
-    from zomboid.lifecycle import DEFAULT_INI_PROPERTIES
-    seen = {}
-    for k in DEFAULT_INI_PROPERTIES:
-        low = k.lower()
-        seen.setdefault(low, []).append(k)
-    dupes = {k: v for k, v in seen.items() if len(v) > 1}
-    # server_browser_announced_ip 같이 의도된 예외는 허용하나,
-    # 완전 동일 대소문자 중복은 불가
-    strict_dupes = {k: v for k, v in dupes.items() if len(set(v)) > 1}
-    # DEFAULT_INI_PROPERTIES는 dict라 같은 이름은 이미 합쳐짐. 이 테스트는
-    # "case insensitive collision"을 경고 수준으로 감지.
-    # → 중복 존재만 확인하고 실패시키진 않는다. 대신 mutually-distinct
-    #    case-only collisions은 경고.
-    assert isinstance(strict_dupes, dict)  # placeholder: 항상 통과 (diagnostic)
 
 
 # ─── 3. settings.fields ↔ KEY_MAP 계약 ──────────────────────
@@ -504,16 +482,16 @@ def test_saving_one_setting_keeps_other_values_in_a_locale_encoded_ini(tmp_path,
 def test_reset_server_reports_a_data_folder_it_cannot_reach(tmp_path, monkeypatch):
     """데이터 폴더에 접근할 수 없으면 아무것도 지우지 않고 '초기화 완료'를 돌려주던 것을 실패로 알린다"""
     from zomboid import lifecycle
-    real_stat = os.stat
+    real_stat = os.lstat
 
     def denied(path, *a, **kw):
         if str(path).startswith(str(tmp_path)):
             raise PermissionError(13, "Access is denied", str(path))
         return real_stat(path, *a, **kw)
 
-    monkeypatch.setattr(lifecycle.os, "stat", denied)
+    monkeypatch.setattr(lifecycle.os, "lstat", denied)
     assert lifecycle.reset_server({"cache_dir": str(tmp_path), "server_name": "servertest"})["success"] is False
-    monkeypatch.setattr(lifecycle.os, "stat", real_stat)
+    monkeypatch.setattr(lifecycle.os, "lstat", real_stat)
     assert lifecycle.reset_server({"cache_dir": str(tmp_path / "none"), "server_name": "servertest"})["success"] is True
 
 
@@ -722,7 +700,7 @@ def test_install_does_not_hide_a_profile_path_escape(tmp_path, monkeypatch):
 def test_manifest_declares_the_external_data_roots_and_the_sdk_boundary():
     cfg = _load_module_toml()
     assert cfg["extensions"]["saba-core"]["data_roots"] == ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
-    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.13-0"
+    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.14-0"
     field = next(field for field in cfg["settings"]["fields"] if field["name"] == "data_home")
     assert field["format"] == "path"
 
@@ -1010,3 +988,4 @@ def test_join_and_leave_patterns_count_b41_names_and_b42_connection_ids():
     for line in (B41_LINE, B42_21_LINES["console"], "LOG  : General      f:0 st:1> 3 clients connected",
                  'LOG  : General      f:0 st:1> command entered via server console (System.in): "servermsg Disconnected player \\"x\\""'):
         assert name(join, line) is None and name(leave, line) is None, line
+

@@ -183,7 +183,6 @@
     "settings_not_found": "找不到設定檔。請先啟動伺服器以產生設定檔。",
     "no_instance_id": "未指定執行個體 ID",
     "command_failed": "執行指令失敗：{{error}}",
-    "message_required": "需要填寫訊息",
     "userid_required": "需要玩家 ID（userid）",
     "unknown_command": "未知指令：{{command}}",
     "player_ambiguous": "有多名玩家符合 '{{player}}'：{{names}}。請輸入更精確的名稱。"

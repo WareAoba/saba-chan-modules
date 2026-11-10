@@ -271,7 +271,6 @@ group = "advanced"
 #  ── 콘솔 명령어 (method = "console") ──
 #  console_template: 콘솔에 보낼 명령어 템플릿. 데몬은 managed 서버의 stdin으로
 #  한 줄을 보낸 뒤 콘솔 출력을 잠깐 모아 응답으로 돌려줍니다.
-#  (예전 이름 method = "rcon" / rcon_template도 읽지만 새 모듈은 이 이름을 쓰세요)
 #  {변수명}은 inputs에 정의된 값으로 치환됩니다.
 #
 #  ── REST 명령어 (method = "rest") ──

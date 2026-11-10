@@ -183,7 +183,6 @@
     "settings_not_found": "Файл настроек не найден. Запустите сервер один раз, чтобы он был создан.",
     "no_instance_id": "Не указан ID экземпляра",
     "command_failed": "Не удалось выполнить команду: {{error}}",
-    "message_required": "Требуется сообщение",
     "userid_required": "Требуется ID игрока (userid)",
     "unknown_command": "Неизвестная команда: {{command}}",
     "player_ambiguous": "Под '{{player}}' подходят несколько игроков: {{names}}. Уточните имя."

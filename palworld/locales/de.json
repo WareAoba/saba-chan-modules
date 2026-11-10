@@ -183,7 +183,6 @@
     "settings_not_found": "Einstellungsdatei nicht gefunden. Starte den Server einmal, um sie zu erzeugen.",
     "no_instance_id": "Keine Instanz-ID angegeben",
     "command_failed": "Befehl konnte nicht ausgeführt werden: {{error}}",
-    "message_required": "Eine Nachricht ist erforderlich",
     "userid_required": "Eine Spieler-ID (userid) ist erforderlich",
     "unknown_command": "Unbekannter Befehl: {{command}}",
     "player_ambiguous": "Mehrere Spieler passen zu '{{player}}': {{names}}. Bitte geben Sie den Namen genauer an."

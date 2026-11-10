@@ -199,7 +199,6 @@
     "settings_not_found": "설정 파일을 찾을 수 없습니다. 서버를 한 번 실행하여 생성하세요.",
     "no_instance_id": "인스턴스 ID가 지정되지 않았습니다",
     "command_failed": "명령 실행 실패: {{error}}",
-    "message_required": "메시지를 입력해 주세요",
     "userid_required": "플레이어 ID(userid)가 필요합니다",
     "unknown_command": "알 수 없는 명령입니다: {{command}}",
     "player_ambiguous": "'{{player}}'와(과) 일치하는 플레이어가 여럿입니다: {{names}}. 더 정확히 입력해 주세요."

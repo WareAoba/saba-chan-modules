@@ -24,7 +24,8 @@ from i18n import I18n
 
 from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, download, graceful_stop,
                          is_process_alive, progress, read_key_values, request_console, safe_extract, safe_join,
-                         setting_file_keys, settings_from_file, update_key_values)
+                         setting_file_keys, settings_from_file, update_key_values, chat_reply, delete_paths,
+                         stop_command)
 
 i18n = I18n(MODULE_DIR)
 
@@ -36,8 +37,6 @@ DEFAULT_WORLD_NAME = "world"
 DEFAULT_PORT = 7777
 DEFAULT_BANLIST = "banlist.txt"
 DEFAULT_AUTOCREATE = "2"
-STOP_COMMAND = "exit"
-
 SERVER_NAMES_URL = "https://terraria.org/api/get/dedicated-servers-names"
 DOWNLOAD_URL = "https://terraria.org/api/download/pc-dedicated-server/{name}"
 # 서버 파일의 `playing` 답 마지막 줄(CLI.NoPlayers·OnePlayerConnected·PlayersConnected, 1.4.5.8 TerrariaServer.exe 12개 언어).
@@ -303,7 +302,7 @@ def stop(config):
     """정지. 공식 `exit`는 월드를 저장하고 끝낸다(위키), 그래서 앞에 save를 붙이지 않는다.
     기다림·강제 종료·managed·요청 불가는 공용 절차(graceful_stop)가 맡는다.
     콘솔이 없으면 저장 없이 죽이지 않고 graceful_stop_unavailable (SIGTERM이 저장하는지는 공식 근거가 없어 쓰지 않는다)."""
-    return graceful_stop(config, lambda: request_console(config, STOP_COMMAND), i18n, module_dir=MODULE_DIR)
+    return graceful_stop(config, lambda: request_console(config, stop_command(MODULE_DIR)), i18n, module_dir=MODULE_DIR)
 
 
 def configure(config):
@@ -443,17 +442,9 @@ def reset_server(config):
         return {"success": False, "message": i18n.t(
             "errors.server_reset_partial", errors=f"{name}.wld.bak*: {e}")}
     targets = [world_file] + [str(safe_join(world_dir, filename)) for filename in backups]
-    deleted, errors = [], []
-    for target in targets:
-        if os.path.dirname(os.path.abspath(target)) != os.path.abspath(world_dir):
-            return {"success": False, "message": i18n.t("errors.invalid_world_name", name=name)}
-        try:
-            os.remove(target)
-            deleted.append(target)
-        except FileNotFoundError:
-            pass
-        except OSError as e:
-            errors.append(f"{os.path.basename(target)}: {e}")
+    if any(os.path.dirname(os.path.abspath(target)) != os.path.abspath(world_dir) for target in targets):
+        return {"success": False, "message": i18n.t("errors.invalid_world_name", name=name)}
+    deleted, errors = delete_paths(targets)
     if errors:
         return {"success": False, "message": i18n.t("errors.server_reset_partial", errors=", ".join(errors))}
     return {"success": True, "message": i18n.t("messages.server_reset_complete"), "deleted": deleted}
@@ -603,15 +594,7 @@ def install_server(config):
 def send_chat(config):
     """디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`). 데몬이 한 줄로 다듬은 이름·본문을 `say`로 알린다"""
     line = f"say {config.get('chat_name', '')}: {config.get('chat_text', '')}"
-    try:
-        result = daemon_stdin_command(config.get("instance_id", ""), line, timeout=5) or {}
-    except PathOutside:
-        raise
-    except Exception as e:
-        return {"success": False, "message": i18n.t("errors.chat_failed", error=str(e))}
-    if result.get("success", True):
-        return {"success": True}
-    return {"success": False, "message": i18n.t("errors.chat_failed", error=result.get("message") or result.get("error") or "")}
+    return chat_reply(lambda: daemon_stdin_command(config.get("instance_id", ""), line, timeout=5), i18n)
 
 
 # ╔═══════════════════════════════════════════════════════════╗

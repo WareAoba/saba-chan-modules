@@ -136,7 +136,7 @@ def test_build_launch_info_basic():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "working_dir": tmpdir,
             "ram": 2,
         })
@@ -154,7 +154,7 @@ def test_launch_keeps_the_console_utf8_and_without_color_codes():
     from minecraft.lifecycle import get_launch_command
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
-        args = get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2})["args"]
+        args = get_launch_command({"server_executable": jar, "working_dir": tmpdir, "ram": 2})["args"]
         flags = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
                  # Java 17 이하는 sun.stdout.encoding·file.encoding을 본다
                  "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dfile.encoding=UTF-8",
@@ -180,7 +180,7 @@ def test_build_launch_info_nonexistent_jar():
     from minecraft.lifecycle import get_launch_command
     with tempfile.TemporaryDirectory() as tmpdir:
         result = get_launch_command({
-            "server_jar": os.path.join(tmpdir, "nonexistent.jar"),
+            "server_executable": os.path.join(tmpdir, "nonexistent.jar"),
             "working_dir": tmpdir,
             "ram": 2,
         })
@@ -194,7 +194,7 @@ def test_build_launch_info_fractional_ram():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "working_dir": tmpdir,
             "ram": 0.5,
         })
@@ -209,7 +209,7 @@ def test_memory_size_values_pass_through_and_old_numbers_still_work():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         for ram, want in [("4G", "-Xmx4G"), ("1024M", "-Xmx1024M"), (4, "-Xmx4G"), ("bad", "-Xmx2G")]:
-            result = get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": ram})
+            result = get_launch_command({"server_executable": jar, "working_dir": tmpdir, "ram": ram})
             assert want in result["args"], (ram, result["args"])
 
 
@@ -233,7 +233,7 @@ def test_extra_args_go_before_the_jar_and_preview_writes_nothing():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "working_dir": tmpdir,
             "ram": "2G",
             "extra_args": ["-XX:+UseZGC"],
@@ -251,7 +251,7 @@ def test_build_launch_info_aikar_flags():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "working_dir": tmpdir,
             "ram": 2,
             "use_aikar_flags": True,
@@ -266,7 +266,7 @@ def test_build_launch_info_extra_jvm_args_list():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "working_dir": tmpdir,
             "ram": 2,
             "jvm_args": ["-Dfoo=bar"],
@@ -280,7 +280,7 @@ def test_build_launch_info_extra_jvm_args_string():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "working_dir": tmpdir,
             "ram": 2,
             "jvm_args": "-Dfoo=bar -Dbaz=qux",
@@ -295,7 +295,7 @@ def test_build_launch_info_eula_not_accepted_by_default():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "working_dir": tmpdir,
             "ram": 2,
         })
@@ -320,7 +320,7 @@ def test_managed_launch_turns_rcon_off():
         mgr = ServerPropertiesManager(tmpdir)
         mgr.write({"enable-rcon": "true", "rcon.password": "old", "rcon.port": "25575"})
 
-        get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2, "managed": True,
+        get_launch_command({"server_executable": jar, "working_dir": tmpdir, "ram": 2, "managed": True,
                             "rcon_password": "daemon-pw", "rcon_port": 25580})
         props = mgr.read()
         assert props.get("enable-rcon") == "false"
@@ -333,14 +333,14 @@ def test_unmanaged_launch_turns_rcon_on_with_the_daemon_access():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         mgr = ServerPropertiesManager(tmpdir)
-        get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2, "managed": False,
+        get_launch_command({"server_executable": jar, "working_dir": tmpdir, "ram": 2, "managed": False,
                             "rcon_password": "daemon-pw", "rcon_port": 25580})
         props = mgr.read()
         assert (props.get("enable-rcon"), props.get("rcon.port"), props.get("rcon.password")) == ("true", "25580", "daemon-pw")
         assert props.get("broadcast-rcon-to-ops") == "false"
 
         # 데몬 접속 정보가 없으면(RCON 경로 없음) 켜지 않는다
-        get_launch_command({"server_jar": jar, "working_dir": tmpdir, "ram": 2, "managed": False})
+        get_launch_command({"server_executable": jar, "working_dir": tmpdir, "ram": 2, "managed": False})
         assert mgr.read().get("enable-rcon") == "false"
 
 
@@ -357,7 +357,7 @@ def test_build_launch_info_working_dir_from_jar():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "ram": 2,
         })
         assert result["success"] is True
@@ -372,7 +372,7 @@ def test_get_launch_command_returns_success():
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
         result = get_launch_command({
-            "server_jar": jar,
+            "server_executable": jar,
             "working_dir": tmpdir,
             "ram": 2,
             "auto_eula": True,
@@ -1245,7 +1245,7 @@ def test_offline_status_reads_the_version_from_server_executable(tmp_path):
 
 
 def test_install_server_names_the_jar_from_server_executable(tmp_path):
-    """데몬은 설치할 실행 파일 이름을 server_executable로 넘긴다 (예전 이름 jar_name)"""
+    """데몬은 설치할 실행 파일 이름을 server_executable로 넘긴다"""
     import hashlib
     import io
     from minecraft import lifecycle
@@ -1440,7 +1440,7 @@ def test_an_update_still_installs_where_file_modes_cannot_be_set(tmp_path):
 def test_ready_patterns_match_the_done_line_only_from_the_server():
     """서버가 접속을 받기 시작하면 데몬이 instance.ready를 낸다(계약 06 §4). 문구는 PC 정규 설치 26.3 서버의 실제 줄이다.
     데몬은 러너 머리를 뗀 게임 stdout 원문을 맞추므로 줄 처음의 로그 머리에 묶어, 채팅(`<이름> Done (...)`)으로는 흉내 내지 못하게 한다.
-    0.1.8 데몬은 schema v1의 모르는 키를 거부하므로 검사하지 않는 [extensions.saba-core] 표에 둔다(코어 의존성은 그대로)"""
+    선언은 [extensions.saba-core] 표에 둔다(코어 의존성은 그대로)"""
     import re
     import tomllib
     with open(os.path.join(os.path.dirname(__file__), "module.toml"), "rb") as f:
@@ -1457,7 +1457,7 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     assert not any(p.search('[20:08:00] [Server thread/INFO]: <Steve> ]: Done (1.0s)! For help, type "help"') for p in patterns)
     assert "ready_patterns" not in toml["detection"]
     # 정지·설정 파일이 공용 도우미(graceful_stop·update_key_values, saba-core 0.1.11부터)를 쓴다
-    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.13-0"
+    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.14-0"
 
 
 def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():

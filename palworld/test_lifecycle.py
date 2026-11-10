@@ -7,7 +7,7 @@
 검증 축:
 1. module.toml 자체 파싱 & BOM 안전성
 2. [credential_map] 타겟이 실제 INI 키여야 함
-3. module.toml file_key 값 ⊆ DEFAULT_PALWORLD_SETTINGS.keys()
+3. module.toml file_key 값 ⊆ 공식 DefaultPalWorldSettings.ini 키
 4. settings.fields[].name (saba-chan 전용 그룹 제외)마다 file_key가 있다
 5. lifecycle.py 공개 API가 잘못된 config에 대해 우아하게 실패하는지
 """
@@ -68,19 +68,18 @@ def test_module_toml_required_sections_present():
 def test_credential_map_targets_are_real_ini_keys():
     """credential_map 우측 값은 실제 PalWorldSettings.ini 키여야 한다.
     예: rest_password = "AdminPassword" → AdminPassword가 _PALWORLD_KEY_MAP의 값이거나
-        DEFAULT_PALWORLD_SETTINGS의 키여야 한다."""
-    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
+        공식 기본 파일의 키여야 한다."""
     _PALWORLD_KEY_MAP = _file_keys()
 
     cfg = _load_module_toml()
     cred_map = cfg.get("credential_map", {})
     assert cred_map, "credential_map must not be empty for Palworld (REST 인증 필수)"
 
-    known_ini_keys = set(_PALWORLD_KEY_MAP.values()) | set(DEFAULT_PALWORLD_SETTINGS.keys())
+    known_ini_keys = set(_PALWORLD_KEY_MAP.values()) | set(_load_default_ini_props())
     for daemon_key, ini_key in cred_map.items():
         assert ini_key in known_ini_keys, (
             f"credential_map.{daemon_key} = {ini_key!r} references unknown INI key. "
-            f"Must appear in _PALWORLD_KEY_MAP.values() or DEFAULT_PALWORLD_SETTINGS.keys()."
+            f"Must appear in _PALWORLD_KEY_MAP.values() or DefaultPalWorldSettings.ini."
         )
 
 
@@ -94,18 +93,18 @@ def test_credential_map_rest_password_binds_admin_password():
 # ─── 3. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
 
 def test_key_map_values_subset_of_defaults():
-    """_PALWORLD_KEY_MAP의 모든 INI 키는 DEFAULT_PALWORLD_SETTINGS에 존재해야 한다.
+    """_PALWORLD_KEY_MAP의 모든 INI 키는 공식 기본 파일에 있어야 한다.
     이 대응이 깨지면 '설정을 저장했는데 서버에는 반영 안됨' 버그가 된다."""
-    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
+    defaults = _load_default_ini_props()
     _PALWORLD_KEY_MAP = _file_keys()
 
     missing = [
         (friendly, ini_key)
         for friendly, ini_key in _PALWORLD_KEY_MAP.items()
-        if ini_key not in DEFAULT_PALWORLD_SETTINGS
+        if ini_key not in defaults
     ]
     assert not missing, (
-        f"{len(missing)}개 INI 키가 DEFAULT_PALWORLD_SETTINGS에 누락됨 "
+        f"{len(missing)}개 INI 키가 DefaultPalWorldSettings.ini에 없음 "
         f"(오타 혹은 누락): {missing[:5]}..."
     )
 
@@ -168,23 +167,10 @@ _EXPECTED_INTERNAL_ONLY_INI_KEYS = {"RCONEnabled", "RCONPort", "RESTAPIEnabled"}
 
 def _load_default_ini_props():
     from extensions.ue4_ini import parse_option_settings
-    ini_path = os.path.join(MODULE_DIR, "test_data", "DefaultPalWorldSettings.ini")
+    ini_path = os.path.join(MODULE_DIR, "DefaultPalWorldSettings.ini")
     return parse_option_settings(ini_path)
 
 
-def test_default_settings_matches_sample_ini():
-    """DEFAULT_PALWORLD_SETTINGS는 DefaultPalWorldSettings.ini(최신 게임 업데이트 샘플)와
-    키 집합이 완전히 일치해야 한다. drift하면 '설정 초기화' 시 최신 옵션이 누락되거나
-    이미 삭제된 옵션이 계속 기록된다."""
-    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
-
-    ini_keys = set(_load_default_ini_props().keys())
-    default_keys = set(DEFAULT_PALWORLD_SETTINGS.keys())
-
-    missing_in_dict = ini_keys - default_keys
-    extra_in_dict = default_keys - ini_keys
-    assert not missing_in_dict, f"DEFAULT_PALWORLD_SETTINGS에 누락된 최신 INI 키: {sorted(missing_in_dict)}"
-    assert not extra_in_dict, f"DEFAULT_PALWORLD_SETTINGS에만 있고 샘플 INI엔 없는 키(오타 의심): {sorted(extra_in_dict)}"
 
 
 def test_key_map_covers_all_ini_keys_except_internal():
@@ -362,11 +348,11 @@ def test_status_and_stop_work_without_ue4_extension():
     assert _run_cli("nope", {})["success"] is False
 
 
-def test_validate_accepts_daemon_server_jar_key(tmp_path):
+def test_validate_accepts_daemon_server_executable_key(tmp_path):
     from palworld.lifecycle import validate
     exe = tmp_path / "PalServer.exe"
     exe.write_text("x")
-    codes = {i["code"] for i in validate({"server_jar": str(exe), "port": 1})["issues"]}
+    codes = {i["code"] for i in validate({"server_executable": str(exe), "port": 1})["issues"]}
     assert "NO_EXECUTABLE" not in codes and "EXECUTABLE_NOT_FOUND" not in codes
 
 
@@ -420,7 +406,7 @@ def test_rcon_stays_off_and_has_no_command_path(tmp_path):
         lifecycle.configure({"working_dir": str(tmp_path), "settings": {"rcon_enabled": True, "server_name": "x"}})
     assert written["RCONEnabled"] == "False"
     with mock.patch.object(lifecycle, "execute_command_via_rest", return_value={"success": True}) as rest:
-        lifecycle.command({"command": "info", "instance_id": "i1", "protocol_mode": "rcon"})
+        lifecycle.command({"command": "kick", "instance_id": "i1", "protocol_mode": "rcon"})
     rest.assert_called_once()
     assert "rcon_password" not in lifecycle.get_credentials({"working_dir": str(tmp_path)})
 
@@ -582,7 +568,7 @@ def test_a_failed_rest_policy_write_does_not_sync_an_unwritten_password(tmp_path
     ini = tmp_path / "PalWorldSettings.ini"
     ini.write_text("", encoding="utf-8")
     with mock.patch.object(lifecycle, "_get_settings_ini_path", return_value=str(ini)), \
-         mock.patch.object(lifecycle, "_parse_option_settings", return_value={}), \
+         mock.patch.object(lifecycle, "_parse_option_settings", side_effect=lambda _path: {}), \
          mock.patch.object(lifecycle, "_write_option_settings", return_value=False):
         result = lifecycle._enforce_rest_policy(str(tmp_path), {"rest_password": "fromdaemon"})
         assert result["changed"] is False and result["write_failed"] is True
@@ -606,13 +592,6 @@ def test_get_launch_command_refuses_to_start_when_the_rest_policy_cannot_be_save
 
 
 @pytest.mark.parametrize("command,args,method,endpoint,body", [
-    ("info", {}, "GET", "/v1/api/info", None),
-    ("players", {}, "GET", "/v1/api/players", None),
-    ("metrics", {}, "GET", "/v1/api/metrics", None),
-    ("settings", {}, "GET", "/v1/api/settings", None),
-    ("save", {}, "POST", "/v1/api/save", {}),
-    ("announce", {"message": "공지"}, "POST", "/v1/api/announce", {"message": "공지"}),
-    ("shutdown", {"waittime": 1, "message": "종료"}, "POST", "/v1/api/shutdown", {"waittime": 1, "message": "종료"}),
     ("kick", {"userid": "steam_1", "message": "추방"}, "POST", "/v1/api/kick", {"userid": "steam_1", "message": "추방"}),
     ("ban", {"userid": "steam_1", "message": "차단"}, "POST", "/v1/api/ban", {"userid": "steam_1", "message": "차단"}),
     ("unban", {"userid": "steam_1"}, "POST", "/v1/api/unban", {"userid": "steam_1"}),
@@ -704,7 +683,7 @@ def test_path_boundary_errors_reach_the_shared_runner(tmp_path, monkeypatch, fun
     elif function == "command":
         with mock.patch.object(lifecycle, "execute_command_via_rest", side_effect=PathOutside(tmp_path / "outside")):
             with pytest.raises(PathOutside):
-                lifecycle.command({"command": "info", "instance_id": "i1"})
+                lifecycle.command({"command": "kick", "instance_id": "i1"})
     elif function == "stop":
         with mock.patch.object(lifecycle, "_rest_shutdown", side_effect=PathOutside(tmp_path / "outside")):
             with pytest.raises(PathOutside):
@@ -758,7 +737,7 @@ def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
         s.bind(("127.0.0.1", 0))
         s.listen(1)
         port = s.getsockname()[1]
-        result = lifecycle.validate({"server_jar": str(exe), "port": port})
+        result = lifecycle.validate({"server_executable": str(exe), "port": port})
     assert "PORT_IN_USE" not in [i["code"] for i in result.get("issues", [])]
 
 
@@ -1062,7 +1041,7 @@ def test_an_ini_with_only_the_section_header_is_still_filled_with_defaults(tmp_p
     os.makedirs(os.path.dirname(ini))
     open(ini, "w", encoding="utf-8").write("[/Script/Pal.PalGameWorldSettings]\n")
     assert lifecycle._enforce_rest_policy(str(tmp_path), {"rest_password": "x"})["changed"] is True
-    assert lifecycle._parse_option_settings(ini)["ServerName"] == lifecycle.DEFAULT_PALWORLD_SETTINGS["ServerName"]
+    assert lifecycle._parse_option_settings(ini)["ServerName"] == _load_default_ini_props()["ServerName"]
 
 
 def test_random_admin_password_is_only_for_the_admin_password(tmp_path):
@@ -1098,12 +1077,11 @@ def test_an_admin_password_with_edge_quotes_is_passed_to_the_daemon_as_written(t
 
 
 def test_module_toml_defaults_match_the_games_default_settings_file():
-    """화면에 보이는 기본값과 DEFAULT_PALWORLD_SETTINGS가 게임이 주는 DefaultPalWorldSettings.ini와 같아야 한다
+    """화면에 보이는 기본값이 게임이 주는 DefaultPalWorldSettings.ini와 같아야 한다
     (기본값이 다르면 '초기화'·새 서버가 공식 기본과 다른 값으로 시작한다)"""
-    from palworld.lifecycle import DEFAULT_PALWORLD_SETTINGS
     official = _load_default_ini_props()
     by_key = {f["file_key"]: f for f in _load_module_toml()["settings"]["fields"] if f.get("file_key")}
-    toml_bad, dict_bad = [], []
+    toml_bad = []
     for key, raw in official.items():
         field = by_key.get(key)
         if field is None:
@@ -1117,10 +1095,7 @@ def test_module_toml_defaults_match_the_games_default_settings_file():
             same = str(got) == want
         if not same:
             toml_bad.append((key, want, got))
-        if DEFAULT_PALWORLD_SETTINGS.get(key, "").strip('"') != want:
-            dict_bad.append((key, want, DEFAULT_PALWORLD_SETTINGS.get(key)))
     assert not toml_bad, f"module.toml 기본값이 공식 기본과 다름: {toml_bad}"
-    assert not dict_bad, f"DEFAULT_PALWORLD_SETTINGS가 공식 기본과 다름: {dict_bad}"
 
 
 def test_player_commands_go_through_lifecycle_so_nicknames_resolve():
@@ -1152,3 +1127,13 @@ def test_kick_and_ban_never_pick_a_partial_name_match(monkeypatch, command):
     result = lifecycle.command({"instance_id": "i1", "command": command, "args": {"userid": "Bob"}})
     assert result["success"] is False
     assert rest.call_count == 1
+
+
+def test_reset_writes_the_official_defaults_shipped_with_the_module(tmp_path):
+    """설정 초기화는 모듈에 실린 공식 DefaultPalWorldSettings.ini 값을 그대로 쓴다 (기본값을 코드에 따로 두지 않는다)"""
+    from palworld import lifecycle
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    os.makedirs(os.path.dirname(ini))
+    open(ini, "w", encoding="utf-8").write('[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName="mine",ExpRate=3.000000)\n')
+    assert lifecycle.reset_properties({"working_dir": str(tmp_path)})["success"]
+    assert lifecycle._parse_option_settings(ini) == _load_default_ini_props()

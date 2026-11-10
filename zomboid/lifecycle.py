@@ -1062,8 +1062,7 @@ def install_server(config):
     """Install/update the Project Zomboid dedicated server via SteamCMD.
 
     Uses the saba-chan SteamCMD extension for portable, automatic download
-    (Steam app and anonymous login come from module.toml [install]).
-    Optionally use -beta unstable for Build 42 unstable.
+    (Steam app, anonymous login and branch come from module.toml [install]).
     """
     install_dir = config.get("install_dir", "")
     if not install_dir:
@@ -1074,7 +1073,6 @@ def install_server(config):
             return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     os.makedirs(install_dir, exist_ok=True)
-    use_beta = config.get("use_beta", False)
 
     # app_id는 module.toml [install]. 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하게 답한다
     try:
@@ -1083,7 +1081,7 @@ def install_server(config):
         return {"success": False, "message": i18n.t("errors.extension_not_enabled"),
                 "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
     try:
-        result = install_for_module(MODULE_DIR, install_dir, beta="unstable" if use_beta else None)
+        result = install_for_module(MODULE_DIR, install_dir)
     except PathOutside:
         raise
     except Exception as e:

@@ -910,12 +910,13 @@ def test_diagnose_reads_the_daemon_lines_then_the_server_console_but_not_the_cli
 
 
 def test_install_reads_the_steam_app_from_module_toml(tmp_path):
-    """Steam app_id는 module.toml [install] 한 곳에 둔다(steamcmd install_for_module). Build 42 unstable은 beta로"""
+    """Steam app_id·브랜치는 module.toml [install] 한 곳에 둔다(steamcmd install_for_module).
+    업데이트 확인도 같은 선언(steamcmd_beta)을 쓰므로 모듈이 따로 브랜치를 고르지 않는다"""
     from unittest import mock
     from zomboid import lifecycle
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
         lifecycle.install_server({"install_dir": str(tmp_path / "server"), "use_beta": True})
-    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta="unstable")
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"))
     assert _load_module_toml()["install"]["app_id"] == 380870
 
 

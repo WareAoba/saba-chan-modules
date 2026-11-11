@@ -1,7 +1,7 @@
 [module]
 schema_version = 2
 name = "minecraft"
-version = "0.1.12"
+version = "0.1.13"
 description = "Minecraft server management module with full lifecycle control"
 author = "WareAoba"
 game_name = "Minecraft"

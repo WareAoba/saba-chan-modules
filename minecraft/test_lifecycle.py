@@ -769,6 +769,12 @@ def test_player_count_names_the_players_from_the_console_list():
         assert lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})["players"] == \
             [{"name": "Steve"}, {"name": ".BedrockSteve"}]
 
+    # 대상 선택자처럼 보이는 이름(`@a`)은 이름으로 답하지 않는다: 데몬 자동 강퇴의 `kick {player}` 인자가 된다
+    selector = {"success": True, "data": {"response": "There are 2 of a max of 20 players online: Steve, @a"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping), \
+         mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=selector):
+        assert "players" not in lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})
+
     # 아무도 없으면 이름 칸이 빈다
     empty = {"success": True, "data": {"response": "There are 0 of a max of 20 players online: "}}
     with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value={"players": {"online": 0, "max": 20}}), \

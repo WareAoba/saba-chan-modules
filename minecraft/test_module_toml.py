@@ -211,6 +211,11 @@ def test_bedrock_and_offline_names_join_leave_and_chat():
         for spoof in ["[Steve] joined the game", "[Steve] left the game", "* joined the game", "* left the game",
                       "[.Steve] X joined the game", "<.Steve> X left the game"]:
             assert _event_name(JOIN, head + spoof) is None and _event_name(LEAVE, head + spoof) is None, spoof
+        # 접속 이름은 데몬 자동 강퇴의 `kick {player}` 인자가 된다: 대상 선택자(`@a`)가 이름으로 잡히면 전원 강퇴다
+        for selector in ["@a", "@e", "@p", "Steve;stop", "@a[limit=1]"]:
+            assert _event_name(JOIN, head + selector + " joined the game") is None, selector
+            assert _event_name(LEAVE, head + selector + " left the game") is None, selector
+            assert _chat(head + f"<{selector}> hello") is None, selector
     head = HEADS[0]
     assert highlight("player_join", head + ".BedrockSteve joined the game") == ".BedrockSteve"
     assert highlight("player_leave", head + ".BedrockSteve left the game") == ".BedrockSteve"

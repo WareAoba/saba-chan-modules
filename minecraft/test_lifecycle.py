@@ -1716,6 +1716,29 @@ def test_server_properties_values_use_java_escapes():
         assert "level-type=minecraft\\:normal\n" in open(os.path.join(tmpdir, "server.properties"), encoding="utf-8").read()
 
 
+def test_non_ascii_values_are_written_as_unicode_escapes():
+    """1.20 전 서버는 server.properties를 ISO 8859-1로 읽는다(1.20 Pre-release 1 변경 기록: UTF-8로 먼저 읽고
+    ISO 8859-1로 다시 읽는다). `\\uXXXX`로 쓰면 두 쪽 모두 같은 글자로 읽는다. 이모지는 서러게이트 쌍으로 쓴다"""
+    from minecraft.lifecycle import ServerPropertiesManager, configure, import_settings
+    motd = "한글 서버 \U0001F600"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "server.properties")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("motd=old\n")
+        assert configure({"working_dir": tmpdir, "settings": {"motd": motd}})["success"]
+        raw = open(path, "rb").read()
+        assert b"motd=\\uD55C\\uAE00 \\uC11C\\uBC84 \\uD83D\\uDE00\n" in raw
+        assert raw.decode("iso-8859-1") == raw.decode("utf-8")
+        assert import_settings({"working_dir": tmpdir})["settings"]["motd"] == motd
+        # 읽은 값을 그대로 다시 저장할 수 있다
+        assert configure({"working_dir": tmpdir, "settings": {"motd": ServerPropertiesManager(tmpdir).read()["motd"]}})["success"]
+        assert ServerPropertiesManager(tmpdir).read()["motd"] == motd
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ServerPropertiesManager(tmpdir).write({"motd": motd})
+        assert open(os.path.join(tmpdir, "server.properties"), "rb").read().isascii()
+        assert ServerPropertiesManager(tmpdir).read()["motd"] == motd
+
+
 def test_an_escaped_line_break_survives_import_and_save():
     """motd=a\\nb(두 줄 MOTD)는 가져온 값 그대로 다시 저장할 수 있다. 진짜 줄바꿈으로 풀면 공용 도우미가 거부한다"""
     from minecraft.lifecycle import ServerPropertiesManager, configure, import_settings

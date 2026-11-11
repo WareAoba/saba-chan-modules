@@ -581,12 +581,14 @@ def _unescape_property(value):
     줄바꿈 \\n·\\r은 이스케이프 모양 그대로 둔다: 한 줄 값만 저장할 수 있어 진짜 줄바꿈으로 풀면 다시 저장하지 못한다"""
     def repl(m):
         s = m.group(1)
+        if len(s) == 11:  # 서러게이트 쌍(BMP 밖 글자)은 한 글자로 합친다
+            return chr(0x10000 + ((int(s[1:5], 16) - 0xD800) << 10) + int(s[7:], 16) - 0xDC00)
         if len(s) == 5:
             return chr(int(s[1:], 16))
         if s in "nr":
             return "\\" + s
         return {"t": "\t", "f": "\f"}.get(s, s)
-    return re.sub(r"\\(u[0-9a-fA-F]{4}|.)", repl, value)
+    return re.sub(r"\\(u[dD][89abAB][0-9a-fA-F]{2}\\u[dD][c-fC-F][0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|.)", repl, value)
 
 
 def _load_default_properties():
@@ -616,12 +618,20 @@ def _load_default_properties():
 DEFAULT_PROPERTIES = _load_default_properties()
 
 
+def _utf16_escapes(m):
+    """글자 하나를 `\\uXXXX`로 (BMP 밖은 서러게이트 쌍 두 개)"""
+    units = m.group(0).encode("utf-16-be", "surrogatepass").hex().upper()
+    return "".join("\\u" + units[i:i + 4] for i in range(0, len(units), 4))
+
+
 def _escape_property(value):
     """Java Properties.store(Writer)처럼 값을 쓴다: `\\`·`=`·`:`·`#`·`!` 앞에 `\\`, 맨 앞 공백도 이스케이프.
     서버가 쓰는 파일과 같은 모양(level-type=minecraft\\:normal)이 된다. 줄바꿈 이스케이프 \\n·\\r은 그대로 둔다
-    (_unescape_property가 풀지 않은 모양). 진짜 줄바꿈은 공용 도우미가 거부한다"""
+    (_unescape_property가 풀지 않은 모양). 진짜 줄바꿈은 공용 도우미가 거부한다.
+    ASCII가 아닌 글자는 Properties.store(OutputStream)처럼 `\\uXXXX`로 쓴다: 1.20 전 서버는 이 파일을 ISO 8859-1로 읽는다"""
     value = str(value)
     out = re.sub(r"\\(?![nr])|[=:#!]", lambda m: "\\" + m.group(0), value)
+    out = re.sub(r"[^\x00-\x7e]", _utf16_escapes, out)
     return "\\" + out if out.startswith(" ") else out
 
 
@@ -657,7 +667,7 @@ class ServerPropertiesManager:
             return False
 
     def update(self, changes):
-        """Merge changes into existing properties (preserves comments). 서버는 UTF-8로 읽으므로 UTF-8로 쓴다"""
+        """Merge changes into existing properties (preserves comments). 바꾼 값은 ASCII라 남은 줄의 인코딩(UTF-8)만 지킨다"""
         if not self.exists():
             merged = dict(DEFAULT_PROPERTIES)
             merged.update(changes)

@@ -762,6 +762,13 @@ def test_player_count_names_the_players_from_the_console_list():
     send.assert_called_once_with("i1", "list", timeout=5)
     assert result == {"success": True, "online": 2, "max": 20, "players": [{"name": "Steve"}, {"name": "Alex_99"}]}
 
+    # Floodgate 베드락 이름(`.` 접두사)이 섞여 있어도 이름을 답한다
+    bedrock = {"success": True, "data": {"response": "There are 2 of a max of 20 players online: Steve, .BedrockSteve"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping), \
+         mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=bedrock):
+        assert lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})["players"] == \
+            [{"name": "Steve"}, {"name": ".BedrockSteve"}]
+
     # 아무도 없으면 이름 칸이 빈다
     empty = {"success": True, "data": {"response": "There are 0 of a max of 20 players online: "}}
     with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value={"players": {"online": 0, "max": 20}}), \

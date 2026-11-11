@@ -194,6 +194,30 @@ def test_system_chat_join_and_leave_lines_are_counted():
     assert not any(p.search(head + "System chat: <Steve> Bob left the game") for p in LEAVE)
 
 
+def _event_name(patterns, line):
+    found = [m.group("name") for p in patterns if (m := p.search(line))]
+    return found[0] if found else None
+
+
+def test_bedrock_and_offline_names_join_leave_and_chat():
+    """Floodgate는 베드락 이름 앞에 `.`을 붙인다(Floodgate config.yml username-prefix 기본값). online-mode=false 서버는
+    `-` 같은 글자도 받는다. `/say`(`[이름] …`)·`/me`(`* 이름 …`) 줄은 접속·퇴장이 아니다"""
+    for head in HEADS:
+        for who in [".BedrockSteve", "Name-1"]:
+            assert _event_name(JOIN, head + who + " joined the game") == who, head
+            assert _event_name(JOIN, head + who + " (formerly known as .Old-Name) joined the game") == who, head
+            assert _event_name(LEAVE, head + who + " left the game") == who, head
+            assert _chat(head + f"<{who}> hello") == (who, "hello"), head
+        for spoof in ["[Steve] joined the game", "[Steve] left the game", "* joined the game", "* left the game",
+                      "[.Steve] X joined the game", "<.Steve> X left the game"]:
+            assert _event_name(JOIN, head + spoof) is None and _event_name(LEAVE, head + spoof) is None, spoof
+    head = HEADS[0]
+    assert highlight("player_join", head + ".BedrockSteve joined the game") == ".BedrockSteve"
+    assert highlight("player_leave", head + ".BedrockSteve left the game") == ".BedrockSteve"
+    assert highlight("player_login", head + ".BedrockSteve[/127.0.0.1:57348] logged in with entity id 21 at (0.5, 68.0, 0.5)") == ".BedrockSteve"
+    assert highlight("player_disconnect_reason", head + ".BedrockSteve lost connection: Disconnected") == "Disconnected"
+
+
 def test_player_events_are_bound_to_the_message_start():
     head = HEADS[0]
     assert highlight("player_join", head + "SabaBot joined the game") == "SabaBot"

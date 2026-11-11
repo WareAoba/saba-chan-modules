@@ -14,7 +14,7 @@
     },
     "ram": {
       "label": "メモリ (RAM)",
-      "description": "最大メモリ割り当て量 (GB)"
+      "description": "Javaヒープサイズ（GB）。空欄にするとこのPCに合わせます: 8GB、PCのメモリが9.5GB未満なら4GB"
     },
     "server_name": {
       "label": "サーバープロファイル名",

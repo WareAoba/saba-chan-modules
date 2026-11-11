@@ -143,7 +143,7 @@ def test_build_launch_info_basic():
         assert result["success"] is True
         assert "program" in result
         assert "-Xmx2G" in result["args"]
-        assert "-Xms2G" in result["args"]
+        assert "-Xms1G" in result["args"]  # 소규모 프로필: 시작 힙은 작게
         assert "-jar" in result["args"]
         assert result["working_dir"] == os.path.abspath(tmpdir)
 
@@ -254,7 +254,7 @@ def test_build_launch_info_aikar_flags():
             "server_executable": jar,
             "working_dir": tmpdir,
             "ram": 2,
-            "use_aikar_flags": True,
+            "java_tuning": True,
         })
         assert result["success"] is True
         assert "-XX:+UseG1GC" in result["args"]
@@ -408,12 +408,12 @@ def test_configure_writes_only_mapped_keys():
         ServerPropertiesManager(tmpdir).write({"motd": "old"})
         result = configure({"working_dir": tmpdir, "settings": {
             "motd": "new", "pvp": False, "auto_eula": True, "java_path": "java", "ram": 4,
-            "use_aikar_flags": True, "managed_start": True, "graceful_stop": True,
+            "java_tuning": True, "managed_start": True, "graceful_stop": True,
         }})
         assert result["success"] is True
         props = ServerPropertiesManager(tmpdir).read()
         assert props["motd"] == "new" and props["pvp"] == "false"
-        for key in ("auto_eula", "java_path", "ram", "use_aikar_flags", "managed_start", "graceful_stop"):
+        for key in ("auto_eula", "java_path", "ram", "java_tuning", "managed_start", "graceful_stop"):
             assert key not in props
 
 
@@ -1981,3 +1981,131 @@ def test_send_chat_tells_everyone_with_tellraw_json():
 
     with mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value={"success": False, "message": "not running"}):
         assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False
+
+
+# ── 실행 프로필 (힙 크기로 정한다: 소규모 ≤6G, 표준 <16G, 대규모 ≥16G) ─────────
+
+_GIB = 1024 ** 3
+
+
+def _profile_args(tmp_path, monkeypatch, ram, java_major, **extra):
+    """포터블 Java(java_major)를 둔 서버의 실행 인자"""
+    from minecraft.lifecycle import get_launch_command
+    jar = _make_fake_jar(str(tmp_path))
+    if java_major:
+        _portable_java(str(tmp_path / "java"), java_major)
+    monkeypatch.setattr("minecraft.lifecycle._required_java_for", lambda *a, **k: 8)
+    config = {"server_executable": jar, "working_dir": str(tmp_path), **extra}
+    if ram is not None:
+        config["ram"] = ram
+    result = get_launch_command(config)
+    assert result["success"] is True, result
+    return result["args"]
+
+
+def test_small_profile_returns_idle_memory_and_skips_pretouch(tmp_path, monkeypatch):
+    """6G 이하: G1 옵션 + 주기 GC, 처음부터 힙을 다 잡지 않는다(Xms 작게, AlwaysPreTouch 없음). Java 25면 COH"""
+    args = _profile_args(tmp_path, monkeypatch, "4G", 25)
+    assert "-Xmx4G" in args and "-Xms1G" in args and "-Xms4G" not in args
+    assert "-XX:+UseG1GC" in args and any(a.startswith("-XX:G1PeriodicGCInterval=") for a in args)
+    assert "-XX:+AlwaysPreTouch" not in args
+    assert "-XX:+UseCompactObjectHeaders" in args
+
+
+def test_small_profile_skips_periodic_gc_before_java_12(tmp_path, monkeypatch):
+    """G1PeriodicGCInterval은 JDK 12부터 있다 (JEP 346). 그 전 Java·버전을 모르는 Java는 모르는 옵션이라 JVM이 뜨지 않는다"""
+    from minecraft.lifecycle import _java_tuning
+    for major in (8, 11):
+        server = tmp_path / str(major)
+        server.mkdir()
+        args = _profile_args(server, monkeypatch, "4G", major)
+        assert not any(a.startswith("-XX:G1PeriodicGCInterval") for a in args), major
+        assert "-XX:+UseG1GC" in args and "-Xms1G" in args
+    assert not any(a.startswith("-XX:G1PeriodicGCInterval") for a in _java_tuning({}, "4G", 0, []))
+
+
+def test_standard_profile_is_aikar_g1_without_coh_below_java_25(tmp_path, monkeypatch):
+    args = _profile_args(tmp_path, monkeypatch, "8G", 21)
+    assert "-Xmx8G" in args and "-Xms8G" in args
+    assert "-XX:+UseG1GC" in args and "-XX:+AlwaysPreTouch" in args and "-XX:MaxGCPauseMillis=200" in args
+    assert not any(a.startswith("-XX:G1PeriodicGCInterval") for a in args)
+    assert "-XX:+UseCompactObjectHeaders" not in args
+
+
+def test_large_profile_uses_generational_zgc_from_java_21(tmp_path, monkeypatch):
+    """16G 이상: ZGC. 21·22는 세대별을 켜야 하고 23부터는 기본이다. 그보다 낮은 Java는 G1로 내려간다"""
+    args = _profile_args(tmp_path, monkeypatch, "16G", 25)
+    assert "-XX:+UseZGC" in args and "-XX:+ZGenerational" not in args and "-XX:+UseG1GC" not in args
+    assert not any(a.startswith("-XX:G1") for a in args)
+    assert "-Xms16G" in args and "-XX:+UseCompactObjectHeaders" in args
+
+
+def test_large_profile_on_java_21_turns_on_generational_mode(tmp_path, monkeypatch):
+    args = _profile_args(tmp_path, monkeypatch, "20G", 21)
+    assert "-XX:+UseZGC" in args and "-XX:+ZGenerational" in args
+
+
+def test_large_profile_falls_back_to_g1_on_old_java(tmp_path, monkeypatch):
+    args = _profile_args(tmp_path, monkeypatch, "16G", 17)
+    assert "-XX:+UseZGC" not in args and "-XX:+UseG1GC" in args
+
+
+def test_profile_boundaries_follow_the_heap_size(tmp_path, monkeypatch):
+    from minecraft.lifecycle import _java_profile
+    assert [_java_profile(v) for v in ("6G", "6144M", "6145M", "15G", "16383M", "16G", "64G")] == \
+        ["small", "small", "standard", "standard", "standard", "large", "large"]
+
+
+def test_java_tuning_off_keeps_plain_heap_flags(tmp_path, monkeypatch):
+    args = _profile_args(tmp_path, monkeypatch, "4G", 25, java_tuning=False)
+    assert "-Xmx4G" in args and "-Xms4G" in args
+    assert not any(a.startswith("-XX:") for a in args)
+
+
+def test_a_gc_chosen_by_the_user_wins_over_the_profile(tmp_path, monkeypatch):
+    """사용자가 추가 인자로 GC를 고르면 프로필의 GC 옵션을 넣지 않는다 (JVM은 GC 두 개를 받지 않는다). COH는 그대로"""
+    args = _profile_args(tmp_path, monkeypatch, "8G", 25, extra_args=["-XX:+UseShenandoahGC"])
+    assert "-XX:+UseShenandoahGC" in args and "-XX:+UseG1GC" not in args and "-XX:+AlwaysPreTouch" not in args
+    assert "-XX:+UseCompactObjectHeaders" in args
+
+
+def test_empty_memory_is_sized_to_the_pc(tmp_path, monkeypatch):
+    """비운 ram은 자동: 8G, PC가 9.5GB 미만이면 4G, 5.5GB 미만이면 PC − 1.5GB(2G 아래로는 내리지 않는다).
+    데몬이 PC 메모리를 주지 않으면 8G"""
+    for host, want in [(32 * _GIB, "-Xmx8G"), (int(9.5 * _GIB), "-Xmx8G"), (8 * _GIB, "-Xmx4G"),
+                       (int(5.5 * _GIB), "-Xmx4G"), (4 * _GIB, "-Xmx2560M"), (2 * _GIB, "-Xmx2G")]:
+        monkeypatch.setenv("SABA_HOST_MEMORY", str(host))
+        assert want in _profile_args(tmp_path, monkeypatch, "", 21), host
+    monkeypatch.delenv("SABA_HOST_MEMORY")
+    assert "-Xmx8G" in _profile_args(tmp_path, monkeypatch, None, 21)
+    monkeypatch.setenv("SABA_HOST_MEMORY", "nonsense")
+    assert "-Xmx8G" in _profile_args(tmp_path, monkeypatch, "", 21)
+
+
+def test_runtime_is_the_pinned_java_closest_to_25_within_the_allowed_range():
+    """허용 범위(필요한 최소 ~ 서버가 받는 최대) 안에서 25에 가장 가까운 고정 판. 최대를 모르면 최소를 넘는 가장 낮은 고정 판"""
+    from minecraft.lifecycle import JavaDownloader
+    assert JavaDownloader.preferred_major(17, 25) == 25
+    assert JavaDownloader.preferred_major(17, 22) == 21
+    assert JavaDownloader.preferred_major(8, 30) == 25
+    assert JavaDownloader.preferred_major(16, None) == 17
+    assert JavaDownloader.preferred_major(25, None) == 25
+    assert JavaDownloader.preferred_major(26, None) is None
+
+
+def test_buildtools_gets_the_java_closest_to_25_it_accepts(tmp_path):
+    """BuildTools가 받는 Java 범위(javaVersions)를 알면 그 안에서 25에 가장 가까운 고정 판을 받는다"""
+    def run(cmd, cwd, env):
+        out = cmd[cmd.index("--output-dir") + 1]
+        open(os.path.join(out, cmd[cmd.index("--final-name") + 1]), "wb").write(
+            _jar_bytes({"META-INF/MANIFEST.MF": "Main-Class: org.bukkit.craftbukkit.bootstrap.Main\n",
+                        "META-INF/versions.list": "d955 *spigot-1.21.1-R0.1-SNAPSHOT.jar\n"}))
+        return 0, []
+
+    for java_max, want in [(23, 21), (25, 25), (27, 25)]:
+        folder = tmp_path / str(java_max)
+        folder.mkdir()
+        result, _, jre, _ = _installer_fixture(folder, "spigot", {"build": "1", "java_min": 21, "java_max": java_max,
+                                                                   "jdk": True}, run)
+        assert result["success"], result
+        assert {c.args[0] for c in jre.call_args_list} == {want}, (java_max, jre.call_args_list)

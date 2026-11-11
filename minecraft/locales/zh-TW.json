@@ -6,7 +6,7 @@
   "settings": {
     "server_type": { "label": "伺服器類型", "description": "執行此世界的伺服器軟體。saba-chan 可以安裝所有類型。Spigot 和 CraftBukkit 需以官方 BuildTools 建置，需要幾分鐘；Pufferfish 只有部分 Minecraft 版本的建置。", "options": { "vanilla": "原版", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Java路徑", "description": "Java執行檔路徑（留空則自動偵測）" },
-    "ram": { "label": "記憶體（RAM）", "description": "最大記憶體分配（如 2G、4G）" },
+    "ram": { "label": "記憶體（RAM）", "description": "Java 堆積大小（如 4G、1024M）。留空則依本機設定：8G，本機記憶體少於 9.5 GB 時為 4G" },
     "port": { "label": "伺服器連接埠", "description": "遊戲伺服器連接埠" },
     "difficulty": { "label": "難度", "description": "遊戲難度", "options": { "peaceful": "和平", "easy": "簡單", "normal": "普通", "hard": "困難" } },
     "gamemode": { "label": "遊戲模式", "description": "預設遊戲模式", "options": { "survival": "生存", "creative": "創造", "adventure": "冒險", "spectator": "旁觀者" } },
@@ -26,7 +26,7 @@
     "level_seed": { "label": "世界種子", "description": "世界生成種子（留空則隨機）" },
     "level_type": { "label": "世界類型", "description": "世界生成類型", "options": { "minecraft:normal": "預設", "minecraft:flat": "超平坦", "minecraft:large_biomes": "大型生態域", "minecraft:amplified": "巨大化世界", "minecraft:single_biome_surface": "單一生態域" } },
     "max_world_size": { "label": "最大世界大小", "description": "世界邊界最大半徑" },
-    "use_aikar_flags": { "label": "Aikar標誌", "description": "使用建議的 Java 選項，讓執行更流暢" },
+    "java_tuning": { "label": "Java 最佳化", "description": "依記憶體大小選擇 Java 選項：6G 以下在閒置時把記憶體還給電腦，16G 以下使用建議的 G1 選項（Aikar），16G 以上使用 ZGC。Java 25 以上還會啟用 Compact Object Headers" },
     "managed_start": { "label": "託管啟動（主控台）", "description": "由 saba-runner 接管伺服器主控台，讓你在 saba-chan 中查看主控台並輸入指令。關閉後，伺服器會在單獨視窗中作為獨立程序執行：無法使用 saba-chan 主控台，saba-chan 透過 RCON（連接埠和密碼由 saba-chan 設定）傳送指令。" },
     "graceful_stop": { "label": "正常停止", "description": "傳送「stop」指令，並等待伺服器儲存和關閉。如果關閉此項，saba-chan 會立即結束伺服器程序。" },
     "enforce_whitelist": { "label": "強制白名單", "description": "重新載入白名單時，踢出不在白名單上的玩家" },

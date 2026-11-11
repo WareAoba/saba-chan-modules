@@ -14,7 +14,7 @@
     },
     "ram": {
       "label": "Speicher (RAM)",
-      "description": "Maximale Speicherzuweisung in GB"
+      "description": "Java-Heap in GB. Leer lassen, um ihn an diesen PC anzupassen: 8 GB, bei weniger als 9,5 GB PC-Speicher 4 GB"
     },
     "server_name": {
       "label": "Serverprofil-Name",

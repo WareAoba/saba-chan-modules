@@ -14,7 +14,7 @@
     },
     "ram": {
       "label": "記憶體（RAM）",
-      "description": "最大記憶體配置量（GB）"
+      "description": "Java 堆積大小（GB）。留空則依本機設定：8 GB，本機記憶體少於 9.5 GB 時為 4 GB"
     },
     "server_name": {
       "label": "設定檔名稱",

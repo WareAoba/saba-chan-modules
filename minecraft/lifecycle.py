@@ -306,6 +306,20 @@ class JavaDownloader:
         """major_version 이상인 고정 판 중 가장 낮은 주 버전 (없으면 None)"""
         return next((m for m in sorted(JavaDownloader._RELEASES) if m >= major_version), None)
 
+    # 받을 Java를 고를 때 가까이 가려는 주 버전 (Compact Object Headers 등 최신 LTS의 기능을 쓰려고)
+    PREFERRED_MAJOR = 25
+
+    @staticmethod
+    def preferred_major(min_major, max_major=None):
+        """min_major 이상 max_major 이하의 고정 판 중 PREFERRED_MAJOR에 가장 가까운(넘지 않는 가장 높은) 주 버전.
+        서버가 받는 최대(max_major)를 모르면 min_major 이상인 가장 낮은 고정 판. 맞는 것이 없으면 None"""
+        lowest = JavaDownloader.pinned_major(min_major)
+        if lowest is None or not max_major:
+            return lowest
+        top = min(max_major, max(JavaDownloader.PREFERRED_MAJOR, lowest))
+        fits = [m for m in JavaDownloader._RELEASES if min_major <= m <= top]
+        return max(fits) if fits else None
+
     @staticmethod
     def _pinned_release(major_version):
         for major in sorted(JavaDownloader._RELEASES):
@@ -812,7 +826,9 @@ def _resolve_server_jar(config):
 
 def _java_memory(value):
     """ram 설정 → Java 힙 크기. "4G"·"1024M"·"512k"는 그대로, 예전에 저장된 숫자(GB)는 G로
-    (소수는 M으로: 0.5 → 512M). 읽을 수 없으면 2G"""
+    (소수는 M으로: 0.5 → 512M). 비었으면 PC에 맞춘 자동값(`_auto_memory`), 읽을 수 없으면 2G"""
+    if value is None or str(value).strip() == "":
+        return _auto_memory()
     text = str(value).strip()
     if re.fullmatch(r"\d+[KMGkmg]", text):
         return text
@@ -823,6 +839,87 @@ def _java_memory(value):
     if gb <= 0:
         return "2G"
     return f"{int(gb)}G" if gb == int(gb) else f"{int(gb * 1024)}M"
+
+
+# 자동 힙 크기: 표준 프로필의 8G. PC 몫으로 1.5GB를 남기지 못하면 소규모 4G, 그것도 못 남기면 PC − 1.5GB(2G 아래로는 내리지 않는다).
+# 남길 몫은 Paper 문서의 권장(전체에서 1~1.5GB를 남긴다, https://docs.papermc.io/paper/aikars-flags)
+_AUTO_HEAP_MB = 8 * 1024
+_SMALL_HEAP_MB = 4 * 1024
+_HOST_RESERVE_MB = 1536
+_MIN_AUTO_HEAP_MB = 2 * 1024
+
+
+def _auto_memory():
+    """데몬이 넘긴 PC 전체 메모리(`SABA_HOST_MEMORY`, 바이트)로 정한 힙 크기. 모르면 8G"""
+    try:
+        host_mb = int(os.environ.get("SABA_HOST_MEMORY") or 0) // (1024 * 1024)
+    except ValueError:
+        host_mb = 0
+    if host_mb <= 0 or host_mb - _HOST_RESERVE_MB >= _AUTO_HEAP_MB:
+        heap = _AUTO_HEAP_MB
+    elif host_mb - _HOST_RESERVE_MB >= _SMALL_HEAP_MB:
+        heap = _SMALL_HEAP_MB
+    else:
+        heap = max(host_mb - _HOST_RESERVE_MB, _MIN_AUTO_HEAP_MB)
+    return f"{heap // 1024}G" if heap % 1024 == 0 else f"{heap}M"
+
+
+def _heap_mb(size):
+    """"4G"·"1024M"·"512K" → MB"""
+    number, unit = int(size[:-1]), size[-1].upper()
+    return {"K": number / 1024, "M": number, "G": number * 1024}[unit]
+
+
+def _java_profile(size):
+    """힙 크기로 정하는 실행 프로필: 6G 이하 small, 16G 미만 standard, 그 이상 large"""
+    mb = _heap_mb(size)
+    if mb <= 6 * 1024:
+        return "small"
+    return "standard" if mb < 16 * 1024 else "large"
+
+
+# Aikar 옵션 (Paper 문서 권장 G1 설정, https://docs.papermc.io/paper/aikars-flags). 표준 프로필은 그대로 쓴다
+_AIKAR_FLAGS = [
+    "-XX:+UseG1GC", "-XX:+ParallelRefProcEnabled", "-XX:MaxGCPauseMillis=200", "-XX:+UnlockExperimentalVMOptions",
+    "-XX:+DisableExplicitGC", "-XX:+AlwaysPreTouch", "-XX:G1NewSizePercent=30", "-XX:G1MaxNewSizePercent=40",
+    "-XX:G1HeapRegionSize=8M", "-XX:G1ReservePercent=20", "-XX:G1HeapWastePercent=5", "-XX:G1MixedGCCountTarget=4",
+    "-XX:InitiatingHeapOccupancyPercent=15", "-XX:G1MixedGCLiveThresholdPercent=90",
+    "-XX:G1RSetUpdatingPauseTimePercent=5", "-XX:SurvivorRatio=32", "-XX:+PerfDisableSharedMem",
+    "-XX:MaxTenuringThreshold=1",
+]
+# 소규모: 한가할 때 G1이 주기적으로 정리해 쓰지 않는 힙을 OS에 돌려준다 (JEP 346, JDK 12+). 그러려면 시작 힙(Xms)이 작아야 하고
+# 힙 전체를 미리 잡는 AlwaysPreTouch는 뺀다. 간격은 1분: 그동안 GC가 한 번도 없었을 때만 돈다
+_SMALL_START_HEAP = "1G"
+_SMALL_FLAGS = [f for f in _AIKAR_FLAGS if f != "-XX:+AlwaysPreTouch"]
+# 쉴 때 힙을 PC에 돌려준다 (JEP 346, JDK 12부터. 그 전 Java는 모르는 옵션이라 뜨지 않는다)
+_PERIODIC_GC_FLAG = "-XX:G1PeriodicGCInterval=60000"
+# 대규모: 세대별 ZGC (JEP 439, Java 21에서 -XX:+ZGenerational, 23부터 기본 JEP 474). 그 전 Java는 표준 G1로
+_LARGE_FLAGS = ["-XX:+UseZGC", "-XX:+AlwaysPreTouch", "-XX:+DisableExplicitGC", "-XX:+PerfDisableSharedMem"]
+# Compact Object Headers: Java 25에서 정식 기능 (JEP 519), 27부터 기본
+_COH_FLAG = "-XX:+UseCompactObjectHeaders"
+
+
+def _java_tuning(config, ram, java_major, user_args):
+    """힙 크기와 Java 주 버전으로 정한 메모리·GC 옵션. 사용자가 GC를 직접 고르면(-XX:+Use…GC) GC 옵션은 넣지 않는다.
+    java_tuning을 끄면 힙 크기만 (Xms=Xmx)"""
+    if config.get("java_tuning") is False:
+        return [f"-Xmx{ram}", f"-Xms{ram}"]
+    profile = _java_profile(ram)
+    if profile == "large" and java_major < 21:
+        profile = "standard"
+    user_gc = any(re.fullmatch(r"-XX:\+Use\w+GC", a) for a in user_args)
+    if profile == "small":
+        start = _SMALL_START_HEAP if _heap_mb(_SMALL_START_HEAP) < _heap_mb(ram) and not user_gc else ram
+        periodic = [_PERIODIC_GC_FLAG] if java_major >= 12 else []
+        flags = [f"-Xmx{ram}", f"-Xms{start}", *([] if user_gc else [*_SMALL_FLAGS, *periodic])]
+    elif profile == "large":
+        gc = [] if user_gc else [*_LARGE_FLAGS, *(["-XX:+ZGenerational"] if java_major < 23 else [])]
+        flags = [f"-Xmx{ram}", f"-Xms{ram}", *gc]
+    else:
+        flags = [f"-Xmx{ram}", f"-Xms{ram}", *([] if user_gc else _AIKAR_FLAGS)]
+    if java_major >= 25:
+        flags.append(_COH_FLAG)
+    return flags
 
 
 def _required_java_for(config, server_jar, jar_info=None):
@@ -1019,7 +1116,7 @@ def get_launch_command(config):
     """
     java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
-    ram = _java_memory(config.get("ram", "2G"))
+    ram = _java_memory(config.get("ram"))
     working_dir = config.get("working_dir")
     extra_jvm_args = config.get("jvm_args", [])
 
@@ -1045,36 +1142,16 @@ def get_launch_command(config):
             "options": ["update_path", "install_new"],
         }
 
-    java_path = _launch_java(config, server_jar)
+    java = _launch_java_info(config, server_jar)
+    java_path = java["path"] if java else config.get("java_path", "java")
 
-    args = [f"-Xmx{ram}", f"-Xms{ram}", *_CONSOLE_FLAGS]
-
-    # Aikar's flags (recommended for modern MC servers)
-    if config.get("use_aikar_flags", False):
-        args.extend([
-            "-XX:+UseG1GC", "-XX:+ParallelRefProcEnabled",
-            "-XX:MaxGCPauseMillis=200", "-XX:+UnlockExperimentalVMOptions",
-            "-XX:+DisableExplicitGC", "-XX:+AlwaysPreTouch",
-            "-XX:G1NewSizePercent=30", "-XX:G1MaxNewSizePercent=40",
-            "-XX:G1HeapRegionSize=8M", "-XX:G1ReservePercent=20",
-            "-XX:G1HeapWastePercent=5", "-XX:G1MixedGCCountTarget=4",
-            "-XX:InitiatingHeapOccupancyPercent=15",
-            "-XX:G1MixedGCLiveThresholdPercent=90",
-            "-XX:G1RSetUpdatingPauseTimePercent=5",
-            "-XX:SurvivorRatio=32", "-XX:+PerfDisableSharedMem",
-            "-XX:MaxTenuringThreshold=1",
-        ])
-
-    if isinstance(extra_jvm_args, list):
-        args.extend(extra_jvm_args)
-    elif isinstance(extra_jvm_args, str):
-        args.extend(extra_jvm_args.split())
-
-    # 사용자가 더한 실행 인자(데몬의 extra_args)는 JVM 인자 자리, 실행 대상(-jar 등) 앞에 넣는다
+    # 사용자가 더한 JVM 인자(jvm_args·데몬의 extra_args)
+    user_args = list(extra_jvm_args) if isinstance(extra_jvm_args, list) else str(extra_jvm_args or "").split()
     extra_args = config.get("extra_args") or []
-    if isinstance(extra_args, list):
-        args.extend(str(a) for a in extra_args)
+    user_args += [str(a) for a in extra_args] if isinstance(extra_args, list) else []
 
+    args = [*_java_tuning(config, ram, (java or {}).get("major_version") or 0, user_args), *_CONSOLE_FLAGS, *user_args]
+    # 사용자가 더한 실행 인자는 JVM 인자 자리, 실행 대상(-jar 등) 앞에 둔다
     args.extend(target)
 
     abs_working_dir = os.path.abspath(working_dir)
@@ -2049,21 +2126,21 @@ class ServerInstaller:
         # 설치기와 서버는 PC에 깔린 Java가 아니라 버전을 고정한 포터블 Java로 돈다. 서버 폴더에 이미 있는 것이
         # 고정 판보다 새것이면 바꾼다 (옛 Forge·BuildTools는 너무 새 Java를 거절한다). 새 Java는 설치기 폴더에 받아
         # 두고 설치가 끝난 뒤에만 서버 폴더로 들인다: 설치가 실패하면 지금 서버의 Java도 그대로다
+        # 받는 판은 설치기가 받는 범위(java_max, 아는 경우) 안에서 25에 가장 가까운 것이다. 범위를 모르면 최소를 넘는 가장 낮은 판
         java_req = max(details.get("java_major_version") or required_java(version_id), source.get("java_min") or 0)
-        pinned = JavaDownloader.pinned_major(java_req)
-        java_max = min(source.get("java_max") or pinned or java_req, pinned or java_req)
-        jre = JavaDownloader.bundled_within(install_path, java_req, java_max)
+        java_max = JavaDownloader.preferred_major(java_req, source.get("java_max")) or java_req
+        jre = JavaDownloader.bundled_within(install_path, java_max, java_max)
         staged_java = None
         if not jre:
             staged = os.path.join(build_dir, "runtime")
             os.makedirs(staged, exist_ok=True)
-            jre = JavaDownloader.download_jre(java_req, staged, max_major=java_max)
+            jre = JavaDownloader.download_jre(java_max, staged, max_major=java_max)
             staged_java = os.path.join(staged, "java")
         if not jre.get("success"):
             return {"success": False, "message": i18n.t("errors.java_download_failed", error=jre.get("message", ""))}
         runner = jre
         if source.get("jdk"):  # 컴파일하는 설치기(BuildTools)는 JDK가 든다: 설치기 폴더에 받아 쓰고 함께 지운다
-            runner = JavaDownloader.download_jre(java_req, build_dir, image_type="jdk", max_major=java_max)
+            runner = JavaDownloader.download_jre(java_max, build_dir, image_type="jdk", max_major=java_max)
             if not runner.get("success"):
                 return {"success": False, "message": i18n.t("errors.java_download_failed",
                                                             error=runner.get("message", ""))}

@@ -29,7 +29,7 @@
   "settings": {
     "server_type": { "label": "서버 종류", "description": "이 월드를 돌리는 서버 프로그램입니다. 모든 종류를 사바쨩이 설치할 수 있습니다. 스피곳·크래프트버킷은 공식 BuildTools로 빌드해서 몇 분 걸리고, 퍼퍼피시는 일부 마인크래프트 버전용 빌드만 있습니다.", "options": { "vanilla": "바닐라", "paper": "페이퍼", "folia": "폴리아", "purpur": "퍼퍼", "pufferfish": "퍼퍼피시", "spigot": "스피곳", "craftbukkit": "크래프트버킷", "fabric": "패브릭", "quilt": "퀼트", "forge": "포지", "neoforge": "네오포지" } },
     "java_path": { "label": "Java 경로", "description": "Java 실행 파일 경로 (비워두면 자동 감지)" },
-    "ram": { "label": "메모리 (RAM)", "description": "자바 힙 크기: 숫자 뒤에 K, M, G (예: 4G, 1024M)" },
+    "ram": { "label": "메모리 (RAM)", "description": "자바 힙 크기: 숫자 뒤에 K, M, G (예: 4G, 1024M). 비워 두면 이 PC에 맞춥니다: 8G, PC 메모리가 9.5GB 미만이면 4G" },
     "port": { "label": "서버 포트", "description": "게임 서버 포트" },
     "difficulty": { "label": "난이도", "description": "게임 난이도", "options": { "peaceful": "평화로움", "easy": "쉬움", "normal": "보통", "hard": "어려움" } },
     "gamemode": { "label": "게임 모드", "description": "기본 게임 모드", "options": { "survival": "서바이벌", "creative": "크리에이티브", "adventure": "모험", "spectator": "관전" } },
@@ -49,7 +49,7 @@
     "level_seed": { "label": "월드 시드", "description": "월드 생성 시드 (비우면 랜덤)" },
     "level_type": { "label": "월드 유형", "description": "월드 생성 유형", "options": { "minecraft:normal": "기본", "minecraft:flat": "완전한 평지", "minecraft:large_biomes": "넓은 생물 군계", "minecraft:amplified": "증폭", "minecraft:single_biome_surface": "단일 생물 군계" } },
     "max_world_size": { "label": "최대 월드 크기", "description": "최대 월드 경계 반경" },
-    "use_aikar_flags": { "label": "Aikar 플래그", "description": "서버를 더 부드럽게 돌리는 권장 Java 실행 옵션 사용" },
+    "java_tuning": { "label": "자바 최적화", "description": "메모리 크기에 따라 자바 옵션을 고릅니다: 6G 이하는 쉴 때 메모리를 PC에 돌려주고, 16G 미만은 권장 G1 옵션(Aikar), 16G 이상은 ZGC를 씁니다. Java 25 이상이면 Compact Object Headers도 켭니다" },
     "managed_start": { "label": "관리형 시작 (콘솔)", "description": "saba-runner가 서버 콘솔을 붙잡아, 사바쨩 안에서 콘솔을 보고 명령을 넣을 수 있게 시작합니다. 끄면 서버가 별도 창에서 별도 프로세스로 실행되어 사바쨩 콘솔은 쓸 수 없고, 사바쨩은 명령을 RCON(사바쨩이 정한 포트·비밀번호)으로 보냅니다." },
     "graceful_stop": { "label": "안전 정지", "description": "'stop' 명령을 보내고 서버가 저장한 뒤 종료할 때까지 기다립니다. 끄면 사바쨩이 서버 프로세스를 바로 종료합니다." },
     "enforce_whitelist": { "label": "화이트리스트 강제 적용", "description": "화이트리스트를 다시 불러올 때 목록에 없는 플레이어를 추방함" },

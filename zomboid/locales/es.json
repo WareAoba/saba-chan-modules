@@ -14,7 +14,7 @@
     },
     "ram": {
       "label": "Memoria (RAM)",
-      "description": "Asignación máxima de memoria en GB"
+      "description": "Tamaño del heap de Java en GB. Déjalo vacío para ajustarlo a este PC: 8 GB, o 4 GB si el PC tiene menos de 9,5 GB"
     },
     "server_name": {
       "label": "Nombre del perfil",

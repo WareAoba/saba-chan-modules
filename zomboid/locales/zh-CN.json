@@ -14,7 +14,7 @@
     },
     "ram": {
       "label": "内存（RAM）",
-      "description": "最大内存分配量（GB）"
+      "description": "Java 堆大小（GB）。留空则按本机设置：8 GB，本机内存少于 9.5 GB 时为 4 GB"
     },
     "server_name": {
       "label": "配置文件名称",

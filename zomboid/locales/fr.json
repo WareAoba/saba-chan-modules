@@ -14,7 +14,7 @@
     },
     "ram": {
       "label": "Mémoire (RAM)",
-      "description": "Allocation mémoire maximale en Go"
+      "description": "Taille du heap Java en Go. Laisser vide pour l'adapter à ce PC : 8 Go, ou 4 Go si le PC a moins de 9,5 Go"
     },
     "server_name": {
       "label": "Nom du profil",

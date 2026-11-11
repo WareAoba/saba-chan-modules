@@ -6,7 +6,7 @@
   "settings": {
     "server_type": { "label": "Tipo de servidor", "description": "El software de servidor que ejecuta este mundo. saba-chan puede instalar todos los tipos. Spigot y CraftBukkit se compilan con las BuildTools oficiales y tardan unos minutos; Pufferfish solo tiene compilaciones para algunas versiones de Minecraft.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Ruta de Java", "description": "Ruta al ejecutable de Java (detección automática si está vacío)" },
-    "ram": { "label": "Memoria (RAM)", "description": "Asignación máxima de memoria (ej. 2G, 4G)" },
+    "ram": { "label": "Memoria (RAM)", "description": "Tamaño del heap de Java (ej. 4G, 1024M). Déjalo vacío para ajustarlo a este PC: 8G, o 4G si el PC tiene menos de 9,5 GB" },
     "port": { "label": "Puerto del servidor", "description": "Puerto del servidor de juego" },
     "difficulty": { "label": "Dificultad", "description": "Dificultad del juego", "options": { "peaceful": "Pacífico", "easy": "Fácil", "normal": "Normal", "hard": "Difícil" } },
     "gamemode": { "label": "Modo de juego", "description": "Modo de juego predeterminado", "options": { "survival": "Supervivencia", "creative": "Creativo", "adventure": "Aventura", "spectator": "Espectador" } },
@@ -26,7 +26,7 @@
     "level_seed": { "label": "Semilla del mundo", "description": "Semilla para la generación del mundo (dejar en blanco para aleatoria)" },
     "level_type": { "label": "Tipo de mundo", "description": "Tipo de generación del mundo", "options": { "minecraft:normal": "Por defecto", "minecraft:flat": "Extraplano", "minecraft:large_biomes": "Superbiomas", "minecraft:amplified": "AMPLIFICADO", "minecraft:single_biome_surface": "Bioma único" } },
     "max_world_size": { "label": "Tamaño máximo del mundo", "description": "Radio máximo del borde del mundo" },
-    "use_aikar_flags": { "label": "Flags de Aikar", "description": "Usar las opciones de Java recomendadas para un rendimiento más fluido" },
+    "java_tuning": { "label": "Optimización de Java", "description": "Elige las opciones de Java según la memoria: hasta 6G devuelve la memoria inactiva al PC, por debajo de 16G usa las opciones G1 recomendadas (Aikar), desde 16G usa ZGC. En Java 25 o posterior también activa Compact Object Headers" },
     "managed_start": { "label": "Inicio gestionado (consola)", "description": "saba-runner toma la consola del servidor para que la veas y escribas comandos en saba-chan. Si lo desactivas, el servidor se ejecuta como un proceso aparte en su propia ventana: la consola de saba-chan no funciona y saba-chan envía los comandos por RCON (puerto y contraseña definidos por saba-chan)." },
     "graceful_stop": { "label": "Detención ordenada", "description": "Envía el comando 'stop' y espera a que el servidor guarde y se apague. Si desactiva esta opción, saba-chan finaliza el proceso del servidor de inmediato." },
     "enforce_whitelist": { "label": "Forzar whitelist", "description": "Expulsar a los jugadores que no estén en la whitelist cuando esta se recargue" },

@@ -6,7 +6,7 @@
   "settings": {
     "server_type": { "label": "服务器类型", "description": "运行此世界的服务器软件。saba-chan 可以安装所有类型。Spigot 和 CraftBukkit 需要用官方 BuildTools 构建，需要几分钟；Pufferfish 只有部分 Minecraft 版本的构建。", "options": { "vanilla": "原版", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Java路径", "description": "Java可执行文件路径（留空则自动检测）" },
-    "ram": { "label": "内存（RAM）", "description": "最大内存分配（如 2G、4G）" },
+    "ram": { "label": "内存（RAM）", "description": "Java 堆大小（如 4G、1024M）。留空则按本机设置：8G，本机内存少于 9.5 GB 时为 4G" },
     "port": { "label": "服务器端口", "description": "游戏服务器端口" },
     "difficulty": { "label": "难度", "description": "游戏难度", "options": { "peaceful": "和平", "easy": "简单", "normal": "普通", "hard": "困难" } },
     "gamemode": { "label": "游戏模式", "description": "默认游戏模式", "options": { "survival": "生存", "creative": "创造", "adventure": "冒险", "spectator": "旁观" } },
@@ -26,7 +26,7 @@
     "level_seed": { "label": "世界种子", "description": "世界生成种子（留空则随机）" },
     "level_type": { "label": "世界类型", "description": "世界生成类型", "options": { "minecraft:normal": "默认", "minecraft:flat": "超平坦", "minecraft:large_biomes": "巨型生物群系", "minecraft:amplified": "放大化", "minecraft:single_biome_surface": "单一生物群系" } },
     "max_world_size": { "label": "最大世界大小", "description": "世界边界最大半径" },
-    "use_aikar_flags": { "label": "Aikar标志", "description": "使用推荐的 Java 选项，让运行更流畅" },
+    "java_tuning": { "label": "Java 优化", "description": "按内存大小选择 Java 选项：6G 及以下在空闲时把内存还给电脑，16G 以下使用推荐的 G1 选项（Aikar），16G 及以上使用 ZGC。Java 25 及以上还会启用 Compact Object Headers" },
     "managed_start": { "label": "托管启动（控制台）", "description": "由 saba-runner 接管服务器控制台，让你在 saba-chan 中查看控制台并输入命令。关闭后，服务器会在单独窗口中作为独立进程运行：无法使用 saba-chan 控制台，saba-chan 通过 RCON（端口和密码由 saba-chan 设定）发送命令。" },
     "graceful_stop": { "label": "正常停止", "description": "发送“stop”命令，并等待服务器保存和关闭。如果关闭此项，saba-chan 会立即结束服务器进程。" },
     "enforce_whitelist": { "label": "强制白名单", "description": "重新加载白名单时，踢出不在白名单上的玩家" },

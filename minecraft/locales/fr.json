@@ -124,6 +124,14 @@
       "description": "Changer l'heure du jour",
       "inputs": { "value": { "label": "Heure" } }
     },
+    "gamerule": {
+      "label": "Règle de jeu",
+      "description": "Modifier une règle de jeu, ou afficher sa valeur actuelle dans la console du serveur si la valeur est vide",
+      "inputs": {
+        "rule": { "label": "Règle", "placeholder": "ex. minecraft:advance_time (avant 1.21.11 : doDaylightCycle)" },
+        "value": { "label": "Valeur", "placeholder": "true, false ou un nombre. Vide affiche la valeur actuelle dans la console" }
+      }
+    },
     "tp": {
       "label": "Téléporter",
       "description": "Téléporter un joueur",

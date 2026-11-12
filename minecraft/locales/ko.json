@@ -13,6 +13,7 @@
       "difficulty": ["난이도", "어려움"],
       "gamemode": ["겜모드", "게임모드"],
       "time": ["시간"],
+      "gamerule": ["게임규칙", "규칙"],
       "tp": ["텔레포트", "이동"],
       "kick": ["킥", "추방"],
       "ban": ["밴", "차단"],
@@ -152,6 +153,14 @@
       "label": "시간 설정",
       "description": "하루 중 시간을 변경합니다",
       "inputs": { "value": { "label": "시간" } }
+    },
+    "gamerule": {
+      "label": "게임 규칙",
+      "description": "게임 규칙을 바꿉니다. 값을 비우면 지금 값이 서버 콘솔에 나옵니다",
+      "inputs": {
+        "rule": { "label": "규칙", "placeholder": "예: minecraft:advance_time (1.21.11 이전: doDaylightCycle)" },
+        "value": { "label": "값", "placeholder": "true, false 또는 숫자. 비우면 지금 값이 콘솔에 나옴" }
+      }
     },
     "tp": {
       "label": "텔레포트",

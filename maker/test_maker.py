@@ -317,10 +317,11 @@ def statuses(results):
     return {r["gate"]: r["status"] for r in results}
 
 
-def test_check_static_passes_a_finished_module(repo):
+def test_check_static_passes_a_finished_module(repo, tmp_path):
     folder = finished_module(repo)
+    report = probe_report(tmp_path / "probe-report.json", [("help", ["say <message>", "save", "kick <player>", "quit"])])
 
-    result = statuses(check.static_gates(folder, repo))
+    result = statuses(check.static_gates(folder, repo, help_output=report))
 
     assert set(result.values()) == {"ok"}, result
 
@@ -480,6 +481,86 @@ def test_check_optional_flags_chat_send_without_the_function(repo):
         "FUNCTIONS = {", 'def send_chat(config):\n    return {"success": True}\n\n\n'
         'FUNCTIONS = {\n    "send_chat": send_chat,', 1), encoding="utf-8")
     assert {r["gate"]: r for r in check.static_gates(folder, repo)}["optional"]["status"] == "ok"
+
+
+def probe_report(path, sends):
+    """probe_server.py --out이 남기는 probe-report.json 모양"""
+    path.write_text(json.dumps({"sends": [{"command": c, "output": out, "answered": True, "error": None} for c, out in sends]}),
+                    encoding="utf-8")
+    return path
+
+
+def test_check_commands_flags_declared_commands_the_server_help_lacks(repo, tmp_path):
+    """틀은 say·save·kick·quit을 선언한다. 서버 help에 kick이 없으면 그 명령은 서버에서 Unknown command로 끝난다"""
+    folder = finished_module(repo)
+    # 시험으로 보낸 kick의 답(Unknown command: kick)이 help 대신 읽히면 안 된다
+    report = probe_report(tmp_path / "probe-report.json", [("help", ["/say <message>", "/save", "/quit"]),
+                                                            ("kick nobody", ["Unknown command: kick"])])
+
+    result = {r["gate"]: r for r in check.static_gates(folder, repo, help_output=report)}["commands"]
+
+    assert result["status"] == "fail"
+    assert "kick" in result["detail"] and "say" not in result["detail"]
+
+
+def test_check_commands_passes_with_a_saved_help_list(repo, tmp_path):
+    folder = finished_module(repo)
+    saved = tmp_path / "help.txt"
+    saved.write_text("say <message>\nsave\nkick <player> [reason]\nquit\n", encoding="utf-8")
+
+    assert statuses(check.static_gates(folder, repo, help_output=saved))["commands"] == "ok"
+
+
+def test_check_commands_is_not_a_pass_without_the_servers_help(repo):
+    """help 출력 없이는 잴 수 없다: 건너뛴 관문은 통과가 아니다"""
+    folder = finished_module(repo)
+
+    result = {r["gate"]: r for r in check.static_gates(folder, repo)}["commands"]
+
+    assert result["status"] == "skip"
+    assert "--help-output" in result["detail"]
+
+
+def test_check_commands_passes_a_module_without_a_console(repo):
+    """stdin이 없는 모듈(팰월드: REST만)에는 help를 보낼 콘솔이 없다. 실측(trial.py)과 같이 대조하지 않는다.
+    데몬이 보내지 않는 stop_command가 있어도 같다"""
+    folder = finished_module(repo)
+    path = folder / "module.toml"
+    path.write_text(path.read_text(encoding="utf-8").replace('supported = ["stdin"]', 'supported = ["rest"]'), encoding="utf-8")
+
+    assert statuses(check.static_gates(folder, repo))["commands"] == "ok"
+
+
+def test_check_commands_takes_the_trial_help_result(tmp_path):
+    """--trial은 진짜 서버에 help를 보내 같은 규칙으로 대조한다. help 출력을 따로 주지 않았으면 그 결과가 commands 관문이다"""
+    skipped = [check.gate("placeholders", "ok"), check.gate("commands", "skip", "서버 help 출력이 없다")]
+    out = tmp_path / "trial-report"
+    out.mkdir()
+
+    def with_help(status, detail):
+        (out / "trial-report.json").write_text(json.dumps({"steps": [{"name": "help", "status": status, "detail": detail}]}),
+                                               encoding="utf-8")
+        return statuses(check.with_trial_help(skipped, out)), check.with_trial_help(skipped, out)[1]["detail"]
+
+    assert with_help("ok", "선언한 콘솔 명령 4개가 help에 있다")[0] == {"placeholders": "ok", "commands": "ok"}
+    gaps, detail = with_help("warn", "help에 없는 선언 명령: kick")
+    assert gaps["commands"] == "fail" and "kick" in detail
+    (out / "trial-report.json").unlink()
+    assert check.with_trial_help(skipped, out) == skipped
+
+
+def test_check_trial_sends_the_same_help_command(repo, tmp_path, monkeypatch):
+    """--help-command는 정적 대조와 실측에 같이 쓴다: 실측만 `help`를 보내면 두 대조가 다른 명령의 답을 본다"""
+    folder = finished_module(repo)
+    sent = {}
+    monkeypatch.setattr(check, "run", lambda name, command, cwd, env=None: sent.setdefault(name, command) and check.gate(name, "ok"))
+    args = check.argparse.Namespace(shared_libs=None, app_shared_libs=None, saba_core=sys.executable, trial=True,
+                                    trial_out=str(tmp_path / "trial-report"), accept_agreement=[], extensions=None,
+                                    help_command="?")
+
+    check.tool_gates(folder, REPO, args)
+
+    assert sent["trial"][sent["trial"].index("--help-command") + 1] == "?"
 
 
 def test_check_reads_its_own_version_and_requirement():

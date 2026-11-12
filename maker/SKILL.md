@@ -37,7 +37,7 @@ Windows PC가 없는 환경(클라우드 Linux 등)에서 잴 수 없는 관문�
 | 1 | **조사 표**가 있다. 모든 명령·설정·포트·경로·콘솔 문구에 출처가 붙고 "문서"와 "실측"이 구별돼 있다 | `new_module.py`가 만든 `RESEARCH.md`, `prior_art.py`(단서), `check.py` research | [research.md](references/research.md) |
 | 2 | **실물을 열어 봤다.** 배포물 항목 전체 목록, 동봉 기본 파일의 원래 바이트(인코딩·줄바꿈·주석 키)를 확인했다 | `inspect_dist.py` | research.md §실물 |
 | 3 | **서버를 실제로 띄웠다.** 데몬과 같은 방식으로 띄워 준비·정상 종료 줄 원문, `help` 출력, 저장 뒤 생긴 파일을 기록했다. 다른 OS 빌드밖에 못 돌려도 돌린다 | `probe_server.py` | research.md §실물 |
-| 4 | **명령은 `help`와 한 줄씩 맞다.** 서버가 모르는 명령이 없고, 아는 명령이 빠지지 않았다. 모든 명령에 `risk`·`description`이 있다 | `probe_server.py --send help`, `check.py` conformance, `trial.py` help | [manifest.md](references/manifest.md) |
+| 4 | **명령은 `help`와 한 줄씩 맞다.** 서버가 모르는 명령이 없고, 아는 명령이 빠지지 않았다. 모든 명령에 `risk`·`description`이 있다 | `probe_server.py --send help`, `check.py --help-output` commands, `trial.py` help | [manifest.md](references/manifest.md) |
 | 5 | **콘솔 입력이 먹는다.** 파이프 stdin으로 보낸 명령에 답하는지 봤다. 아니면 `[launch] console = "pty"`로 다시 쟀다 | `probe_server.py` ("답 없음") | research.md §실물 |
 | 6 | **실행 전제가 포터블이다.** 배포물 밖의 런타임을 찾았고, 고정 판을 받아 서버 폴더에 두며, 체크섬(없으면 서명 확인한 파일의 고정 SHA-256)으로 검증한다 | 직접 확인 | [lifecycle.md](references/lifecycle.md) §공통 |
 | 7 | **설치는 이 OS 것만 푼다.** 여러 OS 폴더가 든 배포물에서 OS 폴더 이름으로 고른다 | `inspect_dist.py` OS 폴더, `trial.py` install | lifecycle.md §설치 |
@@ -95,17 +95,17 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
 7. **lifecycle.py를 쓴다** → [references/lifecycle.md](references/lifecycle.md). 함수마다 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다([references/testing.md](references/testing.md)).
 8. **관문을 검사한다.**
    ```
-   python maker/check.py <name>
+   python maker/check.py <name> --help-output probe/probe-report.json
    ```
    사바쨩이 설치돼 있으면 saba-core와 공용 런타임 경로를 앱에서 얻는다. 없거나 다른 판을 쓰려면 `--saba-core <saba-core 실행 파일>`, `--shared-libs <saba-chan/modules>`를 준다.
-   자리표시·조사 표 출처·10개 언어·테스트 등록·버전·하이라이트·설치된 버전·선택 기능, 모듈 테스트, 적합성 키트, `module validate`, `module audit`를 돌려 표로 보고한다.
+   자리표시·조사 표 출처·10개 언어·테스트 등록·버전·하이라이트·설치된 버전·선택 기능, 선언한 콘솔 명령과 5단계 `help` 출력(`--help-output`, 저장한 텍스트도 된다) 대조, 모듈 테스트, 적합성 키트, `module validate`, `module audit`를 돌려 표로 보고한다.
    실패나 건너뛴 관문(`--saba-core`를 주지 않으면 validate·audit)이 있으면 종료 코드 1이다. 번역하지 않고 en.json 그대로 둔 언어 파일도 실패다.
    "직접 확인" 목록은 에이전트가 스스로 확인하고 결과를 적는다.
 9. **실측한다.** 진짜 데몬과 격리로 설치 → 설정 → 시작 → 명령 → 정지 → 백업 → 초기화를 밟는다.
    ```
    python maker/check.py <name> --saba-core <saba-core> --trial [--accept-agreement <id>]
    ```
-   (`conformance/trial.py`를 부른다.) Windows에서 설치된 사바쨩의 `saba-core.exe`(옆에 `saba-runner.exe`)를 주면 실제 AppContainer 격리로 돈다.
+   (`conformance/trial.py`를 부른다.) `--help-output`을 주지 않으면 실측의 help 대조 결과가 commands 관문이 된다. Windows에서 설치된 사바쨩의 `saba-core.exe`(옆에 `saba-runner.exe`)를 주면 실제 AppContainer 격리로 돈다.
    설치된 사바쨩의 데이터·포트는 건드리지 않는다. `trial-report/trial-report.md`를 PR 본문에 붙인다.
    실측이 끝나면 저장 로그를 모아 콘솔 하이라이트 규칙을 만든다(manifest.md §콘솔 하이라이트, 관문 13).
 10. **마무리** → testing.md §마무리. 보고에 조사 표, 옮기지 못한 것과 이유, 확인 못 한 것, 실행한 검사와 결과를 적는다.

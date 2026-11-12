@@ -124,6 +124,14 @@
       "description": "Изменить время суток",
       "inputs": { "value": { "label": "Время" } }
     },
+    "gamerule": {
+      "label": "Игровое правило",
+      "description": "Изменить игровое правило или, если значение пустое, вывести текущее значение в консоль сервера",
+      "inputs": {
+        "rule": { "label": "Правило", "placeholder": "напр. minecraft:advance_time (до 1.21.11: doDaylightCycle)" },
+        "value": { "label": "Значение", "placeholder": "true, false или число. Пусто — вывести текущее значение в консоль" }
+      }
+    },
     "tp": {
       "label": "Телепортировать",
       "description": "Телепортировать игрока",

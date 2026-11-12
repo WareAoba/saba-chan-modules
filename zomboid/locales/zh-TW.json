@@ -16,6 +16,7 @@
       "label": "記憶體（RAM）",
       "description": "Java 堆積大小（GB）。留空則依本機設定：8 GB，本機記憶體少於 9.5 GB 時為 4 GB"
     },
+    "java_gc": { "label": "垃圾回收器", "description": "ZGC 是遊戲官方設定。伺服器執行越久越卡或當機時，或在無法執行 ZGC 的 Windows（如 Windows Server 2016）上，請選擇 G1", "options": { "zgc": "ZGC", "g1": "G1" } },
     "server_name": {
       "label": "設定檔名稱",
       "description": "伺服器設定檔名稱（決定 INI 檔案名稱）"

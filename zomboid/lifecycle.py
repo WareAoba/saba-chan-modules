@@ -463,6 +463,22 @@ def _coh_flags(java_path, flags):
     return [_COH_FLAG]
 
 
+def _gc_flags(config, flags):
+    """기본은 게임 공식 스크립트의 GC 그대로(ZGC). 설정 java_gc = g1이면 스크립트의 GC 옵션을 G1 하나로 바꾼다
+    (ZGC를 못 쓰는 오래된 Windows Server 등)"""
+    if config.get("java_gc") != "g1":
+        return flags
+    out, placed = [], False
+    for flag in flags:
+        if re.fullmatch(r"-XX:\+Use\w+GC", flag):
+            if not placed:
+                out.append("-XX:+UseG1GC")
+                placed = True
+        elif not re.fullmatch(r"-XX:[+-]ZGenerational", flag):
+            out.append(flag)
+    return out if placed else ["-XX:+UseG1GC", *out]
+
+
 def _resolve_classpath(server_dir):
     """Build the Java classpath from the PZ server's java/ directory."""
     java_dir = os.path.join(server_dir, "java")
@@ -634,6 +650,7 @@ def get_launch_command(config):
                 jvm_flags.append(f"-Xmx{heap}")
             else:
                 jvm_flags.append(flag)
+        jvm_flags = _gc_flags(config, jvm_flags)
         jvm_flags += _coh_flags(java_path, jvm_flags)
         
         # main_class 뒤 인자: 스크립트 원본의 extra_args에서 -servername을 찾아 교체
@@ -668,7 +685,7 @@ def get_launch_command(config):
         
         native_libs = _get_native_libs(server_dir)
         
-        args = [
+        args = _gc_flags(config, [
             "-Djava.awt.headless=true",
             "-Dzomboid.steam=1",
             "-Dzomboid.znetlog=1",
@@ -683,7 +700,7 @@ def get_launch_command(config):
             "zombie.network.GameServer",
             "-servername", server_name,
             "-statistic", "0",
-        ]
+        ])
     
     # ── 공통 후처리 ──
     # No-steam mode

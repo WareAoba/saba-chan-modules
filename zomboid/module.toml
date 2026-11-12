@@ -121,6 +121,16 @@ step = 1
 group = "saba-chan"
 
 [[settings.fields]]
+name = "java_gc"
+restart_required = true
+type = "select"
+label = "Garbage Collector"
+description = "ZGC is the game's official setting. Choose G1 if the server stutters or crashes over time, or on Windows versions that cannot run ZGC (e.g. Windows Server 2016)"
+options = ["zgc", "g1"]
+default = "zgc"
+group = "saba-chan"
+
+[[settings.fields]]
 name = "server_name"
 restart_required = true
 type = "text"

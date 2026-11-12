@@ -23,6 +23,7 @@
     "data_home": { "label": "기존 데이터 폴더", "description": "기존 서버 배치에서 찾은 데이터 폴더입니다. 현재 INI 폴더를 유지합니다." },
     "cache_dir": { "label": "데이터 폴더", "description": "이 서버의 설정, 세이브, 로그를 두는 폴더 (-cachedir). 비우면 ~/Zomboid" },
     "ram": { "label": "메모리 (RAM)", "description": "자바 힙 크기 (GB 단위). 비워 두면 이 PC에 맞춥니다: 8GB, PC 메모리가 9.5GB 미만이면 4GB" },
+    "java_gc": { "label": "가비지 컬렉터", "description": "ZGC가 게임 공식 설정입니다. 오래 켤수록 끊기거나 꺼지는 경우, 또는 ZGC가 돌지 않는 윈도우(예: Windows Server 2016)에서는 G1을 고르세요", "options": { "zgc": "ZGC", "g1": "G1" } },
     "server_name": { "label": "서버 프로필 이름", "description": "서버 프로필 이름 (INI 파일 이름 결정)" },
     "admin_password": { "label": "관리자 비밀번호", "description": "기본 관리자 계정 비밀번호 (첫 실행 시 설정)" },
     "no_steam": { "label": "비스팀 모드", "description": "Steam 없이 서버 실행 (GoG 플레이어 접속 가능)" },

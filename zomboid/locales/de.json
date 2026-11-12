@@ -16,6 +16,7 @@
       "label": "Speicher (RAM)",
       "description": "Java-Heap in GB. Leer lassen, um ihn an diesen PC anzupassen: 8 GB, bei weniger als 9,5 GB PC-Speicher 4 GB"
     },
+    "java_gc": { "label": "Garbage Collector", "description": "ZGC ist die offizielle Einstellung des Spiels. Wähle G1, wenn der Server mit der Zeit ruckelt oder abstürzt, oder unter Windows-Versionen ohne ZGC (z.B. Windows Server 2016)", "options": { "zgc": "ZGC", "g1": "G1" } },
     "server_name": {
       "label": "Serverprofil-Name",
       "description": "Name des Serverprofils (bestimmt INI-Dateiname)"

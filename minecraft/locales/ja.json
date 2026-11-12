@@ -84,6 +84,9 @@
     "text_filtering_version": { "label": "テキストフィルタリングのバージョン", "description": "テキストフィルタリングのバージョン" },
     "use_native_transport": { "label": "ネイティブ転送を使用", "description": "Linux向けに最適化されたネットワーク転送を使用する" }
   },
+  "settings_note": {
+    "version_hidden": "1.21.9 から PVP・ネザーの許可・モンスターのスポーン・コマンドブロックはゲームルール（gamerule）に移り、動物・村人のスポーン設定は 1.21.2 でなくなりました。"
+  },
   "presets": {
     "friends": { "label": "友達向け(小規模)", "description": "最大10人、ノーマル難易度" },
     "hardcore": { "label": "ハードコア", "description": "命はひとつ、ハード難易度" }

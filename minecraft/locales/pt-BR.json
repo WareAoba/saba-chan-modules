@@ -81,6 +81,9 @@
     "text_filtering_version": { "label": "Versão do filtro de texto", "description": "Versão da filtragem de texto" },
     "use_native_transport": { "label": "Usar transporte nativo", "description": "Usar o transporte de rede otimizado para Linux" }
   },
+  "settings_note": {
+    "version_hidden": "Desde a 1.21.9, PVP, permitir o Nether, geração de monstros e blocos de comando são regras do jogo (gamerule). As opções de geração de animais e aldeões foram removidas na 1.21.2."
+  },
   "presets": {
     "friends": { "label": "Amigos (pequeno)", "description": "Até 10 jogadores, dificuldade normal" },
     "hardcore": { "label": "Hardcore", "description": "Uma vida só, dificuldade difícil" }

@@ -81,6 +81,9 @@
     "text_filtering_version": { "label": "Textfilter-Version", "description": "Version der Textfilterung" },
     "use_native_transport": { "label": "Nativen Transport verwenden", "description": "Für Linux optimierten Netzwerktransport verwenden" }
   },
+  "settings_note": {
+    "version_hidden": "Seit 1.21.9 sind PVP, Nether erlauben, Monster-Spawning und Befehlsblöcke Spielregeln (gamerule). Die Einstellungen für Tier- und Dorfbewohner-Spawning wurden in 1.21.2 entfernt."
+  },
   "presets": {
     "friends": { "label": "Freunde (klein)", "description": "Bis zu 10 Spieler, normale Schwierigkeit" },
     "hardcore": { "label": "Hardcore", "description": "Ein Leben, schwere Schwierigkeit" }

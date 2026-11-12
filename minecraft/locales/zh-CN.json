@@ -81,6 +81,9 @@
     "text_filtering_version": { "label": "文本过滤版本", "description": "文本过滤的版本" },
     "use_native_transport": { "label": "使用原生传输", "description": "使用为 Linux 优化的网络传输" }
   },
+  "settings_note": {
+    "version_hidden": "从 1.21.9 起，PVP、允许下界、怪物生成和命令方块改为游戏规则（gamerule）；动物和村民生成设置已在 1.21.2 中移除。"
+  },
   "presets": {
     "friends": { "label": "好友小服", "description": "最多 10 人，普通难度" },
     "hardcore": { "label": "极限模式", "description": "只有一条命，困难难度" }

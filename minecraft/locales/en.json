@@ -88,6 +88,9 @@
     "text_filtering_version": { "label": "Text Filtering Version", "description": "Text filtering version" },
     "use_native_transport": { "label": "Use Native Transport", "description": "Use Linux optimized network transport" }
   },
+  "settings_note": {
+    "version_hidden": "Since 1.21.9, PVP, Allow Nether, monster spawning and command blocks are game rules (gamerule). The animal and villager spawning settings were removed in 1.21.2."
+  },
   "presets": {
     "friends": { "label": "Friends (small)", "description": "Up to 10 players on normal difficulty" },
     "hardcore": { "label": "Hardcore", "description": "One life on hard difficulty" }

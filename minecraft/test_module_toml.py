@@ -296,3 +296,24 @@ def test_console_commands_require_what_the_console_needs():
     assert whitelist["console_template"] == "whitelist {action}"
     assert [i["name"] for i in whitelist["inputs"]] == ["action"]
     assert whitelist["inputs"][0]["options"] == ["list", "on", "off", "reload"]
+
+
+def test_settings_removed_from_server_properties_name_their_last_version():
+    """1.21.2가 없앤 설정(spawn-animals, spawn-npcs)과 1.21.9가 게임 규칙으로 옮긴 설정(pvp, allow-nether,
+    spawn-monsters, enable-command-block)은 그 앞 버전까지만 있다고 밝힌다: 데몬이 설치된 버전에 없는 설정을 숨긴다.
+    동봉 기준 파일(1.21.9 이상 서버가 만든 server.properties)에 없는 키는 모두 범위를 가진다"""
+    fields = {f["name"]: f for f in MANIFEST["settings"]["fields"]}
+    ranged = {name: f["versions"] for name, f in fields.items() if "versions" in f}
+    assert ranged == {
+        "spawn_animals": "<1.21.2",
+        "spawn_npcs": "<1.21.2",
+        "pvp": "<1.21.9",
+        "allow_nether": "<1.21.9",
+        "spawn_monsters": "<1.21.9",
+        "enable_command_block": "<1.21.9",
+    }
+    reference = (pathlib.Path(__file__).parent / "server.properties").read_text(encoding="utf-8")
+    current_keys = {line.split("=", 1)[0] for line in reference.splitlines() if "=" in line and not line.startswith("#")}
+    gone = {f["file_key"] for f in fields.values() if "file_key" in f and f["file_key"] not in current_keys}
+    assert gone == {fields[name]["file_key"] for name in ranged}
+

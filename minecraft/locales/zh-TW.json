@@ -81,6 +81,9 @@
     "text_filtering_version": { "label": "文字過濾版本", "description": "文字過濾的版本" },
     "use_native_transport": { "label": "使用原生傳輸", "description": "使用為 Linux 最佳化的網路傳輸" }
   },
+  "settings_note": {
+    "version_hidden": "自 1.21.9 起，PVP、允許地獄、怪物生成與指令方塊改為遊戲規則（gamerule）；動物與村民生成設定已在 1.21.2 移除。"
+  },
   "presets": {
     "friends": { "label": "好友小服", "description": "最多 10 人，普通難度" },
     "hardcore": { "label": "極限模式", "description": "只有一條命，困難難度" }

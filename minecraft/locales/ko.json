@@ -106,6 +106,9 @@
     "text_filtering_version": { "label": "텍스트 필터링 버전", "description": "텍스트 필터링 버전" },
     "use_native_transport": { "label": "네이티브 전송 사용", "description": "Linux 최적화 네트워크 전송 사용" }
   },
+  "settings_note": {
+    "version_hidden": "1.21.9부터 PVP·네더 허용·몬스터 스폰·커맨드 블록은 게임 규칙(gamerule)으로 옮겨졌고, 동물·주민 스폰 설정은 1.21.2에서 없어졌어요."
+  },
   "presets": {
     "friends": { "label": "친구용 소규모", "description": "최대 10명, 보통 난이도" },
     "hardcore": { "label": "하드코어", "description": "목숨 하나, 어려움 난이도" }

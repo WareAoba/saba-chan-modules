@@ -1044,6 +1044,14 @@
           "description": "\"text\" | \"number\" | \"password\" | \"boolean\" | \"select\" | \"file\" 등",
           "type": "string"
         },
+        "versions": {
+          "default": null,
+          "description": "이 설정이 있는 게임 버전 범위: 비교(`<` `<=` `>` `>=` `=`)와 점으로 나눈 숫자 버전을 공백이나 쉼표로 잇는다\n(예: `<1.21.9`, `>=1.13 <1.20`). 설치된 버전이 밖이면 화면이 숨긴다 (`SettingField::versions`)",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "visible_when": {
           "anyOf": [
             {

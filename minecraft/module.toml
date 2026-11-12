@@ -199,6 +199,8 @@ default = false
 name = "allow_nether"
 restart_required = true
 file_key = "allow-nether"
+# 1.21.9가 server.properties에서 빼고 게임 규칙으로 옮겼다 (minecraft.net Java Edition 1.21.9 changelog)
+versions = "<1.21.9"
 type = "boolean"
 label = "Allow Nether"
 description = "Allow players to travel to the Nether"
@@ -238,6 +240,8 @@ default = "normal"
 name = "enable_command_block"
 restart_required = true
 file_key = "enable-command-block"
+# 1.21.9가 server.properties에서 빼고 게임 규칙으로 옮겼다 (minecraft.net Java Edition 1.21.9 changelog)
+versions = "<1.21.9"
 type = "boolean"
 label = "Command Blocks"
 description = "Enable command blocks"
@@ -581,6 +585,8 @@ group = "advanced"
 name = "pvp"
 restart_required = true
 file_key = "pvp"
+# 1.21.9가 server.properties에서 빼고 게임 규칙으로 옮겼다 (minecraft.net Java Edition 1.21.9 changelog)
+versions = "<1.21.9"
 type = "boolean"
 label = "PVP"
 description = "Allow player vs player combat"
@@ -778,6 +784,8 @@ max = 32
 name = "spawn_animals"
 restart_required = true
 file_key = "spawn-animals"
+# 1.21.2(24w33a)가 server.properties에서 없앴다 (minecraft.wiki Java Edition 24w33a)
+versions = "<1.21.2"
 type = "boolean"
 label = "Spawn Animals"
 description = "Allow animals to spawn"
@@ -788,6 +796,8 @@ group = "advanced"
 name = "spawn_monsters"
 restart_required = true
 file_key = "spawn-monsters"
+# 1.21.9가 server.properties에서 빼고 게임 규칙으로 옮겼다 (minecraft.net Java Edition 1.21.9 changelog)
+versions = "<1.21.9"
 type = "boolean"
 label = "Spawn Monsters"
 description = "Allow hostile mobs to spawn"
@@ -798,6 +808,8 @@ group = "advanced"
 name = "spawn_npcs"
 restart_required = true
 file_key = "spawn-npcs"
+# 1.21.2(24w33a)가 server.properties에서 없앴다 (minecraft.wiki Java Edition 24w33a)
+versions = "<1.21.2"
 type = "boolean"
 label = "Spawn NPCs"
 description = "Allow villagers to spawn"

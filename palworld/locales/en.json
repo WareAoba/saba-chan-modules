@@ -206,7 +206,10 @@
     "settings_success": "All server settings were reset to factory defaults. World data is unchanged.",
     "settings_failed": "Failed to write default settings to the configuration file.",
     "label": "Reset settings",
-    "description": "Restores the server settings to their defaults. The world and saves are kept."
+    "description": "Restores the server settings to their defaults. The world and saves are kept.",
+    "items": {
+      "settings": "Game settings are restored to their defaults"
+    }
   },
   "validate": {
     "no_executable": "Server executable path not specified.",

@@ -339,6 +339,9 @@
   },
   "reset": {
     "label": "重置世界",
-    "description": "删除此服务器的世界文件以及 .wld.bak 和 .wld.bak<数字> 备份。保留 serverconfig.txt、封禁列表、其他世界和服务器文件。下次启动时会创建新世界。"
+    "description": "删除此服务器的世界文件以及 .wld.bak 和 .wld.bak<数字> 备份。保留 serverconfig.txt、封禁列表、其他世界和服务器文件。下次启动时会创建新世界。",
+    "items": {
+      "world": "世界文件和游戏创建的备份(.bak)"
+    }
   }
 }

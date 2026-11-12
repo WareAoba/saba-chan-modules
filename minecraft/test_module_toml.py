@@ -3,6 +3,7 @@
 - failure_patterns: 서버가 명령을 거절한 줄만 실패로 본다. 공지·채팅 본문에 같은 문구가 있어도 실패가 아니다
 - seed reply_pattern: 콘솔 답에서 시드 숫자를 뽑는다
 """
+import json
 import pathlib
 import re
 import tomllib
@@ -296,3 +297,44 @@ def test_console_commands_require_what_the_console_needs():
     assert whitelist["console_template"] == "whitelist {action}"
     assert [i["name"] for i in whitelist["inputs"]] == ["action"]
     assert whitelist["inputs"][0]["options"] == ["list", "on", "off", "reload"]
+
+
+def test_settings_removed_from_server_properties_name_their_last_version():
+    """1.21.2가 없앤 설정(spawn-animals, spawn-npcs)과 1.21.9가 게임 규칙으로 옮긴 설정(pvp, allow-nether,
+    spawn-monsters, enable-command-block)은 그 앞 버전까지만 있다고 밝힌다: 데몬이 설치된 버전에 없는 설정을 숨긴다.
+    동봉 기준 파일(1.21.9 이상 서버가 만든 server.properties)에 없는 키는 모두 범위를 가진다"""
+    fields = {f["name"]: f for f in MANIFEST["settings"]["fields"]}
+    ranged = {name: f["versions"] for name, f in fields.items() if "versions" in f}
+    assert ranged == {
+        "spawn_animals": "<1.21.2",
+        "spawn_npcs": "<1.21.2",
+        "pvp": "<1.21.9",
+        "allow_nether": "<1.21.9",
+        "spawn_monsters": "<1.21.9",
+        "enable_command_block": "<1.21.9",
+    }
+    reference = (pathlib.Path(__file__).parent / "server.properties").read_text(encoding="utf-8")
+    current_keys = {line.split("=", 1)[0] for line in reference.splitlines() if "=" in line and not line.startswith("#")}
+    gone = {f["file_key"] for f in fields.values() if "file_key" in f and f["file_key"] not in current_keys}
+    assert gone == {fields[name]["file_key"] for name in ranged}
+
+
+
+def test_player_lists_use_declared_commands_and_the_whitelist_setting():
+    """플레이어 목록(`[[lists]]`): 넣기·빼기는 이미 있는 명령이고 첫 입력이 플레이어 이름이다.
+    화이트리스트를 쓸지는 설정 `white_list`가 정하고, 밴만 막는 목록이다"""
+    commands = {c["name"]: c for c in MANIFEST["commands"]["fields"]}
+    lists = {entry["id"]: entry for entry in MANIFEST["lists"]}
+    assert {k: (v["add"], v["remove"]) for k, v in lists.items()} == {
+        "whitelist": ("whitelist-add", "whitelist-remove"), "ops": ("op", "deop"), "banned": ("ban", "pardon")}
+    for entry in lists.values():
+        for name in (entry["add"], entry["remove"]):
+            assert commands[name]["inputs"][0]["name"] == "player", name
+    assert [k for k, v in lists.items() if v.get("danger")] == ["banned"]
+    assert lists["whitelist"]["setting"] == "white_list"
+    setting = next(f for f in MANIFEST["settings"]["fields"] if f["name"] == "white_list")
+    assert setting["type"] == "boolean"
+    locales = pathlib.Path(__file__).parent / "locales"
+    for path in sorted(locales.glob("*.json")):
+        names = json.loads(path.read_text(encoding="utf-8")).get("lists", {})
+        assert set(names) == set(lists) and all(names.values()), path.name

@@ -679,6 +679,25 @@ def test_reset_with_an_empty_server_name_deletes_only_the_default_world(tmp_path
     assert str(home / "Saves" / "Multiplayer" / "servertest") in backup_paths(config)["paths"]
 
 
+def test_reset_preview_lists_this_servers_world_without_deleting(tmp_path):
+    from zomboid.lifecycle import reset_preview, reset_server
+    home = tmp_path / "home"
+    _worlds(home, "servertest", "other")
+    config = {"working_dir": str(tmp_path / "server"), "cache_dir": str(home), "server_name": "servertest"}
+
+    seen = reset_preview(config)
+
+    assert seen["success"], seen
+    [scope] = seen["scopes"]
+    [item] = scope["items"]
+    world = home / "Saves" / "Multiplayer" / "servertest"
+    assert item["paths"] == [str(world)] and item["label"] and scope["note"]
+    assert (world / "map.bin").exists()
+    assert reset_preview({**config, "server_name": "../other"})["success"] is False
+    assert reset_server(config)["success"] is True
+    assert not world.exists()
+
+
 @pytest.mark.parametrize("name", ["..", ".", "a/b", "a\\b", "../other", "C:other", "other ", "other."])
 def test_reset_refuses_a_server_name_outside_its_own_world(tmp_path, name):
     from zomboid.lifecycle import reset_server
@@ -951,8 +970,40 @@ def test_install_reads_the_steam_app_from_module_toml(tmp_path):
     from zomboid import lifecycle
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
         lifecycle.install_server({"install_dir": str(tmp_path / "server"), "use_beta": True})
-    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"))
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta=None)
     assert _load_module_toml()["install"]["app_id"] == 380870
+
+
+def test_list_versions_offers_the_steam_branches():
+    """서버마다 고를 수 있는 Steam 브랜치를 버전 목록으로 내놓는다 (앱의 "서버 버전" 칸이 이 목록을 보인다).
+    기본은 정식(public)이고, 이름은 locales에서 온다"""
+    import json
+    from zomboid import lifecycle
+    result = lifecycle.list_versions({})
+    assert result["success"] is True
+    assert [v["id"] for v in result["versions"]] == ["public", "unstable", "legacy41"]
+    assert result["latest"]["release"] == "public"
+    assert lifecycle.FUNCTIONS["list_versions"] is lifecycle.list_versions
+    locales = os.path.join(lifecycle.MODULE_DIR, "locales")
+    for name in os.listdir(locales):
+        with open(os.path.join(locales, name), encoding="utf-8") as f:
+            names = json.load(f)["versions"]
+        assert set(names) == {"public", "unstable", "legacy41"} and all(names.values()), name
+
+
+def test_install_downloads_the_chosen_branch(tmp_path):
+    """고른 브랜치(`version`)를 SteamCMD의 -beta로 넘긴다. 정식으로 돌아갈 때도 `public`을 적어 넘긴다.
+    목록에 없는 브랜치는 SteamCMD를 부르지 않고 거절한다"""
+    from zomboid import lifecycle
+    server = str(tmp_path / "server")
+    for branch in ("unstable", "legacy41", "public"):
+        with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
+            lifecycle.install_server({"install_dir": server, "version": branch})
+        install.assert_called_once_with(lifecycle.MODULE_DIR, server, beta=branch)
+    with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
+        refused = lifecycle.install_server({"install_dir": server, "version": "b42 -validate"})
+    install.assert_not_called()
+    assert refused["success"] is False and "b42 -validate" in refused["message"]
 
 
 def test_a_setting_with_a_line_break_is_a_write_failure(tmp_path, monkeypatch):

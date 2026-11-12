@@ -719,6 +719,7 @@
     "server_reset_partial": "No se pudieron eliminar algunos elementos: {{errors}}",
     "invalid_server_name": "No se puede usar este nombre de servidor: {{name}}. Usa un nombre sin separadores de carpeta (/ \\), ':' ni '..', que no termine en espacio ni punto",
     "extension_not_enabled": "La extensión de SteamCMD no está activada. Actívala primero en Ajustes → Extensiones.",
+    "unknown_branch": "No se puede elegir esta rama: {{branch}}",
     "detect": {
       "out_of_memory": "El servidor se quedó sin memoria (OutOfMemoryError)",
       "port_in_use": "El puerto {{port}} ya lo está usando otra aplicación",
@@ -746,6 +747,11 @@
     "command_send_failed": "No se pudo enviar el comando: {{error}}",
     "backup_paths_failed": "No se pudo leer la carpeta de guardado para la copia de seguridad: {{error}}"
   },
+  "versions": {
+    "public": "Estable (predeterminada)",
+    "unstable": "Inestable (unstable)",
+    "legacy41": "Build 41 antigua (legacy41)"
+  },
   "messages": {
     "server_reset_complete": "Datos del mundo del servidor reiniciados",
     "server_starting_no_response": "El proceso está en ejecución, pero el servidor aún no responde a las consultas RCON",
@@ -768,6 +774,9 @@
   },
   "reset": {
     "label": "Restablecer mundo",
-    "description": "Borra solo la partida del mundo y conserva los ajustes del servidor."
+    "description": "Borra solo la partida del mundo y conserva los ajustes del servidor.",
+    "items": {
+      "world": "Partida guardada del mundo"
+    }
   }
 }

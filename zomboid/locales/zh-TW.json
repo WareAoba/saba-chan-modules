@@ -719,6 +719,7 @@
     "server_reset_partial": "部分項目無法刪除：{{errors}}",
     "invalid_server_name": "無法使用此伺服器名稱：{{name}}。請使用不含資料夾分隔符號（/ \\）、「:」或「..」且不以空格或句點結尾的名稱",
     "extension_not_enabled": "SteamCMD 擴充功能未啟用。請先在設定 → 擴充功能中啟用。",
+    "unknown_branch": "無法選擇這個分支：{{branch}}",
     "detect": {
       "out_of_memory": "伺服器記憶體不足 (OutOfMemoryError)",
       "port_in_use": "連接埠 {{port}} 已被其他應用程式使用",
@@ -746,6 +747,11 @@
     "command_send_failed": "傳送指令失敗：{{error}}",
     "backup_paths_failed": "無法讀取要備份的存檔資料夾：{{error}}"
   },
+  "versions": {
+    "public": "正式版（預設）",
+    "unstable": "不穩定版 (unstable)",
+    "legacy41": "舊版 Build 41 (legacy41)"
+  },
   "messages": {
     "server_starting_no_response": "程序正在執行，但伺服器尚未回應 RCON 查詢",
     "properties_updated": "伺服器設定已更新",
@@ -768,6 +774,9 @@
   },
   "reset": {
     "label": "重設世界",
-    "description": "只刪除世界存檔，保留伺服器設定。"
+    "description": "只刪除世界存檔，保留伺服器設定。",
+    "items": {
+      "world": "世界存檔"
+    }
   }
 }

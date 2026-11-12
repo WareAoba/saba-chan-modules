@@ -274,6 +274,7 @@
     "server_reset_partial": "일부 항목을 삭제할 수 없습니다: {{errors}}",
     "invalid_server_name": "서버 이름을 쓸 수 없습니다: {{name}}. 폴더 구분자(/ \\), ':', '..' 없이, 공백이나 점으로 끝나지 않게 써 주세요",
     "extension_not_enabled": "SteamCMD 익스텐션이 활성화되어 있지 않습니다. 설정 → 익스텐션에서 먼저 활성화해주세요.",
+    "unknown_branch": "고를 수 없는 브랜치예요: {{branch}}",
     "detect": {
       "out_of_memory": "서버 메모리 부족 (OutOfMemoryError)",
       "port_in_use": "포트 {{port}}가 이미 다른 애플리케이션에서 사용 중입니다",
@@ -300,6 +301,11 @@
     },
     "command_send_failed": "명령 전송 실패: {{error}}"
   },
+  "versions": {
+    "public": "정식 (기본)",
+    "unstable": "불안정 (unstable)",
+    "legacy41": "옛 빌드 41 (legacy41)"
+  },
   "messages": {
     "server_starting_no_response": "프로세스는 실행 중이나 서버가 아직 RCON 쿼리에 응답하지 않습니다",
     "properties_updated": "서버 설정을 수정했습니다",
@@ -322,6 +328,9 @@
   },
   "reset": {
     "label": "월드 초기화",
-    "description": "월드 세이브만 지우고 서버 설정은 남깁니다."
+    "description": "월드 세이브만 지우고 서버 설정은 남깁니다.",
+    "items": {
+      "world": "월드 세이브"
+    }
   }
 }

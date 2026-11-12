@@ -719,6 +719,7 @@
     "server_reset_partial": "Alguns itens não puderam ser excluídos: {{errors}}",
     "invalid_server_name": "Este nome de servidor não pode ser usado: {{name}}. Use um nome sem separadores de pasta (/ \\), ':' ou '..', que não termine com espaço ou ponto",
     "extension_not_enabled": "A extensão do SteamCMD não está ativada. Ative-a primeiro em Configurações → Extensões.",
+    "unknown_branch": "Não é possível escolher este branch: {{branch}}",
     "detect": {
       "out_of_memory": "O servidor ficou sem memória (OutOfMemoryError)",
       "port_in_use": "A porta {{port}} já está em uso por outro aplicativo",
@@ -746,6 +747,11 @@
     "command_send_failed": "Falha ao enviar o comando: {{error}}",
     "backup_paths_failed": "Não foi possível ler a pasta de salvamento para o backup: {{error}}"
   },
+  "versions": {
+    "public": "Estável (padrão)",
+    "unstable": "Instável (unstable)",
+    "legacy41": "Build 41 antiga (legacy41)"
+  },
   "messages": {
     "server_reset_complete": "Dados do mundo do servidor redefinidos",
     "server_starting_no_response": "O processo está em execução, mas o servidor ainda não responde às consultas RCON",
@@ -768,6 +774,9 @@
   },
   "reset": {
     "label": "Redefinir mundo",
-    "description": "Apaga só o save do mundo e mantém as configurações do servidor."
+    "description": "Apaga só o save do mundo e mantém as configurações do servidor.",
+    "items": {
+      "world": "Save do mundo"
+    }
   }
 }

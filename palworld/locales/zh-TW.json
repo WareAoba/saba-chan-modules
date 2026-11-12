@@ -206,7 +206,10 @@
     "settings_success": "所有伺服器設定已重置為出廠預設值。世界資料保持不變。",
     "settings_failed": "無法將預設設定寫入設定檔。",
     "label": "重設設定",
-    "description": "將伺服器設定恢復為預設值，世界和存檔會保留。"
+    "description": "將伺服器設定恢復為預設值，世界和存檔會保留。",
+    "items": {
+      "settings": "將遊戲設定還原為預設值"
+    }
   },
   "validate": {
     "no_executable": "未指定伺服器執行檔路徑。",

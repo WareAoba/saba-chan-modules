@@ -339,6 +339,9 @@
   },
   "reset": {
     "label": "Redefinir mundo",
-    "description": "Exclui o arquivo deste mundo e as cópias .wld.bak e .wld.bak<número>. serverconfig.txt, a lista de banimentos, outros mundos e arquivos do servidor são mantidos. Um novo mundo será criado na próxima inicialização."
+    "description": "Exclui o arquivo deste mundo e as cópias .wld.bak e .wld.bak<número>. serverconfig.txt, a lista de banimentos, outros mundos e arquivos do servidor são mantidos. Um novo mundo será criado na próxima inicialização.",
+    "items": {
+      "world": "Arquivo do mundo e backups criados pelo jogo (.bak)"
+    }
   }
 }

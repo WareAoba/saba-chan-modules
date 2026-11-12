@@ -953,12 +953,30 @@ def diagnose_log(config):
             "lines_analyzed": len(log_lines)}
 
 
+# 서버마다 고를 수 있는 Steam 브랜치 (첫 항목이 기본). 이름은 locales `versions.<id>`.
+# public·unstable·legacy41: projectzomboid.com 42.20 공지 (Build 41로 남을 서버 주인은 legacy41 베타 채널을 고른다)
+STEAM_BRANCHES = ("public", "unstable", "legacy41")
+
+
+def list_versions(config):
+    """고를 수 있는 Steam 브랜치. 앱의 "서버 버전" 칸이 보이고, 고른 id가 `install_server`의 `version`으로 온다."""
+    return {
+        "success": True,
+        "versions": [{"id": branch, "name": i18n.t(f"versions.{branch}")} for branch in STEAM_BRANCHES],
+        "latest": {"release": STEAM_BRANCHES[0]},
+    }
+
+
 def install_server(config):
     """Install/update the Project Zomboid dedicated server via SteamCMD.
 
     Uses the saba-chan SteamCMD extension for portable, automatic download
-    (Steam app, anonymous login and branch come from module.toml [install]).
+    (Steam app and anonymous login come from module.toml [install]).
+    `version`: 받을 Steam 브랜치(`list_versions`의 id). 없으면 module.toml [install]의 브랜치(없으면 정식).
     """
+    branch = config.get("version") or None
+    if branch is not None and branch not in STEAM_BRANCHES:
+        return {"success": False, "message": i18n.t("errors.unknown_branch", branch=branch)}
     install_dir = config.get("install_dir", "")
     if not install_dir:
         working_dir = config.get("working_dir", "")
@@ -976,7 +994,8 @@ def install_server(config):
         return {"success": False, "message": i18n.t("errors.extension_not_enabled"),
                 "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
     try:
-        result = install_for_module(MODULE_DIR, install_dir)
+        # 정식으로 돌아갈 때도 브랜치 이름(public)을 적어 넘긴다: -beta 없이 받으면 받아 둔 브랜치에 머문다
+        result = install_for_module(MODULE_DIR, install_dir, beta=branch)
     except PathOutside:
         raise
     except Exception as e:
@@ -1019,19 +1038,35 @@ def _plain_server_name(name):
     return bool(name) and name not in (".", "..") and not any(sep in name for sep in ("/", "\\", ":")) and name[-1] not in " ."
 
 
-def reset_server(config):
-    """Reset the server world (delete save data, keep settings).
-    
-    Deletes: <data folder>/Saves/Multiplayer/{servername}/
-    Keeps: <data folder>/Server/{servername}.ini and .lua files
-    """
+def _reset_world_dir(config):
+    """초기화가 지우는 이 서버의 월드 폴더 `<data folder>/Saves/Multiplayer/{servername}`. 이름이 안전하지 않으면 실패 응답(dict)"""
     server_name = _server_name(config)
     multiplayer = os.path.join(_zomboid_home(config), "Saves", "Multiplayer")
     saves_dir = os.path.join(multiplayer, server_name)
     # 이 서버의 월드 폴더 하나만 지운다 (이름에 구분자·'..'·드라이브(C:)가 있거나, Windows가 잘라 내는 끝 공백·점이 있으면 다른 서버의 월드까지 지울 수 있다)
     if not _plain_server_name(server_name) or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
         return {"success": False, "message": i18n.t("errors.invalid_server_name", name=server_name)}
-    saves_dir = str(safe_join(_zomboid_home(config), "Saves", "Multiplayer", server_name))
+    return str(safe_join(_zomboid_home(config), "Saves", "Multiplayer", server_name))
+
+
+def reset_preview(config):
+    """초기화 확인 창에 보일 것 (데몬 `GET /server/reset`): 이 서버의 월드 폴더 하나. 설정은 남는다"""
+    saves_dir = _reset_world_dir(config)
+    if isinstance(saves_dir, dict):
+        return saves_dir
+    item = {"label": i18n.t("reset.items.world"), "paths": [saves_dir]}
+    return {"success": True, "scopes": [{"id": "world", "items": [item], "note": i18n.t("reset.description")}]}
+
+
+def reset_server(config):
+    """Reset the server world (delete save data, keep settings).
+    
+    Deletes: <data folder>/Saves/Multiplayer/{servername}/
+    Keeps: <data folder>/Server/{servername}.ini and .lua files
+    """
+    saves_dir = _reset_world_dir(config)
+    if isinstance(saves_dir, dict):
+        return saves_dir
     
     # 접근할 수 없는 폴더를 '없음'으로 보고 성공을 돌려주지 않는다 (delete_paths는 권한 오류를 오류로 센다)
     deleted, errors = delete_paths([saves_dir])
@@ -1161,8 +1196,10 @@ FUNCTIONS = {
     "config_files":       config_files,
     "read_properties":    read_properties,
     "diagnose_log":       diagnose_log,
+    "list_versions":      list_versions,
     "install_server":     install_server,
     "reset_server":       reset_server,
+    "reset_preview":      reset_preview,
     "backup_paths":       backup_paths,
     "backup_snapshots":   backup_snapshots,
 }

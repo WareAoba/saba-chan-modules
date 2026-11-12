@@ -352,6 +352,9 @@
   },
   "reset": {
     "label": "월드 초기화",
-    "description": "이 서버의 월드 파일과 .wld.bak 및 .wld.bak숫자 백업을 지웁니다. serverconfig.txt, 밴 목록, 다른 월드, 서버 파일은 남습니다. 다음에 켤 때 새 월드를 만듭니다."
+    "description": "이 서버의 월드 파일과 .wld.bak 및 .wld.bak숫자 백업을 지웁니다. serverconfig.txt, 밴 목록, 다른 월드, 서버 파일은 남습니다. 다음에 켤 때 새 월드를 만듭니다.",
+    "items": {
+      "world": "월드 파일과 게임이 만든 백업(.bak)"
+    }
   }
 }

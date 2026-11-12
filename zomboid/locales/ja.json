@@ -719,6 +719,7 @@
     "server_reset_partial": "一部のアイテムを削除できませんでした: {{errors}}",
     "invalid_server_name": "このサーバー名は使えません: {{name}}。フォルダ区切り(/ \\)・「:」・「..」を含まず、空白や点で終わらない名前にしてください",
     "extension_not_enabled": "SteamCMD拡張機能が有効化されていません。設定 → 拡張機能で先に有効化してください。",
+    "unknown_branch": "選べないブランチです: {{branch}}",
     "detect": {
       "out_of_memory": "サーバーのメモリが不足しました (OutOfMemoryError)",
       "port_in_use": "ポート{{port}}は既に他のアプリケーションで使用されています",
@@ -746,6 +747,11 @@
     "command_send_failed": "コマンドの送信に失敗しました: {{error}}",
     "backup_paths_failed": "バックアップ用のセーブフォルダーを読み取れませんでした: {{error}}"
   },
+  "versions": {
+    "public": "正式版（既定）",
+    "unstable": "不安定版 (unstable)",
+    "legacy41": "旧ビルド 41 (legacy41)"
+  },
   "messages": {
     "server_starting_no_response": "プロセスは実行中ですが、サーバーはまだRCONクエリに応答していません",
     "properties_updated": "サーバー設定を更新しました",
@@ -768,6 +774,9 @@
   },
   "reset": {
     "label": "ワールド初期化",
-    "description": "ワールドのセーブだけを削除し、サーバー設定は残します。"
+    "description": "ワールドのセーブだけを削除し、サーバー設定は残します。",
+    "items": {
+      "world": "ワールドのセーブ"
+    }
   }
 }

@@ -719,6 +719,7 @@
     "server_reset_partial": "部分项目无法删除：{{errors}}",
     "invalid_server_name": "无法使用此服务器名称：{{name}}。请使用不含文件夹分隔符（/ \\）、“:”或“..”且不以空格或句点结尾的名称",
     "extension_not_enabled": "SteamCMD 扩展未启用。请先在设置 → 扩展中启用。",
+    "unknown_branch": "无法选择该分支：{{branch}}",
     "detect": {
       "out_of_memory": "服务器内存不足 (OutOfMemoryError)",
       "port_in_use": "端口 {{port}} 已被其他应用程序使用",
@@ -746,6 +747,11 @@
     "command_send_failed": "发送命令失败：{{error}}",
     "backup_paths_failed": "无法读取要备份的存档文件夹：{{error}}"
   },
+  "versions": {
+    "public": "正式版（默认）",
+    "unstable": "不稳定版 (unstable)",
+    "legacy41": "旧版 Build 41 (legacy41)"
+  },
   "messages": {
     "server_starting_no_response": "进程正在运行，但服务器尚未响应 RCON 查询",
     "properties_updated": "服务器配置已更新",
@@ -768,6 +774,9 @@
   },
   "reset": {
     "label": "重置世界",
-    "description": "只删除世界存档，保留服务器设置。"
+    "description": "只删除世界存档，保留服务器设置。",
+    "items": {
+      "world": "世界存档"
+    }
   }
 }

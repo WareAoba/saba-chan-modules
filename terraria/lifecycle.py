@@ -420,9 +420,8 @@ def backup_paths(config):
     return {"success": True, "paths": [world_file, _config_path(config), banlist]}
 
 
-def reset_server(config):
-    """월드 초기화: 이 월드의 `<이름>.wld`와 게임이 만든 `<이름>.wld.bak[숫자]`를 지운다.
-    설정·밴 목록·다른 월드·사용자 파일은 남는다. 다음 시작 때 autocreate로 새 월드가 생긴다."""
+def _reset_targets(config):
+    """초기화가 지우는 것: 이 월드의 `<이름>.wld`와 게임이 만든 `<이름>.wld.bak[숫자]`. 지울 수 없으면 실패 응답(dict)"""
     try:
         world_dir, name, world_file = _world(config)
     except PathOutside:
@@ -441,9 +440,27 @@ def reset_server(config):
     except OSError as e:
         return {"success": False, "message": i18n.t(
             "errors.server_reset_partial", errors=f"{name}.wld.bak*: {e}")}
-    targets = [world_file] + [str(safe_join(world_dir, filename)) for filename in backups]
+    targets = [world_file] + [str(safe_join(world_dir, filename)) for filename in sorted(backups)]
     if any(os.path.dirname(os.path.abspath(target)) != os.path.abspath(world_dir) for target in targets):
         return {"success": False, "message": i18n.t("errors.invalid_world_name", name=name)}
+    return targets
+
+
+def reset_preview(config):
+    """초기화 확인 창에 보일 것 (데몬 `GET /server/reset`): 이 월드 파일과 그 백업. 설정·밴 목록·다른 월드는 남는다"""
+    targets = _reset_targets(config)
+    if isinstance(targets, dict):
+        return targets
+    item = {"label": i18n.t("reset.items.world"), "paths": targets}
+    return {"success": True, "scopes": [{"id": "world", "items": [item], "note": i18n.t("reset.description")}]}
+
+
+def reset_server(config):
+    """월드 초기화: 이 월드의 `<이름>.wld`와 게임이 만든 `<이름>.wld.bak[숫자]`를 지운다.
+    설정·밴 목록·다른 월드·사용자 파일은 남는다. 다음 시작 때 autocreate로 새 월드가 생긴다."""
+    targets = _reset_targets(config)
+    if isinstance(targets, dict):
+        return targets
     deleted, errors = delete_paths(targets)
     if errors:
         return {"success": False, "message": i18n.t("errors.server_reset_partial", errors=", ".join(errors))}
@@ -614,6 +631,7 @@ FUNCTIONS = {
     "player_count":       player_count,
     "send_chat":          send_chat,
     "reset_server":       reset_server,
+    "reset_preview":      reset_preview,
     "list_versions":      list_versions,
     "install_server":     install_server,
     "get_installed_version": get_installed_version,

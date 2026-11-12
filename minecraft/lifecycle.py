@@ -1565,6 +1565,21 @@ def get_installed_version(config):
     return {"success": False, "message": i18n.t("errors.version_info_unreadable")}
 
 
+def command(config):
+    """정의에 없는 콘솔 한 줄. module.toml 명령은 전부 console이라 데몬이 직접 보내고, 켜진 서버에 콘솔도 RCON도
+    없을 때만 그 한 줄을 이 함수로 넘긴다 (saba-chan src/ipc/handlers/command.rs Plan::Raw). 데몬에 그대로 맡기고,
+    보낼 길이 없다는 코드(no_command_path)를 답에 실어 화면·디스코드가 자기 문구로 안내하게 한다"""
+    from daemon_rcon import daemon_stdin_command
+    line = config.get("command", "")
+    try:
+        daemon_stdin_command(config.get("instance_id", ""), line, timeout=5)
+    except PathOutside:
+        raise
+    except Exception as e:
+        return {"success": False, "message": str(e), "error_code": getattr(e, "error_code", None)}
+    return {"success": True, "message": line}
+
+
 # § 서식 코드(§ 뒤 한 글자, 끝에 홀로 남은 § 포함)
 _SECTION_CODE = re.compile(r"§.?", re.S)
 
@@ -2287,6 +2302,7 @@ def backup_paths(config):
 FUNCTIONS = {
     "stop": stop,
     "status": status,
+    "command": command,
     "send_chat": send_chat,
     "validate": validate,
     "get_launch_command": get_launch_command,

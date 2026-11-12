@@ -11,7 +11,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 데몬이 호출하는 lifecycle 함수 전체 (src/supervisor/mod.rs, src/ipc/handlers/*)
 DAEMON_FUNCTIONS = {
-    "get_launch_command", "stop", "status", "validate", "configure",
+    "get_launch_command", "stop", "status", "command", "validate", "configure",
     "read_properties", "reset_properties", "reset_server", "import_settings",
     "accept_agreements", "diagnose_log", "list_versions",
     "get_version_details", "install_server", "get_installed_version", "instance_commands",
@@ -389,15 +389,19 @@ def test_every_daemon_function_is_registered():
     assert DAEMON_FUNCTIONS <= set(FUNCTIONS), sorted(DAEMON_FUNCTIONS - set(FUNCTIONS))
 
 
-def test_commands_all_go_to_the_console_so_there_is_no_command_function():
-    """데몬은 method가 module(·dual·both)인 명령만 lifecycle `command`로 보낸다 (src/commands/mod.rs plan).
-    마인크래프트 명령은 전부 console이라 그 함수를 두지 않는다. module 명령을 더하면 함수도 같이 만든다"""
-    import tomllib
-    from minecraft.lifecycle import FUNCTIONS
-    with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-        methods = {c["name"]: c.get("method", "module") for c in tomllib.load(f)["commands"]["fields"]}
-    assert set(methods.values()) == {"console"}, methods
-    assert "command" not in FUNCTIONS
+def test_a_console_line_without_a_command_path_says_so():
+    """켜진 서버에 콘솔도 RCON도 없으면(데몬 재시작 뒤 다시 붙은 서버) 데몬은 정의에 없는 콘솔 한 줄을
+    lifecycle `command`로 넘긴다 (saba-chan src/ipc/handlers/command.rs Plan::Raw). 그때 "Unknown function"이 아니라
+    화면·디스코드가 아는 코드(no_command_path)로 실패한다"""
+    import daemon_rcon
+    from minecraft import lifecycle
+    refused = ConnectionError("Daemon host request failed (no_command_path): no console or RCON")
+    refused.error_code = "no_command_path"
+    with mock.patch.object(daemon_rcon, "daemon_stdin_command", side_effect=refused) as stdin:
+        result = lifecycle.FUNCTIONS["command"]({"command": "foo bar", "args": {}, "instance_id": "x"})
+    stdin.assert_called_once_with("x", "foo bar", timeout=5)
+    assert (result["success"], result["error_code"]) == (False, "no_command_path")
+    assert "no_command_path" in result["message"]
 
 
 def test_cli_unknown_function_returns_json_with_zero_exit():

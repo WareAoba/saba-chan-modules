@@ -416,13 +416,13 @@ def tool_gates(folder, repo, args):
         if args.trial:
             # 이전 실측의 보고서를 이번 help 결과로 읽지 않게 한다
             (pathlib.Path(args.trial_out) / "trial-report.json").unlink(missing_ok=True)
-            trial = [python, str(repo / "conformance" / "trial.py"), str(folder), "--saba-core", args.saba_core,
-                     "--out", str(pathlib.Path(args.trial_out).resolve())]
+            command = [python, str(repo / "conformance" / "trial.py"), str(folder), "--saba-core", args.saba_core,
+                       "--out", str(pathlib.Path(args.trial_out).resolve()), "--help-command", args.help_command]
             for agreement in args.accept_agreement:
-                trial += ["--accept-agreement", agreement]
+                command += ["--accept-agreement", agreement]
             if args.extensions:
-                trial += ["--extensions", args.extensions]
-            results.append(run("trial", trial, repo))
+                command += ["--extensions", args.extensions]
+            results.append(run("trial", command, repo))
     else:
         missing = "saba-core를 찾지 못했다 (--saba-core, 또는 사바쨩 설치)"
         results.append(gate("compat", "skip", missing))
@@ -455,7 +455,7 @@ def main():
     parser.add_argument("--shared-libs", help="i18n.py·daemon_rcon.py가 있는 saba-chan/modules")
     parser.add_argument("--base", help="버전을 비교할 기준 (기본: origin/main)")
     parser.add_argument("--help-output", help="서버 help 출력: probe_server.py의 probe-report.json 또는 저장한 텍스트")
-    parser.add_argument("--help-command", default="help", help="probe-report.json에서 help 출력으로 읽을 명령")
+    parser.add_argument("--help-command", default="help", help="콘솔 명령 목록을 찍는 명령 (probe-report.json에서 읽을 답, 실측에서 보낼 명령)")
     parser.add_argument("--static-only", action="store_true", help="정적 관문만")
     parser.add_argument("--trial", action="store_true", help="conformance/trial.py 실측도 돌린다 (--saba-core 필요)")
     parser.add_argument("--trial-out", default="trial-report", help="실측 보고서 폴더")

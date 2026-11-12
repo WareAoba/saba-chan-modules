@@ -549,6 +549,20 @@ def test_check_commands_takes_the_trial_help_result(tmp_path):
     assert check.with_trial_help(skipped, out) == skipped
 
 
+def test_check_trial_sends_the_same_help_command(repo, tmp_path, monkeypatch):
+    """--help-command는 정적 대조와 실측에 같이 쓴다: 실측만 `help`를 보내면 두 대조가 다른 명령의 답을 본다"""
+    folder = finished_module(repo)
+    sent = {}
+    monkeypatch.setattr(check, "run", lambda name, command, cwd, env=None: sent.setdefault(name, command) and check.gate(name, "ok"))
+    args = check.argparse.Namespace(shared_libs=None, app_shared_libs=None, saba_core=sys.executable, trial=True,
+                                    trial_out=str(tmp_path / "trial-report"), accept_agreement=[], extensions=None,
+                                    help_command="?")
+
+    check.tool_gates(folder, REPO, args)
+
+    assert sent["trial"][sent["trial"].index("--help-command") + 1] == "?"
+
+
 def test_check_reads_its_own_version_and_requirement():
     plugin = json.loads((MAKER / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
 

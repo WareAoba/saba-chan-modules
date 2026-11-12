@@ -920,8 +920,11 @@ def _java_tuning(config, ram, java_major, user_args):
         periodic = [_PERIODIC_GC_FLAG] if java_major >= 12 else []
         flags = [f"-Xmx{ram}", f"-Xms{start}", *([] if user_gc else [*_SMALL_FLAGS, *periodic])]
     elif profile == "zgc":
-        gc = [] if user_gc else [*_ZGC_FLAGS, *(["-XX:+ZGenerational"] if java_major < 23 else [])]
-        flags = [f"-Xmx{ram}", f"-Xms{ram}", *gc]
+        # 6G 이하는 소규모처럼 시작 힙을 작게 두고 힙을 미리 잡지 않는다 (ZGC는 쓰지 않는 메모리를 기본으로 돌려준다)
+        small = _java_profile(ram) == "small" and _heap_mb(_SMALL_START_HEAP) < _heap_mb(ram)
+        zgc = [f for f in _ZGC_FLAGS if not (small and f == "-XX:+AlwaysPreTouch")]
+        gc = [] if user_gc else [*zgc, *(["-XX:+ZGenerational"] if java_major < 23 else [])]
+        flags = [f"-Xmx{ram}", f"-Xms{_SMALL_START_HEAP if small else ram}", *gc]
     elif profile == "large":
         flags = [f"-Xmx{ram}", f"-Xms{ram}", *([] if user_gc else _LARGE_FLAGS)]
     else:

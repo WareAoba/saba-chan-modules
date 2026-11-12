@@ -2043,13 +2043,21 @@ def test_large_profile_is_g1_with_aikar_values_for_big_heaps(tmp_path, monkeypat
     assert "-Xms16G" in args and "-XX:+AlwaysPreTouch" in args and "-XX:+UseCompactObjectHeaders" in args
 
 
-@pytest.mark.parametrize("ram", ["4G", "8G", "16G"])
+@pytest.mark.parametrize("ram", ["8G", "16G"])
 def test_zgc_is_used_only_when_chosen(tmp_path, monkeypatch, ram):
     """설정 java_gc = zgc면 힙 크기와 상관없이 세대별 ZGC (21·22는 -XX:+ZGenerational을 켜야 한다)"""
     args = _profile_args(tmp_path, monkeypatch, ram, 21, java_gc="zgc")
     assert "-XX:+UseZGC" in args and "-XX:+ZGenerational" in args and "-XX:+UseG1GC" not in args
     assert not any(a.startswith("-XX:G1") for a in args)
     assert f"-Xms{ram}" in args
+
+
+def test_zgc_on_a_small_heap_still_returns_idle_memory(tmp_path, monkeypatch):
+    """6G 이하에서 ZGC를 골라도 소규모의 목적(쉴 때 메모리 반환)을 지킨다: 시작 힙 작게, AlwaysPreTouch 없음.
+    ZGC는 쓰지 않는 메모리를 기본으로 돌려준다(ZUncommit)"""
+    args = _profile_args(tmp_path, monkeypatch, "4G", 21, java_gc="zgc")
+    assert "-XX:+UseZGC" in args and "-Xms1G" in args and "-Xms4G" not in args
+    assert "-XX:+AlwaysPreTouch" not in args
 
 
 def test_zgc_on_java_25_is_generational_by_default(tmp_path, monkeypatch):

@@ -893,28 +893,37 @@ _SMALL_START_HEAP = "1G"
 _SMALL_FLAGS = [f for f in _AIKAR_FLAGS if f != "-XX:+AlwaysPreTouch"]
 # 쉴 때 힙을 PC에 돌려준다 (JEP 346, JDK 12부터. 그 전 Java는 모르는 옵션이라 뜨지 않는다)
 _PERIODIC_GC_FLAG = "-XX:G1PeriodicGCInterval=60000"
-# 대규모: 세대별 ZGC (JEP 439, Java 21에서 -XX:+ZGenerational, 23부터 기본 JEP 474). 그 전 Java는 표준 G1로
-_LARGE_FLAGS = ["-XX:+UseZGC", "-XX:+AlwaysPreTouch", "-XX:+DisableExplicitGC", "-XX:+PerfDisableSharedMem"]
+# 대규모: G1에 Aikar 문서의 12GB 초과용 값. PC 실측(Paper 봇 200개, 같은 16G 힙)에서 ZGC보다 틱이 10~15% 빨랐다
+_LARGE_HEAP_VALUES = {
+    "-XX:G1NewSizePercent": "40", "-XX:G1MaxNewSizePercent": "50", "-XX:G1HeapRegionSize": "16M",
+    "-XX:G1ReservePercent": "15", "-XX:InitiatingHeapOccupancyPercent": "20",
+}
+_LARGE_FLAGS = [f"{name}={_LARGE_HEAP_VALUES[name]}" if name in _LARGE_HEAP_VALUES else flag
+                for flag in _AIKAR_FLAGS for name in [flag.split("=")[0]]]
+# 설정 java_gc = zgc: 세대별 ZGC (JEP 439, Java 21에서 -XX:+ZGenerational, 23부터 기본 JEP 474). 그 전 Java는 G1 프로필로
+_ZGC_FLAGS = ["-XX:+UseZGC", "-XX:+AlwaysPreTouch", "-XX:+DisableExplicitGC", "-XX:+PerfDisableSharedMem"]
 # Compact Object Headers: Java 25에서 정식 기능 (JEP 519), 27부터 기본
 _COH_FLAG = "-XX:+UseCompactObjectHeaders"
 
 
 def _java_tuning(config, ram, java_major, user_args):
-    """힙 크기와 Java 주 버전으로 정한 메모리·GC 옵션. 사용자가 GC를 직접 고르면(-XX:+Use…GC) GC 옵션은 넣지 않는다.
-    java_tuning을 끄면 힙 크기만 (Xms=Xmx)"""
+    """힙 크기와 Java 주 버전으로 정한 메모리·GC 옵션. 설정 java_gc = zgc면(Java 21+) ZGC.
+    사용자가 GC를 직접 고르면(-XX:+Use…GC) GC 옵션은 넣지 않는다. java_tuning을 끄면 힙 크기만 (Xms=Xmx)"""
     if config.get("java_tuning") is False:
         return [f"-Xmx{ram}", f"-Xms{ram}"]
     profile = _java_profile(ram)
-    if profile == "large" and java_major < 21:
-        profile = "standard"
+    if config.get("java_gc") == "zgc" and java_major >= 21:
+        profile = "zgc"
     user_gc = any(re.fullmatch(r"-XX:\+Use\w+GC", a) for a in user_args)
     if profile == "small":
         start = _SMALL_START_HEAP if _heap_mb(_SMALL_START_HEAP) < _heap_mb(ram) and not user_gc else ram
         periodic = [_PERIODIC_GC_FLAG] if java_major >= 12 else []
         flags = [f"-Xmx{ram}", f"-Xms{start}", *([] if user_gc else [*_SMALL_FLAGS, *periodic])]
-    elif profile == "large":
-        gc = [] if user_gc else [*_LARGE_FLAGS, *(["-XX:+ZGenerational"] if java_major < 23 else [])]
+    elif profile == "zgc":
+        gc = [] if user_gc else [*_ZGC_FLAGS, *(["-XX:+ZGenerational"] if java_major < 23 else [])]
         flags = [f"-Xmx{ram}", f"-Xms{ram}", *gc]
+    elif profile == "large":
+        flags = [f"-Xmx{ram}", f"-Xms{ram}", *([] if user_gc else _LARGE_FLAGS)]
     else:
         flags = [f"-Xmx{ram}", f"-Xms{ram}", *([] if user_gc else _AIKAR_FLAGS)]
     if java_major >= 25:

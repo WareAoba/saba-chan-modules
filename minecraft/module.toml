@@ -151,8 +151,19 @@ name = "java_tuning"
 restart_required = true
 type = "boolean"
 label = "Java Optimization"
-description = "Picks Java options by memory size: up to 6G returns idle memory to the PC, under 16G uses the recommended G1 options (Aikar), 16G and up uses ZGC. Also turns on Compact Object Headers on Java 25 and later"
+description = "Picks Java options by memory size: up to 6G returns idle memory to the PC, under 16G uses the recommended G1 options (Aikar), 16G and up uses Aikar's values for large heaps. Also turns on Compact Object Headers on Java 25 and later"
 default = true
+group = "saba-chan"
+
+[[settings.fields]]
+name = "java_gc"
+restart_required = true
+type = "select"
+label = "Garbage Collector"
+description = "G1 is faster for most servers. ZGC keeps GC pauses near zero but runs game code a little slower; consider it only for very large memory. ZGC needs Java 21 or later (G1 is used otherwise)"
+options = ["g1", "zgc"]
+default = "g1"
+visible_when = { field = "java_tuning", equals = true }
 group = "saba-chan"
 
 [[settings.fields]]

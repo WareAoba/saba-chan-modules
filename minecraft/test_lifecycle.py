@@ -2032,21 +2032,33 @@ def test_standard_profile_is_aikar_g1_without_coh_below_java_25(tmp_path, monkey
     assert "-XX:+UseCompactObjectHeaders" not in args
 
 
-def test_large_profile_uses_generational_zgc_from_java_21(tmp_path, monkeypatch):
-    """16G 이상: ZGC. 21·22는 세대별을 켜야 하고 23부터는 기본이다. 그보다 낮은 Java는 G1로 내려간다"""
+def test_large_profile_is_g1_with_aikar_values_for_big_heaps(tmp_path, monkeypatch):
+    """16G 이상: G1. Aikar 문서의 12GB 초과용 값을 쓴다 (PC 실측에서 같은 힙의 ZGC보다 틱이 빨랐다)"""
     args = _profile_args(tmp_path, monkeypatch, "16G", 25)
-    assert "-XX:+UseZGC" in args and "-XX:+ZGenerational" not in args and "-XX:+UseG1GC" not in args
+    assert "-XX:+UseG1GC" in args and "-XX:+UseZGC" not in args
+    for flag in ("-XX:G1NewSizePercent=40", "-XX:G1MaxNewSizePercent=50", "-XX:G1HeapRegionSize=16M",
+                 "-XX:G1ReservePercent=15", "-XX:InitiatingHeapOccupancyPercent=20"):
+        assert flag in args
+    assert "-XX:G1NewSizePercent=30" not in args and "-XX:G1HeapRegionSize=8M" not in args
+    assert "-Xms16G" in args and "-XX:+AlwaysPreTouch" in args and "-XX:+UseCompactObjectHeaders" in args
+
+
+@pytest.mark.parametrize("ram", ["4G", "8G", "16G"])
+def test_zgc_is_used_only_when_chosen(tmp_path, monkeypatch, ram):
+    """설정 java_gc = zgc면 힙 크기와 상관없이 세대별 ZGC (21·22는 -XX:+ZGenerational을 켜야 한다)"""
+    args = _profile_args(tmp_path, monkeypatch, ram, 21, java_gc="zgc")
+    assert "-XX:+UseZGC" in args and "-XX:+ZGenerational" in args and "-XX:+UseG1GC" not in args
     assert not any(a.startswith("-XX:G1") for a in args)
-    assert "-Xms16G" in args and "-XX:+UseCompactObjectHeaders" in args
+    assert f"-Xms{ram}" in args
 
 
-def test_large_profile_on_java_21_turns_on_generational_mode(tmp_path, monkeypatch):
-    args = _profile_args(tmp_path, monkeypatch, "20G", 21)
-    assert "-XX:+UseZGC" in args and "-XX:+ZGenerational" in args
+def test_zgc_on_java_25_is_generational_by_default(tmp_path, monkeypatch):
+    args = _profile_args(tmp_path, monkeypatch, "16G", 25, java_gc="zgc")
+    assert "-XX:+UseZGC" in args and "-XX:+ZGenerational" not in args and "-XX:+UseCompactObjectHeaders" in args
 
 
-def test_large_profile_falls_back_to_g1_on_old_java(tmp_path, monkeypatch):
-    args = _profile_args(tmp_path, monkeypatch, "16G", 17)
+def test_zgc_falls_back_to_g1_on_old_java(tmp_path, monkeypatch):
+    args = _profile_args(tmp_path, monkeypatch, "16G", 17, java_gc="zgc")
     assert "-XX:+UseZGC" not in args and "-XX:+UseG1GC" in args
 
 

@@ -299,6 +299,20 @@ def test_console_commands_require_what_the_console_needs():
     assert whitelist["inputs"][0]["options"] == ["list", "on", "off", "reload"]
 
 
+def test_gamerule_takes_any_rule_name_and_an_optional_value():
+    """`gamerule <rule name> [<value>]` (minecraft.wiki Commands/gamerule). 규칙 이름은 1.21.11(스냅숏 25w44a)부터
+    snake_case 리소스 위치로 바뀌어(doDaylightCycle → minecraft:advance_time) 고정 선택지는 어느 한쪽 버전에서
+    없는 규칙이 된다. 그래서 직접 입력이고, 값을 비우면 서버가 지금 값을 답한다"""
+    gamerule = command("gamerule")
+    assert gamerule["console_template"] == "gamerule {rule} {value}"
+    assert gamerule["risk"] == "caution"
+    assert required_inputs("gamerule") == ["rule"]
+    assert {i.get("type", "text") for i in gamerule["inputs"]} == {"text"}
+    for lang in ("de", "en", "es", "fr", "ja", "ko", "pt-BR", "ru", "zh-CN", "zh-TW"):
+        text = json.loads((pathlib.Path(__file__).parent / "locales" / f"{lang}.json").read_text(encoding="utf-8-sig"))["commands"]["gamerule"]
+        assert text["label"] and text["description"] and set(text["inputs"]) == {"rule", "value"}, lang
+
+
 def test_settings_removed_from_server_properties_name_their_last_version():
     """1.21.2가 없앤 설정(spawn-animals, spawn-npcs)과 1.21.9가 게임 규칙으로 옮긴 설정(pvp, allow-nether,
     spawn-monsters, enable-command-block)은 그 앞 버전까지만 있다고 밝힌다: 데몬이 설치된 버전에 없는 설정을 숨긴다.

@@ -135,6 +135,14 @@
       "description": "Change the time of day",
       "inputs": { "value": { "label": "Time" } }
     },
+    "gamerule": {
+      "label": "Game Rule",
+      "description": "Set a game rule, or show its current value when the value is empty",
+      "inputs": {
+        "rule": { "label": "Rule", "placeholder": "e.g. minecraft:advance_time (before 1.21.11: doDaylightCycle)" },
+        "value": { "label": "Value", "placeholder": "true, false or a number. Empty shows the current value" }
+      }
+    },
     "tp": {
       "label": "Teleport",
       "description": "Teleport a player",

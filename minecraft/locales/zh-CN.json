@@ -124,6 +124,14 @@
       "description": "更改一天中的时间",
       "inputs": { "value": { "label": "时间" } }
     },
+    "gamerule": {
+      "label": "游戏规则",
+      "description": "修改游戏规则；值为空时显示当前值",
+      "inputs": {
+        "rule": { "label": "规则", "placeholder": "例如 minecraft:advance_time（1.21.11 之前：doDaylightCycle）" },
+        "value": { "label": "值", "placeholder": "true、false 或数字。留空则显示当前值" }
+      }
+    },
     "tp": {
       "label": "传送",
       "description": "传送玩家",

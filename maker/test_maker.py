@@ -521,6 +521,17 @@ def test_check_commands_is_not_a_pass_without_the_servers_help(repo):
     assert "--help-output" in result["detail"]
 
 
+def test_check_commands_passes_a_module_without_a_console(repo):
+    """stdin이 없는 모듈(팰월드: REST만)에는 help를 보낼 콘솔이 없다. 실측(trial.py)과 같이 대조하지 않는다.
+    데몬이 보내지 않는 stop_command가 있어도 같다"""
+    folder = finished_module(repo)
+    path = folder / "module.toml"
+    path.write_text(path.read_text(encoding="utf-8").replace('supported = ["stdin"]', 'supported = ["rest"]'), encoding="utf-8")
+
+    assert statuses(check.static_gates(folder, repo))["commands"] == "ok"
+
+
+
 def test_check_reads_its_own_version_and_requirement():
     plugin = json.loads((MAKER / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
 

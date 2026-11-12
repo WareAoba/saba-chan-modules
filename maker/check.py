@@ -348,6 +348,8 @@ def commands_gate(folder, help_output=None, help_command="help"):
     manifest = read_manifest(folder / "module.toml")
     if manifest is None:
         return gate("commands", "fail", "module.toml을 읽지 못했다")
+    if not trial.has_console(manifest):
+        return gate("commands", "ok", "콘솔(stdin)이 없는 모듈")
     verbs = trial.console_verbs(manifest)
     if not verbs:
         return gate("commands", "ok", "콘솔로 보내는 명령이 없다")

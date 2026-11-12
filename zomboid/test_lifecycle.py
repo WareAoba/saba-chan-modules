@@ -410,6 +410,31 @@ def test_commands_go_to_the_console():
     stdin.assert_called_once_with("z", "players")
 
 
+def test_kick_and_ban_show_what_the_server_answered():
+    """데몬은 module 명령의 답에서 message만 호출자에게 돌려준다 (saba-chan command.rs run_module_command).
+    없는 사용자를 추방해도 성공 문구만 보이지 않게, 서버가 콘솔에 찍은 답을 message로 준다"""
+    from zomboid import lifecycle
+    answered = {"success": True, "data": {"response": "User ghost doesn't exist.", "executed": 'kick "ghost"'}}
+    with mock.patch.object(lifecycle, "daemon_stdin_command", return_value=answered):
+        result = lifecycle.command({"command": "kick", "args": {"player": "ghost"}, "instance_id": "z"})
+    assert (result["success"], result["message"]) == (True, "User ghost doesn't exist.")
+    # 서버가 아무 줄도 찍지 않으면(data가 null) 보냈다는 문구
+    with mock.patch.object(lifecycle, "daemon_stdin_command", return_value={"success": True, "data": None}):
+        result = lifecycle.command({"command": "banuser", "args": {"player": "rj"}, "instance_id": "z"})
+    assert 'banuser "rj"' in result["message"]
+
+
+def test_a_quote_in_kick_input_is_refused_as_an_invalid_argument():
+    """콘솔 템플릿이었을 때 데몬이 주던 거절과 같은 코드·칸·규칙: 화면·디스코드가 어느 칸이 왜 틀렸는지 알린다"""
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle, "daemon_stdin_command") as stdin:
+        refused = lifecycle.command({"command": "kick", "args": {"player": "rj", "reason": 'x" -r "y'}, "instance_id": "z"})
+    stdin.assert_not_called()
+    assert refused["success"] is False
+    assert (refused["error_code"], refused["field"], refused["rule"]) == ("invalid_argument", "reason", "quote")
+    assert refused["params"] == {"value": 'x" -r "y'}
+
+
 def test_kick_and_ban_without_a_reason_send_no_empty_reason():
     """서버는 빈 인자를 받지 않는다(CommandBase 인자 규칙 `(.+)`): `kick "이름" -r ""`는 명령 전체가 거절된다"""
     from zomboid import lifecycle

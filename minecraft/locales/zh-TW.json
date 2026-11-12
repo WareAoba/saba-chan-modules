@@ -126,10 +126,10 @@
     },
     "gamerule": {
       "label": "遊戲規則",
-      "description": "變更遊戲規則；值為空時顯示目前的值",
+      "description": "變更遊戲規則；值為空時在伺服器主控台顯示目前的值",
       "inputs": {
         "rule": { "label": "規則", "placeholder": "例如 minecraft:advance_time（1.21.11 之前：doDaylightCycle）" },
-        "value": { "label": "值", "placeholder": "true、false 或數字。留空則顯示目前的值" }
+        "value": { "label": "值", "placeholder": "true、false 或數字。留空則在主控台顯示目前的值" }
       }
     },
     "tp": {

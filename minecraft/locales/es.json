@@ -126,10 +126,10 @@
     },
     "gamerule": {
       "label": "Regla de juego",
-      "description": "Cambia una regla de juego o, si el valor está vacío, muestra su valor actual",
+      "description": "Cambia una regla de juego o, si el valor está vacío, muestra su valor actual en la consola del servidor",
       "inputs": {
         "rule": { "label": "Regla", "placeholder": "p. ej. minecraft:advance_time (antes de 1.21.11: doDaylightCycle)" },
-        "value": { "label": "Valor", "placeholder": "true, false o un número. Vacío muestra el valor actual" }
+        "value": { "label": "Valor", "placeholder": "true, false o un número. Vacío muestra el valor actual en la consola" }
       }
     },
     "tp": {

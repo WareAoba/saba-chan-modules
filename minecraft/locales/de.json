@@ -126,10 +126,10 @@
     },
     "gamerule": {
       "label": "Spielregel",
-      "description": "Eine Spielregel setzen oder bei leerem Wert ihren aktuellen Wert anzeigen",
+      "description": "Eine Spielregel setzen oder bei leerem Wert ihren aktuellen Wert in der Serverkonsole ausgeben",
       "inputs": {
         "rule": { "label": "Regel", "placeholder": "z. B. minecraft:advance_time (vor 1.21.11: doDaylightCycle)" },
-        "value": { "label": "Wert", "placeholder": "true, false oder eine Zahl. Leer zeigt den aktuellen Wert" }
+        "value": { "label": "Wert", "placeholder": "true, false oder eine Zahl. Leer gibt den aktuellen Wert in der Konsole aus" }
       }
     },
     "tp": {

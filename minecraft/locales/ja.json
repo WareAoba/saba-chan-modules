@@ -129,10 +129,10 @@
     },
     "gamerule": {
       "label": "ゲームルール",
-      "description": "ゲームルールを変更します。値が空なら現在の値を表示します",
+      "description": "ゲームルールを変更します。値が空なら現在の値をサーバーコンソールに表示します",
       "inputs": {
         "rule": { "label": "ルール", "placeholder": "例: minecraft:advance_time (1.21.11より前: doDaylightCycle)" },
-        "value": { "label": "値", "placeholder": "true、false または数値。空なら現在の値を表示" }
+        "value": { "label": "値", "placeholder": "true、false または数値。空ならコンソールに現在の値を表示" }
       }
     },
     "tp": {

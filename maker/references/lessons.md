@@ -10,7 +10,7 @@
 | 마인크래프트 초기화가 폴더의 다른 파일까지 지움 (modules #52) | "jar·eula.txt만 남기고 나머지 전부 삭제". 설치 폴더가 바탕화면이거나 인스턴스 폴더면 사용자 파일·데몬 백업까지 지움 | 서버가 만드는 이름만 목록으로 지움. 서버 폴더가 아니면 거절 (lifecycle.md §파괴 작업) |
 | 테라리아 Windows 설치가 Linux 서버를 풂 (modules #57 실측) | zip 구조를 커뮤니티 자료로 짐작하고 "실행 파일이 든 가장 짧은 경로"로 고름. `Linux/`에도 `TerrariaServer.exe`가 있음 | 배포물 목록을 직접 보고(`inspect_dist.py`) OS 폴더 이름으로 고름 (lifecycle.md §설치) |
 | 테라리아 공식 설정 파일을 못 읽어 시작 자체가 실패 (modules #57 실측) | "게임이 기본 파일을 만들지 않는다"고 보고 UTF-8 가정. 실제로는 cp1252 예시 파일이 동봉됨 | 동봉 파일의 원래 바이트를 확인하고(`inspect_dist.py`) 읽은 인코딩으로 다시 씀 (lifecycle.md §설정) |
-| 테라리아 명령 4개가 "Invalid command" (modules #57 실측) | 위키 명령 목록을 그대로 옮기고 서버 `help`와 대조하지 않음. 실제 명령 `seed`는 빠짐 | 실행해서 `help`와 한 줄씩 대조 (`probe_server.py --send help`) |
+| 테라리아 명령 4개가 "Invalid command" (modules #57 실측) | 위키 명령 목록을 그대로 옮기고 서버 `help`와 대조하지 않음. 실제 명령 `seed`는 빠짐 | 실행해서 `help`와 한 줄씩 대조 (`probe_server.py --send help` 뒤 `check.py --help-output`) |
 | 테라리아가 정식 설치에서 설정 파일을 못 고쳐 시작 실패 (modules #57 실측) | 단위 테스트는 격리 없이 돌았고, 격리된 비공식 모듈에서 공용 `atomic_write`(ReplaceFileW)가 액세스 거부 | PC 실측을 격리 실행으로(`trial.py`) 하고, 격리 실패는 데몬 문제로 보고 (testing.md) |
 | 테라리아 Windows 서버가 시작 즉시 죽음 (modules #57 실측) | 실행 전제(XNA Framework 4.0)를 조사하지 않음 | 실행 전제를 조사하고 고정 판을 서버 폴더에 둠 (설계 원칙 3, lifecycle.md §공통) |
 | 테라리아 명령·정지가 먹지 않고 정지가 60초 뒤 강제 종료 (modules #57 PC 실측) | Windows 서버가 파이프 stdin을 읽지 않음. Linux 실측(파이프로 동작)만 보고 Windows도 같다고 봄 | OS마다 콘솔 입력을 확인하고(`probe_server.py` "답 없음") 필요하면 `console = "pty"` |

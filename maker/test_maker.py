@@ -317,10 +317,11 @@ def statuses(results):
     return {r["gate"]: r["status"] for r in results}
 
 
-def test_check_static_passes_a_finished_module(repo):
+def test_check_static_passes_a_finished_module(repo, tmp_path):
     folder = finished_module(repo)
+    report = probe_report(tmp_path / "probe-report.json", [("help", ["say <message>", "save", "kick <player>", "quit"])])
 
-    result = statuses(check.static_gates(folder, repo))
+    result = statuses(check.static_gates(folder, repo, help_output=report))
 
     assert set(result.values()) == {"ok"}, result
 
@@ -480,6 +481,44 @@ def test_check_optional_flags_chat_send_without_the_function(repo):
         "FUNCTIONS = {", 'def send_chat(config):\n    return {"success": True}\n\n\n'
         'FUNCTIONS = {\n    "send_chat": send_chat,', 1), encoding="utf-8")
     assert {r["gate"]: r for r in check.static_gates(folder, repo)}["optional"]["status"] == "ok"
+
+
+def probe_report(path, sends):
+    """probe_server.py --out이 남기는 probe-report.json 모양"""
+    path.write_text(json.dumps({"sends": [{"command": c, "output": out, "answered": True, "error": None} for c, out in sends]}),
+                    encoding="utf-8")
+    return path
+
+
+def test_check_commands_flags_declared_commands_the_server_help_lacks(repo, tmp_path):
+    """틀은 say·save·kick·quit을 선언한다. 서버 help에 kick이 없으면 그 명령은 서버에서 Unknown command로 끝난다"""
+    folder = finished_module(repo)
+    # 시험으로 보낸 kick의 답(Unknown command: kick)이 help 대신 읽히면 안 된다
+    report = probe_report(tmp_path / "probe-report.json", [("help", ["/say <message>", "/save", "/quit"]),
+                                                            ("kick nobody", ["Unknown command: kick"])])
+
+    result = {r["gate"]: r for r in check.static_gates(folder, repo, help_output=report)}["commands"]
+
+    assert result["status"] == "fail"
+    assert "kick" in result["detail"] and "say" not in result["detail"]
+
+
+def test_check_commands_passes_with_a_saved_help_list(repo, tmp_path):
+    folder = finished_module(repo)
+    saved = tmp_path / "help.txt"
+    saved.write_text("say <message>\nsave\nkick <player> [reason]\nquit\n", encoding="utf-8")
+
+    assert statuses(check.static_gates(folder, repo, help_output=saved))["commands"] == "ok"
+
+
+def test_check_commands_is_not_a_pass_without_the_servers_help(repo):
+    """help 출력 없이는 잴 수 없다: 건너뛴 관문은 통과가 아니다"""
+    folder = finished_module(repo)
+
+    result = {r["gate"]: r for r in check.static_gates(folder, repo)}["commands"]
+
+    assert result["status"] == "skip"
+    assert "--help-output" in result["detail"]
 
 
 def test_check_reads_its_own_version_and_requirement():

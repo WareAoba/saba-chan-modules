@@ -410,6 +410,32 @@ def test_commands_go_to_the_console():
     stdin.assert_called_once_with("z", "players")
 
 
+def test_kick_and_ban_without_a_reason_send_no_empty_reason():
+    """서버는 빈 인자를 받지 않는다(CommandBase 인자 규칙 `(.+)`): `kick "이름" -r ""`는 명령 전체가 거절된다"""
+    from zomboid import lifecycle
+    sent = []
+    with mock.patch.object(lifecycle, "daemon_stdin_command", side_effect=lambda i, line: sent.append(line) or {}):
+        for name in ("kick", "banuser"):
+            assert lifecycle.command({"command": name, "args": {"player": "Rick Grimes"}, "instance_id": "z"})["success"]
+            assert lifecycle.command({"command": name, "args": {"player": "rj", "reason": "spawn kill"}, "instance_id": "z"})["success"]
+        # 따옴표는 서버가 인자를 가르는 글자다: 값에 있으면 보내지 않는다
+        refused = lifecycle.command({"command": "kick", "args": {"player": "rj", "reason": 'x" -r "y'}, "instance_id": "z"})
+    assert refused["success"] is False
+    assert sent == ['kick "Rick Grimes"', 'kick "rj" -r "spawn kill"', 'banuser "Rick Grimes"', 'banuser "rj" -r "spawn kill"']
+
+
+def test_console_templates_leave_no_empty_quotes_for_a_blank_input():
+    """데몬은 빈 선택 입력의 `{자리}`만 지운다: 따옴표로 감싼 자리는 `""`가 남아 서버가 빈 인자로 읽는다.
+    createhorde는 서버 콘솔에서 사용자명이 필수다 (pzwiki Admin commands)"""
+    blank = []
+    for field in _load_module_toml()["commands"]["fields"]:
+        for item in field.get("inputs", []):
+            optional = not item.get("required") and "default" not in item
+            if optional and '"{%s}"' % item["name"] in field.get("console_template", ""):
+                blank.append((field["name"], item["name"]))
+    assert blank == []
+
+
 # ─── 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식) ───
 
 def _highlighted(line, rules):

@@ -1426,8 +1426,8 @@ name = "kick"
 risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
-method = "console"
-console_template = "kick \"{player}\" -r \"{reason}\""
+# 콘솔 템플릿으로 두지 않는다: 빈 이유가 `-r ""`로 나가면 서버가 명령을 거절한다. lifecycle.command()가 이유가 있을 때만 -r을 붙인다
+method = "module"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional kick reason" }
@@ -1438,8 +1438,7 @@ name = "banuser"
 risk = "danger"
 label = "Ban Player"
 description = "Ban a player from the server"
-method = "console"
-console_template = "banuser \"{player}\" -r \"{reason}\""
+method = "module"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional ban reason" }
@@ -1512,7 +1511,7 @@ method = "console"
 console_template = "createhorde {count} \"{player}\""
 inputs = [
     { name = "count", type = "number", label = "Zombie Count", required = true, default = 50, min = 1, max = 500 },
-    { name = "player", type = "text", label = "Player (optional)", required = false, placeholder = "Target player" }
+    { name = "player", type = "text", label = "Player", required = true, placeholder = "Target player" }
 ]
 
 [[commands.fields]]

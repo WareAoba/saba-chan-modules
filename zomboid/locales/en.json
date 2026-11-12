@@ -187,7 +187,7 @@
       "description": "Spawn a zombie horde near a player",
       "inputs": {
         "count": { "label": "Zombie Count" },
-        "player": { "label": "Player (optional)", "placeholder": "Target player" }
+        "player": { "label": "Player", "placeholder": "Target player" }
       }
     },
     "godmod": {
@@ -245,6 +245,7 @@
     "settings_write_failed": "The server files were installed, but the selected settings could not be saved: {{error}}",
     "backup_paths_failed": "Could not read the save folder for backup: {{error}}",
     "player_not_found": "Player not found. Please check the username.",
+    "quote_not_allowed": "Names and reasons must not contain double quotes (\").",
     "connection_refused": "Cannot connect to the server. Please check that the server is running and the port is correct.",
     "timeout": "Server response timed out. Please check the server status.",
     "admin_password_required": "The first launch needs an admin password. Without one the server stops and waits for it in the console.",

@@ -598,7 +598,7 @@
           "label": "Nombre de zombies"
         },
         "player": {
-          "label": "Joueur (facultatif)",
+          "label": "Joueur",
           "placeholder": "Joueur ciblé"
         }
       }
@@ -706,6 +706,7 @@
     "data_home_unavailable": "Impossible de créer ou d'ouvrir le dossier de données du serveur. Vérifiez l'emplacement et les autorisations du dossier.",
     "settings_write_failed": "Les fichiers du serveur sont installés, mais les paramètres choisis n’ont pas pu être enregistrés : {{error}}",
     "player_not_found": "Joueur introuvable. Vérifiez le nom d'utilisateur.",
+    "quote_not_allowed": "Les noms et les motifs ne doivent pas contenir de guillemets doubles (\").",
     "connection_refused": "Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et que le port est correct.",
     "timeout": "Le serveur n'a pas répondu à temps. Vérifiez l'état du serveur.",
     "admin_password_required": "Le premier démarrage demande un mot de passe administrateur. Sans lui, le serveur s'arrête et l'attend dans la console.",

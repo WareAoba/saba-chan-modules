@@ -880,12 +880,31 @@ def read_properties(config):
     return {"success": True, "properties": mapped}
 
 
+# 이유(-r)가 선택인 명령. 서버는 빈 인자를 받지 않아(CommandBase 인자 규칙 `(.+)`) `kick "이름" -r ""`는 명령 전체를 거절한다.
+# 콘솔 템플릿은 빈 자리의 따옴표를 남기므로, 이유가 있을 때만 -r을 붙여 여기서 한 줄을 만든다
+_REASON_COMMANDS = ("kick", "banuser")
+
+
+def _reason_command_line(name, args):
+    """`kick "이름"` 또는 `kick "이름" -r "이유"`. 값에 따옴표가 있으면 None (서버가 따옴표로 인자를 가른다)"""
+    player = str(args.get("player") or "").strip()
+    reason = str(args.get("reason") or "").strip()
+    if '"' in player + reason:
+        return None
+    line = f'{name} "{player}"'
+    return f'{line} -r "{reason}"' if reason else line
+
+
 def command(config):
     """Send a command to the server console (stdin) through the daemon."""
-    cmd_name = config.get("command_name", "")
+    cmd_name = config.get("command_name", "") or config.get("command", "")
     cmd_text = config.get("command_text", "")
     instance_id = config.get("instance_id", "")
     actual_cmd = cmd_text or cmd_name
+    if cmd_name in _REASON_COMMANDS and not cmd_text:
+        actual_cmd = _reason_command_line(cmd_name, config.get("args") or {})
+        if actual_cmd is None:
+            return {"success": False, "message": i18n.t("errors.quote_not_allowed")}
     if not actual_cmd:
         return {"success": False, "message": i18n.t("errors.no_command")}
     if not instance_id:

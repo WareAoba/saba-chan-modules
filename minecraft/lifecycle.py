@@ -581,12 +581,14 @@ def _unescape_property(value):
     줄바꿈 \\n·\\r은 이스케이프 모양 그대로 둔다: 한 줄 값만 저장할 수 있어 진짜 줄바꿈으로 풀면 다시 저장하지 못한다"""
     def repl(m):
         s = m.group(1)
+        if len(s) == 11:  # 서러게이트 쌍(BMP 밖 글자)은 한 글자로 합친다
+            return chr(0x10000 + ((int(s[1:5], 16) - 0xD800) << 10) + int(s[7:], 16) - 0xDC00)
         if len(s) == 5:
             return chr(int(s[1:], 16))
         if s in "nr":
             return "\\" + s
         return {"t": "\t", "f": "\f"}.get(s, s)
-    return re.sub(r"\\(u[0-9a-fA-F]{4}|.)", repl, value)
+    return re.sub(r"\\(u[dD][89abAB][0-9a-fA-F]{2}\\u[dD][c-fC-F][0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|.)", repl, value)
 
 
 def _load_default_properties():
@@ -616,12 +618,20 @@ def _load_default_properties():
 DEFAULT_PROPERTIES = _load_default_properties()
 
 
+def _utf16_escapes(m):
+    """글자 하나를 `\\uXXXX`로 (BMP 밖은 서러게이트 쌍 두 개)"""
+    units = m.group(0).encode("utf-16-be", "surrogatepass").hex().upper()
+    return "".join("\\u" + units[i:i + 4] for i in range(0, len(units), 4))
+
+
 def _escape_property(value):
     """Java Properties.store(Writer)처럼 값을 쓴다: `\\`·`=`·`:`·`#`·`!` 앞에 `\\`, 맨 앞 공백도 이스케이프.
     서버가 쓰는 파일과 같은 모양(level-type=minecraft\\:normal)이 된다. 줄바꿈 이스케이프 \\n·\\r은 그대로 둔다
-    (_unescape_property가 풀지 않은 모양). 진짜 줄바꿈은 공용 도우미가 거부한다"""
+    (_unescape_property가 풀지 않은 모양). 진짜 줄바꿈은 공용 도우미가 거부한다.
+    ASCII가 아닌 글자는 Properties.store(OutputStream)처럼 `\\uXXXX`로 쓴다: 1.20 전 서버는 이 파일을 ISO 8859-1로 읽는다"""
     value = str(value)
     out = re.sub(r"\\(?![nr])|[=:#!]", lambda m: "\\" + m.group(0), value)
+    out = re.sub(r"[^\x00-\x7e]", _utf16_escapes, out)
     return "\\" + out if out.startswith(" ") else out
 
 
@@ -657,7 +667,7 @@ class ServerPropertiesManager:
             return False
 
     def update(self, changes):
-        """Merge changes into existing properties (preserves comments). 서버는 UTF-8로 읽으므로 UTF-8로 쓴다"""
+        """Merge changes into existing properties (preserves comments). 바꾼 값은 ASCII라 남은 줄의 인코딩(UTF-8)만 지킨다"""
         if not self.exists():
             merged = dict(DEFAULT_PROPERTIES)
             merged.update(changes)
@@ -1228,6 +1238,9 @@ def reset_properties(config):
 
     mgr = ServerPropertiesManager(working_dir)
     defaults = mgr.get_defaults()
+    # 포트는 이 서버의 값이다: 기본값(25565)으로 쓰면 데몬이 인스턴스 포트까지 되돌려 다른 서버와 겹친다
+    if config.get("port"):
+        defaults["server-port"] = str(config["port"])
     success = mgr.write(defaults)
     return {
         "success": success,
@@ -1369,14 +1382,24 @@ def stop(config):
     return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
+def _ping_host(config):
+    """Server List Ping을 보낼 주소. server.properties `enable-status=false`면 서버가 답하지 않으므로 None"""
+    props = ServerPropertiesManager(config.get("working_dir", "")).read() if config.get("working_dir") else {}
+    if props.get("enable-status", "").lower() == "false":
+        return None
+    # server-ip로 한 주소에만 묶었으면 127.0.0.1로는 닿지 않는다
+    bound = props.get("server-ip", "")
+    return bound if bound not in ("", "0.0.0.0", "::") else config.get("host", "127.0.0.1")
+
+
 def status(config):
     """Enhanced status with Server List Ping."""
     try:
         pid = config.get("pid")
         port = config.get("port", 25565)
-        host = config.get("host", "127.0.0.1")
+        host = _ping_host(config)
 
-        ping_result = MinecraftPing.ping(host, int(port), timeout=3)
+        ping_result = MinecraftPing.ping(host, int(port), timeout=3) if host else None
         if ping_result:
             players = ping_result.get("players", {})
             version = ping_result.get("version", {})
@@ -1397,6 +1420,9 @@ def status(config):
             }
 
         if pid and is_process_alive(pid):
+            if not host:
+                # 핑에 답하지 않는 설정: 시작 중과 가를 수 없어 프로세스가 살아 있으면 실행 중으로 본다
+                return {"success": True, "status": "running", "pid": pid}
             return {"success": True, "status": "starting", "pid": pid,
                     "online": False, "message": i18n.t("messages.server_starting_no_response")}
 
@@ -1420,13 +1446,10 @@ def status(config):
 
 def player_count(config):
     """접속자 수 (module.toml [status] players). 데몬이 켜진 서버에 1분마다 부른다 (Server List Ping)"""
-    props = ServerPropertiesManager(config.get("working_dir", "")).read() if config.get("working_dir") else {}
-    if props.get("enable-status", "").lower() == "false":
+    host = _ping_host(config)
+    if not host:
         # 핑에 답하지 않는 설정: 수는 모르지만 실패가 아니다 (실패로 답하면 데몬이 응답 없음으로 알린다)
         return {"success": True}
-    # server-ip로 한 주소에만 묶었으면 127.0.0.1로는 닿지 않는다
-    bound = props.get("server-ip", "")
-    host = bound if bound not in ("", "0.0.0.0", "::") else config.get("host", "127.0.0.1")
     ping_result = MinecraftPing.ping(host, int(config.get("port", 25565)), timeout=3)
     if not ping_result:
         return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
@@ -1448,7 +1471,7 @@ def player_count(config):
 # Paper·Spigot도 바닐라 ListPlayersCommand를 그대로 써서 문구가 같다(Paper 소스 ListPlayersCommand.java.patch는
 # 플레이어가 보낸 경우의 숨김 필터만 더한다). 플러그인이 표시 이름을 바꾸면 이름 규칙에 걸려 수만 답한다
 _LIST_PLAYERS_RE = re.compile(r"There are (\d+) of a max of (\d+) players online: ?(.*)$")
-_PLAYER_NAME_RE = re.compile(r"[A-Za-z0-9_]{1,16}")
+_PLAYER_NAME_RE = re.compile(r"[A-Za-z0-9_.\-]{1,16}")
 
 
 def _console_player_names(instance_id):
@@ -1543,24 +1566,18 @@ def get_installed_version(config):
 
 
 def command(config):
-    """Send a named command to the server console through the daemon."""
+    """정의에 없는 콘솔 한 줄. module.toml 명령은 전부 console이라 데몬이 직접 보내고, 켜진 서버에 콘솔도 RCON도
+    없을 때만 그 한 줄을 이 함수로 넘긴다 (saba-chan src/ipc/handlers/command.rs Plan::Raw). 데몬에 그대로 맡기고,
+    보낼 길이 없다는 코드(no_command_path)를 답에 실어 화면·디스코드가 자기 문구로 안내하게 한다"""
+    from daemon_rcon import daemon_stdin_command
+    line = config.get("command", "")
     try:
-        command_text = config.get("command")
-        args = config.get("args", {})
-        instance_id = config.get("instance_id")
-
-        if not command_text:
-            return {"success": False, "message": i18n.t("errors.no_command")}
-        if not instance_id:
-            return {"success": False, "message": i18n.t("errors.no_instance_id")}
-
-        formatted = _format_command(command_text, args)
-
-        from daemon_rcon import daemon_stdin_command
-        result = daemon_stdin_command(instance_id, formatted, timeout=5)
-        return {"success": result.get("success", True), "message": formatted}
+        daemon_stdin_command(config.get("instance_id", ""), line, timeout=5)
+    except PathOutside:
+        raise
     except Exception as e:
-        return {"success": False, "message": str(e)}
+        return {"success": False, "message": str(e), "error_code": getattr(e, "error_code", None)}
+    return {"success": True, "message": line}
 
 
 # § 서식 코드(§ 뒤 한 글자, 끝에 홀로 남은 § 포함)
@@ -1574,33 +1591,6 @@ def send_chat(config):
     name, text = (_SECTION_CODE.sub("", config.get(k, "")) for k in ("chat_name", "chat_text"))
     line = "tellraw @a " + json.dumps(["", {"text": f"<{name}> ", "color": "aqua"}, {"text": text}], ensure_ascii=False)
     return chat_reply(lambda: daemon_stdin_command(config.get("instance_id", ""), line, timeout=5), i18n)
-
-
-# ─── Helpers ──────────────────────────────────────────────────
-
-def _format_command(cmd, args):
-    """Format a named command with its arguments."""
-    formatters = {
-        "say": lambda a: f"say {a.get('message', '')}",
-        "give": lambda a: f"give {a.get('player', '')} {a.get('item', '')} {int(a.get('amount', 1))}",
-        "save-all": lambda _: "save-all",
-        "list": lambda _: "list",
-        "weather": lambda a: f"weather {a.get('type', 'clear')} {int(a.get('duration', 1000))}",
-        "difficulty": lambda a: f"difficulty {a.get('level', 'normal')}",
-        "whitelist": lambda a: f"whitelist {a.get('action', 'list')} {a.get('player', '')}".strip(),
-        "op": lambda a: f"op {a.get('player', '')}",
-        "deop": lambda a: f"deop {a.get('player', '')}",
-        "ban": lambda a: f"ban {a.get('player', '')} {a.get('reason', '')}".strip(),
-        "pardon": lambda a: f"pardon {a.get('player', '')}",
-        "kick": lambda a: f"kick {a.get('player', '')} {a.get('reason', '')}".strip(),
-        "tp": lambda a: f"tp {a.get('player', '')} {a.get('target', '')}".strip(),
-        "time": lambda a: f"time set {a.get('value', 'day')}",
-        "gamemode": lambda a: f"gamemode {a.get('mode', 'survival')} {a.get('player', '')}".strip(),
-        "seed": lambda _: "seed",
-        "stop": lambda _: "stop",
-    }
-    formatter = formatters.get(cmd)
-    return formatter(args) if formatter else cmd
 
 
 # ╔═══════════════════════════════════════════════════════════╗

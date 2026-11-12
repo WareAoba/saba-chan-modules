@@ -67,6 +67,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 ### `[install]` ○
 `method` (`"manual"` 기본 / `"download"`는 내장, 그 밖의 값은 그 방식을 처리하는 익스텐션 id, 예: `"steamcmd"`), `app_id`, `anonymous`(기본 true), `install_subdir`, `platform`, `download_url`, `beta`(지정하면 항상 이 브랜치로 설치), `requires_extensions`(필요한 익스텐션 id 목록).
+- `platform`은 받기만 하고 읽는 곳이 없다: steamcmd는 언제나 데몬이 도는 OS의 배포물을 받는다. 적지 않는다. 모듈이 도는 OS는 `[extensions.saba-core] platforms`로 선언한다.
 - 익스텐션 방식이면 데몬이 인스턴스 `extension_data`에 `install_method_<방식>`=true와 `<방식>_<필드>`(anonymous, app_id, beta, platform, download_url)를 쓴다. 서버 업데이트(`apply-update`)는 이런 인스턴스만 받는다.
 - 모듈 Python은 `import extensions.<이름>`으로 익스텐션을 쓴다. 활성화된 익스텐션만 import된다: 데몬이 넣는 import 가드가 나머지를 `ModuleNotFoundError`로 막는다(`-`와 `_`는 같다). 익스텐션을 쓰는 코드는 함수 안에서 import하고 `ImportError`를 "익스텐션 없음" 응답으로 바꾼다(palworld의 `ExtensionMissing` 참고).
 

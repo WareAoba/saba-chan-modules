@@ -880,12 +880,42 @@ def read_properties(config):
     return {"success": True, "properties": mapped}
 
 
+# 이유(-r)가 선택인 명령. 서버는 빈 인자를 받지 않아(CommandBase 인자 규칙 `(.+)`) `kick "이름" -r ""`는 명령 전체를 거절한다.
+# 콘솔 템플릿은 빈 자리의 따옴표를 남기므로, 이유가 있을 때만 -r을 붙여 여기서 한 줄을 만든다
+_REASON_COMMANDS = ("kick", "banuser")
+
+
+def _reason_command_line(name, args):
+    """`kick "이름"` 또는 `kick "이름" -r "이유"`"""
+    player = str(args.get("player") or "").strip()
+    reason = str(args.get("reason") or "").strip()
+    line = f'{name} "{player}"'
+    return f'{line} -r "{reason}"' if reason else line
+
+
+def _quote_refusal(args):
+    """값에 따옴표가 있으면 거절 답 (서버가 따옴표로 인자를 가른다). 데몬이 콘솔 템플릿의 따옴표 자리에 주는
+    거절(invalid_argument, rule = quote)과 같은 코드·칸·규칙이라 화면과 디스코드가 같은 문구로 알린다"""
+    for field in ("player", "reason"):
+        value = str(args.get(field) or "")
+        if '"' in value:
+            return {"success": False, "message": i18n.t("errors.quote_not_allowed"), "error_code": "invalid_argument",
+                    "field": field, "rule": "quote", "params": {"value": value}}
+    return None
+
+
 def command(config):
     """Send a command to the server console (stdin) through the daemon."""
-    cmd_name = config.get("command_name", "")
+    cmd_name = config.get("command_name", "") or config.get("command", "")
     cmd_text = config.get("command_text", "")
     instance_id = config.get("instance_id", "")
     actual_cmd = cmd_text or cmd_name
+    if cmd_name in _REASON_COMMANDS and not cmd_text:
+        args = config.get("args") or {}
+        refusal = _quote_refusal(args)
+        if refusal:
+            return refusal
+        actual_cmd = _reason_command_line(cmd_name, args)
     if not actual_cmd:
         return {"success": False, "message": i18n.t("errors.no_command")}
     if not instance_id:
@@ -896,7 +926,10 @@ def command(config):
         raise
     except Exception as e:
         return {"success": False, "message": i18n.t("errors.command_send_failed", error=str(e))}
-    return {"success": True, "message": i18n.t("messages.command_sent", command=actual_cmd), "data": result}
+    # 데몬은 module 명령의 답에서 message만 호출자에게 돌려준다: 서버가 콘솔에 찍은 답이 있으면 그것을 문구로 준다
+    data = result.get("data") if isinstance(result, dict) else None
+    answer = str(data.get("response") or "").strip() if isinstance(data, dict) else ""
+    return {"success": True, "message": answer or i18n.t("messages.command_sent", command=actual_cmd), "data": result}
 
 
 def diagnose_log(config):

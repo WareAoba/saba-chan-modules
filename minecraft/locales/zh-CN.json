@@ -154,7 +154,17 @@
     "whitelist": {
       "label": "白名单",
       "description": "管理服务器白名单",
-      "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名称" } }
+      "inputs": { "action": { "label": "操作" } }
+    },
+    "whitelist-add": {
+      "label": "添加到白名单",
+      "description": "将玩家添加到白名单",
+      "inputs": { "player": { "label": "玩家名称" } }
+    },
+    "whitelist-remove": {
+      "label": "从白名单移除",
+      "description": "将玩家从白名单移除",
+      "inputs": { "player": { "label": "玩家名称" } }
     },
     "seed": { "label": "显示种子", "description": "显示世界种子", "done": "世界种子：{{seed}}" },
     "stop": { "label": "停止", "description": "正常停止服务器" }
@@ -213,7 +223,6 @@
     "java_download_warning": "下载 Java {{version}} 失败：{{error}}。请手动安装 Java {{version}} 或更高版本。",
     "status_check_failed": "状态检查失败：{{error}}",
     "no_version": "未指定版本",
-    "no_instance_id": "未指定实例 ID",
     "version_info_unreadable": "无法从服务器 jar 读取版本信息",
     "version_not_found": "找不到版本 '{{version}}'",
     "version_no_server": "版本 {{version}} 没有专用服务器下载",

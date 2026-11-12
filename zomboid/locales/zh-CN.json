@@ -594,7 +594,7 @@
           "label": "僵尸数量"
         },
         "player": {
-          "label": "玩家（可选）",
+          "label": "玩家",
           "placeholder": "目标玩家"
         }
       }
@@ -706,6 +706,7 @@
     "data_home_unavailable": "无法创建或打开服务器数据文件夹。请检查文件夹位置和权限。",
     "settings_write_failed": "服务器文件已安装，但无法保存所选设置：{{error}}",
     "player_not_found": "找不到玩家。请检查用户名。",
+    "quote_not_allowed": "名称和原因中不能包含双引号 (\")。",
     "connection_refused": "无法连接到服务器。请确认服务器正在运行且端口正确。",
     "timeout": "服务器响应超时。请检查服务器状态。",
     "admin_password_required": "首次启动需要管理员密码。留空时服务器会停在控制台等待输入密码。",

@@ -203,7 +203,7 @@
       "description": "플레이어 근처에 좀비 무리를 생성합니다",
       "inputs": {
         "count": { "label": "좀비 수" },
-        "player": { "label": "플레이어 (선택)", "placeholder": "대상 플레이어" }
+        "player": { "label": "플레이어", "placeholder": "대상 플레이어" }
       }
     },
     "godmod": {
@@ -261,6 +261,7 @@
     "settings_write_failed": "서버 파일을 설치했지만 선택한 설정을 저장하지 못했습니다: {{error}}",
     "backup_paths_failed": "백업할 세이브 폴더를 읽지 못했습니다: {{error}}",
     "player_not_found": "플레이어를 찾을 수 없습니다. 사용자 이름을 확인해주세요.",
+    "quote_not_allowed": "이름과 사유에는 큰따옴표(\")를 쓸 수 없습니다.",
     "connection_refused": "서버에 연결할 수 없습니다. 서버가 실행 중인지, 포트가 맞는지 확인해주세요.",
     "timeout": "서버 응답 시간이 초과되었습니다. 서버 상태를 확인해주세요.",
     "admin_password_required": "첫 실행에는 관리자 비밀번호가 필요합니다. 비워 두면 서버가 콘솔에서 비밀번호를 기다리며 멈춥니다.",

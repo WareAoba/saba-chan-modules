@@ -41,6 +41,12 @@ def test_module_toml_required_sections_present():
         assert section in cfg, f"missing [{section}] section"
 
 
+def test_only_measured_os_is_declared():
+    """리눅스 데몬에서 만들기·시작을 막는다: 공식 start-server.sh는 java 줄 없이 ./ProjectZomboid64를 띄워
+    실행 스크립트 해석이 실패하고, 대체 경로는 LD_LIBRARY_PATH(linux64)·LD_PRELOAD를 주지 않는다. 리눅스는 실측한 적이 없다"""
+    assert _load_module_toml()["extensions"]["saba-core"]["platforms"] == ["windows"]
+
+
 # ─── 2. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
 
 def test_defaults_for_a_new_server_come_from_module_toml(tmp_path):
@@ -402,6 +408,57 @@ def test_commands_go_to_the_console():
         result = lifecycle.command({"command_text": "players", "instance_id": "z"})
     assert result["success"] is True
     stdin.assert_called_once_with("z", "players")
+
+
+def test_kick_and_ban_show_what_the_server_answered():
+    """데몬은 module 명령의 답에서 message만 호출자에게 돌려준다 (saba-chan command.rs run_module_command).
+    없는 사용자를 추방해도 성공 문구만 보이지 않게, 서버가 콘솔에 찍은 답을 message로 준다"""
+    from zomboid import lifecycle
+    answered = {"success": True, "data": {"response": "User ghost doesn't exist.", "executed": 'kick "ghost"'}}
+    with mock.patch.object(lifecycle, "daemon_stdin_command", return_value=answered):
+        result = lifecycle.command({"command": "kick", "args": {"player": "ghost"}, "instance_id": "z"})
+    assert (result["success"], result["message"]) == (True, "User ghost doesn't exist.")
+    # 서버가 아무 줄도 찍지 않으면(data가 null) 보냈다는 문구
+    with mock.patch.object(lifecycle, "daemon_stdin_command", return_value={"success": True, "data": None}):
+        result = lifecycle.command({"command": "banuser", "args": {"player": "rj"}, "instance_id": "z"})
+    assert 'banuser "rj"' in result["message"]
+
+
+def test_a_quote_in_kick_input_is_refused_as_an_invalid_argument():
+    """콘솔 템플릿이었을 때 데몬이 주던 거절과 같은 코드·칸·규칙: 화면·디스코드가 어느 칸이 왜 틀렸는지 알린다"""
+    from zomboid import lifecycle
+    with mock.patch.object(lifecycle, "daemon_stdin_command") as stdin:
+        refused = lifecycle.command({"command": "kick", "args": {"player": "rj", "reason": 'x" -r "y'}, "instance_id": "z"})
+    stdin.assert_not_called()
+    assert refused["success"] is False
+    assert (refused["error_code"], refused["field"], refused["rule"]) == ("invalid_argument", "reason", "quote")
+    assert refused["params"] == {"value": 'x" -r "y'}
+
+
+def test_kick_and_ban_without_a_reason_send_no_empty_reason():
+    """서버는 빈 인자를 받지 않는다(CommandBase 인자 규칙 `(.+)`): `kick "이름" -r ""`는 명령 전체가 거절된다"""
+    from zomboid import lifecycle
+    sent = []
+    with mock.patch.object(lifecycle, "daemon_stdin_command", side_effect=lambda i, line: sent.append(line) or {}):
+        for name in ("kick", "banuser"):
+            assert lifecycle.command({"command": name, "args": {"player": "Rick Grimes"}, "instance_id": "z"})["success"]
+            assert lifecycle.command({"command": name, "args": {"player": "rj", "reason": "spawn kill"}, "instance_id": "z"})["success"]
+        # 따옴표는 서버가 인자를 가르는 글자다: 값에 있으면 보내지 않는다
+        refused = lifecycle.command({"command": "kick", "args": {"player": "rj", "reason": 'x" -r "y'}, "instance_id": "z"})
+    assert refused["success"] is False
+    assert sent == ['kick "Rick Grimes"', 'kick "rj" -r "spawn kill"', 'banuser "Rick Grimes"', 'banuser "rj" -r "spawn kill"']
+
+
+def test_console_templates_leave_no_empty_quotes_for_a_blank_input():
+    """데몬은 빈 선택 입력의 `{자리}`만 지운다: 따옴표로 감싼 자리는 `""`가 남아 서버가 빈 인자로 읽는다.
+    createhorde는 서버 콘솔에서 사용자명이 필수다 (pzwiki Admin commands)"""
+    blank = []
+    for field in _load_module_toml()["commands"]["fields"]:
+        for item in field.get("inputs", []):
+            optional = not item.get("required") and "default" not in item
+            if optional and '"{%s}"' % item["name"] in field.get("console_template", ""):
+                blank.append((field["name"], item["name"]))
+    assert blank == []
 
 
 # ─── 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식) ───

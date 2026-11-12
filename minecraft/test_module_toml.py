@@ -194,6 +194,35 @@ def test_system_chat_join_and_leave_lines_are_counted():
     assert not any(p.search(head + "System chat: <Steve> Bob left the game") for p in LEAVE)
 
 
+def _event_name(patterns, line):
+    found = [m.group("name") for p in patterns if (m := p.search(line))]
+    return found[0] if found else None
+
+
+def test_bedrock_and_offline_names_join_leave_and_chat():
+    """Floodgate는 베드락 이름 앞에 `.`을 붙인다(Floodgate config.yml username-prefix 기본값). online-mode=false 서버는
+    `-` 같은 글자도 받는다. `/say`(`[이름] …`)·`/me`(`* 이름 …`) 줄은 접속·퇴장이 아니다"""
+    for head in HEADS:
+        for who in [".BedrockSteve", "Name-1"]:
+            assert _event_name(JOIN, head + who + " joined the game") == who, head
+            assert _event_name(JOIN, head + who + " (formerly known as .Old-Name) joined the game") == who, head
+            assert _event_name(LEAVE, head + who + " left the game") == who, head
+            assert _chat(head + f"<{who}> hello") == (who, "hello"), head
+        for spoof in ["[Steve] joined the game", "[Steve] left the game", "* joined the game", "* left the game",
+                      "[.Steve] X joined the game", "<.Steve> X left the game"]:
+            assert _event_name(JOIN, head + spoof) is None and _event_name(LEAVE, head + spoof) is None, spoof
+        # 접속 이름은 데몬 자동 강퇴의 `kick {player}` 인자가 된다: 대상 선택자(`@a`)가 이름으로 잡히면 전원 강퇴다
+        for selector in ["@a", "@e", "@p", "Steve;stop", "@a[limit=1]"]:
+            assert _event_name(JOIN, head + selector + " joined the game") is None, selector
+            assert _event_name(LEAVE, head + selector + " left the game") is None, selector
+            assert _chat(head + f"<{selector}> hello") is None, selector
+    head = HEADS[0]
+    assert highlight("player_join", head + ".BedrockSteve joined the game") == ".BedrockSteve"
+    assert highlight("player_leave", head + ".BedrockSteve left the game") == ".BedrockSteve"
+    assert highlight("player_login", head + ".BedrockSteve[/127.0.0.1:57348] logged in with entity id 21 at (0.5, 68.0, 0.5)") == ".BedrockSteve"
+    assert highlight("player_disconnect_reason", head + ".BedrockSteve lost connection: Disconnected") == "Disconnected"
+
+
 def test_player_events_are_bound_to_the_message_start():
     head = HEADS[0]
     assert highlight("player_join", head + "SabaBot joined the game") == "SabaBot"
@@ -244,3 +273,26 @@ def test_advancement_challenge_and_goal_titles_are_highlighted():
     assert highlight("advancement", head + "Steve has made the advancement [Isn't It Iron Pick]") == "Isn't It Iron Pick"
     assert highlight("advancement", head + "Steve has completed the challenge [Adventuring Time]") == "Adventuring Time"
     assert highlight("advancement", head + "Steve has reached the goal [Who's the Pillager Now?]") == "Who's the Pillager Now?"
+
+
+def command(name):
+    return next(f for f in MANIFEST["commands"]["fields"] if f["name"] == name)
+
+
+def required_inputs(name):
+    return [i["name"] for i in command(name).get("inputs", []) if i.get("required")]
+
+
+def test_console_commands_require_what_the_console_needs():
+    """콘솔은 실행 주체가 플레이어가 아니라 대상 없는 `gamemode <mode>`가 실패하고,
+    `whitelist add|remove`는 <targets>가 있어야 한다 (minecraft.wiki Commands/gamemode·Commands/whitelist).
+    빈 칸으로 보내 서버가 거절하게 두지 않고 데몬이 먼저 '필수'로 막는다"""
+    assert required_inputs("gamemode") == ["mode", "player"]
+    assert command("whitelist-add")["console_template"] == "whitelist add {player}"
+    assert command("whitelist-remove")["console_template"] == "whitelist remove {player}"
+    assert required_inputs("whitelist-add") == required_inputs("whitelist-remove") == ["player"]
+    # 인자가 없는 나머지 동작만 `whitelist`에 남는다
+    whitelist = command("whitelist")
+    assert whitelist["console_template"] == "whitelist {action}"
+    assert [i["name"] for i in whitelist["inputs"]] == ["action"]
+    assert whitelist["inputs"][0]["options"] == ["list", "on", "off", "reload"]

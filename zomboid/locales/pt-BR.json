@@ -598,7 +598,7 @@
           "label": "Quantidade de zumbis"
         },
         "player": {
-          "label": "Jogador (opcional)",
+          "label": "Jogador",
           "placeholder": "Jogador alvo"
         }
       }
@@ -706,6 +706,7 @@
     "data_home_unavailable": "Não foi possível criar ou abrir a pasta de dados do servidor. Verifique o local e as permissões da pasta.",
     "settings_write_failed": "Os arquivos do servidor foram instalados, mas não foi possível salvar as configurações escolhidas: {{error}}",
     "player_not_found": "Jogador não encontrado. Verifique o nome de usuário.",
+    "quote_not_allowed": "Nomes e motivos não podem conter aspas duplas (\").",
     "connection_refused": "Não foi possível conectar ao servidor. Verifique se o servidor está em execução e se a porta está correta.",
     "timeout": "O servidor demorou demais para responder. Verifique o status do servidor.",
     "admin_password_required": "A primeira inicialização precisa de uma senha de administrador. Sem ela, o servidor para esperando a senha no console.",

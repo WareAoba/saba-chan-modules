@@ -44,6 +44,9 @@ snapshots = true
 
 [extensions.saba-core]
 data_roots = ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
+# 실서버로 확인한 OS. 리눅스는 실측 전이라 막는다: 공식 start-server.sh는 java를 직접 부르지 않고 LD_LIBRARY_PATH(linux64·natives·jre64/lib/amd64)와
+# LD_PRELOAD=libjsig.so를 준 뒤 ./ProjectZomboid64(ProjectZomboid64.json)를 띄우는데, lifecycle.py는 java 줄만 해석하고 대체 경로는 이 환경을 주지 않는다
+platforms = ["windows"]
 # 돌아가는 CPU (saba-chan 0.1.12 architectures). x86_64만 있는 이유: 설치에 쓰는 SteamCMD가 32비트 x86이고, 서버가 동봉 x86_64 JRE(jre64)로 돈다. 에뮬레이션은 하지 않는다
 architectures = ["x86_64"]
 # 접속·퇴장 (상황판 접속자 수, 데몬이 이 줄로 센다). 형식 근거: CubeCoders AMPTemplates project-zomboid.kvp UserJoinRegex·UserLeaveRegex
@@ -63,7 +66,6 @@ method = "steamcmd"
 app_id = 380870
 anonymous = true
 install_subdir = "server"
-platform = "windows"
 requires_extensions = ["steamcmd"]
 
 [detection]
@@ -1423,8 +1425,8 @@ name = "kick"
 risk = "danger"
 label = "Kick Player"
 description = "Kick a player from the server"
-method = "console"
-console_template = "kick \"{player}\" -r \"{reason}\""
+# 콘솔 템플릿으로 두지 않는다: 빈 이유가 `-r ""`로 나가면 서버가 명령을 거절한다. lifecycle.command()가 이유가 있을 때만 -r을 붙인다
+method = "module"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional kick reason" }
@@ -1435,8 +1437,7 @@ name = "banuser"
 risk = "danger"
 label = "Ban Player"
 description = "Ban a player from the server"
-method = "console"
-console_template = "banuser \"{player}\" -r \"{reason}\""
+method = "module"
 inputs = [
     { name = "player", type = "text", label = "Player Name", required = true, placeholder = "Player username" },
     { name = "reason", type = "text", label = "Reason", required = false, placeholder = "Optional ban reason" }
@@ -1509,7 +1510,7 @@ method = "console"
 console_template = "createhorde {count} \"{player}\""
 inputs = [
     { name = "count", type = "number", label = "Zombie Count", required = true, default = 50, min = 1, max = 500 },
-    { name = "player", type = "text", label = "Player (optional)", required = false, placeholder = "Target player" }
+    { name = "player", type = "text", label = "Player", required = true, placeholder = "Target player" }
 ]
 
 [[commands.fields]]

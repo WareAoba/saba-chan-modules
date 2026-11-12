@@ -389,6 +389,21 @@ def test_every_daemon_function_is_registered():
     assert DAEMON_FUNCTIONS <= set(FUNCTIONS), sorted(DAEMON_FUNCTIONS - set(FUNCTIONS))
 
 
+def test_a_console_line_without_a_command_path_says_so():
+    """켜진 서버에 콘솔도 RCON도 없으면(데몬 재시작 뒤 다시 붙은 서버) 데몬은 정의에 없는 콘솔 한 줄을
+    lifecycle `command`로 넘긴다 (saba-chan src/ipc/handlers/command.rs Plan::Raw). 그때 "Unknown function"이 아니라
+    화면·디스코드가 아는 코드(no_command_path)로 실패한다"""
+    import daemon_rcon
+    from minecraft import lifecycle
+    refused = ConnectionError("Daemon host request failed (no_command_path): no console or RCON")
+    refused.error_code = "no_command_path"
+    with mock.patch.object(daemon_rcon, "daemon_stdin_command", side_effect=refused) as stdin:
+        result = lifecycle.FUNCTIONS["command"]({"command": "foo bar", "args": {}, "instance_id": "x"})
+    stdin.assert_called_once_with("x", "foo bar", timeout=5)
+    assert (result["success"], result["error_code"]) == (False, "no_command_path")
+    assert "no_command_path" in result["message"]
+
+
 def test_cli_unknown_function_returns_json_with_zero_exit():
     import daemon_rcon
     import i18n
@@ -478,6 +493,27 @@ def test_status_does_not_signal_process():
         result = lifecycle.status({"pid": 1234, "port": 25565})
     assert result["status"] == "starting"
     alive.assert_called_once_with(1234)
+
+
+def test_status_pings_the_address_the_server_listens_on(tmp_path):
+    """관리형 시작을 끈 서버: server-ip로 묶은 주소로 핑해야 '시작 중'에 머물지 않는다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("server-ip=192.168.0.10\n", encoding="utf-8")
+    ping = {"players": {"online": 1, "max": 20}, "version": {"name": "1.21"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping) as p:
+        result = lifecycle.status({"pid": 1234, "port": 25565, "working_dir": str(tmp_path)})
+    assert result["status"] == "running"
+    p.assert_called_once_with("192.168.0.10", 25565, timeout=3)
+
+
+def test_status_without_server_list_ping_follows_the_process(tmp_path):
+    """enable-status=false면 핑에 답하지 않는다: 프로세스가 살아 있으면 실행 중이다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("enable-status=false\n", encoding="utf-8")
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", side_effect=AssertionError("pinged")), \
+         mock.patch.object(lifecycle, "is_process_alive", return_value=True):
+        result = lifecycle.status({"pid": 1234, "port": 25565, "working_dir": str(tmp_path)})
+    assert (result["success"], result["status"]) == (True, "running")
 
 
 def test_ping_closes_socket_on_error():
@@ -761,6 +797,19 @@ def test_player_count_names_the_players_from_the_console_list():
         result = lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})
     send.assert_called_once_with("i1", "list", timeout=5)
     assert result == {"success": True, "online": 2, "max": 20, "players": [{"name": "Steve"}, {"name": "Alex_99"}]}
+
+    # Floodgate 베드락 이름(`.` 접두사)이 섞여 있어도 이름을 답한다
+    bedrock = {"success": True, "data": {"response": "There are 2 of a max of 20 players online: Steve, .BedrockSteve"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping), \
+         mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=bedrock):
+        assert lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})["players"] == \
+            [{"name": "Steve"}, {"name": ".BedrockSteve"}]
+
+    # 대상 선택자처럼 보이는 이름(`@a`)은 이름으로 답하지 않는다: 데몬 자동 강퇴의 `kick {player}` 인자가 된다
+    selector = {"success": True, "data": {"response": "There are 2 of a max of 20 players online: Steve, @a"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping), \
+         mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=selector):
+        assert "players" not in lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})
 
     # 아무도 없으면 이름 칸이 빈다
     empty = {"success": True, "data": {"response": "There are 0 of a max of 20 players online: "}}
@@ -1333,7 +1382,7 @@ def test_command_risks_follow_user_rule():
     risks = {n: c.get("risk") for n, c in fields.items()}
     expected = {"safe": ("say", "list", "seed", "save-all", "save-flush", "save-on", "weather", "time"),
                 "caution": ("save-off", "difficulty", "give", "tp"),
-                "danger": ("kick", "gamemode", "ban", "pardon", "op", "deop", "whitelist", "stop")}
+                "danger": ("kick", "gamemode", "ban", "pardon", "op", "deop", "whitelist", "whitelist-add", "whitelist-remove", "stop")}
     for risk, names in expected.items():
         for name in names:
             assert risks[name] == risk, name
@@ -1709,6 +1758,29 @@ def test_server_properties_values_use_java_escapes():
         assert "level-type=minecraft\\:normal\n" in open(os.path.join(tmpdir, "server.properties"), encoding="utf-8").read()
 
 
+def test_non_ascii_values_are_written_as_unicode_escapes():
+    """1.20 전 서버는 server.properties를 ISO 8859-1로 읽는다(1.20 Pre-release 1 변경 기록: UTF-8로 먼저 읽고
+    ISO 8859-1로 다시 읽는다). `\\uXXXX`로 쓰면 두 쪽 모두 같은 글자로 읽는다. 이모지는 서러게이트 쌍으로 쓴다"""
+    from minecraft.lifecycle import ServerPropertiesManager, configure, import_settings
+    motd = "한글 서버 \U0001F600"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "server.properties")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("motd=old\n")
+        assert configure({"working_dir": tmpdir, "settings": {"motd": motd}})["success"]
+        raw = open(path, "rb").read()
+        assert b"motd=\\uD55C\\uAE00 \\uC11C\\uBC84 \\uD83D\\uDE00\n" in raw
+        assert raw.decode("iso-8859-1") == raw.decode("utf-8")
+        assert import_settings({"working_dir": tmpdir})["settings"]["motd"] == motd
+        # 읽은 값을 그대로 다시 저장할 수 있다
+        assert configure({"working_dir": tmpdir, "settings": {"motd": ServerPropertiesManager(tmpdir).read()["motd"]}})["success"]
+        assert ServerPropertiesManager(tmpdir).read()["motd"] == motd
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ServerPropertiesManager(tmpdir).write({"motd": motd})
+        assert open(os.path.join(tmpdir, "server.properties"), "rb").read().isascii()
+        assert ServerPropertiesManager(tmpdir).read()["motd"] == motd
+
+
 def test_an_escaped_line_break_survives_import_and_save():
     """motd=a\\nb(두 줄 MOTD)는 가져온 값 그대로 다시 저장할 수 있다. 진짜 줄바꿈으로 풀면 공용 도우미가 거부한다"""
     from minecraft.lifecycle import ServerPropertiesManager, configure, import_settings
@@ -1981,3 +2053,14 @@ def test_send_chat_tells_everyone_with_tellraw_json():
 
     with mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value={"success": False, "message": "not running"}):
         assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False
+
+
+def test_reset_properties_keeps_this_servers_port(tmp_path):
+    """설정 초기화 뒤에도 이 서버의 포트(config port)는 그대로다. 기본값 25565로 쓰면 데몬이 파일을 다시 읽어
+    인스턴스 포트까지 25565로 맞추고, 포트를 옮겨 둔 둘째 서버가 첫 서버와 겹친다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("server-port=25570\nmotd=mine\n", encoding="utf-8")
+    assert lifecycle.reset_properties({"working_dir": str(tmp_path), "port": 25570})["success"]
+    props = lifecycle.ServerPropertiesManager(str(tmp_path)).read()
+    assert props["server-port"] == "25570"
+    assert props["motd"] == lifecycle.DEFAULT_PROPERTIES["motd"]

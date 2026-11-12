@@ -165,7 +165,17 @@
     "whitelist": {
       "label": "Whitelist",
       "description": "Manage the server whitelist",
-      "inputs": { "action": { "label": "Action" }, "player": { "label": "Player Name" } }
+      "inputs": { "action": { "label": "Action" } }
+    },
+    "whitelist-add": {
+      "label": "Whitelist Add",
+      "description": "Add a player to the whitelist",
+      "inputs": { "player": { "label": "Player Name" } }
+    },
+    "whitelist-remove": {
+      "label": "Whitelist Remove",
+      "description": "Remove a player from the whitelist",
+      "inputs": { "player": { "label": "Player Name" } }
     },
     "seed": { "label": "Show Seed", "description": "Display the world seed", "done": "World seed: {{seed}}" },
     "stop": { "label": "Stop", "description": "Gracefully stop the server" }
@@ -224,7 +234,6 @@
     "java_download_warning": "Failed to download Java {{version}}: {{error}}. Please install Java {{version}} or later manually.",
     "status_check_failed": "Status check failed: {{error}}",
     "no_version": "No version specified",
-    "no_instance_id": "No instance ID specified",
     "version_info_unreadable": "Could not read version info from the server jar",
     "version_not_found": "Version '{{version}}' not found",
     "version_no_server": "Version {{version}} has no dedicated server download",

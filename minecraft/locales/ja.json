@@ -157,7 +157,17 @@
     "whitelist": {
       "label": "ホワイトリスト",
       "description": "サーバーのホワイトリストを管理します",
-      "inputs": { "action": { "label": "操作" }, "player": { "label": "プレイヤー名" } }
+      "inputs": { "action": { "label": "操作" } }
+    },
+    "whitelist-add": {
+      "label": "ホワイトリストに追加",
+      "description": "プレイヤーをホワイトリストに追加します",
+      "inputs": { "player": { "label": "プレイヤー名" } }
+    },
+    "whitelist-remove": {
+      "label": "ホワイトリストから削除",
+      "description": "プレイヤーをホワイトリストから削除します",
+      "inputs": { "player": { "label": "プレイヤー名" } }
     },
     "seed": { "label": "シード表示", "description": "ワールドのシード値を表示します", "done": "ワールドシード: {{seed}}" },
     "stop": { "label": "停止", "description": "サーバーを正常に停止します" }
@@ -216,7 +226,6 @@
     "java_download_warning": "Java {{version}} のダウンロードに失敗しました: {{error}}。Java {{version}} 以降を手動でインストールしてください。",
     "status_check_failed": "状態の確認に失敗しました: {{error}}",
     "no_version": "バージョンが指定されていません",
-    "no_instance_id": "インスタンス ID が指定されていません",
     "version_info_unreadable": "サーバー jar からバージョン情報を読み取れません",
     "version_not_found": "バージョン '{{version}}' が見つかりません",
     "version_no_server": "バージョン {{version}} には専用サーバーのダウンロードがありません",

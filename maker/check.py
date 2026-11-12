@@ -8,7 +8,7 @@
 
 - 정적 관문: 틀 자리표시가 남았는지, 조사 표에 출처 URL이 있는지, 10개 언어 파일과 한국어 번역, 모듈 테스트 등록,
   버전을 올리지 않았는지(새 모듈은 0.1.0, 있던 모듈은 `--base`와 같은 버전), 선언한 콘솔 명령이 서버 `help` 출력에
-  있는지(`--help-output`: `probe_server.py`의 `probe-report.json` 또는 저장한 텍스트)
+  있는지(`--help-output`: `probe_server.py`의 `probe-report.json` 또는 저장한 텍스트, 주지 않고 `--trial`이면 실측 help 결과)
 - 도구 관문: 모듈 테스트(`pytest <모듈>`), 적합성 키트(`pytest conformance --module`), saba-core가 이 메이커의 요구
   버전(`SKILL.md` metadata)을 맞추는지(compat), `saba-core module validate`, `saba-core module audit`,
   `--trial`이면 실측(`conformance/trial.py`)
@@ -368,6 +368,19 @@ def commands_gate(folder, help_output=None, help_command="help"):
     return gate("commands", "ok", f"선언한 콘솔 명령 {len(verbs)}개가 help에 있다")
 
 
+def with_trial_help(results, trial_out):
+    """help 출력 없이 건너뛴 commands 관문을 --trial의 help 단계(진짜 서버에 help를 보내 같은 규칙으로 대조)로 채운다"""
+    try:
+        steps = json.loads((pathlib.Path(trial_out) / "trial-report.json").read_text(encoding="utf-8"))["steps"]
+    except (OSError, ValueError, KeyError):
+        return results
+    step = next((s for s in steps if s.get("name") == "help"), None)
+    if step is None:
+        return results
+    measured = gate("commands", "ok" if step["status"] == "ok" else "fail", f"실측 help: {step['detail']}")
+    return [measured if r["gate"] == "commands" and r["status"] == "skip" else r for r in results]
+
+
 def static_gates(folder, repo=REPO, base=None, help_output=None, help_command="help"):
     folder, repo = pathlib.Path(folder).resolve(), pathlib.Path(repo).resolve()
     return [placeholders_gate(folder), research_gate(folder), locales_gate(folder), tests_gate(folder, repo),
@@ -401,6 +414,8 @@ def tool_gates(folder, repo, args):
         results.append(run("module-validate", [args.saba_core, "module", "validate", str(folder)], repo, env))
         results.append(run("module-audit", [args.saba_core, "module", "audit", str(folder)], repo, env))
         if args.trial:
+            # 이전 실측의 보고서를 이번 help 결과로 읽지 않게 한다
+            (pathlib.Path(args.trial_out) / "trial-report.json").unlink(missing_ok=True)
             trial = [python, str(repo / "conformance" / "trial.py"), str(folder), "--saba-core", args.saba_core,
                      "--out", str(pathlib.Path(args.trial_out).resolve())]
             for agreement in args.accept_agreement:
@@ -465,6 +480,8 @@ def main():
     results = static_gates(folder, repo, args.base or default_base(repo), args.help_output, args.help_command)
     if not args.static_only:
         results += tool_gates(folder, REPO, args)
+        if args.trial:
+            results = with_trial_help(results, args.trial_out)
     report = markdown(folder, results, newer_release())
     if args.out:
         pathlib.Path(args.out).write_text(report, encoding="utf-8")

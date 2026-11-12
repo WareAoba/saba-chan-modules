@@ -105,7 +105,7 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
    ```
    python maker/check.py <name> --saba-core <saba-core> --trial [--accept-agreement <id>]
    ```
-   (`conformance/trial.py`를 부른다.) Windows에서 설치된 사바쨩의 `saba-core.exe`(옆에 `saba-runner.exe`)를 주면 실제 AppContainer 격리로 돈다.
+   (`conformance/trial.py`를 부른다.) `--help-output`을 주지 않으면 실측의 help 대조 결과가 commands 관문이 된다. Windows에서 설치된 사바쨩의 `saba-core.exe`(옆에 `saba-runner.exe`)를 주면 실제 AppContainer 격리로 돈다.
    설치된 사바쨩의 데이터·포트는 건드리지 않는다. `trial-report/trial-report.md`를 PR 본문에 붙인다.
    실측이 끝나면 저장 로그를 모아 콘솔 하이라이트 규칙을 만든다(manifest.md §콘솔 하이라이트, 관문 13).
 10. **마무리** → testing.md §마무리. 보고에 조사 표, 옮기지 못한 것과 이유, 확인 못 한 것, 실행한 검사와 결과를 적는다.

@@ -531,6 +531,23 @@ def test_check_commands_passes_a_module_without_a_console(repo):
     assert statuses(check.static_gates(folder, repo))["commands"] == "ok"
 
 
+def test_check_commands_takes_the_trial_help_result(tmp_path):
+    """--trial은 진짜 서버에 help를 보내 같은 규칙으로 대조한다. help 출력을 따로 주지 않았으면 그 결과가 commands 관문이다"""
+    skipped = [check.gate("placeholders", "ok"), check.gate("commands", "skip", "서버 help 출력이 없다")]
+    out = tmp_path / "trial-report"
+    out.mkdir()
+
+    def with_help(status, detail):
+        (out / "trial-report.json").write_text(json.dumps({"steps": [{"name": "help", "status": status, "detail": detail}]}),
+                                               encoding="utf-8")
+        return statuses(check.with_trial_help(skipped, out)), check.with_trial_help(skipped, out)[1]["detail"]
+
+    assert with_help("ok", "선언한 콘솔 명령 4개가 help에 있다")[0] == {"placeholders": "ok", "commands": "ok"}
+    gaps, detail = with_help("warn", "help에 없는 선언 명령: kick")
+    assert gaps["commands"] == "fail" and "kick" in detail
+    (out / "trial-report.json").unlink()
+    assert check.with_trial_help(skipped, out) == skipped
+
 
 def test_check_reads_its_own_version_and_requirement():
     plugin = json.loads((MAKER / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))

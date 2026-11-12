@@ -953,12 +953,30 @@ def diagnose_log(config):
             "lines_analyzed": len(log_lines)}
 
 
+# 서버마다 고를 수 있는 Steam 브랜치 (첫 항목이 기본). 이름은 locales `versions.<id>`.
+# public·unstable·legacy41: projectzomboid.com 42.20 공지 (Build 41로 남을 서버 주인은 legacy41 베타 채널을 고른다)
+STEAM_BRANCHES = ("public", "unstable", "legacy41")
+
+
+def list_versions(config):
+    """고를 수 있는 Steam 브랜치. 앱의 "서버 버전" 칸이 보이고, 고른 id가 `install_server`의 `version`으로 온다."""
+    return {
+        "success": True,
+        "versions": [{"id": branch, "name": i18n.t(f"versions.{branch}")} for branch in STEAM_BRANCHES],
+        "latest": {"release": STEAM_BRANCHES[0]},
+    }
+
+
 def install_server(config):
     """Install/update the Project Zomboid dedicated server via SteamCMD.
 
     Uses the saba-chan SteamCMD extension for portable, automatic download
-    (Steam app, anonymous login and branch come from module.toml [install]).
+    (Steam app and anonymous login come from module.toml [install]).
+    `version`: 받을 Steam 브랜치(`list_versions`의 id). 없으면 module.toml [install]의 브랜치(없으면 정식).
     """
+    branch = config.get("version") or None
+    if branch is not None and branch not in STEAM_BRANCHES:
+        return {"success": False, "message": i18n.t("errors.unknown_branch", branch=branch)}
     install_dir = config.get("install_dir", "")
     if not install_dir:
         working_dir = config.get("working_dir", "")
@@ -976,7 +994,8 @@ def install_server(config):
         return {"success": False, "message": i18n.t("errors.extension_not_enabled"),
                 "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
     try:
-        result = install_for_module(MODULE_DIR, install_dir)
+        # 정식으로 돌아갈 때도 브랜치 이름(public)을 적어 넘긴다: -beta 없이 받으면 받아 둔 브랜치에 머문다
+        result = install_for_module(MODULE_DIR, install_dir, beta=branch)
     except PathOutside:
         raise
     except Exception as e:
@@ -1177,6 +1196,7 @@ FUNCTIONS = {
     "config_files":       config_files,
     "read_properties":    read_properties,
     "diagnose_log":       diagnose_log,
+    "list_versions":      list_versions,
     "install_server":     install_server,
     "reset_server":       reset_server,
     "reset_preview":      reset_preview,

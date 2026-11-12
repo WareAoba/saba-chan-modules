@@ -719,6 +719,7 @@
     "server_reset_partial": "Certains éléments n'ont pas pu être supprimés : {{errors}}",
     "invalid_server_name": "Ce nom de serveur ne peut pas être utilisé : {{name}}. Utilisez un nom sans séparateur de dossier (/ \\), ':' ni '..', qui ne se termine pas par un espace ou un point",
     "extension_not_enabled": "L'extension SteamCMD n'est pas activée. Activez-la d'abord dans Paramètres → Extensions.",
+    "unknown_branch": "Cette branche ne peut pas être choisie : {{branch}}",
     "detect": {
       "out_of_memory": "Le serveur manque de mémoire (OutOfMemoryError)",
       "port_in_use": "Le port {{port}} est déjà utilisé par une autre application",
@@ -745,6 +746,11 @@
     },
     "command_send_failed": "Impossible d'envoyer la commande : {{error}}",
     "backup_paths_failed": "Impossible de lire le dossier de sauvegarde pour la copie : {{error}}"
+  },
+  "versions": {
+    "public": "Stable (par défaut)",
+    "unstable": "Instable (unstable)",
+    "legacy41": "Ancien build 41 (legacy41)"
   },
   "messages": {
     "server_reset_complete": "Données du monde serveur réinitialisées",

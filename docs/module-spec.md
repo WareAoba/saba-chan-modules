@@ -144,7 +144,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `reset_preview` (선택) | 초기화 확인 창을 열 때. 아무것도 지우지 않는다 | `success`, `scopes: [{id, label?, note?, items: [{label, paths[]}]}]`: 범위마다 `reset_server`가 지울 경로(서버 폴더 기준 상대 경로나 절대 경로)와 이름. 데몬이 지금 있는 것만 크기와 함께 보인다. 범위가 둘 이상이면 화면이 고르게 하고 고른 `id`가 `reset_server`의 config `scope`로 온다(없으면 모듈의 기본 범위). `label`은 범위가 둘 이상일 때만 쓴다 |
 | `accept_agreements` | 사용자가 `[[agreements]]`에 동의한 뒤. config `accepted_agreements[]`에 있는 약관만 반영한다(예: eula.txt) | `success` |
 | `diagnose_log` | 로그 진단 | `success` |
-| `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록 / `executable_path`, `install_path` / `version` |
+| `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록(`versions[]`: 문자열이나 `{id, name?, type?}`, `latest.release`) / `executable_path`, `install_path` / `version`. 설치 방식 익스텐션(Steam 등)으로 받는 모듈이 `list_versions`를 만들면 그 목록은 서버마다 고르는 브랜치 목록이다: 고른 `id`가 `install_server`의 `version`으로 오고, 데몬이 인스턴스에 적어 업데이트 때도 같은 값을 넘긴다(예: zomboid) |
 | `import_settings` | 기존 서버 가져오기 | `settings{}` |
 | `backup_paths` | 백업 때, `[backup] hook = true`이면 | `paths[]`, 선택 `restore_roots[]`(복원만 허용하는 범위, 백업 대상 아님) (실패하면 백업과 그 뒤 업데이트·복원이 멈춘다) |
 | `instance_commands` | 명령 목록·실행 때, `[commands] hook = true`이면 | `commands[]` |

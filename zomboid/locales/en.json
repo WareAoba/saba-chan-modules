@@ -258,6 +258,7 @@
     "server_reset_partial": "Some items could not be deleted: {{errors}}",
     "invalid_server_name": "This server name cannot be used: {{name}}. Use a name without folder separators (/ \\), ':' or '..' that does not end with a space or dot",
     "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
+    "unknown_branch": "This branch cannot be chosen: {{branch}}",
     "detect": {
       "out_of_memory": "Server ran out of memory (OutOfMemoryError)",
       "port_in_use": "Port {{port}} is already in use by another application",
@@ -283,6 +284,11 @@
       "steamcmd_not_found": "Install SteamCMD from https://developer.valvesoftware.com/wiki/SteamCMD and ensure it's in your PATH."
     },
     "command_send_failed": "Failed to send command: {{error}}"
+  },
+  "versions": {
+    "public": "Stable (default)",
+    "unstable": "Unstable (unstable)",
+    "legacy41": "Legacy Build 41 (legacy41)"
   },
   "messages": {
     "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",

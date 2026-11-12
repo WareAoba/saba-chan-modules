@@ -480,6 +480,27 @@ def test_status_does_not_signal_process():
     alive.assert_called_once_with(1234)
 
 
+def test_status_pings_the_address_the_server_listens_on(tmp_path):
+    """관리형 시작을 끈 서버: server-ip로 묶은 주소로 핑해야 '시작 중'에 머물지 않는다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("server-ip=192.168.0.10\n", encoding="utf-8")
+    ping = {"players": {"online": 1, "max": 20}, "version": {"name": "1.21"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping) as p:
+        result = lifecycle.status({"pid": 1234, "port": 25565, "working_dir": str(tmp_path)})
+    assert result["status"] == "running"
+    p.assert_called_once_with("192.168.0.10", 25565, timeout=3)
+
+
+def test_status_without_server_list_ping_follows_the_process(tmp_path):
+    """enable-status=false면 핑에 답하지 않는다: 프로세스가 살아 있으면 실행 중이다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("enable-status=false\n", encoding="utf-8")
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", side_effect=AssertionError("pinged")), \
+         mock.patch.object(lifecycle, "is_process_alive", return_value=True):
+        result = lifecycle.status({"pid": 1234, "port": 25565, "working_dir": str(tmp_path)})
+    assert (result["success"], result["status"]) == (True, "running")
+
+
 def test_ping_closes_socket_on_error():
     from minecraft import lifecycle
     conn = mock.MagicMock()

@@ -1842,7 +1842,8 @@ def test_non_ascii_values_are_written_as_unicode_escapes():
             f.write("motd=old\n")
         assert configure({"working_dir": tmpdir, "settings": {"motd": motd}})["success"]
         raw = open(path, "rb").read()
-        assert b"motd=\\uD55C\\uAE00 \\uC11C\\uBC84 \\uD83D\\uDE00\n" in raw
+        # 줄 끝은 OS 기본(Windows는 CRLF)이다
+        assert b"motd=\\uD55C\\uAE00 \\uC11C\\uBC84 \\uD83D\\uDE00" in raw.splitlines()
         assert raw.decode("iso-8859-1") == raw.decode("utf-8")
         assert import_settings({"working_dir": tmpdir})["settings"]["motd"] == motd
         # 읽은 값을 그대로 다시 저장할 수 있다

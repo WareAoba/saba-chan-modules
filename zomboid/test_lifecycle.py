@@ -158,7 +158,8 @@ def test_ini_manager_get_ini_path_uses_server_name():
     with tempfile.TemporaryDirectory() as td:
         path = IniManager.get_ini_path({"server_name": "myserver", "config_dir": td})
         assert path.endswith("myserver.ini")
-        assert td in path
+        # 경로는 실제 경로로 풀린다 (Windows 임시 폴더의 8.3 짧은 이름 RUNNER~1 등)
+        assert os.path.realpath(td) in path
 
 
 # ─── 5. 공개 API 방어 동작 ─────────────────────────────────

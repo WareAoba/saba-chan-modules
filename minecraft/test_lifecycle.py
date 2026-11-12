@@ -1367,7 +1367,7 @@ def test_command_risks_follow_user_rule():
     risks = {n: c.get("risk") for n, c in fields.items()}
     expected = {"safe": ("say", "list", "seed", "save-all", "save-flush", "save-on", "weather", "time"),
                 "caution": ("save-off", "difficulty", "give", "tp"),
-                "danger": ("kick", "gamemode", "ban", "pardon", "op", "deop", "whitelist", "stop")}
+                "danger": ("kick", "gamemode", "ban", "pardon", "op", "deop", "whitelist", "whitelist-add", "whitelist-remove", "stop")}
     for risk, names in expected.items():
         for name in names:
             assert risks[name] == risk, name

@@ -19,7 +19,9 @@
       "pardon": ["언밴", "해제"],
       "op": ["오피"],
       "deop": ["디옵"],
-      "whitelist": ["화이트리스트", "화리"]
+      "whitelist": ["화이트리스트", "화리"],
+      "whitelist-add": ["화리추가"],
+      "whitelist-remove": ["화리제거"]
     }
   },
   "module": {
@@ -181,7 +183,17 @@
     "whitelist": {
       "label": "화이트리스트",
       "description": "서버 화이트리스트를 관리합니다",
-      "inputs": { "action": { "label": "작업" }, "player": { "label": "플레이어 이름" } }
+      "inputs": { "action": { "label": "작업" } }
+    },
+    "whitelist-add": {
+      "label": "화이트리스트 추가",
+      "description": "플레이어를 화이트리스트에 추가합니다",
+      "inputs": { "player": { "label": "플레이어 이름" } }
+    },
+    "whitelist-remove": {
+      "label": "화이트리스트 제거",
+      "description": "플레이어를 화이트리스트에서 뺍니다",
+      "inputs": { "player": { "label": "플레이어 이름" } }
     },
     "seed": { "label": "시드 확인", "description": "월드 시드를 표시합니다", "done": "월드 시드: {{seed}}" },
     "stop": { "label": "정지", "description": "월드를 저장하고 서버를 정지합니다" }

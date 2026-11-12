@@ -154,7 +154,17 @@
     "whitelist": {
       "label": "Белый список",
       "description": "Управление белым списком сервера",
-      "inputs": { "action": { "label": "Действие" }, "player": { "label": "Имя игрока" } }
+      "inputs": { "action": { "label": "Действие" } }
+    },
+    "whitelist-add": {
+      "label": "Добавить в белый список",
+      "description": "Добавить игрока в белый список",
+      "inputs": { "player": { "label": "Имя игрока" } }
+    },
+    "whitelist-remove": {
+      "label": "Удалить из белого списка",
+      "description": "Удалить игрока из белого списка",
+      "inputs": { "player": { "label": "Имя игрока" } }
     },
     "seed": { "label": "Показать сид", "description": "Отобразить сид мира", "done": "Сид мира: {{seed}}" },
     "stop": { "label": "Остановить", "description": "Корректно остановить сервер" }

@@ -154,7 +154,17 @@
     "whitelist": {
       "label": "白名单",
       "description": "管理服务器白名单",
-      "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名称" } }
+      "inputs": { "action": { "label": "操作" } }
+    },
+    "whitelist-add": {
+      "label": "添加到白名单",
+      "description": "将玩家添加到白名单",
+      "inputs": { "player": { "label": "玩家名称" } }
+    },
+    "whitelist-remove": {
+      "label": "从白名单移除",
+      "description": "将玩家从白名单移除",
+      "inputs": { "player": { "label": "玩家名称" } }
     },
     "seed": { "label": "显示种子", "description": "显示世界种子", "done": "世界种子：{{seed}}" },
     "stop": { "label": "停止", "description": "正常停止服务器" }

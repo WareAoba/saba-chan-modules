@@ -1017,7 +1017,8 @@ method = "console"
 console_template = "gamemode {mode} {player}"
 inputs = [
     { name = "mode", type = "select", label = "Game Mode", required = true, options = ["survival", "creative", "adventure", "spectator"] },
-    { name = "player", type = "text", label = "Player Name", required = false, placeholder = "Leave empty for all" }
+    # 콘솔은 실행 주체가 플레이어가 아니라 대상을 꼭 줘야 한다 (minecraft.wiki Commands/gamemode)
+    { name = "player", type = "text", label = "Player Name", required = true }
 ]
 
 [[commands.fields]]
@@ -1106,10 +1107,32 @@ risk = "danger"
 label = "Whitelist"
 description = "Manage the server whitelist"
 method = "console"
-console_template = "whitelist {action} {player}"
+console_template = "whitelist {action}"
 inputs = [
-    { name = "action", type = "select", label = "Action", required = true, options = ["add", "remove", "list", "on", "off", "reload"] },
-    { name = "player", type = "text", label = "Player Name", required = false, placeholder = "Player name (for add/remove)" }
+    { name = "action", type = "select", label = "Action", required = true, options = ["list", "on", "off", "reload"] }
+]
+
+# add·remove는 <targets>가 필수라 따로 둔다 (minecraft.wiki Commands/whitelist)
+[[commands.fields]]
+name = "whitelist-add"
+risk = "danger"
+label = "Whitelist Add"
+description = "Add a player to the whitelist"
+method = "console"
+console_template = "whitelist add {player}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true }
+]
+
+[[commands.fields]]
+name = "whitelist-remove"
+risk = "danger"
+label = "Whitelist Remove"
+description = "Remove a player from the whitelist"
+method = "console"
+console_template = "whitelist remove {player}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true }
 ]
 
 [[commands.fields]]

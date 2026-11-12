@@ -154,7 +154,17 @@
     "whitelist": {
       "label": "Liste blanche",
       "description": "Gérer la liste blanche du serveur",
-      "inputs": { "action": { "label": "Action" }, "player": { "label": "Nom du joueur" } }
+      "inputs": { "action": { "label": "Action" } }
+    },
+    "whitelist-add": {
+      "label": "Ajouter à la liste blanche",
+      "description": "Ajouter un joueur à la liste blanche",
+      "inputs": { "player": { "label": "Nom du joueur" } }
+    },
+    "whitelist-remove": {
+      "label": "Retirer de la liste blanche",
+      "description": "Retirer un joueur de la liste blanche",
+      "inputs": { "player": { "label": "Nom du joueur" } }
     },
     "seed": { "label": "Afficher la graine", "description": "Afficher la graine du monde", "done": "Graine du monde : {{seed}}" },
     "stop": { "label": "Arrêter", "description": "Arrêter le serveur proprement" }

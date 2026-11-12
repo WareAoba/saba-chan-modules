@@ -273,3 +273,26 @@ def test_advancement_challenge_and_goal_titles_are_highlighted():
     assert highlight("advancement", head + "Steve has made the advancement [Isn't It Iron Pick]") == "Isn't It Iron Pick"
     assert highlight("advancement", head + "Steve has completed the challenge [Adventuring Time]") == "Adventuring Time"
     assert highlight("advancement", head + "Steve has reached the goal [Who's the Pillager Now?]") == "Who's the Pillager Now?"
+
+
+def command(name):
+    return next(f for f in MANIFEST["commands"]["fields"] if f["name"] == name)
+
+
+def required_inputs(name):
+    return [i["name"] for i in command(name).get("inputs", []) if i.get("required")]
+
+
+def test_console_commands_require_what_the_console_needs():
+    """콘솔은 실행 주체가 플레이어가 아니라 대상 없는 `gamemode <mode>`가 실패하고,
+    `whitelist add|remove`는 <targets>가 있어야 한다 (minecraft.wiki Commands/gamemode·Commands/whitelist).
+    빈 칸으로 보내 서버가 거절하게 두지 않고 데몬이 먼저 '필수'로 막는다"""
+    assert required_inputs("gamemode") == ["mode", "player"]
+    assert command("whitelist-add")["console_template"] == "whitelist add {player}"
+    assert command("whitelist-remove")["console_template"] == "whitelist remove {player}"
+    assert required_inputs("whitelist-add") == required_inputs("whitelist-remove") == ["player"]
+    # 인자가 없는 나머지 동작만 `whitelist`에 남는다
+    whitelist = command("whitelist")
+    assert whitelist["console_template"] == "whitelist {action}"
+    assert [i["name"] for i in whitelist["inputs"]] == ["action"]
+    assert whitelist["inputs"][0]["options"] == ["list", "on", "off", "reload"]

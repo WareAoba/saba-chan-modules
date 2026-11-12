@@ -165,7 +165,17 @@
     "whitelist": {
       "label": "Whitelist",
       "description": "Manage the server whitelist",
-      "inputs": { "action": { "label": "Action" }, "player": { "label": "Player Name" } }
+      "inputs": { "action": { "label": "Action" } }
+    },
+    "whitelist-add": {
+      "label": "Whitelist Add",
+      "description": "Add a player to the whitelist",
+      "inputs": { "player": { "label": "Player Name" } }
+    },
+    "whitelist-remove": {
+      "label": "Whitelist Remove",
+      "description": "Remove a player from the whitelist",
+      "inputs": { "player": { "label": "Player Name" } }
     },
     "seed": { "label": "Show Seed", "description": "Display the world seed", "done": "World seed: {{seed}}" },
     "stop": { "label": "Stop", "description": "Gracefully stop the server" }

@@ -154,7 +154,17 @@
     "whitelist": {
       "label": "白名單",
       "description": "管理伺服器白名單",
-      "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名稱" } }
+      "inputs": { "action": { "label": "操作" } }
+    },
+    "whitelist-add": {
+      "label": "加入白名單",
+      "description": "將玩家加入白名單",
+      "inputs": { "player": { "label": "玩家名稱" } }
+    },
+    "whitelist-remove": {
+      "label": "從白名單移除",
+      "description": "將玩家從白名單移除",
+      "inputs": { "player": { "label": "玩家名稱" } }
     },
     "seed": { "label": "顯示種子", "description": "顯示世界種子", "done": "世界種子：{{seed}}" },
     "stop": { "label": "停止", "description": "正常停止伺服器" }

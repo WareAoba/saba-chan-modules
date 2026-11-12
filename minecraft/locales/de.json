@@ -154,7 +154,17 @@
     "whitelist": {
       "label": "Whitelist",
       "description": "Server-Whitelist verwalten",
-      "inputs": { "action": { "label": "Aktion" }, "player": { "label": "Spielername" } }
+      "inputs": { "action": { "label": "Aktion" } }
+    },
+    "whitelist-add": {
+      "label": "Zur Whitelist hinzufügen",
+      "description": "Spieler zur Whitelist hinzufügen",
+      "inputs": { "player": { "label": "Spielername" } }
+    },
+    "whitelist-remove": {
+      "label": "Von Whitelist entfernen",
+      "description": "Spieler von der Whitelist entfernen",
+      "inputs": { "player": { "label": "Spielername" } }
     },
     "seed": { "label": "Seed anzeigen", "description": "Welt-Seed anzeigen", "done": "Welt-Seed: {{seed}}" },
     "stop": { "label": "Stoppen", "description": "Server ordnungsgemäß stoppen" }

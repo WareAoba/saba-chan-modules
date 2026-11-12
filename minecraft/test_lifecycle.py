@@ -2038,3 +2038,14 @@ def test_send_chat_tells_everyone_with_tellraw_json():
 
     with mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value={"success": False, "message": "not running"}):
         assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False
+
+
+def test_reset_properties_keeps_this_servers_port(tmp_path):
+    """설정 초기화 뒤에도 이 서버의 포트(config port)는 그대로다. 기본값 25565로 쓰면 데몬이 파일을 다시 읽어
+    인스턴스 포트까지 25565로 맞추고, 포트를 옮겨 둔 둘째 서버가 첫 서버와 겹친다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("server-port=25570\nmotd=mine\n", encoding="utf-8")
+    assert lifecycle.reset_properties({"working_dir": str(tmp_path), "port": 25570})["success"]
+    props = lifecycle.ServerPropertiesManager(str(tmp_path)).read()
+    assert props["server-port"] == "25570"
+    assert props["motd"] == lifecycle.DEFAULT_PROPERTIES["motd"]

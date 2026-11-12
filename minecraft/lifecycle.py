@@ -1238,6 +1238,9 @@ def reset_properties(config):
 
     mgr = ServerPropertiesManager(working_dir)
     defaults = mgr.get_defaults()
+    # 포트는 이 서버의 값이다: 기본값(25565)으로 쓰면 데몬이 인스턴스 포트까지 되돌려 다른 서버와 겹친다
+    if config.get("port"):
+        defaults["server-port"] = str(config["port"])
     success = mgr.write(defaults)
     return {
         "success": success,

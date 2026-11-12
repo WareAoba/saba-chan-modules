@@ -234,7 +234,6 @@
     "java_download_warning": "Failed to download Java {{version}}: {{error}}. Please install Java {{version}} or later manually.",
     "status_check_failed": "Status check failed: {{error}}",
     "no_version": "No version specified",
-    "no_instance_id": "No instance ID specified",
     "version_info_unreadable": "Could not read version info from the server jar",
     "version_not_found": "Version '{{version}}' not found",
     "version_no_server": "Version {{version}} has no dedicated server download",

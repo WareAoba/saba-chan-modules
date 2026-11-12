@@ -223,7 +223,6 @@
     "java_download_warning": "No se pudo descargar Java {{version}}: {{error}}. Instala Java {{version}} o posterior manualmente.",
     "status_check_failed": "Error al comprobar el estado: {{error}}",
     "no_version": "No se especificó ninguna versión",
-    "no_instance_id": "No se especificó el ID de la instancia",
     "version_info_unreadable": "No se pudo leer la información de versión del jar del servidor",
     "version_not_found": "No se encontró la versión '{{version}}'",
     "version_no_server": "La versión {{version}} no tiene descarga de servidor dedicado",

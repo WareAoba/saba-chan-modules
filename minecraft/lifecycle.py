@@ -1565,27 +1565,6 @@ def get_installed_version(config):
     return {"success": False, "message": i18n.t("errors.version_info_unreadable")}
 
 
-def command(config):
-    """Send a named command to the server console through the daemon."""
-    try:
-        command_text = config.get("command")
-        args = config.get("args", {})
-        instance_id = config.get("instance_id")
-
-        if not command_text:
-            return {"success": False, "message": i18n.t("errors.no_command")}
-        if not instance_id:
-            return {"success": False, "message": i18n.t("errors.no_instance_id")}
-
-        formatted = _format_command(command_text, args)
-
-        from daemon_rcon import daemon_stdin_command
-        result = daemon_stdin_command(instance_id, formatted, timeout=5)
-        return {"success": result.get("success", True), "message": formatted}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
-
-
 # § 서식 코드(§ 뒤 한 글자, 끝에 홀로 남은 § 포함)
 _SECTION_CODE = re.compile(r"§.?", re.S)
 
@@ -1597,33 +1576,6 @@ def send_chat(config):
     name, text = (_SECTION_CODE.sub("", config.get(k, "")) for k in ("chat_name", "chat_text"))
     line = "tellraw @a " + json.dumps(["", {"text": f"<{name}> ", "color": "aqua"}, {"text": text}], ensure_ascii=False)
     return chat_reply(lambda: daemon_stdin_command(config.get("instance_id", ""), line, timeout=5), i18n)
-
-
-# ─── Helpers ──────────────────────────────────────────────────
-
-def _format_command(cmd, args):
-    """Format a named command with its arguments."""
-    formatters = {
-        "say": lambda a: f"say {a.get('message', '')}",
-        "give": lambda a: f"give {a.get('player', '')} {a.get('item', '')} {int(a.get('amount', 1))}",
-        "save-all": lambda _: "save-all",
-        "list": lambda _: "list",
-        "weather": lambda a: f"weather {a.get('type', 'clear')} {int(a.get('duration', 1000))}",
-        "difficulty": lambda a: f"difficulty {a.get('level', 'normal')}",
-        "whitelist": lambda a: f"whitelist {a.get('action', 'list')} {a.get('player', '')}".strip(),
-        "op": lambda a: f"op {a.get('player', '')}",
-        "deop": lambda a: f"deop {a.get('player', '')}",
-        "ban": lambda a: f"ban {a.get('player', '')} {a.get('reason', '')}".strip(),
-        "pardon": lambda a: f"pardon {a.get('player', '')}",
-        "kick": lambda a: f"kick {a.get('player', '')} {a.get('reason', '')}".strip(),
-        "tp": lambda a: f"tp {a.get('player', '')} {a.get('target', '')}".strip(),
-        "time": lambda a: f"time set {a.get('value', 'day')}",
-        "gamemode": lambda a: f"gamemode {a.get('mode', 'survival')} {a.get('player', '')}".strip(),
-        "seed": lambda _: "seed",
-        "stop": lambda _: "stop",
-    }
-    formatter = formatters.get(cmd)
-    return formatter(args) if formatter else cmd
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -2335,7 +2287,6 @@ def backup_paths(config):
 FUNCTIONS = {
     "stop": stop,
     "status": status,
-    "command": command,
     "send_chat": send_chat,
     "validate": validate,
     "get_launch_command": get_launch_command,

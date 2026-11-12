@@ -226,7 +226,6 @@
     "java_download_warning": "Java {{version}} のダウンロードに失敗しました: {{error}}。Java {{version}} 以降を手動でインストールしてください。",
     "status_check_failed": "状態の確認に失敗しました: {{error}}",
     "no_version": "バージョンが指定されていません",
-    "no_instance_id": "インスタンス ID が指定されていません",
     "version_info_unreadable": "サーバー jar からバージョン情報を読み取れません",
     "version_not_found": "バージョン '{{version}}' が見つかりません",
     "version_no_server": "バージョン {{version}} には専用サーバーのダウンロードがありません",

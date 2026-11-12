@@ -223,7 +223,6 @@
     "java_download_warning": "Не удалось загрузить Java {{version}}: {{error}}. Установите Java {{version}} или новее вручную.",
     "status_check_failed": "Не удалось проверить состояние: {{error}}",
     "no_version": "Не указана версия",
-    "no_instance_id": "Не указан ID экземпляра",
     "version_info_unreadable": "Не удалось прочитать сведения о версии из jar-файла сервера",
     "version_not_found": "Версия '{{version}}' не найдена",
     "version_no_server": "Для версии {{version}} нет загрузки выделенного сервера",

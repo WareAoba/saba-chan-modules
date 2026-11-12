@@ -223,7 +223,6 @@
     "java_download_warning": "Java {{version}} konnte nicht heruntergeladen werden: {{error}}. Bitte installieren Sie Java {{version}} oder neuer manuell.",
     "status_check_failed": "Statusprüfung fehlgeschlagen: {{error}}",
     "no_version": "Keine Version angegeben",
-    "no_instance_id": "Keine Instanz-ID angegeben",
     "version_info_unreadable": "Versionsinformationen konnten nicht aus der Server-JAR gelesen werden",
     "version_not_found": "Version '{{version}}' nicht gefunden",
     "version_no_server": "Für Version {{version}} gibt es keinen Download für einen dedizierten Server",

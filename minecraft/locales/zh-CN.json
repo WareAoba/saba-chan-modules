@@ -223,7 +223,6 @@
     "java_download_warning": "下载 Java {{version}} 失败：{{error}}。请手动安装 Java {{version}} 或更高版本。",
     "status_check_failed": "状态检查失败：{{error}}",
     "no_version": "未指定版本",
-    "no_instance_id": "未指定实例 ID",
     "version_info_unreadable": "无法从服务器 jar 读取版本信息",
     "version_not_found": "找不到版本 '{{version}}'",
     "version_no_server": "版本 {{version}} 没有专用服务器下载",

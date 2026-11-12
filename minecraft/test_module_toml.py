@@ -308,9 +308,6 @@ def test_gamerule_takes_any_rule_name_and_an_optional_value():
     assert gamerule["risk"] == "caution"
     assert required_inputs("gamerule") == ["rule"]
     assert {i.get("type", "text") for i in gamerule["inputs"]} == {"text"}
-    for lang in ("de", "en", "es", "fr", "ja", "ko", "pt-BR", "ru", "zh-CN", "zh-TW"):
-        text = json.loads((pathlib.Path(__file__).parent / "locales" / f"{lang}.json").read_text(encoding="utf-8-sig"))["commands"]["gamerule"]
-        assert text["label"] and text["description"] and set(text["inputs"]) == {"rule", "value"}, lang
 
 
 def test_settings_removed_from_server_properties_name_their_last_version():

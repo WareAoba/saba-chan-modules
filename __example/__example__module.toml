@@ -119,7 +119,6 @@ method = "steamcmd"                     # "steamcmd" | "download" | "manual"
 app_id = 123456                         # Steam App ID (steamcmd일 때 필수)
 anonymous = true                        # 익명 로그인 가능 여부
 install_subdir = "server"               # 설치 하위 폴더
-platform = "windows"                    # "windows" | "linux"
 requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
 # download_url = "https://..."          # method="download"일 때 사용
 # beta = "experimental"                 # 베타 브랜치 이름 (선택)

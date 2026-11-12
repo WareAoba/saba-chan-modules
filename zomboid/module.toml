@@ -66,7 +66,6 @@ method = "steamcmd"
 app_id = 380870
 anonymous = true
 install_subdir = "server"
-platform = "windows"
 requires_extensions = ["steamcmd"]
 
 [detection]

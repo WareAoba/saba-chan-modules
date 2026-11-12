@@ -277,5 +277,10 @@
   },
   "agreements": {
     "eula": "Minecraft 終端使用者授權合約 (EULA)"
+  },
+  "lists": {
+    "whitelist": "白名單",
+    "ops": "管理員",
+    "banned": "封鎖"
   }
 }

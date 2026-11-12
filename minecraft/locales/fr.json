@@ -277,5 +277,10 @@
   },
   "agreements": {
     "eula": "Contrat de licence utilisateur final de Minecraft (CLUF)"
+  },
+  "lists": {
+    "whitelist": "Liste blanche",
+    "ops": "Opérateurs",
+    "banned": "Bannis"
   }
 }

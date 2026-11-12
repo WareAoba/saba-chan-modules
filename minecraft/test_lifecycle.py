@@ -12,7 +12,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 데몬이 호출하는 lifecycle 함수 전체 (src/supervisor/mod.rs, src/ipc/handlers/*)
 DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "validate", "configure",
-    "read_properties", "reset_properties", "reset_server", "reset_preview", "import_settings",
+    "read_properties", "reset_properties", "reset_server", "reset_preview", "read_lists", "import_settings",
     "accept_agreements", "diagnose_log", "list_versions",
     "get_version_details", "install_server", "get_installed_version", "instance_commands",
 }
@@ -1168,6 +1168,43 @@ def test_reset_server_only_deletes_what_the_server_made(tmp_path):
         assert (tmp_path / rel).exists(), rel
     for rel in gone:
         assert not (tmp_path / rel).exists(), rel
+
+
+def test_read_lists_reads_the_whitelist_ops_and_bans_the_server_keeps(tmp_path):
+    """플레이어 목록(`[[lists]]`): 서버가 서버 폴더에 두는 whitelist.json·ops.json·banned-players.json을 그대로 읽는다.
+    밴은 넣은 때와 이유를 같이 주고, 이유를 주지 않은 밴의 기본 문구는 이유로 보이지 않는다. 파일을 고치지 않는다"""
+    from minecraft import lifecycle
+    files = {
+        "whitelist.json": [{"uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5", "name": "Notch"},
+                           {"uuid": "61699b2e-d327-4a01-9f1e-0ea8c3f06bc6", "name": "Dinnerbone"}],
+        "ops.json": [{"uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5", "name": "Notch", "level": 4,
+                      "bypassesPlayerLimit": False}],
+        "banned-players.json": [
+            {"uuid": "853c80ef-3c37-49fd-aa49-938b674adae6", "name": "jeb_", "created": "2026-11-09 21:03:11 +0900",
+             "source": "Server", "expires": "forever", "reason": "spam"},
+            {"uuid": "f8cdb683-9e90-43ee-a819-39f85d9c5d69", "name": "mollstam", "created": "not a date",
+             "source": "Server", "expires": "forever", "reason": "Banned by an operator."},
+        ],
+    }
+    for name, entries in files.items():
+        (tmp_path / name).write_text(json.dumps(entries), encoding="utf-8")
+    before = {name: (tmp_path / name).read_bytes() for name in files}
+    seen = lifecycle.read_lists({"working_dir": str(tmp_path)})
+    assert seen == {"success": True, "lists": {
+        "whitelist": [{"name": "Notch"}, {"name": "Dinnerbone"}],
+        "ops": [{"name": "Notch"}],
+        "banned": [{"name": "jeb_", "added": "2026-11-09T21:03:11+09:00", "note": "spam"}, {"name": "mollstam"}],
+    }}
+    assert before == {name: (tmp_path / name).read_bytes() for name in files}
+
+
+def test_read_lists_treats_missing_or_broken_files_as_empty(tmp_path):
+    """한 번도 켜지 않은 서버에는 목록 파일이 없다. 읽을 수 없는 파일도 빈 목록이다"""
+    from minecraft import lifecycle
+    (tmp_path / "ops.json").write_text("{not json", encoding="utf-8")
+    (tmp_path / "whitelist.json").write_text('[{"uuid": "x"}, "junk", {"name": "Notch"}]', encoding="utf-8")
+    seen = lifecycle.read_lists({"working_dir": str(tmp_path)})
+    assert seen == {"success": True, "lists": {"whitelist": [{"name": "Notch"}], "ops": [], "banned": []}}
 
 
 def test_reset_preview_lists_each_scope_and_a_world_only_reset_keeps_the_rest(tmp_path):

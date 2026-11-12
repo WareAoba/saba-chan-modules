@@ -306,5 +306,10 @@
   },
   "agreements": {
     "eula": "마인크래프트 최종 사용자 라이선스 계약(EULA)"
+  },
+  "lists": {
+    "whitelist": "화이트리스트",
+    "ops": "관리자",
+    "banned": "밴"
   }
 }

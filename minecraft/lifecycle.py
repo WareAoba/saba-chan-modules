@@ -1334,6 +1334,51 @@ def reset_preview(config):
     return {"success": True, "scopes": scopes}
 
 
+# 플레이어 목록 (`[[lists]]` id → 서버가 서버 폴더에 두는 파일. PaperMC 문서 "Vanilla data files")
+_PLAYER_LISTS = (("whitelist", "whitelist.json"), ("ops", "ops.json"), ("banned", "banned-players.json"))
+# `ban`에 이유를 주지 않으면 서버가 적는 문구 (같은 문서 banned-players.json의 reason 기본값): 이유로 보이지 않는다
+_DEFAULT_BAN_REASON = "Banned by an operator."
+
+
+def _list_entry(entry):
+    """목록 파일의 한 줄 → `{name, added?, note?}`. 이름이 없으면 None"""
+    if not isinstance(entry, dict) or not isinstance(entry.get("name"), str) or not entry["name"]:
+        return None
+    out = {"name": entry["name"]}
+    created = entry.get("created")
+    if isinstance(created, str):
+        # 서버가 적는 모양은 `yyyy-MM-dd HH:mm:ss Z` (예: 2026-11-09 21:03:11 +0900)
+        try:
+            out["added"] = time.strftime("%Y-%m-%dT%H:%M:%S", time.strptime(created[:19], "%Y-%m-%d %H:%M:%S"))
+            zone = re.fullmatch(r" ([+-]\d{2})(\d{2})", created[19:])
+            if zone:
+                out["added"] += f"{zone.group(1)}:{zone.group(2)}"
+        except ValueError:
+            pass
+    reason = entry.get("reason")
+    if isinstance(reason, str) and reason and reason != _DEFAULT_BAN_REASON:
+        out["note"] = reason
+    return out
+
+
+def read_lists(config):
+    """플레이어 목록 화면에 보일 지금 명단 (데몬 `GET /lists`). 서버가 쓰는 파일을 읽기만 한다.
+    넣기·빼기는 `[[lists]]`가 가리키는 명령으로 켜진 서버가 한다 (파일은 서버가 고친다)"""
+    working_dir = config.get("working_dir")
+    if not working_dir or not os.path.isdir(working_dir):
+        return {"success": False, "message": i18n.t("errors.no_working_dir")}
+    lists = {}
+    for list_id, name in _PLAYER_LISTS:
+        try:
+            with open(os.path.join(working_dir, name), encoding="utf-8") as f:
+                entries = json.load(f)
+        except (OSError, ValueError):
+            entries = []
+        found = [_list_entry(e) for e in entries] if isinstance(entries, list) else []
+        lists[list_id] = [e for e in found if e]
+    return {"success": True, "lists": lists}
+
+
 def reset_server(config):
     """Server reset: delete the worlds and settings the server made, keep what starts the server
     (jars, eula.txt, the bundled java/, loader files of Forge/NeoForge/Fabric/Quilt).
@@ -2345,6 +2390,7 @@ FUNCTIONS = {
     "reset_properties": reset_properties,
     "reset_server": reset_server,
     "reset_preview": reset_preview,
+    "read_lists": read_lists,
     "accept_agreements": accept_agreements,
     "diagnose_log": diagnose_log,
     "list_versions": list_versions,

@@ -280,5 +280,10 @@
   },
   "agreements": {
     "eula": "Minecraft エンドユーザー使用許諾契約 (EULA)"
+  },
+  "lists": {
+    "whitelist": "ホワイトリスト",
+    "ops": "管理者",
+    "banned": "BAN"
   }
 }

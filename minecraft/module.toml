@@ -1611,6 +1611,25 @@ difficulty = "hard"
 id = "eula"
 url = "https://aka.ms/MinecraftEULA"
 
+# 플레이어 목록 (saba-core `[[lists]]`, 이름은 locales `lists.<id>`). 지금 명단은 read_lists()가 서버 폴더의
+# whitelist.json·ops.json·banned-players.json에서 읽고(PaperMC 문서 "Vanilla data files"), 넣기·빼기는 위 명령으로 한다
+[[lists]]
+id = "whitelist"
+add = "whitelist-add"
+remove = "whitelist-remove"
+setting = "white_list"
+
+[[lists]]
+id = "ops"
+add = "op"
+remove = "deop"
+
+[[lists]]
+id = "banned"
+add = "ban"
+remove = "pardon"
+danger = true
+
 # ── [[diagnose]] 서버 로그 진단 (diagnose_log가 공용 diagnose_lines로 읽는다. 문구: errors.detect.<code>·errors.solutions.<code>) ──
 
 [[diagnose]]

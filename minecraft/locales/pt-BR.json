@@ -277,5 +277,10 @@
   },
   "agreements": {
     "eula": "Contrato de Licença de Usuário Final do Minecraft (EULA)"
+  },
+  "lists": {
+    "whitelist": "Lista branca",
+    "ops": "Operadores",
+    "banned": "Banidos"
   }
 }

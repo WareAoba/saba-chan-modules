@@ -414,6 +414,7 @@ def _do_backup(config):
 #    reset_preview            초기화 확인 창에 지울 것을 보일 때 (reset_server와 같은 대상)
 #    list_versions, get_version_details, get_installed_version,
 #    accept_agreements        [[agreements]]를 선언했을 때
+#    read_lists               [[lists]]를 선언했을 때 (화이트리스트·관리자·밴 명단 읽기)
 #    backup_paths             [backup] hook = true일 때 (없으면 백업·업데이트가 멈춤)
 #    instance_commands        [commands] hook = true일 때
 #    [[queries]] function, [status] players가 가리키는 함수

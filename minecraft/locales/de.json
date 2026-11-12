@@ -277,5 +277,10 @@
   },
   "agreements": {
     "eula": "Minecraft-Endbenutzer-Lizenzvertrag (EULA)"
+  },
+  "lists": {
+    "whitelist": "Whitelist",
+    "ops": "Operatoren",
+    "banned": "Sperren"
   }
 }

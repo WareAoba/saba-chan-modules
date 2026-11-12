@@ -35,7 +35,7 @@ SCHEMA = json.loads((REPO / "schema" / "module.schema.json").read_text(encoding=
 # 데몬이 이름으로 부르는 함수 (saba-chan src/에서 부르는 이름 전부)
 DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "get_credentials",
-    "validate", "configure", "read_properties", "reset_properties", "reset_server", "reset_preview",
+    "validate", "configure", "read_properties", "reset_properties", "reset_server", "reset_preview", "read_lists",
     "accept_agreements", "diagnose_log",
     "list_versions", "get_version_details", "install_server", "get_installed_version",
     "import_settings", "backup_paths", "backup_snapshots", "instance_commands", "config_files",

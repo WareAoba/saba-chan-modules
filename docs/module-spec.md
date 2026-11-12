@@ -104,6 +104,9 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 ### `[[agreements]]` ○
 서버를 켜기 전에 사용자가 동의해야 하는 약관(예: 게임 EULA). `id`(소문자·숫자·`-`·`_`, 모듈 안에서 겹치지 않음), `url`(원문, https). 표시 이름은 모듈 locales의 `agreements.<id>`. 데몬이 동의를 받아 기록하고(이 PC에서만, 디스코드·챗봇에서는 받지 않는다), 동의하지 않은 약관이 있으면 시작을 막는다. 동의한 약관 id는 config `accepted_agreements`로 `install_server`·`accept_agreements`에 온다. 모듈이 직접 동의를 가정하면 안 된다.
 
+### `[[lists]]` ○
+게임이 지키는 플레이어 이름 명단(화이트리스트·관리자·밴 등)을 목록 화면으로 보인다. 선언한 모듈의 서버에만 "플레이어" 탭이 생긴다. `id`(소문자·숫자·`-`·`_`, 모듈 안에서 겹치지 않음), `add`·`remove`(이름을 넣고 빼는 `[[commands.fields]]` 이름. 첫 입력이 플레이어 이름이고, `add`의 나머지 입력(예: 이유)은 화면이 옆 칸으로 보인다), `setting`(선택: 이 명단을 쓸지 정하는 boolean `[[settings.fields]]` 이름), `danger`(선택: 넣으면 그 사람을 막는 명단. 넣기 단추가 위험 색이다). 표시 이름은 모듈 locales의 `lists.<id>`. 지금 명단은 진입 파일 `read_lists`가 읽어 준다(§3 표). 넣기·빼기는 그 명령을 그대로 보내므로 명령을 받을 수 있을 때(보통 켜진 서버)만 된다.
+
 ### `[status]` ○
 `players`: 접속자 수를 돌려주는 진입 파일 함수 이름(Python 식별자, 상태를 바꾸는 함수는 안 된다). 데몬이 켜진 서버마다 1분에 한 번, 10초 안에 부른다. 그 값은 서버 목록과 디스코드 `/사바쨩 상태`에 접속자 수로 나온다. 함수 계약은 §3 표.
 
@@ -142,6 +145,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `get_credentials` | REST 접속 정보가 필요할 때 | `rest_username`, `rest_password` |
 | `validate`, `configure`, `read_properties`, `reset_properties`, `reset_server` | 설정 화면 | `success` (+ 읽은 값) |
 | `reset_preview` (선택) | 초기화 확인 창을 열 때. 아무것도 지우지 않는다 | `success`, `scopes: [{id, label?, note?, items: [{label, paths[]}]}]`: 범위마다 `reset_server`가 지울 경로(서버 폴더 기준 상대 경로나 절대 경로)와 이름. 데몬이 지금 있는 것만 크기와 함께 보인다. 범위가 둘 이상이면 화면이 고르게 하고 고른 `id`가 `reset_server`의 config `scope`로 온다(없으면 모듈의 기본 범위). `label`은 범위가 둘 이상일 때만 쓴다 |
+| `read_lists` | 플레이어 탭을 열 때, `[[lists]]`를 선언했으면. 서버가 꺼져 있어도 온다. 읽기만 한다 | `success`, `lists: {<id>: [{name, added?, note?}]}`: 목록 id마다 지금 명단. `added`는 넣은 때(ISO 8601 날짜나 시각), `note`는 덧붙일 말(예: 밴 이유). 데몬은 이 세 값만 남긴다 |
 | `accept_agreements` | 사용자가 `[[agreements]]`에 동의한 뒤. config `accepted_agreements[]`에 있는 약관만 반영한다(예: eula.txt) | `success` |
 | `diagnose_log` | 로그 진단 | `success` |
 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록(`versions[]`: 문자열이나 `{id, name?, type?}`, `latest.release`) / `executable_path`, `install_path` / `version`. 설치 방식 익스텐션(Steam 등)으로 받는 모듈이 `list_versions`를 만들면 그 목록은 서버마다 고르는 브랜치 목록이다: 고른 `id`가 `install_server`의 `version`으로 오고, 데몬이 인스턴스에 적어 업데이트 때도 같은 값을 넘긴다(예: zomboid) |

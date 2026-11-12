@@ -44,6 +44,9 @@ snapshots = true
 
 [extensions.saba-core]
 data_roots = ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
+# 실서버로 확인한 OS. 리눅스는 실측 전이라 막는다: 공식 start-server.sh는 java를 직접 부르지 않고 LD_LIBRARY_PATH(linux64·natives·jre64/lib/amd64)와
+# LD_PRELOAD=libjsig.so를 준 뒤 ./ProjectZomboid64(ProjectZomboid64.json)를 띄우는데, lifecycle.py는 java 줄만 해석하고 대체 경로는 이 환경을 주지 않는다
+platforms = ["windows"]
 # 돌아가는 CPU (saba-chan 0.1.12 architectures). x86_64만 있는 이유: 설치에 쓰는 SteamCMD가 32비트 x86이고, 서버가 동봉 x86_64 JRE(jre64)로 돈다. 에뮬레이션은 하지 않는다
 architectures = ["x86_64"]
 # 접속·퇴장 (상황판 접속자 수, 데몬이 이 줄로 센다). 형식 근거: CubeCoders AMPTemplates project-zomboid.kvp UserJoinRegex·UserLeaveRegex

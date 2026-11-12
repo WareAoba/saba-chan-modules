@@ -41,6 +41,12 @@ def test_module_toml_required_sections_present():
         assert section in cfg, f"missing [{section}] section"
 
 
+def test_only_measured_os_is_declared():
+    """리눅스 데몬에서 만들기·시작을 막는다: 공식 start-server.sh는 java 줄 없이 ./ProjectZomboid64를 띄워
+    실행 스크립트 해석이 실패하고, 대체 경로는 LD_LIBRARY_PATH(linux64)·LD_PRELOAD를 주지 않는다. 리눅스는 실측한 적이 없다"""
+    assert _load_module_toml()["extensions"]["saba-core"]["platforms"] == ["windows"]
+
+
 # ─── 2. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
 
 def test_defaults_for_a_new_server_come_from_module_toml(tmp_path):

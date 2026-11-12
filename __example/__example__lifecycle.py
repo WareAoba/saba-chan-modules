@@ -411,6 +411,7 @@ def _do_backup(config):
 #  run_lifecycle()이 대신 답하므로 따로 만들지 않습니다.
 #  기능을 지원할 때만 더 만드는 함수 (계약: docs/module-spec.md §3):
 #    get_credentials, read_properties, reset_properties, reset_server,
+#    reset_preview            초기화 확인 창에 지울 것을 보일 때 (reset_server와 같은 대상)
 #    list_versions, get_version_details, get_installed_version,
 #    accept_agreements        [[agreements]]를 선언했을 때
 #    backup_paths             [backup] hook = true일 때 (없으면 백업·업데이트가 멈춤)

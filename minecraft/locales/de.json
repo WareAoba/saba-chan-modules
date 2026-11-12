@@ -185,6 +185,7 @@
     "server_jar_not_found": "Server-Jar nicht gefunden: {{path}}. Bitte überprüfen Sie den Pfad in den Instanzeinstellungen.",
     "not_a_server_folder": "Dieser Ordner scheint kein Minecraft-Serverordner zu sein (keine server.properties oder eula.txt), daher wurde nichts gelöscht: {{path}}",
     "unsafe_world_name": "Der Weltname (level-name) \"{{name}}\" verweist nicht auf einen Weltordner im Serverordner oder entspricht einem Eintrag, der erhalten bleibt. Daher wurde nichts gelöscht. Korrigieren Sie level-name in server.properties und versuchen Sie es erneut.",
+    "unknown_reset_scope": "Unbekannter Zurücksetzungsbereich \"{{scope}}\", daher wurde nichts gelöscht.",
     "properties_write_failed": "Schreiben von server.properties fehlgeschlagen",
     "eula_write_failed": "Schreiben von eula.txt fehlgeschlagen",
     "working_dir_error": "Arbeitsverzeichnis kann nicht erstellt werden: {{path}}",
@@ -258,7 +259,18 @@
   },
   "reset": {
     "label": "Server zurücksetzen",
-    "description": "Löscht, was der Server erstellt hat: Welt, Einstellungen, Plugins, Mods (inklusive Mod-JARs), Konfigurationen und Logs. Die Server-JAR, eula.txt, das mitgelieferte Java und andere Dateien im Ordner bleiben erhalten. Liegt der Server im Instanzordner, bleiben auch die Logs erhalten."
+    "description": "Löscht, was der Server erstellt hat: Welt, Einstellungen, Plugins, Mods (inklusive Mod-JARs), Konfigurationen und Logs. Die Server-JAR, eula.txt, das mitgelieferte Java und andere Dateien im Ordner bleiben erhalten. Liegt der Server im Instanzordner, bleiben auch die Logs erhalten.",
+    "scopes": {
+      "world": "Nur Welt",
+      "all": "Alles"
+    },
+    "items": {
+      "world": "Welt",
+      "settings": "Spieleinstellungen",
+      "lists": "Operator-, Whitelist- und Bannlisten",
+      "addons": "Plugins, Mods und deren Einstellungen (Saba-chan lädt sie nicht erneut herunter)",
+      "logs": "Protokolle und Caches"
+    }
   },
   "agreements": {
     "eula": "Minecraft-Endbenutzer-Lizenzvertrag (EULA)"

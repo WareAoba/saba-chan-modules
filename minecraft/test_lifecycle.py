@@ -12,7 +12,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 데몬이 호출하는 lifecycle 함수 전체 (src/supervisor/mod.rs, src/ipc/handlers/*)
 DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "validate", "configure",
-    "read_properties", "reset_properties", "reset_server", "import_settings",
+    "read_properties", "reset_properties", "reset_server", "reset_preview", "import_settings",
     "accept_agreements", "diagnose_log", "list_versions",
     "get_version_details", "install_server", "get_installed_version", "instance_commands",
 }
@@ -1168,6 +1168,42 @@ def test_reset_server_only_deletes_what_the_server_made(tmp_path):
         assert (tmp_path / rel).exists(), rel
     for rel in gone:
         assert not (tmp_path / rel).exists(), rel
+
+
+def test_reset_preview_lists_each_scope_and_a_world_only_reset_keeps_the_rest(tmp_path):
+    """미리 보기는 범위(월드만·전체)마다 지울 항목을 밝히고 아무것도 지우지 않는다.
+    '월드만'으로 초기화하면 설정·플러그인·모드가 남는다"""
+    from minecraft import lifecycle
+    files = ["world/level.dat", "world_nether/DIM-1/r.mca", "server.properties", "ops.json", "plugins/x.jar",
+             "mods/y.jar", "logs/latest.log", "server.jar", "eula.txt"]
+    for rel in files:
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    seen = lifecycle.reset_preview({"working_dir": str(tmp_path)})
+    assert seen["success"], seen
+    assert [s["id"] for s in seen["scopes"]] == ["world", "all"]
+    world, everything = seen["scopes"]
+    assert [i["paths"] for i in world["items"]] == [["world", "world_nether", "world_the_end"]]
+    listed = [p for i in everything["items"] for p in i["paths"]]
+    assert len(listed) == len(set(listed))
+    assert {"world", "server.properties", "ops.json", "plugins", "mods", "logs"} <= set(listed)
+    assert not {"server.jar", "eula.txt"} & set(listed)
+    assert all(s["label"] and all(i["label"] for i in s["items"]) for s in seen["scopes"])
+    for rel in files:
+        assert (tmp_path / rel).exists(), rel
+
+    assert lifecycle.reset_server({"working_dir": str(tmp_path), "scope": "nope"})["success"] is False
+    assert (tmp_path / "world/level.dat").exists()
+    assert lifecycle.reset_server({"working_dir": str(tmp_path), "scope": "world"})["success"]
+    assert not (tmp_path / "world").exists() and not (tmp_path / "world_nether").exists()
+    for rel in files[2:]:
+        assert (tmp_path / rel).exists(), rel
+
+    # 범위 없이 부르면 전체: 미리 보기의 '전체'에 적힌 것이 모두 지워진다
+    assert lifecycle.reset_server({"working_dir": str(tmp_path)})["success"]
+    assert [p for p in listed if (tmp_path / p).exists()] == []
+    assert (tmp_path / "server.jar").exists() and (tmp_path / "eula.txt").exists()
 
 
 def test_reset_server_keeps_daemon_files_when_the_server_lives_in_the_instance_folder(tmp_path):

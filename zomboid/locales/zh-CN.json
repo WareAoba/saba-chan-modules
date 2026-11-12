@@ -768,6 +768,9 @@
   },
   "reset": {
     "label": "重置世界",
-    "description": "只删除世界存档，保留服务器设置。"
+    "description": "只删除世界存档，保留服务器设置。",
+    "items": {
+      "world": "世界存档"
+    }
   }
 }

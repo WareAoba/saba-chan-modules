@@ -196,6 +196,7 @@
     "server_jar_not_found": "Server jar not found: {{path}}. Please check the path in instance settings.",
     "not_a_server_folder": "This folder does not look like a Minecraft server folder (no server.properties or eula.txt), so nothing was deleted: {{path}}",
     "unsafe_world_name": "The world name (level-name) \"{{name}}\" does not point to a world folder inside the server folder, or it matches a file the reset keeps, so nothing was deleted. Fix level-name in server.properties and try again.",
+    "unknown_reset_scope": "Unknown reset scope \"{{scope}}\", so nothing was deleted.",
     "properties_write_failed": "Failed to write server.properties",
     "eula_write_failed": "Failed to write eula.txt",
     "working_dir_error": "Cannot create working directory: {{path}}",
@@ -269,7 +270,18 @@
   },
   "reset": {
     "label": "Reset server",
-    "description": "Deletes what the server made: the world, settings, plugins, mods (including mod JARs), configs and logs. The server JAR, eula.txt, the bundled Java and other files in the folder are kept. If the server lives in the instance folder, logs are kept too."
+    "description": "Deletes what the server made: the world, settings, plugins, mods (including mod JARs), configs and logs. The server JAR, eula.txt, the bundled Java and other files in the folder are kept. If the server lives in the instance folder, logs are kept too.",
+    "scopes": {
+      "world": "World only",
+      "all": "Everything"
+    },
+    "items": {
+      "world": "World",
+      "settings": "Game settings",
+      "lists": "Operator, whitelist and ban lists",
+      "addons": "Plugins, mods and their settings (Saba-chan does not download them again)",
+      "logs": "Logs and caches"
+    }
   },
   "agreements": {
     "eula": "Minecraft End User License Agreement (EULA)"

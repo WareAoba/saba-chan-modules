@@ -206,7 +206,10 @@
     "settings_success": "所有服务器设置已重置为出厂默认值。世界数据保持不变。",
     "settings_failed": "将默认设置写入配置文件失败。",
     "label": "重置设置",
-    "description": "将服务器设置恢复为默认值，世界和存档会保留。"
+    "description": "将服务器设置恢复为默认值，世界和存档会保留。",
+    "items": {
+      "settings": "将游戏设置恢复为默认值"
+    }
   },
   "validate": {
     "no_executable": "未指定服务器可执行文件路径。",

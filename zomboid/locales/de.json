@@ -768,6 +768,9 @@
   },
   "reset": {
     "label": "Welt zurücksetzen",
-    "description": "Löscht nur den Weltspielstand und behält die Servereinstellungen."
+    "description": "Löscht nur den Weltspielstand und behält die Servereinstellungen.",
+    "items": {
+      "world": "Weltspielstand"
+    }
   }
 }

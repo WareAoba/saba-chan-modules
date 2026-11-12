@@ -140,6 +140,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `command` | `method = "module"` 명령 | `success`, `message` |
 | `get_credentials` | REST 접속 정보가 필요할 때 | `rest_username`, `rest_password` |
 | `validate`, `configure`, `read_properties`, `reset_properties`, `reset_server` | 설정 화면 | `success` (+ 읽은 값) |
+| `reset_preview` (선택) | 초기화 확인 창을 열 때. 아무것도 지우지 않는다 | `success`, `scopes: [{id, label?, note?, items: [{label, paths[]}]}]`: 범위마다 `reset_server`가 지울 경로(서버 폴더 기준 상대 경로나 절대 경로)와 이름. 데몬이 지금 있는 것만 크기와 함께 보인다. 범위가 둘 이상이면 화면이 고르게 하고 고른 `id`가 `reset_server`의 config `scope`로 온다(없으면 모듈의 기본 범위). `label`은 범위가 둘 이상일 때만 쓴다 |
 | `accept_agreements` | 사용자가 `[[agreements]]`에 동의한 뒤. config `accepted_agreements[]`에 있는 약관만 반영한다(예: eula.txt) | `success` |
 | `diagnose_log` | 로그 진단 | `success` |
 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록 / `executable_path`, `install_path` / `version` |

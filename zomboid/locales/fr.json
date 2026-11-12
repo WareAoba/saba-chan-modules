@@ -768,6 +768,9 @@
   },
   "reset": {
     "label": "Réinitialiser le monde",
-    "description": "Supprime seulement la sauvegarde du monde et conserve les paramètres du serveur."
+    "description": "Supprime seulement la sauvegarde du monde et conserve les paramètres du serveur.",
+    "items": {
+      "world": "Sauvegarde du monde"
+    }
   }
 }

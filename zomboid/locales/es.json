@@ -768,6 +768,9 @@
   },
   "reset": {
     "label": "Restablecer mundo",
-    "description": "Borra solo la partida del mundo y conserva los ajustes del servidor."
+    "description": "Borra solo la partida del mundo y conserva los ajustes del servidor.",
+    "items": {
+      "world": "Partida guardada del mundo"
+    }
   }
 }

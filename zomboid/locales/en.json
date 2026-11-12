@@ -306,6 +306,9 @@
   },
   "reset": {
     "label": "Reset world",
-    "description": "Deletes only the world save and keeps the server settings."
+    "description": "Deletes only the world save and keeps the server settings.",
+    "items": {
+      "world": "World save"
+    }
   }
 }

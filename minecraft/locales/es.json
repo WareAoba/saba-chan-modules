@@ -185,6 +185,7 @@
     "server_jar_not_found": "Archivo jar del servidor no encontrado: {{path}}. Por favor verifique la ruta en la configuración de instancia.",
     "not_a_server_folder": "Esta carpeta no parece una carpeta de servidor de Minecraft (no hay server.properties ni eula.txt), así que no se eliminó nada: {{path}}",
     "unsafe_world_name": "El nombre del mundo (level-name) \"{{name}}\" no apunta a una carpeta de mundo dentro de la carpeta del servidor o coincide con un elemento que se conserva, así que no se eliminó nada. Corrige level-name en server.properties e inténtalo de nuevo.",
+    "unknown_reset_scope": "Ámbito de restablecimiento desconocido \"{{scope}}\"; no se eliminó nada.",
     "properties_write_failed": "Error al escribir server.properties",
     "eula_write_failed": "Error al escribir eula.txt",
     "working_dir_error": "No se puede crear el directorio de trabajo: {{path}}",
@@ -258,7 +259,18 @@
   },
   "reset": {
     "label": "Restablecer servidor",
-    "description": "Elimina lo que creó el servidor: el mundo, la configuración, los plugins, los mods (incluidos sus JAR), config y los registros. Se conservan el JAR del servidor, eula.txt, el Java incluido y los demás archivos de la carpeta. Si el servidor está en la carpeta de la instancia, también se conservan los registros."
+    "description": "Elimina lo que creó el servidor: el mundo, la configuración, los plugins, los mods (incluidos sus JAR), config y los registros. Se conservan el JAR del servidor, eula.txt, el Java incluido y los demás archivos de la carpeta. Si el servidor está en la carpeta de la instancia, también se conservan los registros.",
+    "scopes": {
+      "world": "Solo el mundo",
+      "all": "Todo"
+    },
+    "items": {
+      "world": "Mundo",
+      "settings": "Ajustes del juego",
+      "lists": "Listas de operadores, lista blanca y vetos",
+      "addons": "Plugins, mods y sus ajustes (Saba-chan no los vuelve a descargar)",
+      "logs": "Registros y cachés"
+    }
   },
   "agreements": {
     "eula": "Contrato de licencia de usuario final de Minecraft (EULA)"

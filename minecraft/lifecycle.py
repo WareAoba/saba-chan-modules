@@ -1250,12 +1250,16 @@ def reset_properties(config):
 
 
 # 서버 초기화가 지우는 것: 서버(바닐라·Bukkit 계열·모드 로더)가 서버 폴더에 만드는 월드 밖 항목
-_RESET_FILES = (
-    "server.properties", "ops.json", "whitelist.json", "banned-players.json", "banned-ips.json",
-    "usercache.json", "version_history.json", "permissions.yml", "commands.yml", "help.yml",
-    "bukkit.yml", "spigot.yml", "paper.yml", "purpur.yml", "wepif.yml", ".console_history",
+# 초기화가 지우는 서버 생성 항목, 미리 보기에 보이는 묶음별 (이름은 locales `reset.items.<묶음>`). 월드는 level-name으로 따로 구한다
+_RESET_GROUPS = (
+    ("settings", ("server.properties",)),
+    ("lists", ("ops.json", "whitelist.json", "banned-players.json", "banned-ips.json")),
+    ("addons", ("plugins", "mods", "config", "permissions.yml", "commands.yml", "help.yml",
+                "bukkit.yml", "spigot.yml", "paper.yml", "purpur.yml", "wepif.yml")),
+    ("logs", ("logs", "crash-reports", "cache", "debug", "usercache.json", "version_history.json", ".console_history")),
 )
-_RESET_DIRS = ("logs", "crash-reports", "plugins", "mods", "config", "cache", "debug")
+# 초기화 범위와 그 범위가 지우는 묶음 (None이면 전부). 범위 없이 부르면 "all"
+_RESET_SCOPES = (("world", ("world",)), ("all", None))
 
 
 # 초기화가 지우지 않는 것: 서버를 띄우는 파일·폴더(.jar도)와 인스턴스 폴더의 데몬 파일
@@ -1285,15 +1289,12 @@ def _reset_world_paths(config, props, working_path, keep):
     return paths
 
 
-def reset_server(config):
-    """Full server reset: delete the worlds and settings the server made, keep what starts the server
-    (jars, eula.txt, the bundled java/, loader files of Forge/NeoForge/Fabric/Quilt).
+def _reset_plan(config):
+    """초기화가 지울 것: [(묶음 이름, [서버 폴더 기준 경로])] (월드가 맨 앞). 지울 수 없는 폴더면 실패 응답(dict)
 
     서버 폴더(server.properties나 eula.txt가 있는 폴더)에서 서버가 만든 항목만 지운다.
     사용자가 둔 다른 파일과 데몬 파일(인스턴스 폴더에 서버를 둔 경우)은 남긴다.
-    server.properties will be recreated from module defaults on next configure().
     """
-
     working_dir = config.get("working_dir")
     if not working_dir:
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
@@ -1305,20 +1306,51 @@ def reset_server(config):
         return {"success": False, "message": i18n.t("errors.not_a_server_folder", path=str(working_path))}
 
     keep = set(_RESET_KEEP)
-    targets = list(_RESET_FILES) + list(_RESET_DIRS)
+    groups = [(name, list(paths)) for name, paths in _RESET_GROUPS]
     # 인스턴스 폴더에 서버를 두면 logs/는 데몬 로그와 같은 폴더다
     if (working_path / "instance.json").is_file():
         keep.add("logs")
-        targets.remove("logs")
+        dict(groups)["logs"].remove("logs")
     # 월드를 못 찾았는데 나머지만 지우고 성공이라 하면 다음 시작에 옛 월드가 그대로 뜬다
     props = ServerPropertiesManager(working_dir).read()
     worlds = _reset_world_paths(config, props, working_path, keep)
     if worlds is None:
         name = props.get("level-name") or config.get("level_name") or ""
         return {"success": False, "message": i18n.t("errors.unsafe_world_name", name=str(name))}
-    targets += worlds
+    return [("world", worlds)] + groups
 
-    deleted, errors = delete_paths(targets, root=working_path)
+
+def reset_preview(config):
+    """초기화 확인 창에 보일 것 (데몬 `GET /server/reset`): 범위마다 지울 항목. 아무것도 지우지 않는다.
+    크기와 지금 있는지는 데몬이 본다"""
+    plan = _reset_plan(config)
+    if isinstance(plan, dict):
+        return plan
+    scopes = []
+    for scope, names in _RESET_SCOPES:
+        items = [{"label": i18n.t(f"reset.items.{name}"), "paths": paths}
+                 for name, paths in plan if names is None or name in names]
+        scopes.append({"id": scope, "label": i18n.t(f"reset.scopes.{scope}"), "items": items})
+    return {"success": True, "scopes": scopes}
+
+
+def reset_server(config):
+    """Server reset: delete the worlds and settings the server made, keep what starts the server
+    (jars, eula.txt, the bundled java/, loader files of Forge/NeoForge/Fabric/Quilt).
+
+    `scope`(`reset_preview`가 밝힌 범위)가 "world"면 월드만, 없거나 "all"이면 전부 지운다.
+    server.properties will be recreated from module defaults on next configure().
+    """
+    scope = config.get("scope") or "all"
+    if scope not in dict(_RESET_SCOPES):
+        return {"success": False, "message": i18n.t("errors.unknown_reset_scope", scope=str(scope))}
+    plan = _reset_plan(config)
+    if isinstance(plan, dict):
+        return plan
+    names = dict(_RESET_SCOPES)[scope]
+    targets = [path for name, paths in plan if names is None or name in names for path in paths]
+
+    deleted, errors = delete_paths(targets, root=Path(config["working_dir"]))
 
     success = len(errors) == 0
     msg_parts = []
@@ -2312,6 +2344,7 @@ FUNCTIONS = {
     "config_files": config_files,
     "reset_properties": reset_properties,
     "reset_server": reset_server,
+    "reset_preview": reset_preview,
     "accept_agreements": accept_agreements,
     "diagnose_log": diagnose_log,
     "list_versions": list_versions,

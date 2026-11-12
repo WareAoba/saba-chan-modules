@@ -206,7 +206,10 @@
     "settings_success": "Alle Servereinstellungen wurden auf die Werkseinstellungen zurückgesetzt. Weltdaten bleiben unverändert.",
     "settings_failed": "Schreiben der Standardeinstellungen in die Konfigurationsdatei fehlgeschlagen.",
     "label": "Einstellungen zurücksetzen",
-    "description": "Setzt die Servereinstellungen auf die Standardwerte zurück. Welt und Spielstände bleiben erhalten."
+    "description": "Setzt die Servereinstellungen auf die Standardwerte zurück. Welt und Spielstände bleiben erhalten.",
+    "items": {
+      "settings": "Spieleinstellungen werden auf die Standardwerte zurückgesetzt"
+    }
   },
   "validate": {
     "no_executable": "Pfad zur Server-Programmdatei ist nicht angegeben.",

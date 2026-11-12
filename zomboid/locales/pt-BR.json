@@ -768,6 +768,9 @@
   },
   "reset": {
     "label": "Redefinir mundo",
-    "description": "Apaga só o save do mundo e mantém as configurações do servidor."
+    "description": "Apaga só o save do mundo e mantém as configurações do servidor.",
+    "items": {
+      "world": "Save do mundo"
+    }
   }
 }

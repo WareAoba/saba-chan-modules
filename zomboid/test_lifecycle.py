@@ -679,6 +679,25 @@ def test_reset_with_an_empty_server_name_deletes_only_the_default_world(tmp_path
     assert str(home / "Saves" / "Multiplayer" / "servertest") in backup_paths(config)["paths"]
 
 
+def test_reset_preview_lists_this_servers_world_without_deleting(tmp_path):
+    from zomboid.lifecycle import reset_preview, reset_server
+    home = tmp_path / "home"
+    _worlds(home, "servertest", "other")
+    config = {"working_dir": str(tmp_path / "server"), "cache_dir": str(home), "server_name": "servertest"}
+
+    seen = reset_preview(config)
+
+    assert seen["success"], seen
+    [scope] = seen["scopes"]
+    [item] = scope["items"]
+    world = home / "Saves" / "Multiplayer" / "servertest"
+    assert item["paths"] == [str(world)] and item["label"] and scope["note"]
+    assert (world / "map.bin").exists()
+    assert reset_preview({**config, "server_name": "../other"})["success"] is False
+    assert reset_server(config)["success"] is True
+    assert not world.exists()
+
+
 @pytest.mark.parametrize("name", ["..", ".", "a/b", "a\\b", "../other", "C:other", "other ", "other."])
 def test_reset_refuses_a_server_name_outside_its_own_world(tmp_path, name):
     from zomboid.lifecycle import reset_server

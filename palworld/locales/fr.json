@@ -212,7 +212,10 @@
     "settings_success": "Tous les paramètres du serveur ont été réinitialisés aux valeurs d'usine. Les données du monde sont inchangées.",
     "settings_failed": "Échec de l'écriture des paramètres par défaut dans le fichier de configuration.",
     "label": "Réinitialiser les paramètres",
-    "description": "Rétablit les paramètres par défaut du serveur. Le monde et les sauvegardes sont conservés."
+    "description": "Rétablit les paramètres par défaut du serveur. Le monde et les sauvegardes sont conservés.",
+    "items": {
+      "settings": "Les paramètres du jeu reviennent à leurs valeurs par défaut"
+    }
   },
   "validate": {
     "no_executable": "Le chemin de l'exécutable du serveur n'est pas défini.",

@@ -209,7 +209,10 @@
     "settings_success": "Todas las configuraciones del servidor se restablecieron a los valores de fábrica. Los datos del mundo no han cambiado.",
     "settings_failed": "Error al escribir la configuración predeterminada en el archivo de configuración.",
     "label": "Restablecer ajustes",
-    "description": "Devuelve los ajustes del servidor a sus valores por defecto. El mundo y las partidas se conservan."
+    "description": "Devuelve los ajustes del servidor a sus valores por defecto. El mundo y las partidas se conservan.",
+    "items": {
+      "settings": "Los ajustes del juego vuelven a sus valores predeterminados"
+    }
   },
   "validate": {
     "no_executable": "No se especificó la ruta del ejecutable del servidor.",

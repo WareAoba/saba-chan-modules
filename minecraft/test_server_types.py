@@ -760,3 +760,37 @@ def test_buildtools_craftbukkit_jar_takes_the_server_jar_name(tmp_path):
         "META-INF/versions.list": "d955 *craftbukkit-1.21.1-R0.1-SNAPSHOT.jar\n"})
     assert server_types.installed_jar("craftbukkit", {"build": "1"}, str(tmp_path), "server.jar") == "server.jar"
     assert sorted(os.listdir(tmp_path)) == ["server.jar"]
+
+
+def test_forge_args_file_launch_keeps_the_modpack_jvm_args_but_not_its_memory_or_gc(tmp_path):
+    """Forge·NeoForge 설치기의 run.bat은 `java @user_jvm_args.txt @…/win_args.txt`다. 모드팩이 그 파일에 적은 JVM 인자는
+    그대로 넣고, 메모리·GC처럼 사바쨩이 정하는 것만 사바쨩 값으로 둔다. 사용자가 더한 인자는 그 뒤(이긴다)"""
+    args_dir = tmp_path / "libraries" / "net" / "neoforged" / "neoforge" / "21.1.77"
+    args_dir.mkdir(parents=True)
+    (args_dir / "unix_args.txt").write_text("-cp x\n")
+    (args_dir / "win_args.txt").write_text("-cp x\n")
+    (tmp_path / "user_jvm_args.txt").write_text(
+        "# Xmx and Xms set the maximum and minimum RAM usage\n-Xmx6G\n-XX:+UseG1GC -XX:MaxGCPauseMillis=50\n"
+        "-Dfml.readTimeout=180\n\"-javaagent:mods dir/agent.jar\"  # 주석\n-XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI\n", encoding="utf-8")
+
+    cmd = lifecycle.get_launch_command({"server_type": "neoforge", "working_dir": str(tmp_path), "java_path": "java",
+                                        "ram": "4G", "extra_args": ["-Dfml.readTimeout=300"]})
+
+    args = cmd["args"]
+    target = next(i for i, a in enumerate(args) if a.startswith("@libraries/"))
+    assert args.index("-Dfml.readTimeout=180") < args.index("-Dfml.readTimeout=300") < target
+    assert args.index("-javaagent:mods dir/agent.jar") < target
+    assert "-Xmx6G" not in args and "-Xmx4G" in args
+    assert args.count("-XX:+UseG1GC") == 1 and "-XX:MaxGCPauseMillis=50" not in args
+    assert "#" not in " ".join(args)
+    # 남긴 실험 옵션(EnableJVMCI)보다 잠금 풀기가 앞에 있다 (없으면 JVM이 뜨지 않는다)
+    assert args.index("-XX:+UnlockExperimentalVMOptions") < args.index("-XX:+EnableJVMCI") < target
+
+
+def test_a_plain_jar_server_does_not_read_user_jvm_args(tmp_path):
+    """user_jvm_args.txt는 Forge·NeoForge 인자 파일 실행에서만 쓰인다 (다른 서버에 남은 파일은 읽지 않는다)"""
+    bundler(str(tmp_path / "server.jar"), "server-1.21.1.jar", main="net.minecraft.bundler.Main")
+    (tmp_path / "user_jvm_args.txt").write_text("-Dleft.over=1\n")
+    cmd = lifecycle.get_launch_command({"server_executable": str(tmp_path / "server.jar"), "working_dir": str(tmp_path),
+                                        "java_path": "java"})
+    assert "-Dleft.over=1" not in cmd["args"]

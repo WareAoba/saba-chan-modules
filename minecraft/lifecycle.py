@@ -1130,6 +1130,87 @@ _CONSOLE_FLAGS = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr
                   "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dfile.encoding=UTF-8",
                   "-Dterminal.ansi=false"]
 
+# 사바쨩이 스스로 정하는 JVM 옵션: 메모리, 실행 프로필의 GC 옵션, 콘솔 인코딩. 가져온 시작 스크립트와 Forge 인자 파일
+# (user_jvm_args.txt)에서는 이것들을 빼고 나머지(자바 에이전트, -D 값 등)만 쓴다. 이름만 맞춰 본다(-XX:+X와 -XX:-X는 같은 옵션).
+# 실험 옵션 잠금 풀기는 남긴다: 남은 다른 실험 옵션이 그것 없이는 JVM을 띄우지 못한다(겹쳐도 해가 없다)
+_AIKAR_MARKERS = ["-Dusing.aikars.flags", "-Daikars.new.flags"]
+_UNLOCK_OPTIONS = {"-XX:UnlockExperimentalVMOptions", "-XX:UnlockDiagnosticVMOptions"}
+
+
+def _option_name(arg):
+    return re.sub(r"^-XX:[+-]", "-XX:", arg.split("=", 1)[0])
+
+
+_MANAGED_OPTIONS = {_option_name(f) for f in [*_AIKAR_FLAGS, *_LARGE_FLAGS, *_ZGC_FLAGS, _PERIODIC_GC_FLAG, _COH_FLAG,
+                                              "-XX:+ZGenerational", *_CONSOLE_FLAGS, *_AIKAR_MARKERS]} - _UNLOCK_OPTIONS
+
+
+def _managed_jvm_arg(arg):
+    return bool(re.match(r"-X(mx|ms|mn)", arg) or re.fullmatch(r"-XX:[+-]Use\w+GC", arg)) or _option_name(arg) in _MANAGED_OPTIONS
+
+
+def _split_args(line):
+    """한 줄의 인자: 공백으로 나누고 따옴표로 묶은 것은 하나로, 인자 첫머리의 #부터는 주석 (Java 인자 파일 규칙)"""
+    args, current, quote, started = [], [], None, False
+    for ch in line:
+        if quote:
+            if ch == quote:
+                quote = None
+            else:
+                current.append(ch)
+        elif ch in "\"'":
+            quote, started = ch, True
+        elif ch == "#" and not started:
+            break
+        elif ch.isspace():
+            if started:
+                args.append("".join(current))
+                current, started = [], False
+        else:
+            current.append(ch)
+            started = True
+    if started:
+        args.append("".join(current))
+    return args
+
+
+def _read_text(path):
+    try:
+        with open(path, encoding="utf-8-sig", errors="replace") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def _modpack_jvm_args(working_dir):
+    """Forge·NeoForge 설치기가 만든 user_jvm_args.txt의 JVM 인자 (사바쨩이 정하는 것은 뺀다). 없으면 []"""
+    text = _read_text(os.path.join(working_dir, "user_jvm_args.txt")) or ""
+    return [a for line in text.splitlines() for a in _split_args(line) if not _managed_jvm_arg(a)]
+
+
+def _script_jvm_args(working_dir):
+    """가져온 서버가 쓰던 시작 스크립트의 java 줄에서 사바쨩이 정하지 않는 JVM 인자. 없으면 []
+    변수가 남은 인자(%RAM%, $@)는 값을 모르므로 옮기지 않는다. 인자 파일(@…)은 실행 때 따로 읽는다"""
+    for name in _START_SCRIPTS:
+        if name == "user_jvm_args.txt":
+            continue
+        for line in (_read_text(os.path.join(working_dir, name)) or "").splitlines():
+            if re.match(r"\s*(#|::|@?rem\b)", line, re.IGNORECASE):
+                continue
+            args = _split_args(line)
+            start = next((i for i, a in enumerate(args)
+                          if re.fullmatch(r"javaw?(\.exe)?", re.split(r"[\\/]", a)[-1], re.IGNORECASE)), None)
+            if start is None:
+                continue
+            found = []
+            for arg in args[start + 1:]:
+                if arg in ("-jar", "-cp", "-classpath") or arg.startswith("@"):
+                    break
+                if arg.startswith("-") and not re.search(r"[%$]", arg) and not _managed_jvm_arg(arg):
+                    found.append(arg)
+            return found
+    return []
+
 
 def get_launch_command(config):
     """
@@ -1172,7 +1253,10 @@ def get_launch_command(config):
     extra_args = config.get("extra_args") or []
     user_args += [str(a) for a in extra_args] if isinstance(extra_args, list) else []
 
-    args = [*_java_tuning(config, ram, (java or {}).get("major_version") or 0, user_args), *_CONSOLE_FLAGS, *user_args]
+    # Forge·NeoForge 인자 파일로 뜨는 서버는 설치기의 run.bat처럼 모드팩의 user_jvm_args.txt도 넣는다 (사용자 인자가 뒤에서 이긴다)
+    modpack_args = _modpack_jvm_args(working_dir) if target[0].startswith("@") else []
+    args = [*_java_tuning(config, ram, (java or {}).get("major_version") or 0, user_args), *_CONSOLE_FLAGS,
+            *modpack_args, *user_args]
     # 사용자가 더한 실행 인자는 JVM 인자 자리, 실행 대상(-jar 등) 앞에 둔다
     args.extend(target)
 
@@ -1264,6 +1348,9 @@ def import_settings(config):
     ram = _script_memory(working_dir)
     if ram:
         found["ram"] = ram
+    script_args = _script_jvm_args(working_dir)
+    if script_args:
+        extra["extra_args"] = script_args  # 데몬이 인스턴스의 추가 실행 인자로 저장한다 (JVM 인자 자리에 들어간다)
     extra.update(_fetch_portable_java(config))
 
     result = read_properties(config)

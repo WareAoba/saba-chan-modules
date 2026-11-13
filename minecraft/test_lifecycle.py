@@ -1643,6 +1643,28 @@ def test_import_keeps_the_memory_of_the_existing_start_script(tmp_path, name, co
     assert settings["motd"] == "kept"
 
 
+@pytest.mark.parametrize("name,content,expected", [
+    ("start.bat", "@echo off\nREM java -Dold.comment=1\n\"%JAVA_HOME%\\bin\\java.exe\" -Xmx10G -Xms2G -XX:+UseG1GC -XX:MaxGCPauseMillis=200 "
+     "-Dusing.aikars.flags=https://mcflags.emc.gs -Dfile.encoding=UTF-8 -javaagent:agent.jar -Dmy.flag=1 -Xmx%RAM% -jar server.jar nogui\npause\n",
+     ["-javaagent:agent.jar", "-Dmy.flag=1"]),
+    ("run.sh", "#!/bin/sh\n# java -Dold.comment=1\nexec java -Xmx3G -Dlog4j2.formatMsgNoLookups=true \"$@\" -jar paper.jar --nogui\n",
+     ["-Dlog4j2.formatMsgNoLookups=true"]),
+    ("run.bat", "java @user_jvm_args.txt @libraries/net/minecraftforge/forge/1.20.1-47.3.0/win_args.txt %*\n", None),
+    ("start.bat", "java -Xmx4G -XX:+UseG1GC -jar server.jar nogui\n", None),
+])
+def test_import_moves_the_unmanaged_jvm_args_of_the_start_script_to_extra_args(tmp_path, name, content, expected):
+    """가져온 서버가 쓰던 시작 스크립트의 JVM 인자 중 사바쨩이 정하지 않는 것(자바 에이전트, -D 값)은 추가 실행 인자로 옮긴다.
+    메모리·GC·콘솔 인코딩은 사바쨩 값을 쓰므로 옮기지 않는다. Forge 인자 파일은 실행 때 읽으므로 옮기지 않는다"""
+    from minecraft.lifecycle import import_settings, ServerPropertiesManager
+    ServerPropertiesManager(str(tmp_path)).write({"motd": "kept"})
+    (tmp_path / name).write_text(content, encoding="utf-8")
+
+    result = import_settings({"working_dir": str(tmp_path)})
+
+    assert result.get("extra_args") == expected
+    assert "extra_args" not in result["settings"]
+
+
 def test_import_without_a_start_script_leaves_the_memory_setting_alone(tmp_path):
     from minecraft.lifecycle import import_settings, ServerPropertiesManager
     ServerPropertiesManager(str(tmp_path)).write({"motd": "kept"})

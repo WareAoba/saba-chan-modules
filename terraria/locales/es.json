@@ -299,7 +299,7 @@
     },
     "exit-nosave": {
       "label": "Detener sin guardar",
-      "description": "Apaga el servidor sin guardar"
+      "description": "Detiene el servidor sin guardar el mundo"
     },
     "seed": {
       "label": "Mostrar semilla",
@@ -307,35 +307,35 @@
     }
   },
   "errors": {
-    "chat_failed": "No se pudo enviar al chat del juego: {{error}}",
-    "archive_corrupt": "El archivo del servidor está dañado ({{file}})",
-    "backup_paths_failed": "No se pudieron determinar los archivos de copia: {{error}}",
-    "executable_not_found": "No se encontró el ejecutable del servidor. Instala el servidor primero",
-    "invalid_banlist": "El nombre \"{{name}}\" no es un nombre de archivo simple",
-    "invalid_world_name": "El nombre \"{{name}}\" no puede contener / \\ : * ? \" < > | ni terminar en espacio o punto",
-    "line_break": "El valor de {{setting}} no puede tener saltos de línea",
-    "no_version": "Elige una versión del servidor (p. ej. 1.4.5.8)",
-    "not_server_folder": "Esta carpeta no tiene un servidor de Terraria; no se borró nada",
-    "properties_read_failed": "No se pudo leer serverconfig.txt: {{error}}",
-    "properties_write_failed": "No se pudo guardar serverconfig.txt: {{error}}",
-    "server_not_in_archive": "El archivo no tiene {{file}} para este sistema",
-    "server_reset_partial": "No se pudieron borrar algunos archivos: {{errors}}",
-    "settings_write_failed": "El servidor se instaló, pero no se pudieron escribir los ajustes: {{error}}",
-    "version_list_failed": "No se pudo obtener la lista de versiones de terraria.org: {{error}}",
+    "chat_failed": "Error al enviar al chat del juego: {{error}}",
+    "archive_corrupt": "Archivo del servidor dañado ({{file}})",
+    "backup_paths_failed": "Error al determinar los archivos de copia: {{error}}",
+    "executable_not_found": "Ejecutable del servidor de Terraria no encontrado. Instala primero el servidor.",
+    "invalid_banlist": "\"{{name}}\" no es un nombre de archivo simple",
+    "invalid_world_name": "El nombre de mundo \"{{name}}\" no puede contener / \\ : * ? \" < > | ni terminar en espacio o punto.",
+    "line_break": "El valor de {{setting}} no admite saltos de línea",
+    "no_version": "Elige una versión del servidor (p. ej. 1.4.5.8).",
+    "not_server_folder": "Esta carpeta no contiene un servidor de Terraria; no se borró nada",
+    "properties_read_failed": "Error al leer serverconfig.txt: {{error}}",
+    "properties_write_failed": "Error al guardar serverconfig.txt: {{error}}",
+    "server_not_in_archive": "El archivo descargado no incluye {{file}} para este sistema",
+    "server_reset_partial": "Error al borrar parte de los archivos del mundo: {{errors}}",
+    "settings_write_failed": "Servidor instalado, pero error al escribir los ajustes: {{error}}",
+    "version_list_failed": "Error al obtener la lista de versiones de terraria.org: {{error}}",
     "xna_framework_missing": "Faltan los archivos de XNA Framework 4.0 en la carpeta del servidor. Reinstala el servidor para añadirlos.",
-    "xna_install_failed": "No se pudo añadir XNA Framework 4.0 a la carpeta del servidor: {{error}}",
+    "xna_install_failed": "Error al añadir XNA Framework 4.0 a la carpeta del servidor: {{error}}",
     "xna_extension_missing": "Se necesita la extensión XNA para ejecutar el servidor de Terraria en Windows. Instala y activa la extensión \"XNA Framework 4.0 (portable)\".",
-    "version_unknown": "No se encontró la versión del servidor instalada.",
-    "players_unavailable": "No se pudo leer la lista de jugadores desde la consola del servidor"
+    "version_unknown": "Error al comprobar la versión instalada del servidor",
+    "players_unavailable": "Error al leer la lista de jugadores desde la consola del servidor"
   },
   "messages": {
     "downloading": "Descargando el servidor de Terraria",
     "extracting": "Extrayendo archivos del servidor",
     "install_complete": "Servidor de Terraria instalado",
     "no_mappable_settings": "Nada que escribir en serverconfig.txt",
-    "properties_updated": "Guardado en serverconfig.txt. Reinicia el servidor para aplicarlo",
-    "server_reset_complete": "Se borró el mundo. Se creará uno nuevo al iniciar",
-    "installing_xna": "Instalando XNA Framework 4.0 junto al servidor..."
+    "properties_updated": "Guardado en serverconfig.txt. Se aplica al reiniciar el servidor.",
+    "server_reset_complete": "Mundo borrado. Se creará uno nuevo al iniciar.",
+    "installing_xna": "Añadiendo XNA Framework 4.0 a la carpeta del servidor..."
   },
   "reset": {
     "label": "Reiniciar mundo",

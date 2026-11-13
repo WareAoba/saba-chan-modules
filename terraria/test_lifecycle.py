@@ -1034,7 +1034,7 @@ def test_a_damaged_zip_is_reported_in_the_users_language(lc, tmp_path, monkeypat
     _fake_download(monkeypatch, lc, bytes(data))
     result = lc.install_server({"version": "1.4.5.8", "install_dir": str(tmp_path / "inst")})
     assert result["success"] is False
-    assert "The server archive is damaged" in result["message"]
+    assert "Server archive damaged" in result["message"]
 
 
 def test_join_and_leave_highlight_cover_every_detection_pattern(toml):

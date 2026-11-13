@@ -16,7 +16,7 @@
       "label": "内存（RAM）",
       "description": "Java 堆大小（GB）。留空则按本机设置：8 GB，本机内存少于 9.5 GB 时为 4 GB"
     },
-    "java_gc": { "label": "垃圾回收器", "description": "ZGC 是游戏官方设置。服务器运行越久越卡或崩溃时，或在无法运行 ZGC 的 Windows（如 Windows Server 2016）上，请选择 G1", "options": { "zgc": "ZGC", "g1": "G1" } },
+    "java_gc": { "label": "垃圾回收器", "description": "ZGC 是游戏官方推荐的设置。服务器运行久了出现卡顿或崩溃,或在无法运行 ZGC 的 Windows(如 Windows Server 2016)上,请选择 G1。", "options": { "zgc": "ZGC", "g1": "G1" } },
     "server_name": {
       "label": "配置文件名称",
       "description": "服务器配置文件名称（决定 INI 文件名）"
@@ -704,49 +704,49 @@
     }
   },
   "errors": {
-    "data_home_unavailable": "无法创建或打开服务器数据文件夹。请检查文件夹位置和权限。",
-    "settings_write_failed": "服务器文件已安装，但无法保存所选设置：{{error}}",
-    "player_not_found": "找不到玩家。请检查用户名。",
-    "quote_not_allowed": "名称和原因中不能包含双引号 (\")。",
-    "connection_refused": "无法连接到服务器。请确认服务器正在运行且端口正确。",
+    "data_home_unavailable": "创建或打开服务器数据文件夹失败。请检查文件夹位置和权限。",
+    "settings_write_failed": "服务器文件已安装,但保存所选设置失败:{{error}}",
+    "player_not_found": "未找到玩家。请检查用户名。",
+    "quote_not_allowed": "名称和原因中不能使用双引号(\")",
+    "connection_refused": "服务器连接失败。请检查服务器是否正在运行、端口是否正确。",
     "timeout": "服务器响应超时。请检查服务器状态。",
-    "admin_password_required": "首次启动需要管理员密码。留空时服务器会停在控制台等待输入密码。",
-    "no_server_dir": "找不到服务器安装目录。请设置服务器可执行文件路径。",
-    "executable_not_found": "服务器目录中找不到服务器可执行文件（StartServer64.bat 或 start-server.sh）。",
-    "java_not_found": "找不到内置 Java 运行时（jre64/bin/java）。服务器安装可能不完整。",
-    "classpath_not_found": "服务器目录中找不到 Java 类文件（java/*.jar）。安装可能不完整。",
+    "admin_password_required": "首次启动需要管理员密码。留空时,服务器会在控制台等待输入密码而卡住。",
+    "no_server_dir": "未找到服务器安装目录。请设置服务器可执行文件路径。",
+    "executable_not_found": "服务器目录中未找到服务器可执行文件(StartServer64.bat 或 start-server.sh)",
+    "java_not_found": "未找到自带的 Java(jre64/bin/java)。服务器安装可能不完整。",
+    "classpath_not_found": "服务器目录中未找到 Java 类文件(java/*.jar)。安装可能不完整。",
     "properties_write_failed": "写入配置文件失败：{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
-    "server_reset_partial": "部分项目无法删除：{{errors}}",
-    "invalid_server_name": "无法使用此服务器名称：{{name}}。请使用不含文件夹分隔符（/ \\）、“:”或“..”且不以空格或句点结尾的名称",
-    "extension_not_enabled": "SteamCMD 扩展未启用。请先在设置 → 扩展中启用。",
-    "unknown_branch": "无法选择该分支：{{branch}}",
+    "server_reset_partial": "部分项目删除失败:{{errors}}",
+    "invalid_server_name": "服务器名称不可用:{{name}}。名称不能含文件夹分隔符(/ \\)、“:”、“..”,且不能以空格或点结尾。",
+    "extension_not_enabled": "SteamCMD 扩展未启用。请先在 设置 → 扩展 中启用。",
+    "unknown_branch": "无法选择的分支:{{branch}}",
     "detect": {
       "out_of_memory": "服务器内存不足 (OutOfMemoryError)",
-      "port_in_use": "端口 {{port}} 已被其他应用程序使用",
-      "illegal_termination": "工作线程异常终止（可能是 Build 41/42 冲突）",
-      "permission_denied": "权限不足，无法访问所需文件",
+      "port_in_use": "端口 {{port}} 已被其他应用程序占用",
+      "illegal_termination": "工作线程异常终止(可能是 Build 41/42 冲突)",
+      "permission_denied": "权限不足,无法访问所需文件",
       "server_crash": "服务器崩溃",
-      "mod_error": "服务器日志中检测到模组错误",
-      "save_status": "检测到存档操作状态"
+      "mod_error": "在服务器日志中检测到模组错误",
+      "save_status": "检测到保存操作状态"
     },
     "solutions": {
-      "admin_password_required": "请在服务器设置中填写管理员密码，然后重新启动。",
-      "no_server_dir": "在实例设置中设置服务器可执行文件（StartServer64.bat）的路径，或通过 SteamCMD 安装服务器。",
-      "executable_not_found": "通过 SteamCMD（App ID 380870）或 Steam 下载服务器。进入安装目录确认 StartServer64.bat 存在。",
-      "java_not_found": "服务器应包含内置 JRE。请尝试通过 SteamCMD 重新安装服务器或验证文件完整性。",
-      "classpath_not_found": "服务器文件夹的 java/ 目录应包含 .jar 文件。请通过 SteamCMD 验证安装。",
-      "out_of_memory": "在服务器设置中增加 RAM 分配（内存）。默认为 4GB，大型服务器建议 8GB 或更多。",
-      "port_in_use": "端口 {{port}} 正在使用中。请停止占用该端口的应用程序或在设置中更改端口。",
-      "illegal_termination": "通常在从 Build 41 升级到 42 时发生。请备份设置并删除 %USERPROFILE%\\Zomboid 文件夹，然后重启服务器。",
-      "permission_denied": "以管理员权限运行 saba-chan，或更改文件权限以允许对服务器和数据目录的读写访问。",
+      "admin_password_required": "请在服务器设置中输入管理员密码,然后重新启动。",
+      "no_server_dir": "请在实例设置中设置服务器可执行文件(StartServer64.bat)的路径,或用 SteamCMD 安装服务器。",
+      "executable_not_found": "请通过 SteamCMD(App ID 380870)或 Steam 下载服务器。确认安装目录中有 StartServer64.bat。",
+      "java_not_found": "服务器应包含 Java(JRE)。请用 SteamCMD 重新安装服务器,或验证文件完整性。",
+      "classpath_not_found": "服务器文件夹的 java/ 目录中应有 .jar 文件。请用 SteamCMD 验证安装。",
+      "out_of_memory": "请在服务器设置中增加 RAM 分配(内存)。默认为 4GB,大型服务器建议 8GB 及以上。",
+      "port_in_use": "端口 {{port}} 已被占用。请关闭冲突的应用程序,或在设置中更改端口。",
+      "illegal_termination": "通常在从 Build 41 升级到 42 时出现。请备份设置,删除 %USERPROFILE%\\Zomboid 文件夹,然后重新启动服务器。",
+      "permission_denied": "请以管理员身份运行 Saba-chan,或将服务器和数据目录的文件权限改为可读写。",
       "server_crash": "检查 console.txt 日志了解详情。常见原因：模组冲突、世界数据损坏或内存不足。",
-      "mod_error": "某个模组导致了错误。尝试禁用最近添加的模组，或在创意工坊页面检查兼容性更新。",
-      "save_status": "这是信息性消息。如果存档失败，请检查磁盘空间和文件权限。",
-      "steamcmd_not_found": "从 https://developer.valvesoftware.com/wiki/SteamCMD 安装 SteamCMD 并确保其在 PATH 中。"
+      "mod_error": "有模组正在报错。请禁用最近添加的模组,或到创意工坊页面查看兼容性更新。",
+      "save_status": "这不是错误,只是提示。如果保存失败,请检查磁盘空间和文件权限。",
+      "steamcmd_not_found": "请从 https://developer.valvesoftware.com/wiki/SteamCMD 安装 SteamCMD,并添加到 PATH。"
     },
     "command_send_failed": "发送命令失败：{{error}}",
-    "backup_paths_failed": "无法读取要备份的存档文件夹：{{error}}"
+    "backup_paths_failed": "读取要备份的存档文件夹失败:{{error}}"
   },
   "versions": {
     "public": "正式版（默认）",
@@ -754,14 +754,14 @@
     "legacy41": "旧版 Build 41 (legacy41)"
   },
   "messages": {
-    "server_starting_no_response": "进程正在运行，但服务器尚未响应 RCON 查询",
-    "properties_updated": "服务器配置已更新",
-    "properties_using_defaults": "配置文件不存在，显示默认值",
-    "no_mappable_settings": "给定的设置中没有与服务器设置对应的项",
+    "server_starting_no_response": "进程正在运行,服务器尚未响应 RCON 查询",
+    "properties_updated": "服务器设置已更新",
+    "properties_using_defaults": "没有配置文件,显示默认值",
+    "no_mappable_settings": "没有可识别为服务器设置的项目",
     "server_reset_complete": "服务器世界数据已重置",
-    "rcon_disabled_managed": "托管启动已关闭 RCON（命令通过控制台 stdin 发送）",
-    "command_sent": "已向控制台发送命令：{{command}}",
-    "no_log_files": "未找到日志文件"
+    "rcon_disabled_managed": "托管启动,RCON 已关闭(命令通过控制台 stdin 发送)",
+    "command_sent": "已向控制台发送命令:{{command}}",
+    "no_log_files": "没有日志文件"
   },
   "rcon": {
     "connecting": "正在连接到 {{host}}:{{port}}...",

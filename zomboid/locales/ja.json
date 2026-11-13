@@ -16,7 +16,7 @@
       "label": "メモリ (RAM)",
       "description": "Javaヒープサイズ（GB）。空欄にするとこのPCに合わせます: 8GB、PCのメモリが9.5GB未満なら4GB"
     },
-    "java_gc": { "label": "ガベージコレクター", "description": "ZGCはゲーム公式の設定です。時間とともにカクついたり落ちたりする場合や、ZGCが動かないWindows（例: Windows Server 2016）ではG1を選んでください", "options": { "zgc": "ZGC", "g1": "G1" } },
+    "java_gc": { "label": "ガベージコレクター", "description": "ZGC がゲーム公式の設定です。長時間稼働すると止まる・落ちる場合や、ZGC が動かない Windows(例: Windows Server 2016)では G1 を選んでください。", "options": { "zgc": "ZGC", "g1": "G1" } },
     "server_name": {
       "label": "サーバープロファイル名",
       "description": "サーバープロファイル名（INIファイル名を決定）"
@@ -704,49 +704,49 @@
     }
   },
   "errors": {
-    "data_home_unavailable": "サーバーデータフォルダーを作成または開けません。フォルダーの場所と権限を確認してください。",
-    "settings_write_failed": "サーバーファイルはインストールされましたが、選択した設定を保存できませんでした: {{error}}",
+    "data_home_unavailable": "サーバーデータフォルダーの作成・オープン失敗。フォルダーの場所と権限を確認してください。",
+    "settings_write_failed": "サーバーファイルはインストール済みですが、選択した設定の保存失敗: {{error}}",
     "player_not_found": "プレイヤーが見つかりません。ユーザー名を確認してください。",
-    "quote_not_allowed": "名前と理由に二重引用符(\")は使えません。",
-    "connection_refused": "サーバーに接続できません。サーバーが起動しているか、ポートが正しいか確認してください。",
-    "timeout": "サーバーの応答がタイムアウトしました。サーバーの状態を確認してください。",
-    "admin_password_required": "初回起動には管理者パスワードが必要です。空のままだとサーバーはコンソールでパスワード入力を待って止まります。",
-    "no_server_dir": "サーバーインストールディレクトリが見つかりません。サーバー実行ファイルのパスを設定してください。",
-    "executable_not_found": "サーバー実行ファイル（StartServer64.batまたはstart-server.sh）がサーバーディレクトリに見つかりません。",
-    "java_not_found": "バンドルJava（jre64/bin/java）が見つかりません。サーバーのインストールが不完全な可能性があります。",
-    "classpath_not_found": "サーバーディレクトリにJavaクラスファイル（java/*.jar）が見つかりません。インストールが不完全な可能性があります。",
+    "quote_not_allowed": "名前と理由に二重引用符(\")は使えません",
+    "connection_refused": "サーバー接続失敗。サーバーが起動しているか、ポートが正しいか確認してください。",
+    "timeout": "サーバー応答タイムアウト。サーバーの状態を確認してください。",
+    "admin_password_required": "初回起動には管理者パスワードが必要です。空のままだと、サーバーがコンソールでパスワードを待って停止します。",
+    "no_server_dir": "サーバーのインストールディレクトリなし。サーバー実行ファイルのパスを設定してください。",
+    "executable_not_found": "サーバーディレクトリにサーバー実行ファイル(StartServer64.bat または start-server.sh)なし",
+    "java_not_found": "同梱の Java(jre64/bin/java)なし。サーバーのインストールが不完全な可能性があります。",
+    "classpath_not_found": "サーバーディレクトリに Java クラスファイル(java/*.jar)なし。インストールが不完全な可能性があります。",
     "properties_write_failed": "設定ファイルの書き込みに失敗しました: {{error}}",
-    "server_not_running": "サーバーは実行されていません。先にサーバーを起動してください。",
-    "server_reset_partial": "一部のアイテムを削除できませんでした: {{errors}}",
-    "invalid_server_name": "このサーバー名は使えません: {{name}}。フォルダ区切り(/ \\)・「:」・「..」を含まず、空白や点で終わらない名前にしてください",
-    "extension_not_enabled": "SteamCMD拡張機能が有効化されていません。設定 → 拡張機能で先に有効化してください。",
-    "unknown_branch": "選べないブランチです: {{branch}}",
+    "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
+    "server_reset_partial": "一部の項目を削除できませんでした: {{errors}}",
+    "invalid_server_name": "使用できないサーバー名: {{name}}。フォルダー区切り(/ \\)、':'、'..' を含まず、スペースやピリオドで終わらない名前にしてください。",
+    "extension_not_enabled": "SteamCMD 拡張機能は無効です。設定 → 拡張機能 で先に有効にしてください。",
+    "unknown_branch": "選択できないブランチ: {{branch}}",
     "detect": {
       "out_of_memory": "サーバーのメモリが不足しました (OutOfMemoryError)",
-      "port_in_use": "ポート{{port}}は既に他のアプリケーションで使用されています",
-      "illegal_termination": "ワーカースレッドが異常終了しました（Build 41/42の競合の可能性）",
-      "permission_denied": "権限がないため、必要なファイルにアクセスできません",
-      "server_crash": "サーバーがクラッシュしました",
-      "mod_error": "サーバーログでModエラーが検出されました",
-      "save_status": "セーブ操作のステータスが検出されました"
+      "port_in_use": "ポート {{port}} は他のアプリケーションが使用中",
+      "illegal_termination": "ワーカースレッドが異常終了(Build 41/42 の競合の可能性)",
+      "permission_denied": "権限不足のため必要なファイルにアクセス失敗",
+      "server_crash": "サーバーが異常終了",
+      "mod_error": "サーバーログで MOD エラーを検出",
+      "save_status": "保存処理の状態を検出"
     },
     "solutions": {
-      "admin_password_required": "サーバー設定で管理者パスワードを入力してから、もう一度起動してください。",
-      "no_server_dir": "インスタンス設定でサーバー実行ファイル（StartServer64.bat）のパスを設定するか、SteamCMDでサーバーをインストールしてください。",
-      "executable_not_found": "SteamCMD（App ID 380870）またはSteamでサーバーをダウンロードしてください。インストールディレクトリでStartServer64.batが存在することを確認してください。",
-      "java_not_found": "サーバーにはバンドルJREが含まれているはずです。SteamCMDでサーバーを再インストールするか、ファイルの整合性を確認してください。",
-      "classpath_not_found": "サーバーフォルダのjava/ディレクトリに.jarファイルがあるはずです。SteamCMDでインストールを確認してください。",
-      "out_of_memory": "サーバー設定でRAM割り当てを増やしてください（メモリ）。デフォルトは4GBです。大規模サーバーには8GB以上を推奨します。",
-      "port_in_use": "ポート{{port}}が使用中です。競合するアプリケーションを停止するか、設定でポートを変更してください。",
-      "illegal_termination": "通常、Build 41から42へのアップグレード時に発生します。設定をバックアップし、%USERPROFILE%\\Zomboidフォルダを削除してからサーバーを再起動してください。",
-      "permission_denied": "saba-chanを管理者権限で実行するか、サーバーおよびデータディレクトリのファイル権限を読み書き可能に変更してください。",
+      "admin_password_required": "サーバー設定で管理者パスワードを入力してから、再起動してください。",
+      "no_server_dir": "インスタンス設定でサーバー実行ファイル(StartServer64.bat)のパスを設定するか、SteamCMD でサーバーをインストールしてください。",
+      "executable_not_found": "SteamCMD(App ID 380870)または Steam でサーバーをダウンロードしてください。インストールディレクトリに StartServer64.bat があるか確認してください。",
+      "java_not_found": "サーバーには Java(JRE)が含まれている必要があります。SteamCMD でサーバーを再インストールするか、ファイルの整合性を確認してください。",
+      "classpath_not_found": "サーバーフォルダーの java/ ディレクトリに .jar ファイルが必要です。SteamCMD でインストールを確認してください。",
+      "out_of_memory": "サーバー設定で RAM 割り当て(メモリ)を増やしてください。既定値は 4GB で、大規模サーバーには 8GB 以上を推奨します。",
+      "port_in_use": "ポート {{port}} は使用中。競合するアプリケーションを終了するか、設定でポートを変更してください。",
+      "illegal_termination": "通常は Build 41 から 42 へのアップグレード時に発生します。設定をバックアップし、%USERPROFILE%\\Zomboid フォルダーを削除してから、サーバーを再起動してください。",
+      "permission_denied": "サバちゃん を管理者として実行するか、サーバーとデータディレクトリのファイル権限を読み取り/書き込み可能に変更してください。",
       "server_crash": "console.txtログで詳細を確認してください。一般的な原因: Modの競合、破損したワールドデータ、メモリ不足。",
-      "mod_error": "Modがエラーを引き起こしています。最近追加したModを無効化するか、ワークショップページで互換性の更新を確認してください。",
-      "save_status": "情報メッセージです。セーブが失敗する場合は、ディスク容量とファイル権限を確認してください。",
-      "steamcmd_not_found": "https://developer.valvesoftware.com/wiki/SteamCMD からSteamCMDをインストールし、PATHに追加してください。"
+      "mod_error": "MOD がエラーを起こしています。最近追加した MOD を無効にするか、ワークショップのページで互換性アップデートを確認してください。",
+      "save_status": "エラーではなく案内です。保存に失敗する場合は、ディスク容量とファイルの権限を確認してください。",
+      "steamcmd_not_found": "https://developer.valvesoftware.com/wiki/SteamCMD から SteamCMD をインストールして PATH に追加してください。"
     },
     "command_send_failed": "コマンドの送信に失敗しました: {{error}}",
-    "backup_paths_failed": "バックアップ用のセーブフォルダーを読み取れませんでした: {{error}}"
+    "backup_paths_failed": "バックアップ対象のセーブフォルダー読み込み失敗: {{error}}"
   },
   "versions": {
     "public": "正式版（既定）",
@@ -754,14 +754,14 @@
     "legacy41": "旧ビルド 41 (legacy41)"
   },
   "messages": {
-    "server_starting_no_response": "プロセスは実行中ですが、サーバーはまだRCONクエリに応答していません",
+    "server_starting_no_response": "プロセスは起動中だが、サーバーはまだ RCON クエリに応答なし",
     "properties_updated": "サーバー設定を更新しました",
-    "properties_using_defaults": "設定ファイルが存在しません。デフォルト値を表示しています",
-    "no_mappable_settings": "指定された設定に、サーバー設定と一致するものがありません",
-    "server_reset_complete": "サーバーワールドデータがリセットされました",
-    "rcon_disabled_managed": "管理型起動のためRCONをオフにしました（コマンドはコンソールのstdinに送ります）",
+    "properties_using_defaults": "設定ファイルがないため既定値を表示中",
+    "no_mappable_settings": "サーバー設定として認識できる項目なし",
+    "server_reset_complete": "サーバーのワールドデータを初期化しました",
+    "rcon_disabled_managed": "管理対象の起動のため RCON オフ(コマンドはコンソール stdin に送信)",
     "command_sent": "コンソールにコマンドを送信しました: {{command}}",
-    "no_log_files": "ログファイルが見つかりません"
+    "no_log_files": "ログファイルなし"
   },
   "rcon": {
     "connecting": "{{host}}:{{port}} に接続中...",

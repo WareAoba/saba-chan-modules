@@ -299,7 +299,7 @@
     },
     "exit-nosave": {
       "label": "Остановить без сохранения",
-      "description": "Выключить сервер без сохранения мира"
+      "description": "Останавливает сервер без сохранения мира"
     },
     "seed": {
       "label": "Показать сид",
@@ -307,25 +307,25 @@
     }
   },
   "errors": {
-    "chat_failed": "Не удалось отправить в чат игры: {{error}}",
+    "chat_failed": "Не удалось отправить в игровой чат: {{error}}",
     "archive_corrupt": "Архив сервера повреждён ({{file}})",
-    "backup_paths_failed": "Не удалось определить файлы для копии: {{error}}",
-    "executable_not_found": "Исполняемый файл сервера не найден. Сначала установите сервер",
-    "invalid_banlist": "Имя «{{name}}» не является простым именем файла",
-    "invalid_world_name": "Имя мира «{{name}}» не может содержать / \\ : * ? \" < > | и заканчиваться пробелом или точкой",
-    "line_break": "Значение {{setting}} не может содержать перенос строки",
-    "no_version": "Выберите версию сервера (например 1.4.5.8)",
-    "not_server_folder": "В этой папке нет сервера Terraria, ничего не удалено",
+    "backup_paths_failed": "Не удалось определить файлы для резервной копии: {{error}}",
+    "executable_not_found": "Исполняемый файл сервера Terraria не найден. Сначала установите сервер.",
+    "invalid_banlist": "«{{name}}» не является простым именем файла",
+    "invalid_world_name": "Имя мира «{{name}}» не может содержать / \\ : * ? \" < > | и заканчиваться пробелом или точкой.",
+    "line_break": "Значение {{setting}} не может содержать переносы строк",
+    "no_version": "Выберите версию сервера (например, 1.4.5.8).",
+    "not_server_folder": "В этой папке нет сервера Terraria; ничего не удалено",
     "properties_read_failed": "Не удалось прочитать serverconfig.txt: {{error}}",
     "properties_write_failed": "Не удалось сохранить serverconfig.txt: {{error}}",
-    "server_not_in_archive": "В файле нет {{file}} для этой системы",
-    "server_reset_partial": "Не удалось удалить некоторые файлы мира: {{errors}}",
-    "settings_write_failed": "Сервер установлен, но настройки записать не удалось: {{error}}",
-    "version_list_failed": "Не удалось получить список версий с terraria.org: {{error}}",
+    "server_not_in_archive": "В загруженном архиве нет {{file}} для этой системы",
+    "server_reset_partial": "Не удалось удалить часть файлов мира: {{errors}}",
+    "settings_write_failed": "Сервер установлен, но не удалось записать настройки: {{error}}",
+    "version_list_failed": "Не удалось получить список версий сервера с terraria.org: {{error}}",
     "xna_framework_missing": "В папке сервера нет файлов XNA Framework 4.0. Переустановите сервер, чтобы добавить их.",
     "xna_install_failed": "Не удалось добавить XNA Framework 4.0 в папку сервера: {{error}}",
     "xna_extension_missing": "Для запуска сервера Terraria в Windows нужно расширение XNA. Установите и включите расширение «XNA Framework 4.0 (portable)».",
-    "version_unknown": "Не удалось определить установленную версию сервера.",
+    "version_unknown": "Не удалось определить установленную версию сервера",
     "players_unavailable": "Не удалось прочитать список игроков из консоли сервера"
   },
   "messages": {
@@ -333,9 +333,9 @@
     "extracting": "Распаковка файлов сервера",
     "install_complete": "Сервер Terraria установлен",
     "no_mappable_settings": "Нечего записывать в serverconfig.txt",
-    "properties_updated": "Сохранено в serverconfig.txt. Перезапустите сервер",
-    "server_reset_complete": "Мир удалён. Новый будет создан при следующем запуске",
-    "installing_xna": "Установка XNA Framework 4.0 рядом с сервером..."
+    "properties_updated": "Сохранено в serverconfig.txt. Применится после перезапуска сервера.",
+    "server_reset_complete": "Мир удалён. Новый будет создан при следующем запуске.",
+    "installing_xna": "Добавление XNA Framework 4.0 в папку сервера..."
   },
   "reset": {
     "label": "Сброс мира",

@@ -82,7 +82,7 @@
     },
     "secure": {
       "label": "치트 방지",
-      "description": "추가 치트 방지(secure)"
+      "description": "치트를 추가로 방지합니다(secure)"
     },
     "language": {
       "label": "서버 언어",
@@ -99,7 +99,7 @@
     },
     "npcstream": {
       "label": "NPC 동기화",
-      "description": "적 동기화: 낮을수록 덜 끊기지만 대역폭을 더 씁니다. 0이면 끔"
+      "description": "적 동기화: 낮을수록 덜 끊기지만 대역폭을 더 씁니다. 0이면 끕니다"
     },
     "priority": {
       "label": "프로세스 우선순위",
@@ -312,7 +312,7 @@
     },
     "exit-nosave": {
       "label": "저장 없이 정지",
-      "description": "월드를 저장하지 않고 서버를 끕니다"
+      "description": "월드를 저장하지 않고 서버를 정지합니다"
     },
     "seed": {
       "label": "시드 확인",
@@ -320,39 +320,39 @@
     }
   },
   "errors": {
-    "chat_failed": "게임 채팅으로 보내지 못했습니다: {{error}}",
-    "archive_corrupt": "서버 압축 파일이 손상되었습니다({{file}})",
-    "backup_paths_failed": "백업할 파일을 정하지 못했습니다: {{error}}",
-    "executable_not_found": "테라리아 서버 실행 파일이 없습니다. 먼저 서버를 설치하세요",
-    "invalid_banlist": "밴 목록 이름 \"{{name}}\"은 단순한 파일 이름이 아닙니다",
-    "invalid_world_name": "월드 이름 \"{{name}}\"에는 / \\ : * ? \" < > |를 쓸 수 없고 공백이나 점으로 끝날 수 없습니다",
-    "line_break": "{{setting}} 값에 줄바꿈을 넣을 수 없습니다",
-    "no_version": "서버 버전을 고르세요(예: 1.4.5.8)",
-    "not_server_folder": "이 폴더에 테라리아 서버가 없어 아무것도 지우지 않았습니다",
-    "properties_read_failed": "serverconfig.txt를 읽지 못했습니다: {{error}}",
-    "properties_write_failed": "serverconfig.txt를 저장하지 못했습니다: {{error}}",
-    "server_not_in_archive": "내려받은 파일에 이 시스템용 {{file}}이 없습니다",
-    "server_reset_partial": "월드 파일 일부를 지우지 못했습니다: {{errors}}",
-    "settings_write_failed": "서버는 설치했지만 설정을 쓰지 못했습니다: {{error}}",
-    "version_list_failed": "terraria.org에서 서버 버전 목록을 받지 못했습니다: {{error}}",
-    "xna_framework_missing": "서버 폴더에 XNA Framework 4.0 파일이 없습니다. 서버를 다시 설치하면 넣습니다.",
-    "xna_install_failed": "서버 폴더에 XNA Framework 4.0을 넣지 못했습니다: {{error}}",
-    "xna_extension_missing": "Windows에서 테라리아 서버를 실행하려면 XNA 익스텐션이 필요합니다. \"XNA Framework 4.0 (portable)\" 익스텐션을 설치하고 켜세요.",
-    "version_unknown": "설치된 서버 버전을 찾지 못했습니다.",
-    "players_unavailable": "서버 콘솔에서 접속자 목록을 읽지 못했습니다"
+    "chat_failed": "게임 채팅 전송 실패: {{error}}",
+    "archive_corrupt": "서버 압축 파일 손상({{file}})",
+    "backup_paths_failed": "백업할 파일 결정 실패: {{error}}",
+    "executable_not_found": "테라리아 서버 실행 파일 없음. 먼저 서버를 설치해 주세요.",
+    "invalid_banlist": "밴 목록 이름 \"{{name}}\"은 단순한 파일 이름이 아님",
+    "invalid_world_name": "월드 이름 \"{{name}}\"에는 / \\ : * ? \" < > |를 쓸 수 없고 공백이나 점으로 끝날 수 없습니다.",
+    "line_break": "{{setting}} 값에 줄바꿈 불가",
+    "no_version": "서버 버전을 골라 주세요(예: 1.4.5.8).",
+    "not_server_folder": "이 폴더에 테라리아 서버가 없어 아무것도 지우지 않음",
+    "properties_read_failed": "serverconfig.txt 읽기 실패: {{error}}",
+    "properties_write_failed": "serverconfig.txt 저장 실패: {{error}}",
+    "server_not_in_archive": "내려받은 파일에 이 시스템용 {{file}} 없음",
+    "server_reset_partial": "월드 파일 일부 삭제 실패: {{errors}}",
+    "settings_write_failed": "서버는 설치했지만 설정 쓰기 실패: {{error}}",
+    "version_list_failed": "terraria.org에서 서버 버전 목록 받기 실패: {{error}}",
+    "xna_framework_missing": "서버 폴더에 XNA Framework 4.0 파일 없음. 서버를 다시 설치하면 넣습니다.",
+    "xna_install_failed": "서버 폴더에 XNA Framework 4.0 넣기 실패: {{error}}",
+    "xna_extension_missing": "Windows에서 테라리아 서버를 실행하려면 XNA 익스텐션이 필요합니다. \"XNA Framework 4.0 (portable)\" 익스텐션을 설치하고 켜 주세요.",
+    "version_unknown": "설치된 서버 버전 확인 실패",
+    "players_unavailable": "서버 콘솔에서 접속자 목록 읽기 실패"
   },
   "messages": {
-    "downloading": "테라리아 서버를 내려받는 중",
-    "extracting": "서버 파일을 푸는 중",
-    "install_complete": "테라리아 서버를 설치했습니다",
-    "no_mappable_settings": "serverconfig.txt에 쓸 값이 없습니다",
-    "properties_updated": "serverconfig.txt에 저장했습니다. 서버를 다시 켜면 적용됩니다",
-    "server_reset_complete": "월드를 지웠습니다. 다음에 켤 때 새 월드를 만듭니다",
-    "installing_xna": "서버 폴더에 XNA Framework 4.0을 넣는 중..."
+    "downloading": "테라리아 서버 내려받는 중",
+    "extracting": "서버 파일 압축 푸는 중",
+    "install_complete": "테라리아 서버 설치 완료",
+    "no_mappable_settings": "serverconfig.txt에 쓸 값 없음",
+    "properties_updated": "serverconfig.txt에 저장됨. 서버를 다시 시작하면 적용됩니다.",
+    "server_reset_complete": "월드 삭제됨. 다음 시작 때 새 월드를 만듭니다.",
+    "installing_xna": "서버 폴더에 XNA Framework 4.0 넣는 중..."
   },
   "reset": {
     "label": "월드 초기화",
-    "description": "이 서버의 월드 파일과 .wld.bak 및 .wld.bak숫자 백업을 지웁니다. serverconfig.txt, 밴 목록, 다른 월드, 서버 파일은 남습니다. 다음에 켤 때 새 월드를 만듭니다.",
+    "description": "이 서버의 월드 파일과 .wld.bak 및 .wld.bak숫자 백업을 지웁니다. serverconfig.txt, 밴 목록, 다른 월드, 서버 파일은 남습니다. 다음 시작 때 새 월드를 만듭니다.",
     "items": {
       "world": "월드 파일과 게임이 만든 백업(.bak)"
     }

@@ -16,7 +16,7 @@
       "label": "Memoria (RAM)",
       "description": "Tamaño del heap de Java en GB. Déjalo vacío para ajustarlo a este PC: 8 GB, o 4 GB si el PC tiene menos de 9,5 GB"
     },
-    "java_gc": { "label": "Recolector de basura", "description": "ZGC es la configuración oficial del juego. Elige G1 si el servidor se traba o se cierra con el tiempo, o en versiones de Windows que no admiten ZGC (p. ej. Windows Server 2016)", "options": { "zgc": "ZGC", "g1": "G1" } },
+    "java_gc": { "label": "Recolector de basura", "description": "ZGC es la configuración oficial del juego. Elige G1 si el servidor se traba o se cierra con el tiempo, o en versiones de Windows que no admiten ZGC (p. ej. Windows Server 2016).", "options": { "zgc": "ZGC", "g1": "G1" } },
     "server_name": {
       "label": "Nombre del perfil",
       "description": "Nombre del perfil del servidor"
@@ -704,49 +704,49 @@
     }
   },
   "errors": {
-    "data_home_unavailable": "No se pudo crear ni abrir la carpeta de datos del servidor. Revisa la ubicación y los permisos de la carpeta.",
-    "settings_write_failed": "Los archivos del servidor se instalaron, pero no se pudo guardar la configuración elegida: {{error}}",
+    "data_home_unavailable": "Error al crear o abrir la carpeta de datos del servidor. Comprueba la ubicación y los permisos de la carpeta.",
+    "settings_write_failed": "Archivos del servidor instalados, pero error al guardar los ajustes elegidos: {{error}}",
     "player_not_found": "Jugador no encontrado. Comprueba el nombre de usuario.",
-    "quote_not_allowed": "Los nombres y motivos no pueden contener comillas dobles (\").",
-    "connection_refused": "No se puede conectar con el servidor. Comprueba que el servidor esté en ejecución y que el puerto sea correcto.",
-    "timeout": "Se agotó el tiempo de respuesta del servidor. Comprueba el estado del servidor.",
-    "admin_password_required": "El primer arranque necesita una contraseña de administrador. Sin ella, el servidor se detiene esperándola en la consola.",
-    "no_server_dir": "Directorio de instalación no encontrado.",
-    "executable_not_found": "Ejecutable del servidor no encontrado.",
-    "java_not_found": "Java incluido no encontrado.",
-    "server_not_running": "El servidor no está en ejecución.",
-    "classpath_not_found": "No se encontraron los archivos de clases de Java (java/*.jar) en el directorio del servidor. Puede que la instalación esté incompleta.",
+    "quote_not_allowed": "Nombres y motivos no admiten comillas dobles (\")",
+    "connection_refused": "Error al conectar con el servidor. Comprueba que esté en ejecución y que el puerto sea correcto.",
+    "timeout": "Tiempo de espera del servidor agotado. Comprueba el estado del servidor.",
+    "admin_password_required": "Contraseña de administrador obligatoria en el primer inicio. Sin ella, el servidor se detiene esperándola en la consola.",
+    "no_server_dir": "Directorio de instalación del servidor no encontrado. Configura la ruta del ejecutable del servidor.",
+    "executable_not_found": "Ejecutable del servidor (StartServer64.bat o start-server.sh) no encontrado en el directorio del servidor",
+    "java_not_found": "Java incluido (jre64/bin/java) no encontrado. La instalación del servidor puede estar incompleta.",
+    "server_not_running": "Servidor no iniciado. Inicia primero el servidor.",
+    "classpath_not_found": "Archivos de clases de Java (java/*.jar) no encontrados en el directorio del servidor. La instalación puede estar incompleta.",
     "properties_write_failed": "No se pudo escribir la configuración: {{error}}",
-    "server_reset_partial": "No se pudieron eliminar algunos elementos: {{errors}}",
-    "invalid_server_name": "No se puede usar este nombre de servidor: {{name}}. Usa un nombre sin separadores de carpeta (/ \\), ':' ni '..', que no termine en espacio ni punto",
-    "extension_not_enabled": "La extensión de SteamCMD no está activada. Actívala primero en Ajustes → Extensiones.",
-    "unknown_branch": "No se puede elegir esta rama: {{branch}}",
+    "server_reset_partial": "Error al borrar algunos elementos: {{errors}}",
+    "invalid_server_name": "Nombre de servidor no válido: {{name}}. Escribe un nombre sin separadores de carpeta (/ \\), ':' ni '..', que no termine en espacio ni punto.",
+    "extension_not_enabled": "Extensión de SteamCMD desactivada. Actívala primero en Ajustes → Extensiones.",
+    "unknown_branch": "Rama no válida: {{branch}}",
     "detect": {
       "out_of_memory": "El servidor se quedó sin memoria (OutOfMemoryError)",
-      "port_in_use": "El puerto {{port}} ya lo está usando otra aplicación",
-      "illegal_termination": "Un hilo de trabajo terminó de forma anómala (posible conflicto entre Build 41 y 42)",
-      "permission_denied": "Permiso denegado. No se puede acceder a los archivos necesarios",
-      "server_crash": "El servidor se ha bloqueado",
-      "mod_error": "Se detectó un error de mod en el registro del servidor",
-      "save_status": "Se detectó el estado de una operación de guardado"
+      "port_in_use": "Puerto {{port}} en uso por otra aplicación",
+      "illegal_termination": "Cierre anómalo del hilo de trabajo (posible conflicto entre Build 41 y 42)",
+      "permission_denied": "Permisos insuficientes para acceder a los archivos necesarios",
+      "server_crash": "Cierre anómalo del servidor",
+      "mod_error": "Error de mod detectado en el registro del servidor",
+      "save_status": "Estado de operación de guardado detectado"
     },
     "solutions": {
-      "admin_password_required": "Escribe una contraseña de administrador en los ajustes del servidor y vuelve a iniciarlo.",
-      "no_server_dir": "Configure la ruta del ejecutable del servidor (StartServer64.bat) en la configuración de la instancia o instale el servidor con SteamCMD.",
-      "executable_not_found": "Descargue el servidor con SteamCMD (App ID 380870) o desde Steam. Vaya al directorio de instalación y compruebe que existe StartServer64.bat.",
-      "java_not_found": "El servidor debería incluir un JRE. Reinstala el servidor con SteamCMD o verifica la integridad de los archivos.",
-      "classpath_not_found": "La carpeta java/ del servidor debe contener archivos .jar. Pruebe a verificar la instalación con SteamCMD.",
-      "out_of_memory": "Aumente la RAM asignada en la configuración del servidor (Memoria). El valor predeterminado es 4 GB; pruebe con 8 GB o más en servidores grandes.",
-      "port_in_use": "El puerto {{port}} está en uso. Cierre la aplicación en conflicto o cambie el puerto en la configuración.",
-      "illegal_termination": "Suele ocurrir al actualizar de Build 41 a 42. Haga una copia de su configuración, elimine la carpeta %USERPROFILE%\\Zomboid y reinicie el servidor.",
-      "permission_denied": "Ejecute saba-chan como administrador o cambie los permisos para permitir lectura y escritura en los directorios del servidor y de datos.",
+      "admin_password_required": "Escribe la contraseña de administrador en los ajustes del servidor y vuelve a iniciarlo.",
+      "no_server_dir": "Configura la ruta del ejecutable del servidor (StartServer64.bat) en la configuración de la instancia o instala el servidor con SteamCMD.",
+      "executable_not_found": "Descarga el servidor con SteamCMD (App ID 380870) o desde Steam. Comprueba que StartServer64.bat esté en el directorio de instalación.",
+      "java_not_found": "El servidor debe incluir un JRE. Reinstala el servidor con SteamCMD o verifica la integridad de los archivos.",
+      "classpath_not_found": "La carpeta java/ del servidor debe contener archivos .jar. Verifica la instalación con SteamCMD.",
+      "out_of_memory": "Aumenta la RAM asignada (Memoria) en los ajustes del servidor. El valor predeterminado es 4 GB; para servidores grandes se recomiendan 8 GB o más.",
+      "port_in_use": "Puerto {{port}} en uso. Cierra la aplicación en conflicto o cambia el puerto en los ajustes.",
+      "illegal_termination": "Suele ocurrir al actualizar de Build 41 a 42. Haz una copia de tu configuración, elimina la carpeta %USERPROFILE%\\Zomboid y reinicia el servidor.",
+      "permission_denied": "Ejecuta Saba-chan como administrador o cambia los permisos de archivo de los directorios del servidor y de datos para permitir lectura y escritura.",
       "server_crash": "Consulte el registro console.txt para ver los detalles. Causas habituales: conflictos de mods, datos del mundo dañados o memoria insuficiente.",
-      "mod_error": "Un mod está causando errores. Desactive los mods añadidos recientemente o busque actualizaciones de compatibilidad en la página del Workshop.",
-      "save_status": "No es un error, solo un aviso. Si falla el guardado, revisa el espacio en disco y los permisos de archivos.",
-      "steamcmd_not_found": "Instale SteamCMD desde https://developer.valvesoftware.com/wiki/SteamCMD y asegúrese de que está en el PATH."
+      "mod_error": "Un mod está causando errores. Desactiva los mods añadidos recientemente o busca actualizaciones de compatibilidad en la página del Workshop.",
+      "save_status": "Es un aviso, no un error. Si falla el guardado, comprueba el espacio en disco y los permisos de archivos.",
+      "steamcmd_not_found": "Instala SteamCMD desde https://developer.valvesoftware.com/wiki/SteamCMD y añádelo al PATH."
     },
     "command_send_failed": "No se pudo enviar el comando: {{error}}",
-    "backup_paths_failed": "No se pudo leer la carpeta de guardado para la copia de seguridad: {{error}}"
+    "backup_paths_failed": "Error al leer la carpeta de guardado para la copia: {{error}}"
   },
   "versions": {
     "public": "Estable (predeterminada)",
@@ -754,14 +754,14 @@
     "legacy41": "Build 41 antigua (legacy41)"
   },
   "messages": {
-    "server_reset_complete": "Datos del mundo del servidor reiniciados",
-    "server_starting_no_response": "El proceso está en ejecución, pero el servidor aún no responde a las consultas RCON",
+    "server_reset_complete": "Datos del mundo del servidor restablecidos",
+    "server_starting_no_response": "Proceso en ejecución, pero el servidor aún no responde a las consultas RCON",
     "properties_updated": "Configuración del servidor actualizada",
-    "properties_using_defaults": "El archivo de configuración no existe. Se muestran los valores predeterminados",
-    "no_mappable_settings": "Ninguno de los ajustes indicados corresponde a un ajuste del servidor",
-    "rcon_disabled_managed": "RCON desactivado por el inicio gestionado (los comandos van a la consola, stdin)",
+    "properties_using_defaults": "Sin archivo de configuración; se muestran los valores predeterminados",
+    "no_mappable_settings": "Ningún ajuste reconocido como ajuste del servidor",
+    "rcon_disabled_managed": "RCON desactivado por el inicio gestionado (los comandos van a stdin de la consola)",
     "command_sent": "Comando enviado a la consola: {{command}}",
-    "no_log_files": "No se encontraron archivos de registro"
+    "no_log_files": "Sin archivos de registro"
   },
   "rcon": {
     "connecting": "Conectando a {{host}}:{{port}}...",

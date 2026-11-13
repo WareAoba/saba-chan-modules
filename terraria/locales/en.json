@@ -299,7 +299,7 @@
     },
     "exit-nosave": {
       "label": "Stop Without Saving",
-      "description": "Shut down the server without saving the world"
+      "description": "Stop the server without saving the world"
     },
     "seed": {
       "label": "Show Seed",
@@ -307,39 +307,39 @@
     }
   },
   "errors": {
-    "chat_failed": "Could not send to the game chat: {{error}}",
-    "archive_corrupt": "The server archive is damaged ({{file}})",
-    "backup_paths_failed": "Could not work out the backup files: {{error}}",
-    "executable_not_found": "Terraria server executable not found. Install the server first",
+    "chat_failed": "Game chat send failed: {{error}}",
+    "archive_corrupt": "Server archive damaged ({{file}})",
+    "backup_paths_failed": "Backup file selection failed: {{error}}",
+    "executable_not_found": "Terraria server executable not found. Install the server first.",
     "invalid_banlist": "Ban list name \"{{name}}\" is not a plain file name",
-    "invalid_world_name": "World name \"{{name}}\" cannot contain / \\ : * ? \" < > | or end with a space or dot",
-    "line_break": "The value of {{setting}} cannot contain a line break",
-    "no_version": "Choose a server version (for example 1.4.5.8)",
-    "not_server_folder": "This folder has no Terraria server, so nothing was deleted",
-    "properties_read_failed": "Could not read serverconfig.txt: {{error}}",
-    "properties_write_failed": "Could not save serverconfig.txt: {{error}}",
-    "server_not_in_archive": "The downloaded file has no {{file}} for this system",
+    "invalid_world_name": "World name \"{{name}}\" cannot contain / \\ : * ? \" < > | or end with a space or dot.",
+    "line_break": "{{setting}} cannot contain a line break",
+    "no_version": "Choose a server version (e.g. 1.4.5.8).",
+    "not_server_folder": "No Terraria server in this folder; nothing deleted",
+    "properties_read_failed": "serverconfig.txt read failed: {{error}}",
+    "properties_write_failed": "serverconfig.txt save failed: {{error}}",
+    "server_not_in_archive": "No {{file}} for this system in the downloaded file",
     "server_reset_partial": "Some world files could not be deleted: {{errors}}",
-    "settings_write_failed": "The server was installed, but the settings could not be written: {{error}}",
-    "version_list_failed": "Could not get the server versions from terraria.org: {{error}}",
-    "xna_framework_missing": "XNA Framework 4.0 files are missing from the server folder. Reinstall the server to add them.",
-    "xna_install_failed": "Could not add XNA Framework 4.0 to the server folder: {{error}}",
+    "settings_write_failed": "Server installed, but writing settings failed: {{error}}",
+    "version_list_failed": "Server version list download from terraria.org failed: {{error}}",
+    "xna_framework_missing": "XNA Framework 4.0 files missing from the server folder. Reinstalling the server adds them.",
+    "xna_install_failed": "Adding XNA Framework 4.0 to the server folder failed: {{error}}",
     "xna_extension_missing": "The XNA extension is needed to run the Terraria server on Windows. Install and enable the \"XNA Framework 4.0 (portable)\" extension.",
-    "version_unknown": "Could not find the installed server version.",
-    "players_unavailable": "Could not read the player list from the server console"
+    "version_unknown": "Installed server version check failed",
+    "players_unavailable": "Player list read from the server console failed"
   },
   "messages": {
-    "downloading": "Downloading the Terraria server",
+    "downloading": "Downloading Terraria server",
     "extracting": "Extracting server files",
     "install_complete": "Terraria server installed",
     "no_mappable_settings": "Nothing to write to serverconfig.txt",
-    "properties_updated": "Saved to serverconfig.txt. Restart the server to apply",
-    "server_reset_complete": "The world was deleted. A new world is created on the next start",
-    "installing_xna": "Installing XNA Framework 4.0 next to the server..."
+    "properties_updated": "Saved to serverconfig.txt. Restart the server to apply.",
+    "server_reset_complete": "World deleted. A new world is created on the next start.",
+    "installing_xna": "Adding XNA Framework 4.0 to the server folder..."
   },
   "reset": {
     "label": "Reset World",
-    "description": "Deletes this server world file and its .wld.bak and .wld.bak<number> backups. serverconfig.txt, the ban list, other worlds and server files stay. A new world is created on the next start.",
+    "description": "Deletes this server's world file and its .wld.bak and .wld.bak<number> backups. serverconfig.txt, the ban list, other worlds and server files stay. A new world is created on the next start.",
     "items": {
       "world": "World file and the backups the game made (.bak)"
     }

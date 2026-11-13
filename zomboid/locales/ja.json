@@ -704,6 +704,7 @@
     }
   },
   "errors": {
+    "players_unavailable": "プレイヤー一覧を読み取れませんでした",
     "data_home_unavailable": "サーバーデータフォルダーの作成・オープン失敗。フォルダーの場所と権限を確認してください。",
     "settings_write_failed": "サーバーファイルはインストール済みですが、選択した設定の保存失敗: {{error}}",
     "player_not_found": "プレイヤーが見つかりません。ユーザー名を確認してください。",

@@ -995,6 +995,47 @@ def command(config):
     return {"success": True, "message": answer or i18n.t("messages.command_sent", command=actual_cmd), "data": result}
 
 
+# 콘솔·RCON `players`의 답: "Players connected (N): " 다음 줄마다 "-이름" (서버 소스 PlayersCommand, PC 실측 필요)
+_PLAYERS_HEAD_RE = re.compile(r"Players connected \((\d+)\)")
+
+
+def player_count(config):
+    """접속자 (module.toml [status] players). 1분 갱신(players_detail 없음)에는 콘솔·RCON에 묻지 않는다:
+    수는 데몬이 접속·퇴장 줄로 센다. 사용자가 목록을 물을 때만 `players`를 한 번 보낸다"""
+    try:
+        max_players = int(config.get("max_players") or 0)
+    except (TypeError, ValueError):
+        max_players = 0
+    if not config.get("players_detail"):
+        return {"success": True, "max": max_players} if max_players else {"success": True}
+    try:
+        reply = daemon_stdin_command(config.get("instance_id", ""), "players", timeout=5)
+    except PathOutside:
+        raise
+    except Exception as e:
+        print(f"[Zomboid] players failed: {e}", file=sys.stderr)
+        return {"success": False, "message": i18n.t("errors.players_unavailable")}
+    response = ((reply or {}).get("data") or {}).get("response") or ""
+    lines = [line.strip() for line in str(response).splitlines()]
+    for i, line in enumerate(lines):
+        head = _PLAYERS_HEAD_RE.search(line)
+        if not head:
+            continue
+        online = int(head.group(1))
+        names = []
+        for rest in lines[i + 1:]:
+            if not rest.startswith("-"):
+                break
+            names.append(rest[1:].strip())
+        result = {"success": True, "online": online}
+        if max_players:
+            result["max"] = max_players
+        if len(names) == online:
+            result["players"] = [{"name": n} for n in names]
+        return result
+    return {"success": False, "message": i18n.t("errors.players_unavailable")}
+
+
 def diagnose_log(config):
     """Analyze server log for known error patterns (module.toml [[diagnose]]).
     데몬이 준 이번 실행의 콘솔 줄을 먼저 보고, 없으면 서버 콘솔 로그(server-console.txt) 끝부분을 본다.
@@ -1265,6 +1306,7 @@ FUNCTIONS = {
     "reset_preview":      reset_preview,
     "backup_paths":       backup_paths,
     "backup_snapshots":   backup_snapshots,
+    "player_count":       player_count,
 }
 
 

@@ -704,6 +704,7 @@
     }
   },
   "errors": {
+    "players_unavailable": "無法讀取玩家清單",
     "data_home_unavailable": "伺服器資料夾建立或開啟失敗。檢查資料夾位置與權限。",
     "settings_write_failed": "伺服器檔案已安裝，但所選設定儲存失敗：{{error}}",
     "player_not_found": "找不到玩家。檢查使用者名稱。",

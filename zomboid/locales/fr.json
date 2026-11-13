@@ -704,6 +704,7 @@
     }
   },
   "errors": {
+    "players_unavailable": "Impossible de lire la liste des joueurs",
     "data_home_unavailable": "Échec de la création ou de l'ouverture du dossier de données du serveur. Vérifiez l'emplacement et les autorisations du dossier.",
     "settings_write_failed": "Fichiers du serveur installés, mais échec de l'enregistrement des paramètres choisis : {{error}}",
     "player_not_found": "Joueur introuvable. Vérifiez le nom d'utilisateur.",

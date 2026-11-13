@@ -1174,3 +1174,52 @@ def test_g1_choice_also_applies_without_a_launch_script(tmp_path, monkeypatch):
 
     args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 4, "java_gc": "g1", "preview": True})["args"]
     assert "-XX:+UseG1GC" in args and "-XX:+UseZGC" not in args
+
+
+# ─── 접속자 목록 ([status] players) ─────────────────────────
+
+def _players_reply(monkeypatch, response):
+    from zomboid import lifecycle
+    sent = []
+
+    def fake(iid, line, **kw):
+        sent.append(line)
+        return {"success": True, "data": {"response": response}}
+    monkeypatch.setattr(lifecycle, "daemon_stdin_command", fake)
+    return lifecycle, sent
+
+
+def test_player_count_is_the_status_function():
+    from zomboid import lifecycle
+    assert _load_module_toml()["status"]["players"] == "player_count"
+    assert "player_count" in lifecycle.FUNCTIONS
+
+
+def test_player_count_does_not_write_to_the_console_every_minute(monkeypatch):
+    """1분 갱신은 콘솔·RCON에 명령을 보내지 않는다. 수는 데몬이 접속·퇴장 줄로 세고, 모듈은 최대 인원만 준다"""
+    lifecycle, sent = _players_reply(monkeypatch, "")
+    assert lifecycle.player_count({"instance_id": "inst-1"}) == {"success": True}
+    assert lifecycle.player_count({"instance_id": "inst-1", "max_players": 16}) == {"success": True, "max": 16}
+    assert sent == []
+
+
+@pytest.mark.parametrize("response,online,names", [
+    ("Players connected (0): ", 0, []),
+    ("Players connected (2): \n-Bob\n-사바쨩", 2, ["Bob", "사바쨩"]),
+    # 콘솔에는 명령 메아리와 로그 줄이 섞여 온다
+    ("players\nLOG  : General     f:0, t:1, st:0> something\nPlayers connected (1): \n- Alice ", 1, ["Alice"]),
+])
+def test_player_list_reads_the_players_command(monkeypatch, response, online, names):
+    lifecycle, sent = _players_reply(monkeypatch, response)
+    result = lifecycle.player_count({"instance_id": "inst-1", "players_detail": True, "max_players": 32})
+    assert sent == ["players"]
+    assert result == {"success": True, "online": online, "max": 32, "players": [{"name": n} for n in names]}
+
+
+def test_player_list_does_not_guess_from_an_unknown_reply(monkeypatch):
+    lifecycle, _ = _players_reply(monkeypatch, "Unknown command players")
+    result = lifecycle.player_count({"instance_id": "inst-1", "players_detail": True})
+    assert result["success"] is False and result["message"]
+    # 수가 이름 줄과 맞지 않으면 이름은 싣지 않고 수만 준다
+    lifecycle, _ = _players_reply(monkeypatch, "Players connected (3): \n-Bob")
+    assert lifecycle.player_count({"instance_id": "inst-1", "players_detail": True}) == {"success": True, "online": 3}

@@ -704,6 +704,7 @@
     }
   },
   "errors": {
+    "players_unavailable": "无法读取玩家列表",
     "data_home_unavailable": "创建或打开服务器数据文件夹失败。请检查文件夹位置和权限。",
     "settings_write_failed": "服务器文件已安装,但保存所选设置失败:{{error}}",
     "player_not_found": "未找到玩家。请检查用户名。",

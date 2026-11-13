@@ -704,6 +704,7 @@
     }
   },
   "errors": {
+    "players_unavailable": "Die Spielerliste konnte nicht gelesen werden",
     "data_home_unavailable": "Erstellen oder Öffnen des Serverdatenordners fehlgeschlagen. Prüfe Speicherort und Berechtigungen.",
     "settings_write_failed": "Serverdateien installiert, aber Speichern der gewählten Einstellungen fehlgeschlagen: {{error}}",
     "player_not_found": "Spieler nicht gefunden. Prüfe den Benutzernamen.",

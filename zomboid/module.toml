@@ -36,6 +36,10 @@ announce_command = "servermsg"
 # kick_command는 두지 않는다: B42 접속 줄에는 이름이 없어(guid만, 아래 player_join_patterns) 조작 가능 명단과 맞춰 볼 수 없다
 
 # 세이브 위치는 cache_dir·예전 배치에 따라 달라 lifecycle backup_paths가 계산한다
+[status]
+# 접속자: 수는 데몬이 접속·퇴장 줄로 센다. 목록을 물을 때만 콘솔·RCON `players`를 한 번 보낸다(1분 갱신마다 찍히지 않게)
+players = "player_count"
+
 [backup]
 hook = true
 save_command = "save"

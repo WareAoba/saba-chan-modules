@@ -704,6 +704,7 @@
     }
   },
   "errors": {
+    "players_unavailable": "No se pudo leer la lista de jugadores",
     "data_home_unavailable": "Error al crear o abrir la carpeta de datos del servidor. Comprueba la ubicación y los permisos de la carpeta.",
     "settings_write_failed": "Archivos del servidor instalados, pero error al guardar los ajustes elegidos: {{error}}",
     "player_not_found": "Jugador no encontrado. Comprueba el nombre de usuario.",

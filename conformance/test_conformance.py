@@ -172,7 +172,8 @@ def without_aliases(locale):
 
 
 def alias_problems(aliases, manifest):
-    """locales `aliases`: {module: [낱말], commands: {<명령 이름>: [낱말]}}. 명령 이름은 내장(start·stop·status), 접속자 조회(players), [[commands.fields]]"""
+    """locales `aliases`: {module: [낱말], commands: {<명령 이름>: [낱말]}}. 명령 이름은 내장(start·stop·status),
+    접속자 조회(players, `[status] players`를 선언한 모듈만), 채팅에서 부를 수 있는 [[commands.fields]](`remote = false`는 채팅에 없는 명령이다)"""
     if aliases is None:
         return []
     # 쉼표 꼴은 데몬 `chat::words::is_comma`와 같다 (쉼표가 든 낱말은 데몬이 버린다)
@@ -182,10 +183,13 @@ def alias_problems(aliases, manifest):
         return ["aliases는 module·commands만 가진다"]
     if "module" in aliases and not words(aliases["module"]):
         out.append("aliases.module은 쉼표 없는 낱말 목록이다")
-    known = {"start", "stop", "status", "players"} | {f.get("name") for f in manifest.get("commands", {}).get("fields", [])}
+    fields = manifest.get("commands", {}).get("fields", [])
+    known = {"start", "stop", "status"} | {f.get("name") for f in fields if f.get("remote", True)}
+    if (manifest.get("status") or {}).get("players"):
+        known.add("players")
     for name, v in (aliases.get("commands") or {}).items():
         if name not in known:
-            out.append(f"aliases.commands.{name}: 없는 명령")
+            out.append(f"aliases.commands.{name}: 채팅에서 부를 수 없는 명령")
         elif not words(v):
             out.append(f"aliases.commands.{name}은 쉼표 없는 낱말 목록이다")
     return out

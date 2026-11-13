@@ -242,6 +242,7 @@
     "quit": { "label": "Stop", "description": "Save and gracefully shut down" }
   },
   "errors": {
+    "players_unavailable": "Player list read failed",
     "data_home_unavailable": "Server data folder creation or opening failed. Check the folder location and permissions.",
     "settings_write_failed": "Server files installed, but saving the selected settings failed: {{error}}",
     "backup_paths_failed": "Backup save folder read failed: {{error}}",

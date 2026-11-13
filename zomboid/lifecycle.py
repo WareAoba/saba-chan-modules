@@ -25,17 +25,14 @@ from pathlib import Path
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Add project root for shared extensions
-_root_dir = os.path.normpath(os.path.join(MODULE_DIR, '..', '..'))
-if _root_dir not in sys.path:
-    sys.path.insert(0, _root_dir)
-
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, safe_join, daemon_stdin_command, diagnose_lines, graceful_stop, is_process_alive,
-                         load_diagnose_rules, read_key_values, request_console, request_terminate, setting_file_keys,
+import daemon_rcon
+from daemon_rcon import (PathOutside, safe_join, auto_heap_mb, daemon_stdin_command, enforce_remote_access, extension_required,
+                         graceful_stop, java_release_major, list_dir, rcon_access, read_key_values, remote_access_values,
+                         request_console, request_terminate, setting_file_keys,
                          delete_paths, setting_defaults_to_file, stop_command,
-                         settings_to_file, tail_lines, update_key_values)
+                         settings_to_file, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
@@ -415,50 +412,24 @@ def _find_java(server_dir):
     return None
 
 
-# 자동 힙 크기 (minecraft 모듈과 같은 규칙): 8G. PC 몫으로 1.5GB를 남기지 못하면 4G, 그것도 못 남기면 PC − 1.5GB(2G 아래로는 내리지 않는다)
-_AUTO_HEAP_MB = 8 * 1024
-_SMALL_HEAP_MB = 4 * 1024
-_HOST_RESERVE_MB = 1536
-_MIN_AUTO_HEAP_MB = 2 * 1024
-
-
 def _heap_size(ram):
-    """설정한 메모리(GB 숫자) → JVM 크기 문자열("4g"). 비었으면 데몬이 넘긴 PC 메모리(`SABA_HOST_MEMORY`, 바이트)로 정한다"""
+    """설정한 메모리(GB 숫자) → JVM 크기 문자열("4g"). 비었으면 PC 메모리에 맞춘 자동값(공용 auto_heap_mb)"""
     if ram is not None and str(ram).strip() != "":
         try:
             return f"{int(ram)}g"
         except (ValueError, TypeError):
             return "4g"
-    try:
-        host_mb = int(os.environ.get("SABA_HOST_MEMORY") or 0) // (1024 * 1024)
-    except ValueError:
-        host_mb = 0
-    if host_mb <= 0 or host_mb - _HOST_RESERVE_MB >= _AUTO_HEAP_MB:
-        mb = _AUTO_HEAP_MB
-    elif host_mb - _HOST_RESERVE_MB >= _SMALL_HEAP_MB:
-        mb = _SMALL_HEAP_MB
-    else:
-        mb = max(host_mb - _HOST_RESERVE_MB, _MIN_AUTO_HEAP_MB)
+    mb = auto_heap_mb()
     return f"{mb // 1024}g" if mb % 1024 == 0 else f"{mb}m"
 
 
 _COH_FLAG = "-XX:+UseCompactObjectHeaders"
 
 
-def _bundled_java_major(java_path):
-    """동봉 JRE의 주 버전 (JRE 폴더 release 파일의 JAVA_VERSION). 읽지 못하면 0"""
-    release = os.path.join(os.path.dirname(os.path.dirname(java_path)), "release")
-    try:
-        with open(release, encoding="utf-8", errors="replace") as f:
-            match = re.search(r'^JAVA_VERSION="(\d+)', f.read(), re.MULTILINE)
-    except OSError:
-        return 0
-    return int(match.group(1)) if match else 0
-
-
 def _coh_flags(java_path, flags):
     """동봉 JRE가 Java 25 이상이면 Compact Object Headers(JEP 519, 힙 절약)를 켠다. 스크립트가 이미 정했으면 그대로 둔다"""
-    if any("CompactObjectHeaders" in f for f in flags) or _bundled_java_major(java_path) < 25:
+    java_home = os.path.dirname(os.path.dirname(java_path))
+    if any("CompactObjectHeaders" in f for f in flags) or java_release_major(java_home) < 25:
         return []
     return [_COH_FLAG]
 
@@ -504,35 +475,20 @@ def _get_native_libs(server_dir):
     return ";".join(paths) if sys.platform == "win32" else ":".join(paths)
 
 
-def _rcon_access(config):
-    """관리형 시작을 끈 서버의 RCON 접속 정보 (데몬이 만든 포트·비밀번호). 관리형이거나 데몬이 주지 않았으면 None"""
-    config = config or {}
-    if config.get("managed", True) is not False:
-        return None
-    password, port = config.get("rcon_password"), config.get("rcon_port")
-    return (str(port), str(password)) if password and port else None
-
-
 def _enforce_rcon_policy(ini_path, config=None):
     """RCON은 관리형 시작을 끈 서버에서만 켠다 (Project Zomboid는 RCONPassword가 비면 RCON을 끈다).
 
     관리형 시작은 콘솔(stdin)로 명령을 보낸다. 끄면 콘솔이 없어 데몬이 만든 포트·비밀번호의 RCON으로 보낸다.
+    쓸 값은 module.toml `[remote_access]` (공용 remote_access_values).
     Returns the RCON password written ("" when RCON is off).
     """
-    props = IniManager.read(ini_path) if os.path.exists(ini_path) else {}
-    access = _rcon_access(config)
-    if access:
-        port, password = access
-        if not os.path.exists(ini_path):
-            # 첫 시작: 서버가 만들 기본값 위에 RCON을 얹어 미리 만든다 (콘솔도 RCON도 없이 뜨지 않게)
-            IniManager.update(ini_path, {**setting_defaults_to_file(MODULE_DIR), "RCONPort": port, "RCONPassword": password})
-        elif (props.get("RCONPort"), props.get("RCONPassword")) != (port, password):
-            IniManager.update(ini_path, {"RCONPort": port, "RCONPassword": password})
-        return password
-    if props.get("RCONPassword", ""):
-        IniManager.update(ini_path, {"RCONPassword": ""})
-        print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
-    return ""
+    access = rcon_access(config)
+    if os.path.exists(ini_path):
+        enforce_remote_access(MODULE_DIR, config, IniManager.read(ini_path), lambda changes: IniManager.update(ini_path, changes))
+    elif access:
+        # 첫 시작: 서버가 만들 기본값 위에 RCON을 얹어 미리 만든다 (콘솔도 RCON도 없이 뜨지 않게)
+        IniManager.update(ini_path, {**setting_defaults_to_file(MODULE_DIR), **remote_access_values(MODULE_DIR, config)})
+    return access[1] if access else ""
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -750,18 +706,6 @@ def get_launch_command(config):
         "args": args,
         "working_dir": server_dir,
     }
-
-
-def status(config):
-    """Check the current server status by the daemon-tracked PID."""
-    pid = config.get("pid")
-    if pid and is_process_alive(pid):
-        return {
-            "success": True,
-            "status": "running",
-            "message": i18n.t("messages.server_starting_no_response"),
-        }
-    return {"success": True, "status": "stopped"}
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -1037,24 +981,13 @@ def player_count(config):
 
 
 def diagnose_log(config):
-    """Analyze server log for known error patterns (module.toml [[diagnose]]).
+    """Analyze server log for known error patterns (module.toml [[diagnose]], 공용 diagnose_log).
     데몬이 준 이번 실행의 콘솔 줄을 먼저 보고, 없으면 서버 콘솔 로그(server-console.txt) 끝부분을 본다.
     클라이언트 로그(console.txt)는 보지 않는다: 같은 PC에서 게임을 한 기록을 서버 문제로 보게 된다"""
-    log_lines = config.get("log_lines") or []
-    if isinstance(log_lines, str):
-        log_lines = log_lines.splitlines()
-    if not log_lines:
-        candidates = [os.path.join(_zomboid_home(config), "server-console.txt")]
-        if config.get("working_dir"):
-            candidates.insert(0, os.path.join(config["working_dir"], "server-console.txt"))
-        for path in candidates:
-            log_lines = tail_lines(path)
-            if log_lines:
-                break
-    if not log_lines:
-        return {"success": True, "issues": [], "message": i18n.t("messages.no_log_files")}
-    return {"success": True, "issues": diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n),
-            "lines_analyzed": len(log_lines)}
+    files = [os.path.join(_zomboid_home(config), "server-console.txt")]
+    if config.get("working_dir"):
+        files.insert(0, os.path.join(config["working_dir"], "server-console.txt"))
+    return daemon_rcon.diagnose_log(config, MODULE_DIR, i18n, files=files)
 
 
 # 서버마다 고를 수 있는 Steam 브랜치 (첫 항목이 기본). 이름은 locales `versions.<id>`.
@@ -1083,11 +1016,7 @@ def install_server(config):
         return {"success": False, "message": i18n.t("errors.unknown_branch", branch=branch)}
     install_dir = config.get("install_dir", "")
     if not install_dir:
-        working_dir = config.get("working_dir", "")
-        if working_dir:
-            install_dir = os.path.join(working_dir, "server")
-        else:
-            return {"success": False, "message": i18n.t("errors.no_install_dir")}
+        return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     os.makedirs(install_dir, exist_ok=True)
 
@@ -1095,8 +1024,7 @@ def install_server(config):
     try:
         from extensions.steamcmd import install_for_module
     except ImportError:
-        return {"success": False, "message": i18n.t("errors.extension_not_enabled"),
-                "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
+        return extension_required(i18n, "steamcmd")
     try:
         # 정식으로 돌아갈 때도 브랜치 이름(public)을 적어 넘긴다: -beta 없이 받으면 받아 둔 브랜치에 머문다
         result = install_for_module(MODULE_DIR, install_dir, beta=branch)
@@ -1217,11 +1145,11 @@ def backup_snapshots(config):
     root = safe_join(home, "backups")
     try:
         snapshots = []
-        for kind in _entries_or_empty(root):
+        for kind in list_dir(root):
             folder = safe_join(root, kind)
             if not os.path.isdir(folder):
                 continue
-            for name in _entries_or_empty(folder):
+            for name in list_dir(folder):
                 path = safe_join(folder, name)
                 if not (name.endswith(".zip") and os.path.isfile(path)):
                     continue
@@ -1242,11 +1170,7 @@ def backup_snapshots(config):
         return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
 
 
-def _entries_or_empty(path):
-    try:
-        return sorted(os.listdir(path))
-    except FileNotFoundError:
-        return []
+
 
 
 def _server_config_files(server_dir, server_name):
@@ -1292,7 +1216,6 @@ def backup_paths(config):
 FUNCTIONS = {
     "validate":           validate,
     "get_launch_command": get_launch_command,
-    "status":             status,
     "stop":               stop,
     "command":            command,
     "configure":          configure,

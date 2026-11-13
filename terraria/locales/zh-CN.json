@@ -307,7 +307,6 @@
     }
   },
   "errors": {
-    "chat_failed": "游戏聊天发送失败:{{error}}",
     "archive_corrupt": "服务器压缩包已损坏({{file}})",
     "backup_paths_failed": "确定备份文件失败:{{error}}",
     "executable_not_found": "未找到泰拉瑞亚服务器程序。请先安装服务器。",
@@ -324,7 +323,6 @@
     "version_list_failed": "从 terraria.org 获取服务器版本列表失败:{{error}}",
     "xna_framework_missing": "服务器文件夹中缺少 XNA Framework 4.0 文件。重新安装服务器即可添加。",
     "xna_install_failed": "向服务器文件夹添加 XNA Framework 4.0 失败:{{error}}",
-    "xna_extension_missing": "在 Windows 上运行 Terraria 服务器需要 XNA 扩展。请安装并启用“XNA Framework 4.0 (portable)”扩展。",
     "version_unknown": "确认已安装的服务器版本失败",
     "players_unavailable": "从服务器控制台读取玩家列表失败"
   },

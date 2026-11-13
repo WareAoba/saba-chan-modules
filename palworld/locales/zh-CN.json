@@ -159,7 +159,6 @@
     "settings": { "label": "查看设置", "description": "查看当前服务器设置" }
   },
   "errors": {
-    "chat_failed": "游戏聊天发送失败:{{error}}",
     "backup_paths_failed": "读取要备份的存档文件夹失败:{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
     "auth_failed": "认证失败。请检查 REST API 用户名和密码。",
@@ -168,13 +167,10 @@
     "timeout": "服务器响应超时。请检查服务器状态。",
     "rest_api_disabled": "REST API 已关闭。下次启动服务器时会自动开启。",
     "internal_server_error": "服务器内部错误",
-    "daemon_connection_error": "守护进程连接错误：{{error}}",
-    "invalid_json_response": "来自守护进程的 JSON 响应无效：{{error}}",
     "daemon_error": "守护进程错误：{{error}}",
     "player_list_failed": "获取玩家列表失败：{{error}}",
     "no_executable": "实例设置中未指定 server_executable。请添加 PalServer.exe 的路径。",
     "executable_not_found": "未找到可执行文件:{{path}}。请检查实例设置中的路径。",
-    "failed_to_get_status": "获取状态失败：{{error}}",
     "no_server_dir": "无法确定服务器目录。请设置 working_dir 或 server_executable。",
     "settings_write_failed": "写入设置文件失败",
     "settings_invalid_value": "设置值包含换行或不允许的字符,未保存",
@@ -185,20 +181,29 @@
     "command_failed": "执行命令失败：{{error}}",
     "userid_required": "需要玩家 ID(userid)",
     "unknown_command": "未知命令:{{command}}",
-    "player_ambiguous": "有多个玩家匹配“{{player}}”:{{names}}。请输入更准确的名称。"
+    "player_ambiguous": "有多个玩家匹配“{{player}}”:{{names}}。请输入更准确的名称。",
+    "detect": {
+      "port_in_use": "端口已被占用",
+      "out_of_memory": "内存不足",
+      "executable_crash": "服务器程序异常退出",
+      "save_corrupt": "存档数据损坏",
+      "steam_auth_failed": "Steam 认证失败"
+    },
+    "solutions": {
+      "port_in_use": "请结束占用该端口的其他进程,或更改服务器端口。",
+      "out_of_memory": "请增加系统内存,或降低服务器设置(最大玩家数、世界大小)。",
+      "executable_crash": "请在 Steam 中验证游戏文件,检查模组冲突,或更新服务器。",
+      "save_corrupt": "请从备份存档恢复。备份位于 Pal/Saved/SaveGames/。",
+      "steam_auth_failed": "请确认 Steam 正在运行,且可访问 steamclient 库。"
+    }
   },
   "messages": {
-    "rest_api_forced_on": "[策略] 已强制启用 REST API",
-    "rcon_forced_off": "[策略] 已强制禁用 RCON(已弃用)",
-    "process_running": "{{name}} 正在运行",
-    "process_not_running": "{{name}} 未运行",
     "settings_updated": "设置已更新",
     "using_defaults": "正在使用 DefaultPalWorldSettings.ini 的默认值(服务器尚未配置)",
-    "versions_via_steam": "幻兽帕鲁服务器通过 Steam/SteamCMD 分发(App ID 2394010)。请使用 SteamCMD 安装或更新。",
-    "versions_managed_via_steam": "幻兽帕鲁服务器版本由 Steam 管理。请通过 SteamCMD 执行 app_update 2394010 更新。",
-    "extension_not_enabled": "SteamCMD 扩展未启用。请先在 设置 → 扩展 中启用。",
-    "extension_missing": "需要 {{extension}} 扩展。请在 设置 → 扩展 中安装并启用。",
-    "command_executed": "命令“{{command}}”已执行"
+    "command_executed": "命令“{{command}}”已执行",
+    "shutdown_notice": "服务器即将关闭",
+    "kick_reason": "已被踢出服务器",
+    "ban_reason": "已被服务器封禁"
   },
   "reset": {
     "no_path": "无法确定服务器目录。请设置 working_dir 或 server_executable。",
@@ -217,16 +222,6 @@
     "executable_not_found": "未找到可执行文件:{{path}}",
     "executable_not_found_hint": "请检查可执行文件路径或重新安装服务器。",
     "cannot_create_dir": "创建工作目录失败:{{path}}",
-    "cannot_create_dir_hint": "请检查文件夹权限或选择其他路径。",
-    "log_port_in_use": "端口已被占用",
-    "log_port_in_use_hint": "请结束占用该端口的其他进程,或更改服务器端口。",
-    "log_out_of_memory": "内存不足",
-    "log_out_of_memory_hint": "请增加系统内存,或降低服务器设置(最大玩家数、世界大小)。",
-    "log_executable_crash": "服务器程序异常退出",
-    "log_executable_crash_hint": "请在 Steam 中验证游戏文件,检查模组冲突,或更新服务器。",
-    "log_save_corrupt": "存档数据损坏",
-    "log_save_corrupt_hint": "请从备份存档恢复。备份位于 Pal/Saved/SaveGames/。",
-    "log_steam_auth_failed": "Steam 认证失败",
-    "log_steam_auth_failed_hint": "请确认 Steam 正在运行,且可访问 steamclient 库。"
+    "cannot_create_dir_hint": "请检查文件夹权限或选择其他路径。"
   }
 }

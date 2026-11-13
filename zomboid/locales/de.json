@@ -720,7 +720,6 @@
     "properties_write_failed": "Konfiguration konnte nicht geschrieben werden: {{error}}",
     "server_reset_partial": "Löschen einiger Elemente fehlgeschlagen: {{errors}}",
     "invalid_server_name": "Servername nicht verwendbar: {{name}}. Er darf keine Ordnertrennzeichen (/ \\), ':' oder '..' enthalten und nicht auf Leerzeichen oder Punkt enden.",
-    "extension_not_enabled": "SteamCMD-Erweiterung deaktiviert. Aktiviere sie zuerst unter Einstellungen → Erweiterungen.",
     "unknown_branch": "Branch nicht wählbar: {{branch}}",
     "detect": {
       "out_of_memory": "Dem Server ist der Speicher ausgegangen (OutOfMemoryError)",
@@ -756,13 +755,10 @@
   },
   "messages": {
     "server_reset_complete": "Server-Weltdaten zurückgesetzt",
-    "server_starting_no_response": "Prozess läuft, Server antwortet noch nicht auf RCON-Abfragen",
     "properties_updated": "Serverkonfiguration geändert",
     "properties_using_defaults": "Konfigurationsdatei nicht vorhanden, Standardwerte angezeigt",
     "no_mappable_settings": "Keine Einstellung als Servereinstellung erkannt",
-    "rcon_disabled_managed": "RCON bei verwaltetem Start aus (Befehle gehen an die Konsole, stdin)",
-    "command_sent": "Befehl an die Konsole gesendet: {{command}}",
-    "no_log_files": "Keine Protokolldatei gefunden"
+    "command_sent": "Befehl an die Konsole gesendet: {{command}}"
   },
   "rcon": {
     "connecting": "Verbinde mit {{host}}:{{port}}...",

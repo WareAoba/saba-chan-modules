@@ -307,7 +307,6 @@
     }
   },
   "errors": {
-    "chat_failed": "Game chat send failed: {{error}}",
     "archive_corrupt": "Server archive damaged ({{file}})",
     "backup_paths_failed": "Backup file selection failed: {{error}}",
     "executable_not_found": "Terraria server executable not found. Install the server first.",
@@ -324,7 +323,6 @@
     "version_list_failed": "Server version list download from terraria.org failed: {{error}}",
     "xna_framework_missing": "XNA Framework 4.0 files missing from the server folder. Reinstalling the server adds them.",
     "xna_install_failed": "Adding XNA Framework 4.0 to the server folder failed: {{error}}",
-    "xna_extension_missing": "The XNA extension is needed to run the Terraria server on Windows. Install and enable the \"XNA Framework 4.0 (portable)\" extension.",
     "version_unknown": "Installed server version check failed",
     "players_unavailable": "Player list read from the server console failed"
   },

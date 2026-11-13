@@ -720,7 +720,6 @@
     "properties_write_failed": "Не удалось записать конфигурацию: {{error}}",
     "server_reset_partial": "Не удалось удалить часть элементов: {{errors}}",
     "invalid_server_name": "Недопустимое имя сервера: {{name}}. Не используйте разделители папок (/ \\), ':' и '..', имя не должно заканчиваться пробелом или точкой.",
-    "extension_not_enabled": "Расширение SteamCMD отключено. Сначала включите его в разделе Настройки → Расширения.",
     "unknown_branch": "Недопустимая ветка: {{branch}}",
     "detect": {
       "out_of_memory": "Серверу не хватило памяти (OutOfMemoryError)",
@@ -756,13 +755,10 @@
   },
   "messages": {
     "server_reset_complete": "Данные мира сервера сброшены",
-    "server_starting_no_response": "Процесс запущен, но сервер ещё не отвечает на запросы RCON",
     "properties_updated": "Настройки сервера обновлены",
     "properties_using_defaults": "Нет файла настроек; показаны значения по умолчанию",
     "no_mappable_settings": "Нет элементов, распознанных как настройки сервера",
-    "rcon_disabled_managed": "RCON отключён из-за управляемого запуска (команды идут в stdin консоли)",
-    "command_sent": "Команда отправлена в консоль: {{command}}",
-    "no_log_files": "Нет файлов журнала"
+    "command_sent": "Команда отправлена в консоль: {{command}}"
   },
   "rcon": {
     "connecting": "Подключение к {{host}}:{{port}}...",

@@ -159,7 +159,6 @@
     "settings": { "label": "Просмотр настроек", "description": "Просмотр текущих настроек сервера" }
   },
   "errors": {
-    "chat_failed": "Не удалось отправить в игровой чат: {{error}}",
     "backup_paths_failed": "Не удалось прочитать папку сохранений для резервной копии: {{error}}",
     "server_not_running": "Сервер не запущен. Сначала запустите сервер.",
     "auth_failed": "Ошибка аутентификации. Проверьте имя пользователя и пароль REST API.",
@@ -168,13 +167,10 @@
     "timeout": "Превышено время ожидания ответа сервера. Проверьте состояние сервера.",
     "rest_api_disabled": "REST API отключён. Включится автоматически при следующем запуске сервера.",
     "internal_server_error": "Внутренняя ошибка сервера",
-    "daemon_connection_error": "Ошибка подключения демона: {{error}}",
-    "invalid_json_response": "Недействительный JSON ответ от демона: {{error}}",
     "daemon_error": "Ошибка демона: {{error}}",
     "player_list_failed": "Ошибка получения списка игроков: {{error}}",
     "no_executable": "server_executable не указан в настройках экземпляра. Добавьте путь к PalServer.exe.",
     "executable_not_found": "Исполняемый файл не найден: {{path}}. Проверьте путь в настройках экземпляра.",
-    "failed_to_get_status": "Не удалось получить состояние: {{error}}",
     "no_server_dir": "Не удалось определить каталог сервера. Задайте working_dir или server_executable.",
     "settings_write_failed": "Не удалось записать файл настроек",
     "settings_invalid_value": "В значении есть перенос строки или недопустимый символ; настройки не сохранены",
@@ -185,20 +181,29 @@
     "command_failed": "Не удалось выполнить команду: {{error}}",
     "userid_required": "Требуется ID игрока (userid)",
     "unknown_command": "Неизвестная команда: {{command}}",
-    "player_ambiguous": "С '{{player}}' совпадает несколько игроков: {{names}}. Уточните запрос."
+    "player_ambiguous": "С '{{player}}' совпадает несколько игроков: {{names}}. Уточните запрос.",
+    "detect": {
+      "port_in_use": "Порт уже используется",
+      "out_of_memory": "Недостаточно памяти",
+      "executable_crash": "Аварийное завершение исполняемого файла сервера",
+      "save_corrupt": "Данные сохранения повреждены",
+      "steam_auth_failed": "Ошибка аутентификации Steam"
+    },
+    "solutions": {
+      "port_in_use": "Завершите другой процесс, использующий порт, или смените порт сервера.",
+      "out_of_memory": "Увеличьте память системы или уменьшите настройки сервера (максимум игроков, размер мира).",
+      "executable_crash": "Проверьте файлы игры в Steam, конфликты модов или обновите сервер.",
+      "save_corrupt": "Восстановите резервную копию. Копии лежат в Pal/Saved/SaveGames/.",
+      "steam_auth_failed": "Убедитесь, что Steam запущен и библиотеки steamclient доступны."
+    }
   },
   "messages": {
-    "rest_api_forced_on": "[Политика] REST API принудительно включён",
-    "rcon_forced_off": "[Политика] RCON принудительно отключён (устарел)",
-    "process_running": "{{name}} запущен",
-    "process_not_running": "{{name}} не запущен",
     "settings_updated": "Настройки обновлены",
     "using_defaults": "Используются значения по умолчанию из DefaultPalWorldSettings.ini (сервер ещё не настроен)",
-    "versions_via_steam": "Сервер Palworld распространяется через Steam/SteamCMD (App ID 2394010). Устанавливайте и обновляйте его через SteamCMD.",
-    "versions_managed_via_steam": "Версиями сервера Palworld управляет Steam. Обновляйте через SteamCMD командой app_update 2394010.",
-    "extension_not_enabled": "Расширение SteamCMD отключено. Сначала включите его в разделе Настройки → Расширения.",
-    "extension_missing": "Требуется расширение {{extension}}. Установите и включите его в разделе Настройки → Расширения.",
-    "command_executed": "Команда '{{command}}' выполнена"
+    "command_executed": "Команда '{{command}}' выполнена",
+    "shutdown_notice": "Сервер выключается",
+    "kick_reason": "Вы исключены с сервера",
+    "ban_reason": "Вы заблокированы на сервере"
   },
   "reset": {
     "no_path": "Не удалось определить каталог сервера. Задайте working_dir или server_executable.",
@@ -217,16 +222,6 @@
     "executable_not_found": "Исполняемый файл не найден: {{path}}",
     "executable_not_found_hint": "Проверьте путь к исполняемому файлу или переустановите сервер.",
     "cannot_create_dir": "Не удалось создать рабочий каталог: {{path}}",
-    "cannot_create_dir_hint": "Проверьте права на папку или выберите другой путь.",
-    "log_port_in_use": "Порт уже используется",
-    "log_port_in_use_hint": "Завершите другой процесс, использующий порт, или смените порт сервера.",
-    "log_out_of_memory": "Недостаточно памяти",
-    "log_out_of_memory_hint": "Увеличьте память системы или уменьшите настройки сервера (максимум игроков, размер мира).",
-    "log_executable_crash": "Аварийное завершение исполняемого файла сервера",
-    "log_executable_crash_hint": "Проверьте файлы игры в Steam, конфликты модов или обновите сервер.",
-    "log_save_corrupt": "Данные сохранения повреждены",
-    "log_save_corrupt_hint": "Восстановите резервную копию. Копии лежат в Pal/Saved/SaveGames/.",
-    "log_steam_auth_failed": "Ошибка аутентификации Steam",
-    "log_steam_auth_failed_hint": "Убедитесь, что Steam запущен и библиотеки steamclient доступны."
+    "cannot_create_dir_hint": "Проверьте права на папку или выберите другой путь."
   }
 }

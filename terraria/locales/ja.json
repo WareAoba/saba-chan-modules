@@ -307,7 +307,6 @@
     }
   },
   "errors": {
-    "chat_failed": "ゲームチャット送信失敗: {{error}}",
     "archive_corrupt": "サーバーのアーカイブが破損しています({{file}})",
     "backup_paths_failed": "バックアップ対象ファイルの決定失敗: {{error}}",
     "executable_not_found": "テラリアのサーバー実行ファイルなし。先にサーバーをインストールしてください。",
@@ -324,7 +323,6 @@
     "version_list_failed": "terraria.org からのサーバーバージョン一覧の取得失敗: {{error}}",
     "xna_framework_missing": "サーバーフォルダーに XNA Framework 4.0 のファイルなし。サーバーを再インストールすると配置されます。",
     "xna_install_failed": "サーバーフォルダーへの XNA Framework 4.0 の配置失敗: {{error}}",
-    "xna_extension_missing": "Windows でテラリアサーバーを実行するには XNA エクステンションが必要です。「XNA Framework 4.0 (portable)」エクステンションをインストールして有効にしてください。",
     "version_unknown": "インストール済みサーバーのバージョン確認失敗",
     "players_unavailable": "サーバーコンソールからの接続者一覧の読み込み失敗"
   },

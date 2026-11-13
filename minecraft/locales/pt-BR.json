@@ -182,7 +182,6 @@
     "stop": { "label": "Parar", "description": "Parar o servidor corretamente" }
   },
   "errors": {
-    "chat_failed": "Falha ao enviar ao chat do jogo: {{error}}",
     "backup_paths_failed": "Falha ao ler a pasta de plugins para o backup: {{error}}",
     "server_not_running": "Servidor não iniciado. Inicie o servidor primeiro.",
     "timeout": "Tempo de resposta do servidor esgotado. Verifique o estado do servidor.",

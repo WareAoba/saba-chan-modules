@@ -18,26 +18,6 @@ DAEMON_FUNCTIONS = {
 }
 
 
-def test_default_properties_loaded():
-    """DEFAULT_PROPERTIES should load from server.properties file."""
-    from minecraft.lifecycle import DEFAULT_PROPERTIES
-    assert isinstance(DEFAULT_PROPERTIES, dict)
-    assert len(DEFAULT_PROPERTIES) > 30, f"Expected 30+ properties, got {len(DEFAULT_PROPERTIES)}"
-    # saba-chan override: RCON is blocked
-    assert DEFAULT_PROPERTIES.get("enable-rcon") == "false"
-    # Vanilla properties should be present
-    assert "server-port" in DEFAULT_PROPERTIES
-    assert "difficulty" in DEFAULT_PROPERTIES
-    assert "gamemode" in DEFAULT_PROPERTIES
-
-
-def test_default_properties_no_empty_keys():
-    """No property key should be empty."""
-    from minecraft.lifecycle import DEFAULT_PROPERTIES
-    for key in DEFAULT_PROPERTIES:
-        assert key.strip() != "", "Found empty key in DEFAULT_PROPERTIES"
-
-
 def test_property_key_map_coverage():
     """module.toml file_key values should reference valid server.properties keys."""
     from daemon_rcon import setting_file_keys
@@ -106,18 +86,6 @@ def test_server_properties_manager_update_new_file():
         assert result["motd"] == "Hello World"
         # Defaults should also be present
         assert "server-port" in result
-
-
-def test_server_properties_manager_get_defaults():
-    """get_defaults returns a copy of DEFAULT_PROPERTIES."""
-    from minecraft.lifecycle import ServerPropertiesManager, DEFAULT_PROPERTIES
-    with tempfile.TemporaryDirectory() as tmpdir:
-        mgr = ServerPropertiesManager(tmpdir)
-        defaults = mgr.get_defaults()
-        assert defaults == DEFAULT_PROPERTIES
-        # Should be a copy, not same reference
-        defaults["test-key"] = "test-value"
-        assert "test-key" not in DEFAULT_PROPERTIES
 
 
 def _make_fake_jar(tmpdir, name="server.jar"):
@@ -764,7 +732,7 @@ def test_java_download_failure_is_reported_in_the_user_language(tmp_path, monkey
     from i18n import I18n
     from minecraft import lifecycle
     monkeypatch.setenv("SABA_LANG", "ko")
-    monkeypatch.setattr(lifecycle, "i18n", I18n(MODULE_DIR))
+    monkeypatch.setattr(sys.modules["java"], "i18n", I18n(MODULE_DIR))
     with mock.patch("urllib.request.urlopen", side_effect=OSError("boom")):
         result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
     assert result == {"success": False, "message": "Java 다운로드 실패: boom"}
@@ -891,7 +859,7 @@ def test_find_java_without_daemon_list_skips_oracle_shims(monkeypatch, tmp_path)
         p.write_text("")
     monkeypatch.delenv("SABA_JAVA_RUNTIMES", raising=False)
     monkeypatch.delenv("JAVA_HOME", raising=False)
-    monkeypatch.setattr(lifecycle.shutil, "which", lambda name: str(shim))
+    monkeypatch.setattr("shutil.which", lambda name: str(shim))
     monkeypatch.setattr(JavaDetector, "WINDOWS_PATHS", [str(tmp_path)])
     monkeypatch.setattr(JavaDetector, "UNIX_PATHS", [str(tmp_path)])
     probed = []
@@ -1042,7 +1010,7 @@ def test_jre_download_is_pinned_and_checked_against_the_release_checksum(tmp_pat
     from i18n import I18n
     from minecraft import lifecycle
     monkeypatch.setenv("SABA_LANG", "en")
-    monkeypatch.setattr(lifecycle, "i18n", I18n(MODULE_DIR))
+    monkeypatch.setattr(sys.modules["java"], "i18n", I18n(MODULE_DIR))
     exe = "java.exe" if os.name == "nt" else "java"
     archive = _jre_zip_response(exe).getvalue()
     monkeypatch.setattr(lifecycle.JavaDownloader, "_platform_info", staticmethod(lambda: ("windows", "x64")))
@@ -1072,7 +1040,7 @@ def test_jre_major_without_a_pinned_release_uses_the_next_pinned_one(tmp_path, m
     from i18n import I18n
     from minecraft import lifecycle
     monkeypatch.setenv("SABA_LANG", "ko")
-    monkeypatch.setattr(lifecycle, "i18n", I18n(MODULE_DIR))
+    monkeypatch.setattr(sys.modules["java"], "i18n", I18n(MODULE_DIR))
     releases = lifecycle.JavaDownloader._RELEASES
     assert lifecycle.JavaDownloader._pinned_release(16) == releases[17]
     assert lifecycle.JavaDownloader._pinned_release(8) == releases[8]
@@ -1082,7 +1050,7 @@ def test_jre_major_without_a_pinned_release_uses_the_next_pinned_one(tmp_path, m
     seen = []
     with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(b"", seen=seen)):
         result = lifecycle.JavaDownloader.download_jre(max(releases) + 1, str(tmp_path))
-    assert result == {"success": False, "message": lifecycle.i18n.t(
+    assert result == {"success": False, "message": sys.modules["java"].i18n.t(
         "errors.java_release_unavailable", version=str(max(releases) + 1), platform="mac aarch64")}
     assert seen == []
     with mock.patch("urllib.request.urlopen", side_effect=_fake_adoptium(b"", seen=seen, binaries=[])):
@@ -1579,7 +1547,7 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     assert not any(p.search('[20:08:00] [Server thread/INFO]: <Steve> ]: Done (1.0s)! For help, type "help"') for p in patterns)
     assert "ready_patterns" not in toml["detection"]
     # 정지·설정 파일이 공용 도우미(graceful_stop·update_key_values, saba-core 0.1.11부터)를 쓴다
-    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.14-0"
+    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.14-beta.2"
 
 
 def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():
@@ -1733,7 +1701,7 @@ def test_a_failed_java_download_does_not_fail_the_import(tmp_path, monkeypatch):
     result = lifecycle.import_settings({"working_dir": str(server), "instance_dir": str(instance), "migration_import": True})
 
     assert result["success"] is True and result["settings"]["motd"] == "kept"
-    assert "offline" in result.get("java_warning", "")
+    assert "offline" in result.get("warning", "")
 
 
 def test_validate_leaves_the_port_check_to_the_daemon(tmp_path):
@@ -1794,7 +1762,7 @@ def test_a_jre_archive_that_reaches_outside_the_java_folder_is_not_extracted(tmp
             z.writestr("jdk-21-jre/../../evil.txt", "x")
         return {}
 
-    with mock.patch.object(lifecycle, "download", side_effect=fake_download), \
+    with mock.patch.object(sys.modules["java"], "download", side_effect=fake_download), \
          mock.patch.object(lifecycle.JavaDownloader, "_find_bundled_java", return_value=None):
         result = lifecycle.JavaDownloader.download_jre(21, str(tmp_path))
     assert result["success"] is False
@@ -1827,7 +1795,7 @@ def test_server_properties_values_use_java_escapes():
         assert "level-type=minecraft\\:flat\n" in text and "motd=x\\=y\n" in text
         assert ServerPropertiesManager(tmpdir).read()["motd"] == "x=y"
     with tempfile.TemporaryDirectory() as tmpdir:
-        ServerPropertiesManager(tmpdir).write(ServerPropertiesManager(tmpdir).get_defaults())
+        ServerPropertiesManager(tmpdir).update({})
         assert "level-type=minecraft\\:normal\n" in open(os.path.join(tmpdir, "server.properties"), encoding="utf-8").read()
 
 
@@ -2071,7 +2039,7 @@ def test_an_installer_needs_its_portable_java(tmp_path):
             mock.patch.object(lifecycle.server_types, "resolve_download",
                               return_value={"url": "https://example.invalid/i.jar", "installer": True, "build": "1",
                                             "sha256": "ab" * 32}), \
-            mock.patch.object(lifecycle, "download", return_value={"sha1": "x"}):
+            mock.patch.object(sys.modules["installer"], "download", return_value={"sha1": "x"}):
         result = lifecycle.ServerInstaller.install_server("1.21.1", str(tmp_path), server_type="forge")
     assert result["success"] is False and "offline" in result["message"]
     run.assert_not_called()
@@ -2277,6 +2245,23 @@ def test_buildtools_gets_the_java_closest_to_25_it_accepts(tmp_path):
         assert {c.args[0] for c in jre.call_args_list} == {want}, (java_max, jre.call_args_list)
 
 
+def test_reset_and_the_first_write_use_the_defaults_the_settings_screen_shows(tmp_path):
+    """설정 기본값은 module.toml 한 곳에 둔다 (감사 A-01). 설정 초기화와 파일이 없을 때의 첫 쓰기가 화면이 보여 주는
+    기본값(difficulty normal, pause-when-empty-seconds 60)을 쓰고, 원격 접속 값은 [remote_access]대로 RCON을 꺼 둔다"""
+    from daemon_rcon import setting_defaults_to_file
+    from minecraft import lifecycle
+    shown = setting_defaults_to_file(MODULE_DIR)
+    assert (shown["difficulty"], shown["pause-when-empty-seconds"]) == ("normal", "60")
+    (tmp_path / "server.properties").write_text("difficulty=hard\n", encoding="utf-8")
+    assert lifecycle.reset_properties({"working_dir": str(tmp_path)})["success"]
+    assert lifecycle.ServerPropertiesManager(str(tmp_path)).read() == {**shown, "enable-rcon": "false"}
+    fresh = tmp_path / "fresh"
+    fresh.mkdir()
+    assert lifecycle.ServerPropertiesManager(str(fresh)).update({"motd": "hi"})
+    assert lifecycle.ServerPropertiesManager(str(fresh)).read() == {**shown, "enable-rcon": "false", "motd": "hi"}
+    assert lifecycle.read_properties({"working_dir": str(tmp_path / "none")})["properties"] == {**shown, "enable-rcon": "false"}
+
+
 def test_reset_properties_keeps_this_servers_port(tmp_path):
     """설정 초기화 뒤에도 이 서버의 포트(config port)는 그대로다. 기본값 25565로 쓰면 데몬이 파일을 다시 읽어
     인스턴스 포트까지 25565로 맞추고, 포트를 옮겨 둔 둘째 서버가 첫 서버와 겹친다"""
@@ -2285,4 +2270,4 @@ def test_reset_properties_keeps_this_servers_port(tmp_path):
     assert lifecycle.reset_properties({"working_dir": str(tmp_path), "port": 25570})["success"]
     props = lifecycle.ServerPropertiesManager(str(tmp_path)).read()
     assert props["server-port"] == "25570"
-    assert props["motd"] == lifecycle.DEFAULT_PROPERTIES["motd"]
+    assert props["motd"] == lifecycle._default_properties()["motd"]

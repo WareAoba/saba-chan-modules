@@ -4,5 +4,13 @@
       "label": "Server Name",
       "description": "Name displayed in the server browser"
     }
+  },
+  "errors": {
+    "no_executable": "The server executable is not set.",
+    "executable_not_found": "Server executable not found: {{path}}",
+    "executable_not_found_hint": "Set the correct path in the server settings, or install the server first.",
+    "working_dir_missing": "The server folder does not exist: {{path}}",
+    "working_dir_missing_hint": "The folder is created when the server starts.",
+    "not_implemented": "The {{command}} command is not implemented yet."
   }
 }

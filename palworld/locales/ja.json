@@ -159,7 +159,6 @@
     "settings": { "label": "設定を表示", "description": "現在のサーバー設定を表示" }
   },
   "errors": {
-    "chat_failed": "ゲームチャット送信失敗: {{error}}",
     "backup_paths_failed": "バックアップ対象のセーブフォルダー読み込み失敗: {{error}}",
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
     "auth_failed": "認証失敗。REST API のユーザー名とパスワードを確認してください。",
@@ -168,13 +167,10 @@
     "timeout": "サーバー応答タイムアウト。サーバーの状態を確認してください。",
     "rest_api_disabled": "REST API オフ。次回のサーバー起動時に自動でオンになります。",
     "internal_server_error": "サーバー内部エラー",
-    "daemon_connection_error": "デーモン接続エラー: {{error}}",
-    "invalid_json_response": "デーモンからの無効な JSON 応答: {{error}}",
     "daemon_error": "デーモンエラー: {{error}}",
     "player_list_failed": "プレイヤーリストの取得に失敗しました: {{error}}",
     "no_executable": "インスタンス設定に server_executable がありません。PalServer.exe のパスを追加してください。",
     "executable_not_found": "実行ファイルなし: {{path}}。インスタンス設定のパスを確認してください。",
-    "failed_to_get_status": "ステータスの取得に失敗しました: {{error}}",
     "no_server_dir": "サーバーディレクトリを特定できません。working_dir または server_executable を設定してください。",
     "settings_write_failed": "設定ファイルの書き込み失敗",
     "settings_invalid_value": "設定値に改行または使用できない文字があるため、保存していません",
@@ -185,20 +181,29 @@
     "command_failed": "コマンドの実行に失敗しました: {{error}}",
     "userid_required": "プレイヤー ID(userid)が必要です",
     "unknown_command": "不明なコマンド: {{command}}",
-    "player_ambiguous": "'{{player}}' に一致するプレイヤーが複数います: {{names}}。より正確に入力してください。"
+    "player_ambiguous": "'{{player}}' に一致するプレイヤーが複数います: {{names}}。より正確に入力してください。",
+    "detect": {
+      "port_in_use": "ポートは既に使用中",
+      "out_of_memory": "メモリ不足",
+      "executable_crash": "サーバープログラムが異常終了",
+      "save_corrupt": "セーブデータ破損",
+      "steam_auth_failed": "Steam 認証失敗"
+    },
+    "solutions": {
+      "port_in_use": "ポートを使用している他のプロセスを終了するか、サーバーポートを変更してください。",
+      "out_of_memory": "システムメモリを増やすか、サーバー設定(最大人数、ワールドサイズ)を減らしてください。",
+      "executable_crash": "Steam でゲームファイルを検証し、MOD の競合を確認するか、サーバーを更新してください。",
+      "save_corrupt": "バックアップのセーブから復元してください。バックアップは Pal/Saved/SaveGames/ にあります。",
+      "steam_auth_failed": "Steam が起動していて、steamclient ライブラリにアクセスできることを確認してください。"
+    }
   },
   "messages": {
-    "rest_api_forced_on": "[ポリシー] REST API を強制的に有効化",
-    "rcon_forced_off": "[ポリシー] RCON を強制的に無効化(非推奨)",
-    "process_running": "{{name}} は実行中です",
-    "process_not_running": "{{name}} は起動していません",
     "settings_updated": "設定を更新しました",
     "using_defaults": "DefaultPalWorldSettings.ini の既定値を使用中(サーバー未構成)",
-    "versions_via_steam": "Palworld サーバーは Steam/SteamCMD(App ID 2394010)で配布されています。SteamCMD でインストールまたは更新してください。",
-    "versions_managed_via_steam": "Palworld サーバーのバージョンは Steam が管理します。SteamCMD で app_update 2394010 を実行して更新してください。",
-    "extension_not_enabled": "SteamCMD 拡張機能は無効です。設定 → 拡張機能 で先に有効にしてください。",
-    "extension_missing": "{{extension}} 拡張機能が必要です。設定 → 拡張機能 でインストールして有効にしてください。",
-    "command_executed": "コマンド '{{command}}' を実行しました"
+    "command_executed": "コマンド '{{command}}' を実行しました",
+    "shutdown_notice": "サーバーを終了します",
+    "kick_reason": "サーバーからキックされました",
+    "ban_reason": "サーバーからBANされました"
   },
   "reset": {
     "no_path": "サーバーディレクトリを特定できません。working_dir または server_executable を設定してください。",
@@ -217,16 +222,6 @@
     "executable_not_found": "実行ファイルなし: {{path}}",
     "executable_not_found_hint": "実行ファイルのパスを確認するか、サーバーを再インストールしてください。",
     "cannot_create_dir": "作業ディレクトリの作成失敗: {{path}}",
-    "cannot_create_dir_hint": "フォルダの権限を確認するか、別のパスを選択してください。",
-    "log_port_in_use": "ポートは既に使用中",
-    "log_port_in_use_hint": "ポートを使用している他のプロセスを終了するか、サーバーポートを変更してください。",
-    "log_out_of_memory": "メモリ不足",
-    "log_out_of_memory_hint": "システムメモリを増やすか、サーバー設定(最大人数、ワールドサイズ)を減らしてください。",
-    "log_executable_crash": "サーバープログラムが異常終了",
-    "log_executable_crash_hint": "Steam でゲームファイルを検証し、MOD の競合を確認するか、サーバーを更新してください。",
-    "log_save_corrupt": "セーブデータ破損",
-    "log_save_corrupt_hint": "バックアップのセーブから復元してください。バックアップは Pal/Saved/SaveGames/ にあります。",
-    "log_steam_auth_failed": "Steam 認証失敗",
-    "log_steam_auth_failed_hint": "Steam が起動していて、steamclient ライブラリにアクセスできることを確認してください。"
+    "cannot_create_dir_hint": "フォルダの権限を確認するか、別のパスを選択してください。"
   }
 }

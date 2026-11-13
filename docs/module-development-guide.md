@@ -8,7 +8,7 @@
 |---|---|
 | `minecraft` | 콘솔(stdin) 명령, `download` 설치, 백업, 공지, 버전 목록 |
 | `zomboid` | 콘솔 명령, `steamcmd` 설치, 인스턴스별 데이터 폴더(`cache_dir`) |
-| `palworld` | 콘솔이 없는 게임: REST 명령, `[credential_map]`, `ue4-ini` 익스텐션 |
+| `palworld` | 콘솔이 없는 게임: REST 명령, `[protocols.rest]`·`[remote_access]`, `ue4-ini` 익스텐션 |
 | `__example` | 주석이 달린 빈 틀 (`__example__module.toml`, `__example__lifecycle.py`) |
 | `terraria` | 공식 zip 설치(OS 폴더 고르기), cp1252 설정 파일 보존, 포터블 런타임(XNA), 의사 콘솔(`console = "pty"`), 언어별 콘솔 문구 |
 
@@ -71,7 +71,7 @@
 ## 1. 통신 경로: STDIN → REST → RCON
 
 - 게임 명령은 전부 데몬을 거친다. 게임이 지원하는 것 중 **서버 콘솔(stdin)**을 먼저, 없으면 게임의 **REST API**, 둘 다 없을 때만 **RCON**을 쓴다. 다른 경로가 있으면 RCON은 쓰지 않는다(`supported`에 넣지 않는다).
-- 콘솔이나 REST가 있는 게임에 RCON 설정이 있으면 모듈이 실행 전·설정 저장 때마다 **끈다**. 예: minecraft `_enforce_rcon_policy()`가 `enable-rcon=false`, palworld는 `RCONEnabled=False`, zomboid는 `RCONPassword`를 비운다.
+- 콘솔이나 REST가 있는 게임에 RCON 설정이 있으면 모듈이 실행 전·설정 저장·첫 설치 때마다 **끈다**. 끄는 값은 코드에 적지 않고 module.toml `[remote_access]` 한 곳에 적는다(saba-core 0.1.14-beta.2). 공용 `remote_access_values(MODULE_DIR, config)`가 그 값을 주고 `enforce_remote_access`가 실행 전에 파일과 다른 값만 쓴다. 예: minecraft `[remote_access.rcon] off = { enable-rcon = "false" }`, palworld `forced = { RESTAPIEnabled = "True", RCONEnabled = "False" }`, zomboid는 `RCONPassword`를 비운다. 관리형 시작을 끈 콘솔 게임(stdin이 없다)만 데몬이 준 포트·비밀번호로 RCON을 켠다(`[remote_access.rcon] on`·`port`·`password`).
 - **RCON만 받는 게임**(`supported = ["rcon"]`): `[protocols] rcon_port`(게임의 기본 RCON 포트)가 필수다. 데몬이 처음 시작할 때 인스턴스마다 포트와 무작위 비밀번호를 정해 인스턴스 폴더 `rcon.json`에 두고, 모듈 config에 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 `get_launch_command`(또는 실행 전 준비)에서 이 값을 게임 설정에 쓰고, RCON을 127.0.0.1에서만 받게 한다. 데몬은 `127.0.0.1:<rcon_port>`에만 접속한다.
   - 콘솔 명령(`method = "console"`)과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 모듈이 RCON 소켓을 직접 열지 않는다.
   - 정지는 데몬이 RCON으로 `stop_command`를 보내지 않는다. 모듈 `stop()`이 데몬을 거쳐 RCON으로 정지 명령을 보낸다: `daemon_rcon_command(instance_id, "<정지 명령>")`(0.1.12+). 보낼 수 없으면 `graceful_stop_unavailable`(§3 stop).
@@ -97,7 +97,7 @@
 모든 서버는 기본으로 **managed**다. saba-runner가 서버를 띄우고 PID, 콘솔 입출력, 종료 코드를 쥔다. 데몬이 재시작해도 콘솔(stdin)은 이어진다.
 
 - 데몬이 `get_launch_command`를 부르고, 받은 `program`/`args`/`working_dir`/`env_vars`로 서버를 띄운다. 모듈은 프로세스를 직접 띄우지 않는다.
-- 인스턴스 설정 `managed_start = false`면 non-managed다. 이때도 데몬이 같은 `get_launch_command`로 띄우고, 정지·상태는 모듈의 `stop`/`status`에 맡긴다.
+- 인스턴스 설정 `managed_start = false`면 non-managed다. 이때도 데몬이 같은 `get_launch_command`로 띄우고, 정지는 모듈의 `stop`에 맡긴다. 상태는 모듈에 `status`가 있으면 그것을 부르고, 없으면 데몬이 추적하는 PID가 살아 있는지로 답한다(saba-core 0.1.14-beta.2).
 - config의 `managed`(bool)로 지금 어느 쪽인지 알 수 있다.
 
 ### 데몬이 함수를 부르는 때
@@ -107,7 +107,7 @@
 | 서버 시작 전 점검 (critical 문제가 있으면 시작하지 않는다) | `validate` |
 | 서버 시작 | `get_launch_command` |
 | 정지: 콘솔이 있는 managed 서버는 데몬이 `[config] stop_command`를 stdin으로 보낸다. 콘솔이 없거나 non-managed면 | `stop` |
-| non-managed 상태 조회 | `status` |
+| non-managed 상태 조회 (선택. 없으면 데몬이 추적 PID로 답한다) | `status` |
 | `method = "module"` 명령 | `command` |
 | REST 명령 전에 접속 정보가 필요할 때 | `get_credentials` |
 | 설정 화면 저장 / 읽기 / 초기화 | `configure` / `read_properties`, `import_settings` / `reset_properties`, `reset_server` |
@@ -189,7 +189,7 @@
 
 데몬은 인스턴스 설정(`module_settings`)을 config 최상위에 펼쳐 넣는다. 함수에 따라 `settings` 안에 들어오기도 하므로 `daemon_rcon.config_value(config, key, default)`로 읽는다(최상위 → `module_settings` → `settings` 순서, 빈 값은 없는 값).
 
-자주 오는 키: `instance_id`, `server_executable`, `working_dir`, `port`, `managed`, `protocol_mode`, `server_version`, `extension_data`, REST 게임이면 `rest_host`·`rest_port`·`rest_username`·`rest_password`. `stop`에는 `pid`·`force`, `command`에는 `command`·`args`, `configure`에는 `settings`가 더해진다.
+자주 오는 키: `instance_id`, `server_executable`, `working_dir`, `port`, `managed`, `protocol_mode`, `server_version`, `extension_data`, REST 게임이면 `[protocols.rest]`가 가리키는 설정(예: `rest_host`·`rest_port`·`admin_password`)이 다른 설정처럼 그 이름으로 온다. `stop`에는 `pid`·`force`, `command`에는 `command`·`args`, `configure`에는 `settings`가 더해진다.
 
 ### validate
 
@@ -264,7 +264,7 @@ data_roots = ["{data_dir}", "{home}/MyGame"]
 - `module.toml` `[[settings.fields]]`의 `name`과 게임 설정 파일의 키를 표 하나(`_KEY_MAP` 같은 dict)로 잇고, `configure`(사바쨩 → 파일)와 `import_settings`(파일 → 사바쨩) 모두 이 표를 쓴다. 키가 늘면 표에 한 줄만 더한다.
 - 파일에서 읽은 문자열은 `load_setting_types(MODULE_DIR)` + `coerce_setting(value, type)`으로 필드 타입에 맞춘다(비밀번호처럼 숫자로 보이는 문자열은 바꾸지 않는다).
 - 목록 값처럼 게임 형식이 따로 있는 값은 쓸 때 바꾼다. 예: palworld `_LIST_KEYS`가 `PALBOX, RepairBench`를 `("PALBOX","RepairBench")`로 쓴다.
-- RCON 설정은 여기서도 늘 끈다(§1).
+- RCON 설정은 여기서도 늘 끈다(§1): `props.update(remote_access_values(MODULE_DIR, config))`.
 
 ### 명령: 선언으로 먼저, 코드는 마지막
 
@@ -273,7 +273,7 @@ data_roots = ["{data_dir}", "{home}/MyGame"]
 | 게임 | method | 데몬이 하는 일 |
 |---|---|---|
 | 콘솔(stdin)로 명령을 받는다 | `"console"` + `console_template` | `{입력}` 자리를 채워 콘솔에 한 줄 보내고 출력을 잠깐 모아 돌려준다. lifecycle.py는 거치지 않는다 |
-| REST API가 있다 | `"rest"` + `http_method`, `endpoint_template` | 게임 REST를 직접 부른다. 접속 정보는 `get_credentials`나 `[credential_map]`으로 |
+| REST API가 있다 | `"rest"` + `http_method`, `endpoint_template` | 게임 REST를 직접 부른다. 붙을 곳과 사용자 이름은 `[protocols.rest]`, 비밀번호는 `get_credentials`(`rest_password`)로 |
 | 둘 다 아니다 (여러 단계, 파일 조작 등) | `"module"` (기본) | lifecycle.py `command(config)`를 부른다 |
 
 ```toml
@@ -385,6 +385,11 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 | `load_setting_types(module_dir)`, `coerce_setting(value, type)` | 파일 값을 필드 타입으로 |
 | `run_lifecycle(FUNCTIONS)` | `python lifecycle.py <함수>` 진입점 |
 | `safe_join(root, *parts)`, `PathOutside` | 사용자 이름 조각을 루트 안 경로로 합치기·경로 위반 알리기 |
+| `remote_access_values(module_dir, config=None)`, `enforce_remote_access(module_dir, config, current, update)`, `rcon_access(config)` | module.toml `[remote_access]`가 정한 원격 접속 값 쓰기 (0.1.14-beta.2) |
+| `auto_heap_mb()`, `java_release_major(java_home)` | Java 서버의 자동 힙 크기, JRE 주 버전 (0.1.14-beta.2) |
+| `diagnose_log(config, module_dir, i18n, *, files=None)` | `diagnose_log()` 전체 절차: `log_lines` → `files` → `[launch] diagnose_files` (0.1.14-beta.2) |
+| `extension_required(i18n, *익스텐션 id)` | 익스텐션이 없을 때의 답 (0.1.14-beta.2) |
+| `list_dir(path)`, `fetch_json(url, *, timeout=15, user_agent="saba-chan")` | 폴더 항목(없으면 빈 목록), JSON 받기 (0.1.14-beta.2) |
 
 콘솔 명령은 `daemon_stdin_command`, REST는 `daemon_rest`를 쓴다. SDK는 `SABA_HOST_DIR`의 HOST 통로로만 보낸다. HOST의 대상은 데몬이 정한 현재 인스턴스다. 모듈이 다른 `instance_id`를 넘겨도 대상을 바꾸지 못한다. 인스턴스 없는 호출은 `no_instance`로 실패한다. 요청 한도는 실행당 64건, 건당 30초, 보내기 64 KiB, 받기 1 MiB다. `LOOPBACK`과 요청 수를 함께 센다. HOST 실패는 `error_code` 속성이 있는 `ConnectionError`다.
 

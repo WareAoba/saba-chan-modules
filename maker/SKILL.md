@@ -2,7 +2,7 @@
 name: saba-module-maker
 description: 사바쨩(saba-chan) 게임 서버 모듈(saba-chan-modules의 module.toml·lifecycle.py·locales)을 새로 만들거나, 기능(게임 채팅, 접속자, 백업 등)을 더하거나, 버그를 고칠 때 쓴다. '모듈'이라는 말이 없어도 마인크래프트·테라리아·팰월드·좀보이드 같은 게임 서버의 명령이 안 먹음, 설정 저장 때 파일 깨짐, 백업·초기화 범위, 설치·실행 실패, 새 게임 지원 요청이면 이 스킬을 먼저 연다. 디버깅 스킬과 함께 써도 된다.
 metadata:
-  saba-core: ">=0.1.12-0"
+  saba-core: ">=0.1.14-beta.2"
   module-schema: "2"
 ---
 

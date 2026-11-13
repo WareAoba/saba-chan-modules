@@ -720,7 +720,6 @@
     "properties_write_failed": "Falha ao gravar a configuração: {{error}}",
     "server_reset_partial": "Falha ao apagar alguns itens: {{errors}}",
     "invalid_server_name": "Nome de servidor inválido: {{name}}. Use um nome sem separadores de pasta (/ \\), ':' ou '..', que não termine em espaço ou ponto.",
-    "extension_not_enabled": "Extensão SteamCMD desativada. Ative-a primeiro em Configurações → Extensões.",
     "unknown_branch": "Branch inválido: {{branch}}",
     "detect": {
       "out_of_memory": "O servidor ficou sem memória (OutOfMemoryError)",
@@ -756,13 +755,10 @@
   },
   "messages": {
     "server_reset_complete": "Dados do mundo do servidor redefinidos",
-    "server_starting_no_response": "Processo em execução, mas o servidor ainda não responde às consultas RCON",
     "properties_updated": "Configurações do servidor atualizadas",
     "properties_using_defaults": "Sem arquivo de configuração; exibindo valores padrão",
     "no_mappable_settings": "Nenhum item reconhecido como configuração do servidor",
-    "rcon_disabled_managed": "RCON desativado pela inicialização gerenciada (comandos vão para o stdin do console)",
-    "command_sent": "Comando enviado ao console: {{command}}",
-    "no_log_files": "Sem arquivos de log"
+    "command_sent": "Comando enviado ao console: {{command}}"
   },
   "rcon": {
     "connecting": "Conectando a {{host}}:{{port}}...",

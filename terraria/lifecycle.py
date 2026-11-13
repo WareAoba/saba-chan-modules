@@ -10,7 +10,6 @@ Terraria 공식 데디케이티드 서버(TerrariaServer)를 다룬다.
 조사 근거는 RESEARCH.md.
 """
 
-import json
 import os
 import re
 import shutil
@@ -22,8 +21,8 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, download, graceful_stop,
-                         is_process_alive, progress, read_key_values, request_console, safe_extract, safe_join,
+from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, download, extension_required, fetch_json,
+                         format_setting, graceful_stop, progress, read_key_values, request_console, safe_extract, safe_join,
                          setting_file_keys, settings_from_file, update_key_values, chat_reply, delete_paths,
                          stop_command)
 
@@ -136,14 +135,10 @@ def _config_path(config):
 
 
 def _format_value(key, value):
-    if isinstance(value, bool):
-        return "1" if value else "0"
-    if isinstance(value, float) and value.is_integer():
-        value = int(value)
-    text = str(value)
-    if "\n" in text or "\r" in text:
-        raise ValueError(i18n.t("errors.line_break", setting=key))
-    return text
+    try:
+        return format_setting(value, true="1", false="0", name=key)
+    except ValueError:
+        raise ValueError(i18n.t("errors.line_break", setting=key)) from None
 
 
 # ─── serverconfig.txt ────────────────────────────────────
@@ -199,7 +194,7 @@ def validate(config):
         xna = _xna()
         if xna is None:
             issues.append({"severity": "critical", "code": "extension_required",
-                           "message": i18n.t("errors.xna_extension_missing")})
+                           "message": extension_required(i18n, "xna")["message"]})
         elif not xna.present(_working_dir(config)):
             issues.append({"severity": "critical", "code": "xna_framework_missing",
                            "message": i18n.t("errors.xna_framework_missing")})
@@ -288,14 +283,6 @@ def get_launch_command(config):
         # 위키: Linux 서버는 TERM이 xterm이 아니면 시작하지 못한다
         env["TERM"] = "xterm"
     return {"success": True, "program": exe, "args": args, "working_dir": working_dir, "env_vars": env}
-
-
-def status(config):
-    """non-managed 상태: 데몬이 준 PID가 살아 있는가"""
-    pid = config.get("pid")
-    if pid and is_process_alive(pid):
-        return {"success": True, "status": "running"}
-    return {"success": True, "status": "stopped"}
 
 
 def stop(config):
@@ -474,11 +461,8 @@ _VERSION_RE = re.compile(r"^\d+(\.\d+)*$")
 
 
 def _fetch_server_names():
-    import urllib.request
-    req = urllib.request.Request(SERVER_NAMES_URL, headers={"User-Agent": "saba-chan"})
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            names = json.loads(resp.read().decode("utf-8"))
+        names = fetch_json(SERVER_NAMES_URL)
     except Exception as e:
         raise ConnectionError(str(e))
     if not isinstance(names, list):
@@ -584,8 +568,7 @@ def install_server(config):
     if _is_windows():
         xna = _xna()
         if xna is None:
-            return {"success": False, "error_code": "extension_required", "missing_extensions": ["xna"],
-                    "message": i18n.t("errors.xna_extension_missing")}
+            return extension_required(i18n, "xna")
         progress(90, i18n.t("messages.installing_xna"))
         try:
             xna.install(install_dir)
@@ -621,7 +604,6 @@ def send_chat(config):
 FUNCTIONS = {
     "validate":           validate,
     "get_launch_command": get_launch_command,
-    "status":             status,
     "stop":               stop,
     "configure":          configure,
     "read_properties":    read_properties,

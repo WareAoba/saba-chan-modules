@@ -4,5 +4,13 @@
       "label": "서버 이름",
       "description": "서버 목록에 보이는 이름"
     }
+  },
+  "errors": {
+    "no_executable": "서버 실행 파일 지정 없음",
+    "executable_not_found": "서버 실행 파일 없음: {{path}}",
+    "executable_not_found_hint": "서버 설정에서 경로를 확인하거나 서버를 먼저 설치해 주세요.",
+    "working_dir_missing": "서버 폴더 없음: {{path}}",
+    "working_dir_missing_hint": "서버를 시작할 때 폴더를 만듭니다.",
+    "not_implemented": "{{command}} 명령 미구현"
   }
 }

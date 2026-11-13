@@ -720,7 +720,6 @@
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
     "server_reset_partial": "一部の項目を削除できませんでした: {{errors}}",
     "invalid_server_name": "使用できないサーバー名: {{name}}。フォルダー区切り(/ \\)、':'、'..' を含まず、スペースやピリオドで終わらない名前にしてください。",
-    "extension_not_enabled": "SteamCMD 拡張機能は無効です。設定 → 拡張機能 で先に有効にしてください。",
     "unknown_branch": "選択できないブランチ: {{branch}}",
     "detect": {
       "out_of_memory": "サーバーのメモリが不足しました (OutOfMemoryError)",
@@ -755,14 +754,11 @@
     "legacy41": "旧ビルド 41 (legacy41)"
   },
   "messages": {
-    "server_starting_no_response": "プロセスは起動中だが、サーバーはまだ RCON クエリに応答なし",
     "properties_updated": "サーバー設定を更新しました",
     "properties_using_defaults": "設定ファイルがないため既定値を表示中",
     "no_mappable_settings": "サーバー設定として認識できる項目なし",
     "server_reset_complete": "サーバーのワールドデータを初期化しました",
-    "rcon_disabled_managed": "管理対象の起動のため RCON オフ(コマンドはコンソール stdin に送信)",
-    "command_sent": "コンソールにコマンドを送信しました: {{command}}",
-    "no_log_files": "ログファイルなし"
+    "command_sent": "コンソールにコマンドを送信しました: {{command}}"
   },
   "rcon": {
     "connecting": "{{host}}:{{port}} に接続中...",

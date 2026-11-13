@@ -1099,3 +1099,78 @@ def test_join_and_leave_patterns_count_b41_names_and_b42_connection_ids():
                  'LOG  : General      f:0 st:1> command entered via server console (System.in): "servermsg Disconnected player \\"x\\""'):
         assert name(join, line) is None and name(leave, line) is None, line
 
+
+
+def _launchable_server(tmp_path, monkeypatch, java_version=None):
+    server = _existing_server(tmp_path, '".\\jre64\\bin\\java.exe" -Xms16g -Xmx16g -XX:+UseZGC -cp java/ zombie.network.GameServer\n', monkeypatch)
+    (server / "jre64" / "bin").mkdir(parents=True)
+    (server / "jre64" / "bin" / "java.exe").write_text("", encoding="utf-8")
+    if java_version:
+        (server / "jre64" / "release").write_text(f'IMPLEMENTOR="Azul Systems, Inc."\nJAVA_VERSION="{java_version}"\n', encoding="utf-8")
+    return server
+
+
+@pytest.mark.parametrize("host_gb, heap", [(None, "8g"), (32, "8g"), (9.5, "8g"), (9, "4g"), (5.5, "4g"), (5, "3584m"), (3, "2g")])
+def test_empty_memory_is_sized_for_this_pc(tmp_path, monkeypatch, host_gb, heap):
+    """메모리를 비우면 데몬이 넘긴 PC 메모리로 정한다: 8G, PC 몫 1.5GB를 못 남기면 4G, 그것도 안 되면 PC − 1.5GB (2G 아래로는 안 내린다)"""
+    from zomboid import lifecycle
+    if host_gb is None:
+        monkeypatch.delenv("SABA_HOST_MEMORY", raising=False)
+    else:
+        monkeypatch.setenv("SABA_HOST_MEMORY", str(int(host_gb * 1024 ** 3)))
+    server = _launchable_server(tmp_path, monkeypatch)
+
+    args = lifecycle.get_launch_command({"working_dir": str(server), "ram": "", "preview": True})["args"]
+
+    assert f"-Xms{heap}" in args and f"-Xmx{heap}" in args
+
+
+def test_set_memory_is_used_as_is(tmp_path, monkeypatch):
+    from zomboid import lifecycle
+    monkeypatch.setenv("SABA_HOST_MEMORY", str(4 * 1024 ** 3))
+    server = _launchable_server(tmp_path, monkeypatch)
+
+    args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 12, "preview": True})["args"]
+
+    assert "-Xmx12g" in args
+
+
+@pytest.mark.parametrize("version, on", [("25.0.1", True), ("27", True), ("17.0.1", False), (None, False)])
+def test_compact_object_headers_follow_the_bundled_java(tmp_path, monkeypatch, version, on):
+    """동봉 JRE가 Java 25 이상이면 Compact Object Headers(JEP 519)를 켠다. 버전을 모르면 켜지 않는다"""
+    from zomboid import lifecycle
+    server = _launchable_server(tmp_path, monkeypatch, version)
+
+    args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 4, "preview": True})["args"]
+
+    assert ("-XX:+UseCompactObjectHeaders" in args) is on
+    if on:
+        assert args.index("-XX:+UseCompactObjectHeaders") < args.index("-cp")
+
+
+def test_gc_follows_the_script_unless_g1_is_chosen(tmp_path, monkeypatch):
+    """기본은 게임 공식 스크립트의 GC(ZGC) 그대로. java_gc = g1이면 스크립트의 GC 옵션을 G1 하나로 바꾼다
+    (ZGC를 못 쓰는 오래된 Windows Server 등)"""
+    from zomboid import lifecycle
+    server = _launchable_server(tmp_path, monkeypatch)
+
+    default = lifecycle.get_launch_command({"working_dir": str(server), "ram": 4, "preview": True})["args"]
+    assert "-XX:+UseZGC" in default and "-XX:+UseG1GC" not in default
+
+    g1 = lifecycle.get_launch_command({"working_dir": str(server), "ram": 4, "java_gc": "g1", "preview": True})["args"]
+    assert "-XX:+UseG1GC" in g1 and "-XX:+UseZGC" not in g1
+    assert g1.index("-XX:+UseG1GC") < g1.index("-cp")
+
+
+def test_g1_choice_also_applies_without_a_launch_script(tmp_path, monkeypatch):
+    from zomboid import lifecycle
+    server = tmp_path / "srv"
+    (server / "jre64" / "bin").mkdir(parents=True)
+    (server / "jre64" / "bin" / ("java.exe" if sys.platform == "win32" else "java")).write_text("", encoding="utf-8")
+    (server / "java").mkdir()
+    (server / "java" / "projectzomboid.jar").write_text("", encoding="utf-8")
+    monkeypatch.setattr(lifecycle, "_find_launch_script", lambda d: None)
+    monkeypatch.setattr(lifecycle, "_find_server_dir", lambda c: str(server))
+
+    args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 4, "java_gc": "g1", "preview": True})["args"]
+    assert "-XX:+UseG1GC" in args and "-XX:+UseZGC" not in args

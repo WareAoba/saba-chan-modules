@@ -114,12 +114,22 @@ name = "ram"
 restart_required = true
 type = "number"
 label = "Memory (RAM)"
-description = "Maximum memory allocation in GB"
+description = "Java heap size in GB. Leave empty to size it for this PC: 8 GB, or 4 GB when the PC has less than 9.5 GB"
 arg = ["-Xms{value}g", "-Xmx{value}g"]
-default = 4
+# 기본값을 두지 않는다: 비우면 모듈이 데몬이 넘긴 PC 메모리(SABA_HOST_MEMORY)로 정한다 (lifecycle._heap_size)
 min = 1
 max = 64
 step = 1
+group = "saba-chan"
+
+[[settings.fields]]
+name = "java_gc"
+restart_required = true
+type = "select"
+label = "Garbage Collector"
+description = "ZGC is the game's official setting. Choose G1 if the server stutters or crashes over time, or on Windows versions that cannot run ZGC (e.g. Windows Server 2016)"
+options = ["zgc", "g1"]
+default = "zgc"
 group = "saba-chan"
 
 [[settings.fields]]

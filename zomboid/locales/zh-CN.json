@@ -14,8 +14,9 @@
     },
     "ram": {
       "label": "内存（RAM）",
-      "description": "最大内存分配量（GB）"
+      "description": "Java 堆大小（GB）。留空则按本机设置：8 GB，本机内存少于 9.5 GB 时为 4 GB"
     },
+    "java_gc": { "label": "垃圾回收器", "description": "ZGC 是游戏官方设置。服务器运行越久越卡或崩溃时，或在无法运行 ZGC 的 Windows（如 Windows Server 2016）上，请选择 G1", "options": { "zgc": "ZGC", "g1": "G1" } },
     "server_name": {
       "label": "配置文件名称",
       "description": "服务器配置文件名称（决定 INI 文件名）"

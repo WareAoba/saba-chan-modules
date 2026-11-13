@@ -14,8 +14,9 @@
     },
     "ram": {
       "label": "Memória (RAM)",
-      "description": "Alocação máxima de memória em GB"
+      "description": "Tamanho do heap do Java em GB. Deixe vazio para ajustar a este PC: 8 GB, ou 4 GB se o PC tiver menos de 9,5 GB"
     },
+    "java_gc": { "label": "Coletor de lixo", "description": "ZGC é a configuração oficial do jogo. Escolha G1 se o servidor travar ou cair com o tempo, ou em versões do Windows que não rodam ZGC (ex. Windows Server 2016)", "options": { "zgc": "ZGC", "g1": "G1" } },
     "server_name": {
       "label": "Nome do perfil",
       "description": "Nome do perfil do servidor"

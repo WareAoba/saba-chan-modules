@@ -415,6 +415,70 @@ def _find_java(server_dir):
     return None
 
 
+# 자동 힙 크기 (minecraft 모듈과 같은 규칙): 8G. PC 몫으로 1.5GB를 남기지 못하면 4G, 그것도 못 남기면 PC − 1.5GB(2G 아래로는 내리지 않는다)
+_AUTO_HEAP_MB = 8 * 1024
+_SMALL_HEAP_MB = 4 * 1024
+_HOST_RESERVE_MB = 1536
+_MIN_AUTO_HEAP_MB = 2 * 1024
+
+
+def _heap_size(ram):
+    """설정한 메모리(GB 숫자) → JVM 크기 문자열("4g"). 비었으면 데몬이 넘긴 PC 메모리(`SABA_HOST_MEMORY`, 바이트)로 정한다"""
+    if ram is not None and str(ram).strip() != "":
+        try:
+            return f"{int(ram)}g"
+        except (ValueError, TypeError):
+            return "4g"
+    try:
+        host_mb = int(os.environ.get("SABA_HOST_MEMORY") or 0) // (1024 * 1024)
+    except ValueError:
+        host_mb = 0
+    if host_mb <= 0 or host_mb - _HOST_RESERVE_MB >= _AUTO_HEAP_MB:
+        mb = _AUTO_HEAP_MB
+    elif host_mb - _HOST_RESERVE_MB >= _SMALL_HEAP_MB:
+        mb = _SMALL_HEAP_MB
+    else:
+        mb = max(host_mb - _HOST_RESERVE_MB, _MIN_AUTO_HEAP_MB)
+    return f"{mb // 1024}g" if mb % 1024 == 0 else f"{mb}m"
+
+
+_COH_FLAG = "-XX:+UseCompactObjectHeaders"
+
+
+def _bundled_java_major(java_path):
+    """동봉 JRE의 주 버전 (JRE 폴더 release 파일의 JAVA_VERSION). 읽지 못하면 0"""
+    release = os.path.join(os.path.dirname(os.path.dirname(java_path)), "release")
+    try:
+        with open(release, encoding="utf-8", errors="replace") as f:
+            match = re.search(r'^JAVA_VERSION="(\d+)', f.read(), re.MULTILINE)
+    except OSError:
+        return 0
+    return int(match.group(1)) if match else 0
+
+
+def _coh_flags(java_path, flags):
+    """동봉 JRE가 Java 25 이상이면 Compact Object Headers(JEP 519, 힙 절약)를 켠다. 스크립트가 이미 정했으면 그대로 둔다"""
+    if any("CompactObjectHeaders" in f for f in flags) or _bundled_java_major(java_path) < 25:
+        return []
+    return [_COH_FLAG]
+
+
+def _gc_flags(config, flags):
+    """기본은 게임 공식 스크립트의 GC 그대로(ZGC). 설정 java_gc = g1이면 스크립트의 GC 옵션을 G1 하나로 바꾼다
+    (ZGC를 못 쓰는 오래된 Windows Server 등)"""
+    if config.get("java_gc") != "g1":
+        return flags
+    out, placed = [], False
+    for flag in flags:
+        if re.fullmatch(r"-XX:\+Use\w+GC", flag):
+            if not placed:
+                out.append("-XX:+UseG1GC")
+                placed = True
+        elif not re.fullmatch(r"-XX:[+-]ZGenerational", flag):
+            out.append(flag)
+    return out if placed else ["-XX:+UseG1GC", *out]
+
+
 def _resolve_classpath(server_dir):
     """Build the Java classpath from the PZ server's java/ directory."""
     java_dir = os.path.join(server_dir, "java")
@@ -563,12 +627,8 @@ def get_launch_command(config):
     if not server_dir:
         return {"success": False, "message": i18n.t("errors.no_server_dir")}
     
-    # 사용자 설정값
-    ram_gb = config.get("ram", 4)
-    try:
-        ram_gb = int(ram_gb)
-    except (ValueError, TypeError):
-        ram_gb = 4
+    # 사용자 설정값. 비었으면 PC에 맞춘 자동값
+    heap = _heap_size(config.get("ram"))
     server_name = _server_name(config)
     preview = bool(config.get("preview"))  # 미리보기는 파일·폴더를 만들거나 고치지 않는다
     if not preview:
@@ -585,11 +645,13 @@ def get_launch_command(config):
         jvm_flags = []
         for flag in parsed["jvm_flags"]:
             if flag.startswith("-Xms"):
-                jvm_flags.append(f"-Xms{ram_gb}g")
+                jvm_flags.append(f"-Xms{heap}")
             elif flag.startswith("-Xmx"):
-                jvm_flags.append(f"-Xmx{ram_gb}g")
+                jvm_flags.append(f"-Xmx{heap}")
             else:
                 jvm_flags.append(flag)
+        jvm_flags = _gc_flags(config, jvm_flags)
+        jvm_flags += _coh_flags(java_path, jvm_flags)
         
         # main_class 뒤 인자: 스크립트 원본의 extra_args에서 -servername을 찾아 교체
         main_class = parsed["main_class"]
@@ -623,21 +685,22 @@ def get_launch_command(config):
         
         native_libs = _get_native_libs(server_dir)
         
-        args = [
+        args = _gc_flags(config, [
             "-Djava.awt.headless=true",
             "-Dzomboid.steam=1",
             "-Dzomboid.znetlog=1",
             "-XX:+UseZGC",
             "-XX:-CreateCoredumpOnCrash",
             "-XX:-OmitStackTraceInFastThrow",
-            f"-Xms{ram_gb}g",
-            f"-Xmx{ram_gb}g",
+            f"-Xms{heap}",
+            f"-Xmx{heap}",
+            *_coh_flags(java_path, []),
             f"-Djava.library.path={native_libs}",
             "-cp", classpath,
             "zombie.network.GameServer",
             "-servername", server_name,
             "-statistic", "0",
-        ]
+        ])
     
     # ── 공통 후처리 ──
     # No-steam mode

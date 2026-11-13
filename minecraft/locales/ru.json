@@ -6,7 +6,7 @@
   "settings": {
     "server_type": { "label": "Тип сервера", "description": "Серверное ПО, на котором работает этот мир. saba-chan может установить любой тип. Spigot и CraftBukkit собираются официальными BuildTools и занимают несколько минут; Pufferfish есть только для некоторых версий Minecraft.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Путь к Java", "description": "Путь к исполняемому файлу Java (автоопределение, если пусто)" },
-    "ram": { "label": "Память (RAM)", "description": "Максимальный объем выделяемой памяти (напр. 2G, 4G)" },
+    "ram": { "label": "Память (RAM)", "description": "Размер кучи Java (напр. 4G, 1024M). Оставьте пустым, чтобы подобрать под этот ПК: 8G, или 4G, если у ПК меньше 9,5 ГБ" },
     "port": { "label": "Порт сервера", "description": "Порт игрового сервера" },
     "difficulty": { "label": "Сложность", "description": "Сложность игры", "options": { "peaceful": "Мирная", "easy": "Лёгкая", "normal": "Нормальная", "hard": "Сложная" } },
     "gamemode": { "label": "Режим игры", "description": "Режим игры по умолчанию", "options": { "survival": "Выживание", "creative": "Творческий", "adventure": "Приключение", "spectator": "Наблюдатель" } },
@@ -26,7 +26,8 @@
     "level_seed": { "label": "Сид мира", "description": "Сид для генерации мира (оставьте пустым для случайного)" },
     "level_type": { "label": "Тип мира", "description": "Тип генерации мира", "options": { "minecraft:normal": "По умолчанию", "minecraft:flat": "Суперплоскость", "minecraft:large_biomes": "Большие биомы", "minecraft:amplified": "РАСШИРЕННЫЙ", "minecraft:single_biome_surface": "Один биом" } },
     "max_world_size": { "label": "Макс. размер мира", "description": "Максимальный радиус границы мира" },
-    "use_aikar_flags": { "label": "Флаги Aikar", "description": "Использовать рекомендуемые параметры Java для более плавной работы" },
+    "java_tuning": { "label": "Оптимизация Java", "description": "Подбирает параметры Java по объёму памяти: до 6G возвращает простаивающую память ПК, до 16G использует рекомендуемые параметры G1 (Aikar), от 16G — значения Aikar для больших куч. На Java 25 и новее также включает Compact Object Headers" },
+    "java_gc": { "label": "Сборщик мусора", "description": "Для большинства серверов G1 быстрее. ZGC почти убирает паузы сборки, но игра работает немного медленнее; стоит рассматривать только при очень большом объёме памяти. ZGC требует Java 21 или новее (иначе используется G1)", "options": { "g1": "G1", "zgc": "ZGC" } },
     "managed_start": { "label": "Управляемый запуск (консоль)", "description": "saba-runner держит консоль сервера, чтобы вы видели её и вводили команды в saba-chan. Если выключить, сервер работает отдельным процессом в своём окне: консоль saba-chan не работает, и saba-chan отправляет команды через RCON (порт и пароль задаёт saba-chan)." },
     "graceful_stop": { "label": "Корректная остановка", "description": "Отправляет команду 'stop' и ждёт, пока сервер сохранится и завершит работу. Если выключить эту опцию, saba-chan сразу завершит процесс сервера." },
     "enforce_whitelist": { "label": "Принудительный белый список", "description": "Выгонять игроков, которых нет в белом списке, при его перезагрузке" },

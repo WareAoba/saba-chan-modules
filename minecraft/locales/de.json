@@ -6,7 +6,7 @@
   "settings": {
     "server_type": { "label": "Servertyp", "description": "Welche Serversoftware diese Welt ausführt. saba-chan kann jeden Typ installieren. Spigot und CraftBukkit werden mit den offiziellen BuildTools gebaut und brauchen einige Minuten; Pufferfish gibt es nur für einige Minecraft-Versionen.", "options": { "vanilla": "Vanilla", "paper": "Paper", "folia": "Folia", "purpur": "Purpur", "pufferfish": "Pufferfish", "spigot": "Spigot", "craftbukkit": "CraftBukkit", "fabric": "Fabric", "quilt": "Quilt", "forge": "Forge", "neoforge": "NeoForge" } },
     "java_path": { "label": "Java-Pfad", "description": "Pfad zur Java-Programmdatei (automatisch erkannt, wenn leer)" },
-    "ram": { "label": "Arbeitsspeicher (RAM)", "description": "Maximale Speicherzuweisung (z.B. 2G, 4G)" },
+    "ram": { "label": "Arbeitsspeicher (RAM)", "description": "Maximaler Java-Heap (z.B. 4G, 1024M). Leer lassen, um ihn an diesen PC anzupassen: 8G, bei weniger als 9,5 GB PC-Speicher 4G" },
     "port": { "label": "Server-Port", "description": "Spielserver-Port" },
     "difficulty": { "label": "Schwierigkeit", "description": "Spielschwierigkeit", "options": { "peaceful": "Friedlich", "easy": "Einfach", "normal": "Normal", "hard": "Schwer" } },
     "gamemode": { "label": "Spielmodus", "description": "Standard-Spielmodus", "options": { "survival": "Überleben", "creative": "Kreativ", "adventure": "Abenteuer", "spectator": "Zuschauer" } },
@@ -26,7 +26,8 @@
     "level_seed": { "label": "Welt-Seed", "description": "Seed für die Weltgenerierung (leer lassen für zufällig)" },
     "level_type": { "label": "Welttyp", "description": "Weltgenerierungstyp", "options": { "minecraft:normal": "Standard", "minecraft:flat": "Flachland", "minecraft:large_biomes": "Große Biome", "minecraft:amplified": "ZERKLÜFTET", "minecraft:single_biome_surface": "Einzelnes Biom" } },
     "max_world_size": { "label": "Max. Weltgröße", "description": "Maximaler Weltgrenzen-Radius" },
-    "use_aikar_flags": { "label": "Aikars Flags", "description": "Empfohlene Java-Optionen für flüssigere Leistung verwenden" },
+    "java_tuning": { "label": "Java-Optimierung", "description": "Wählt Java-Optionen nach Speichergröße: bis 6G gibt Speicher im Leerlauf an den PC zurück, unter 16G empfohlene G1-Optionen (Aikar), ab 16G Aikars Werte für große Heaps. Ab Java 25 auch Compact Object Headers" },
+    "java_gc": { "label": "Garbage Collector", "description": "G1 ist für die meisten Server schneller. ZGC hält GC-Pausen nahe null, führt den Spielcode aber etwas langsamer aus; nur bei sehr viel Speicher erwägen. ZGC braucht Java 21 oder neuer (sonst G1)", "options": { "g1": "G1", "zgc": "ZGC" } },
     "managed_start": { "label": "Verwalteter Start (Konsole)", "description": "saba-runner übernimmt die Serverkonsole, damit du sie in saba-chan siehst und Befehle eingeben kannst. Wenn du das ausschaltest, läuft der Server als eigener Prozess in einem eigenen Fenster: Die saba-chan-Konsole funktioniert nicht, und saba-chan sendet Befehle über RCON (Port und Passwort legt saba-chan fest)." },
     "graceful_stop": { "label": "Sauberes Beenden", "description": "Sendet den Befehl 'stop' und wartet, bis der Server speichert und herunterfährt. Wenn Sie diese Option ausschalten, beendet saba-chan den Serverprozess sofort." },
     "enforce_whitelist": { "label": "Whitelist erzwingen", "description": "Spieler, die nicht auf der Whitelist stehen, werden beim Neuladen der Whitelist gekickt" },

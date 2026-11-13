@@ -463,6 +463,38 @@ def _coh_flags(java_path, flags):
     return [_COH_FLAG]
 
 
+# 게임 공식 실행 스크립트의 JVM 인자 (메모리·GC·라이브러리 경로 말고)
+_OFFICIAL_JVM_FLAGS = (
+    "-Djava.awt.headless=true",
+    "-Dzomboid.steam=1",
+    "-Dzomboid.znetlog=1",
+    "-XX:-CreateCoredumpOnCrash",
+    "-XX:-OmitStackTraceInFastThrow",
+)
+
+
+def _is_jvm_arg(arg):
+    """메인 클래스 앞에 와야 JVM이 읽는 인자 (-D·-X·-javaagent 등). PZ 게임 인자(-debug, -nosteam 등)는 이렇게 시작하지 않는다"""
+    return arg.startswith(("-D", "-X", "-javaagent:", "-agentlib:", "-agentpath:", "--add-", "--enable-"))
+
+
+def _managed_jvm_arg(arg):
+    """사바쨩이 정하는 JVM 인자: 공식 스크립트 인자, 메모리, GC, 라이브러리 경로, 데이터 폴더, Compact Object Headers"""
+    return (arg in _OFFICIAL_JVM_FLAGS or arg == "-Dzomboid.steam=0" or arg == _COH_FLAG
+            or arg.startswith(("-Xms", "-Xmx", "-Djava.library.path=", "-Ddeployment.user.cachedir="))
+            or bool(re.fullmatch(r"-XX:\+Use\w+GC|-XX:[+-]ZGenerational", arg)))
+
+
+def _script_jvm_args(server_dir):
+    """쓰던 실행 스크립트에만 있던 JVM 인자 (자바 모드 로더 등). Steam 업데이트가 스크립트를 공식 내용으로 되돌려도 남게
+    가져오기가 추가 실행 인자로 옮긴다"""
+    script = _find_launch_script(server_dir) if server_dir else None
+    info = _parse_launch_script(script) if script else None
+    if not info:
+        return []
+    return [a for a in info["jvm_flags"] if not _managed_jvm_arg(a) and "%" not in a and "$" not in a]
+
+
 def _gc_flags(config, flags):
     """기본은 게임 공식 스크립트의 GC 그대로(ZGC). 설정 java_gc = g1이면 스크립트의 GC 옵션을 G1 하나로 바꾼다
     (ZGC를 못 쓰는 오래된 Windows Server 등)"""
@@ -637,6 +669,13 @@ def get_launch_command(config):
     # ── 1차: 배치/쉘 스크립트 파싱 ──
     parsed = _parse_launch_info(config, server_dir)
 
+    # 사용자가 더한 인자: JVM 인자는 메인 클래스 앞에, 게임 인자는 뒤에 (스크립트에 이미 있는 JVM 인자는 거듭 넣지 않는다)
+    user_args = config.get("extra_args")
+    user_args = [str(a) for a in user_args] if isinstance(user_args, list) else []
+    in_script = set(parsed["jvm_flags"]) if parsed else set()
+    user_jvm = [a for a in user_args if _is_jvm_arg(a) and a not in in_script]
+    user_game = [a for a in user_args if not _is_jvm_arg(a)]
+
     if parsed:
         java_path = parsed["java_exe_abs"]
         classpath = parsed["classpath"]
@@ -672,7 +711,7 @@ def get_launch_command(config):
         if not servername_set:
             extra_args.extend(["-servername", server_name])
         
-        args = jvm_flags + ["-cp", classpath, main_class] + extra_args
+        args = jvm_flags + user_jvm + ["-cp", classpath, main_class] + extra_args + user_game
     else:
         # ── 2차: 하드코딩 폴백 ──
         java_path = _find_java(server_dir)
@@ -686,12 +725,8 @@ def get_launch_command(config):
         native_libs = _get_native_libs(server_dir)
         
         args = _gc_flags(config, [
-            "-Djava.awt.headless=true",
-            "-Dzomboid.steam=1",
-            "-Dzomboid.znetlog=1",
+            *_OFFICIAL_JVM_FLAGS,
             "-XX:+UseZGC",
-            "-XX:-CreateCoredumpOnCrash",
-            "-XX:-OmitStackTraceInFastThrow",
             f"-Xms{heap}",
             f"-Xmx{heap}",
             *_coh_flags(java_path, []),
@@ -701,6 +736,8 @@ def get_launch_command(config):
             "-servername", server_name,
             "-statistic", "0",
         ])
+        main = args.index("-cp")
+        args = args[:main] + user_jvm + args[main:] + user_game
     
     # ── 공통 후처리 ──
     # No-steam mode
@@ -749,6 +786,7 @@ def get_launch_command(config):
         "program": java_path,
         "args": args,
         "working_dir": server_dir,
+        "extra_args_placed": True,
     }
 
 
@@ -896,8 +934,10 @@ def import_settings(config):
         if not result.get("success"):
             return result
         raw_props = result.get("properties", {})
+    extra = {"extra_args": script_args} if (script_args := _script_jvm_args(server_dir)) else {}
     if not raw_props:
-        return {"success": True, "settings": {**found, "data_home": _zomboid_home(config)}, "message": i18n.t("messages.no_properties_found")}
+        return {"success": True, "settings": {**found, "data_home": _zomboid_home(config)}, **extra,
+                "message": i18n.t("messages.no_properties_found")}
 
     from daemon_rcon import coerce_setting, load_setting_types
     types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
@@ -905,7 +945,7 @@ def import_settings(config):
     settings.update(found)
     settings["data_home"] = _zomboid_home(config)
 
-    return {"success": True, "settings": settings}
+    return {"success": True, "settings": settings, **extra}
 
 
 def config_files(config):

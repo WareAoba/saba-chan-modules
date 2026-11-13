@@ -1223,3 +1223,53 @@ def test_player_list_does_not_guess_from_an_unknown_reply(monkeypatch):
     # 수가 이름 줄과 맞지 않으면 이름은 싣지 않고 수만 준다
     lifecycle, _ = _players_reply(monkeypatch, "Players connected (3): \n-Bob")
     assert lifecycle.player_count({"instance_id": "inst-1", "players_detail": True}) == {"success": True, "online": 3}
+
+
+# ─── 사용자 실행 인자 (자바 모드 로더 등) ─────────────────────────
+
+def test_launch_puts_user_jvm_args_before_the_main_class_and_game_args_after(tmp_path, monkeypatch):
+    """-javaagent 같은 JVM 인자는 메인 클래스 뒤에 붙으면 게임 인자가 되어 JVM이 읽지 않는다.
+    JVM 인자는 -cp 앞에, 게임 인자는 메인 클래스 뒤에 넣고, 스크립트에 이미 있는 인자는 거듭 넣지 않는다"""
+    from zomboid import lifecycle
+    server = _existing_server(tmp_path, '".\\jre64\\bin\\java.exe" -Xmx16g -Dzomboid.znetlog=1 -cp java/ zombie.network.GameServer\n', monkeypatch)
+    (server / "jre64" / "bin").mkdir(parents=True)
+    (server / "jre64" / "bin" / "java.exe").write_text("", encoding="utf-8")
+
+    result = lifecycle.get_launch_command({"working_dir": str(server), "ram": 4, "preview": True,
+                                           "extra_args": ["-javaagent:ZombieBuddy.jar", "-Dzomboid.znetlog=1", "-debug"]})
+
+    args = result["args"]
+    assert result["extra_args_placed"] is True
+    assert args.index("-javaagent:ZombieBuddy.jar") < args.index("-cp")
+    assert args.count("-Dzomboid.znetlog=1") == 1
+    assert args.index("-debug") > args.index("zombie.network.GameServer")
+
+
+def test_import_keeps_the_scripts_own_jvm_args_as_extra_args(tmp_path, monkeypatch):
+    """Steam 업데이트가 StartServer64.bat을 공식 내용으로 되돌려도, 쓰던 스크립트에 더했던 JVM 인자(자바 모드 로더 등)가
+    남도록 가져오기에서 추가 실행 인자로 옮긴다. 공식 스크립트의 인자와 사바쨩이 정하는 메모리·GC·데이터 폴더는 옮기지 않는다"""
+    from zomboid import lifecycle
+    server = _existing_server(tmp_path, (
+        '@setlocal enableextensions\n'
+        'SET PZ_CLASSPATH=java/;java/projectzomboid.jar\n'
+        '".\\jre64\\bin\\java.exe" -Djava.awt.headless=true -Dzomboid.steam=1 -Dzomboid.znetlog=1 -XX:+UseZGC '
+        '-XX:-CreateCoredumpOnCrash -XX:-OmitStackTraceInFastThrow -Xms16g -Xmx16g -Djava.library.path=natives/ '
+        '-javaagent:ZombieBuddy.jar=frontend=console -Ddeployment.user.cachedir=D:\\pz '
+        '-cp %PZ_CLASSPATH% zombie.network.GameServer -statistic 0 %1 %2\n'
+        'PAUSE\n'
+    ), monkeypatch)
+
+    result = lifecycle.import_settings({"working_dir": str(server)})
+
+    assert result["extra_args"] == ["-javaagent:ZombieBuddy.jar=frontend=console"]
+
+
+def test_import_of_an_unchanged_official_script_moves_no_args(tmp_path, monkeypatch):
+    from zomboid import lifecycle
+    server = _existing_server(tmp_path, (
+        '".\\jre64\\bin\\java.exe" -Djava.awt.headless=true -Dzomboid.steam=1 -Dzomboid.znetlog=1 -XX:+UseZGC '
+        '-XX:-CreateCoredumpOnCrash -XX:-OmitStackTraceInFastThrow -Xms16g -Xmx16g -Djava.library.path=natives/ '
+        '-cp java/ zombie.network.GameServer -statistic 0\n'
+    ), monkeypatch)
+
+    assert "extra_args" not in lifecycle.import_settings({"working_dir": str(server)})

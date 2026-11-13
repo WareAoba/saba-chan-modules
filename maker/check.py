@@ -1,13 +1,14 @@
 """PR 전 관문 검사 (모듈 메이커)
 =============================
 
-    python maker/check.py <모듈 폴더> [--saba-core <saba-core>] [--shared-libs <saba-chan/modules>] [--base origin/main]
+    python maker/check.py <모듈 폴더> [--help-output <probe-report.json>] [--saba-core <saba-core>] [--shared-libs <saba-chan/modules>] [--base origin/main]
         [--static-only] [--trial [--accept-agreement <id>]... [--extensions <저장소>]] [--out <보고서.md>]
 
 `maker/SKILL.md`의 PR 전 관문 중 기계로 잴 수 있는 것을 한 번에 돌리고 표로 보고한다.
 
 - 정적 관문: 틀 자리표시가 남았는지, 조사 표에 출처 URL이 있는지, 10개 언어 파일과 한국어 번역, 모듈 테스트 등록,
-  버전을 올리지 않았는지(새 모듈은 0.1.0, 있던 모듈은 `--base`와 같은 버전)
+  버전을 올리지 않았는지(새 모듈은 0.1.0, 있던 모듈은 `--base`와 같은 버전), 선언한 콘솔 명령이 서버 `help` 출력에
+  있는지(`--help-output`: `probe_server.py`의 `probe-report.json` 또는 저장한 텍스트, 주지 않고 `--trial`이면 실측 help 결과)
 - 도구 관문: 모듈 테스트(`pytest <모듈>`), 적합성 키트(`pytest conformance --module`), saba-core가 이 메이커의 요구
   버전(`SKILL.md` metadata)을 맞추는지(compat), `saba-core module validate`, `saba-core module audit`,
   `--trial`이면 실측(`conformance/trial.py`)
@@ -20,6 +21,7 @@
 """
 
 import argparse
+import importlib.util
 import json
 import os
 import pathlib
@@ -36,11 +38,15 @@ RELEASES = "https://api.github.com/repos/WareAoba/saba-chan-modules/tags"
 LANGUAGES = ("de", "en", "es", "fr", "ja", "ko", "pt-BR", "ru", "zh-CN", "zh-TW")
 PLACEHOLDERS = re.compile(r"MyGame|마이게임")
 URL = re.compile(r"https?://\S+")
+# 콘솔 명령 대조 규칙은 실측(trial.py)과 같은 것을 쓴다
+_spec = importlib.util.spec_from_file_location("saba_trial", REPO / "conformance" / "trial.py")
+trial = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(trial)
 MANUAL = (
     "조사 표의 모든 명령·설정·포트·경로·콘솔 문구에 출처가 있고 문서·실측이 구별돼 있다",
     "배포물 항목 전체와 동봉 기본 파일의 원래 바이트를 봤다 (inspect_dist.py)",
     "서버를 파이프로 띄워 준비·정지 줄, help, 저장 뒤 파일을 기록했다 (probe_server.py)",
-    "선언한 명령이 help와 한 줄씩 맞고, 모든 명령의 risk 판단 근거가 조사 표에 있다",
+    "help에 있는 명령 중 옮기지 않은 것은 이유를 조사 표에 적었고, 모든 명령의 risk 판단 근거가 조사 표에 있다",
     "실행 전제 런타임을 고정 판으로 서버 폴더에 두고 체크섬으로 검증한다",
     "설치가 이 OS 폴더만 푼다, 설정 파일을 원래 인코딩·줄바꿈·문법으로 왕복한다",
     "초기화가 계산된 대상만 지우고 서버 폴더가 아니면 거절한다",
@@ -325,11 +331,61 @@ def optional_gate(folder):
     return gate("optional", "fail" if problems else "ok", "; ".join(problems + [summary]))
 
 
-def static_gates(folder, repo=REPO, base=None):
+def help_lines(path, help_command="help"):
+    """서버 help 출력 줄: probe_server.py의 probe-report.json이면 help로 보낸 명령의 답만, 아니면 파일 전체"""
+    text = pathlib.Path(path).read_text(encoding="utf-8-sig")
+    try:
+        data = json.loads(text)
+    except ValueError:
+        return text.splitlines()
+    return [line for send in data.get("sends", []) if send.get("command", "").strip() == help_command
+            for line in send.get("output", [])]
+
+
+def commands_gate(folder, help_output=None, help_command="help"):
+    """선언한 콘솔 명령(console_template의 첫 낱말, stop_command)이 서버의 help 출력에 있는지 본다.
+    서버가 모르는 명령은 사용자가 눌러도 Unknown command로 끝난다"""
+    manifest = read_manifest(folder / "module.toml")
+    if manifest is None:
+        return gate("commands", "fail", "module.toml을 읽지 못했다")
+    if not trial.has_console(manifest):
+        return gate("commands", "ok", "콘솔(stdin)이 없는 모듈")
+    verbs = trial.console_verbs(manifest)
+    if not verbs:
+        return gate("commands", "ok", "콘솔로 보내는 명령이 없다")
+    if not help_output:
+        return gate("commands", "skip", "서버 help 출력이 없다: probe_server.py --send help --out probe 뒤 "
+                    "--help-output probe/probe-report.json (또는 help를 저장한 텍스트 파일)")
+    try:
+        lines = help_lines(help_output, help_command)
+    except OSError as e:
+        return gate("commands", "fail", f"help 출력을 읽지 못했다: {e}")
+    if not any(line.strip() for line in lines):
+        return gate("commands", "fail", f"{help_output}에 `{help_command}`의 답이 없다")
+    gaps = trial.help_gaps(lines, verbs)
+    if gaps:
+        return gate("commands", "fail", f"서버 help에 없는 선언 명령: {', '.join(gaps)} (명령 이름이나 console_template 확인)")
+    return gate("commands", "ok", f"선언한 콘솔 명령 {len(verbs)}개가 help에 있다")
+
+
+def with_trial_help(results, trial_out):
+    """help 출력 없이 건너뛴 commands 관문을 --trial의 help 단계(진짜 서버에 help를 보내 같은 규칙으로 대조)로 채운다"""
+    try:
+        steps = json.loads((pathlib.Path(trial_out) / "trial-report.json").read_text(encoding="utf-8"))["steps"]
+    except (OSError, ValueError, KeyError):
+        return results
+    step = next((s for s in steps if s.get("name") == "help"), None)
+    if step is None:
+        return results
+    measured = gate("commands", "ok" if step["status"] == "ok" else "fail", f"실측 help: {step['detail']}")
+    return [measured if r["gate"] == "commands" and r["status"] == "skip" else r for r in results]
+
+
+def static_gates(folder, repo=REPO, base=None, help_output=None, help_command="help"):
     folder, repo = pathlib.Path(folder).resolve(), pathlib.Path(repo).resolve()
     return [placeholders_gate(folder), research_gate(folder), locales_gate(folder), tests_gate(folder, repo),
             version_gate(folder, repo, base), highlight_gate(folder, repo), installed_version_gate(folder),
-            optional_gate(folder)]
+            optional_gate(folder), commands_gate(folder, help_output, help_command)]
 
 
 def run(name, command, cwd, env=None):
@@ -358,13 +414,15 @@ def tool_gates(folder, repo, args):
         results.append(run("module-validate", [args.saba_core, "module", "validate", str(folder)], repo, env))
         results.append(run("module-audit", [args.saba_core, "module", "audit", str(folder)], repo, env))
         if args.trial:
-            trial = [python, str(repo / "conformance" / "trial.py"), str(folder), "--saba-core", args.saba_core,
-                     "--out", str(pathlib.Path(args.trial_out).resolve())]
+            # 이전 실측의 보고서를 이번 help 결과로 읽지 않게 한다
+            (pathlib.Path(args.trial_out) / "trial-report.json").unlink(missing_ok=True)
+            command = [python, str(repo / "conformance" / "trial.py"), str(folder), "--saba-core", args.saba_core,
+                       "--out", str(pathlib.Path(args.trial_out).resolve()), "--help-command", args.help_command]
             for agreement in args.accept_agreement:
-                trial += ["--accept-agreement", agreement]
+                command += ["--accept-agreement", agreement]
             if args.extensions:
-                trial += ["--extensions", args.extensions]
-            results.append(run("trial", trial, repo))
+                command += ["--extensions", args.extensions]
+            results.append(run("trial", command, repo))
     else:
         missing = "saba-core를 찾지 못했다 (--saba-core, 또는 사바쨩 설치)"
         results.append(gate("compat", "skip", missing))
@@ -396,6 +454,8 @@ def main():
     parser.add_argument("--saba-core", help="saba-core 실행 파일 (module validate·audit·trial)")
     parser.add_argument("--shared-libs", help="i18n.py·daemon_rcon.py가 있는 saba-chan/modules")
     parser.add_argument("--base", help="버전을 비교할 기준 (기본: origin/main)")
+    parser.add_argument("--help-output", help="서버 help 출력: probe_server.py의 probe-report.json 또는 저장한 텍스트")
+    parser.add_argument("--help-command", default="help", help="콘솔 명령 목록을 찍는 명령 (probe-report.json에서 읽을 답, 실측에서 보낼 명령)")
     parser.add_argument("--static-only", action="store_true", help="정적 관문만")
     parser.add_argument("--trial", action="store_true", help="conformance/trial.py 실측도 돌린다 (--saba-core 필요)")
     parser.add_argument("--trial-out", default="trial-report", help="실측 보고서 폴더")
@@ -417,9 +477,11 @@ def main():
         return 1
     # 다른 곳에서 만든 모듈은 그 상위 폴더를 모듈 저장소로 본다
     repo = REPO if folder.is_relative_to(REPO) else folder.parent
-    results = static_gates(folder, repo, args.base or default_base(repo))
+    results = static_gates(folder, repo, args.base or default_base(repo), args.help_output, args.help_command)
     if not args.static_only:
         results += tool_gates(folder, REPO, args)
+        if args.trial:
+            results = with_trial_help(results, args.trial_out)
     report = markdown(folder, results, newer_release())
     if args.out:
         pathlib.Path(args.out).write_text(report, encoding="utf-8")

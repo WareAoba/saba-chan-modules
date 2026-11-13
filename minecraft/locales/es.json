@@ -82,6 +82,9 @@
     "text_filtering_version": { "label": "Versión del filtro de texto", "description": "Versión del filtrado de texto" },
     "use_native_transport": { "label": "Usar transporte nativo", "description": "Usar el transporte de red optimizado para Linux" }
   },
+  "settings_note": {
+    "version_hidden": "Desde la 1.21.9, PVP, permitir el Nether, la aparición de monstruos y los bloques de comandos son reglas de juego (gamerule). Los ajustes de aparición de animales y aldeanos se eliminaron en la 1.21.2."
+  },
   "presets": {
     "friends": { "label": "Amigos (pequeño)", "description": "Hasta 10 jugadores, dificultad normal" },
     "hardcore": { "label": "Extremo", "description": "Una sola vida, dificultad difícil" }
@@ -122,6 +125,14 @@
       "description": "Cambiar la hora del día",
       "inputs": { "value": { "label": "Hora" } }
     },
+    "gamerule": {
+      "label": "Regla de juego",
+      "description": "Cambia una regla de juego o, si el valor está vacío, muestra su valor actual en la consola del servidor",
+      "inputs": {
+        "rule": { "label": "Regla", "placeholder": "p. ej. minecraft:advance_time (antes de 1.21.11: doDaylightCycle)" },
+        "value": { "label": "Valor", "placeholder": "true, false o un número. Vacío muestra el valor actual en la consola" }
+      }
+    },
     "tp": {
       "label": "Teletransportar",
       "description": "Teletransportar a un jugador",
@@ -155,7 +166,17 @@
     "whitelist": {
       "label": "Whitelist",
       "description": "Gestionar la whitelist del servidor",
-      "inputs": { "action": { "label": "Acción" }, "player": { "label": "Nombre del jugador" } }
+      "inputs": { "action": { "label": "Acción" } }
+    },
+    "whitelist-add": {
+      "label": "Añadir a la whitelist",
+      "description": "Añadir un jugador a la whitelist",
+      "inputs": { "player": { "label": "Nombre del jugador" } }
+    },
+    "whitelist-remove": {
+      "label": "Quitar de la whitelist",
+      "description": "Quitar un jugador de la whitelist",
+      "inputs": { "player": { "label": "Nombre del jugador" } }
     },
     "seed": { "label": "Mostrar semilla", "description": "Mostrar la semilla del mundo", "done": "Semilla del mundo: {{seed}}" },
     "stop": { "label": "Detener", "description": "Detener el servidor correctamente" }
@@ -176,6 +197,7 @@
     "server_jar_not_found": "Archivo jar del servidor no encontrado: {{path}}. Por favor verifique la ruta en la configuración de instancia.",
     "not_a_server_folder": "Esta carpeta no parece una carpeta de servidor de Minecraft (no hay server.properties ni eula.txt), así que no se eliminó nada: {{path}}",
     "unsafe_world_name": "El nombre del mundo (level-name) \"{{name}}\" no apunta a una carpeta de mundo dentro de la carpeta del servidor o coincide con un elemento que se conserva, así que no se eliminó nada. Corrige level-name en server.properties e inténtalo de nuevo.",
+    "unknown_reset_scope": "Ámbito de restablecimiento desconocido \"{{scope}}\"; no se eliminó nada.",
     "properties_write_failed": "Error al escribir server.properties",
     "eula_write_failed": "Error al escribir eula.txt",
     "working_dir_error": "No se puede crear el directorio de trabajo: {{path}}",
@@ -214,7 +236,6 @@
     "java_download_warning": "No se pudo descargar Java {{version}}: {{error}}. Instala Java {{version}} o posterior manualmente.",
     "status_check_failed": "Error al comprobar el estado: {{error}}",
     "no_version": "No se especificó ninguna versión",
-    "no_instance_id": "No se especificó el ID de la instancia",
     "version_info_unreadable": "No se pudo leer la información de versión del jar del servidor",
     "version_not_found": "No se encontró la versión '{{version}}'",
     "version_no_server": "La versión {{version}} no tiene descarga de servidor dedicado",
@@ -250,9 +271,25 @@
   },
   "reset": {
     "label": "Restablecer servidor",
-    "description": "Elimina lo que creó el servidor: el mundo, la configuración, los plugins, los mods (incluidos sus JAR), config y los registros. Se conservan el JAR del servidor, eula.txt, el Java incluido y los demás archivos de la carpeta. Si el servidor está en la carpeta de la instancia, también se conservan los registros."
+    "description": "Elimina lo que creó el servidor: el mundo, la configuración, los plugins, los mods (incluidos sus JAR), config y los registros. Se conservan el JAR del servidor, eula.txt, el Java incluido y los demás archivos de la carpeta. Si el servidor está en la carpeta de la instancia, también se conservan los registros.",
+    "scopes": {
+      "world": "Solo el mundo",
+      "all": "Todo"
+    },
+    "items": {
+      "world": "Mundo",
+      "settings": "Ajustes del juego",
+      "lists": "Listas de operadores, lista blanca y vetos",
+      "addons": "Plugins, mods y sus ajustes (Saba-chan no los vuelve a descargar)",
+      "logs": "Registros y cachés"
+    }
   },
   "agreements": {
     "eula": "Contrato de licencia de usuario final de Minecraft (EULA)"
+  },
+  "lists": {
+    "whitelist": "Lista blanca",
+    "ops": "Operadores",
+    "banned": "Baneos"
   }
 }

@@ -82,6 +82,9 @@
     "text_filtering_version": { "label": "文字過濾版本", "description": "文字過濾的版本" },
     "use_native_transport": { "label": "使用原生傳輸", "description": "使用為 Linux 最佳化的網路傳輸" }
   },
+  "settings_note": {
+    "version_hidden": "自 1.21.9 起，PVP、允許地獄、怪物生成與指令方塊改為遊戲規則（gamerule）；動物與村民生成設定已在 1.21.2 移除。"
+  },
   "presets": {
     "friends": { "label": "好友小服", "description": "最多 10 人，普通難度" },
     "hardcore": { "label": "極限模式", "description": "只有一條命，困難難度" }
@@ -122,6 +125,14 @@
       "description": "變更一天中的時間",
       "inputs": { "value": { "label": "時間" } }
     },
+    "gamerule": {
+      "label": "遊戲規則",
+      "description": "變更遊戲規則；值為空時在伺服器主控台顯示目前的值",
+      "inputs": {
+        "rule": { "label": "規則", "placeholder": "例如 minecraft:advance_time（1.21.11 之前：doDaylightCycle）" },
+        "value": { "label": "值", "placeholder": "true、false 或數字。留空則在主控台顯示目前的值" }
+      }
+    },
     "tp": {
       "label": "傳送",
       "description": "傳送玩家",
@@ -155,7 +166,17 @@
     "whitelist": {
       "label": "白名單",
       "description": "管理伺服器白名單",
-      "inputs": { "action": { "label": "操作" }, "player": { "label": "玩家名稱" } }
+      "inputs": { "action": { "label": "操作" } }
+    },
+    "whitelist-add": {
+      "label": "加入白名單",
+      "description": "將玩家加入白名單",
+      "inputs": { "player": { "label": "玩家名稱" } }
+    },
+    "whitelist-remove": {
+      "label": "從白名單移除",
+      "description": "將玩家從白名單移除",
+      "inputs": { "player": { "label": "玩家名稱" } }
     },
     "seed": { "label": "顯示種子", "description": "顯示世界種子", "done": "世界種子：{{seed}}" },
     "stop": { "label": "停止", "description": "正常停止伺服器" }
@@ -176,6 +197,7 @@
     "server_jar_not_found": "找不到伺服器jar：{{path}}。請檢查實例設定中的路徑。",
     "not_a_server_folder": "此資料夾看起來不是 Minecraft 伺服器資料夾(沒有 server.properties 或 eula.txt),因此未刪除任何內容:{{path}}",
     "unsafe_world_name": "世界名稱(level-name)「{{name}}」沒有指向伺服器資料夾內的世界資料夾,或與需要保留的項目同名,因此未刪除任何內容。請修正 server.properties 中的 level-name 後再試一次。",
+    "unknown_reset_scope": "未知的重設範圍「{{scope}}」,未刪除任何內容。",
     "properties_write_failed": "寫入server.properties失敗",
     "eula_write_failed": "寫入eula.txt失敗",
     "working_dir_error": "無法建立工作目錄：{{path}}",
@@ -214,7 +236,6 @@
     "java_download_warning": "下載 Java {{version}} 失敗：{{error}}。請手動安裝 Java {{version}} 或更新版本。",
     "status_check_failed": "狀態檢查失敗：{{error}}",
     "no_version": "未指定版本",
-    "no_instance_id": "未指定執行個體 ID",
     "version_info_unreadable": "無法從伺服器 jar 讀取版本資訊",
     "version_not_found": "找不到版本 '{{version}}'",
     "version_no_server": "版本 {{version}} 沒有專用伺服器下載",
@@ -250,9 +271,25 @@
   },
   "reset": {
     "label": "重設伺服器",
-    "description": "刪除伺服器產生的世界、設定、外掛、模組(含模組 JAR)、config 和記錄。伺服器 JAR、eula.txt、附帶的 Java 以及資料夾中的其他檔案會保留。伺服器位於實例資料夾時,記錄也會保留。"
+    "description": "刪除伺服器產生的世界、設定、外掛、模組(含模組 JAR)、config 和記錄。伺服器 JAR、eula.txt、附帶的 Java 以及資料夾中的其他檔案會保留。伺服器位於實例資料夾時,記錄也會保留。",
+    "scopes": {
+      "world": "僅世界",
+      "all": "全部"
+    },
+    "items": {
+      "world": "世界",
+      "settings": "遊戲設定",
+      "lists": "管理員、白名單與封鎖名單",
+      "addons": "外掛、模組及其設定(Saba-chan 不會重新下載)",
+      "logs": "記錄與快取"
+    }
   },
   "agreements": {
     "eula": "Minecraft 終端使用者授權合約 (EULA)"
+  },
+  "lists": {
+    "whitelist": "白名單",
+    "ops": "管理員",
+    "banned": "封鎖"
   }
 }

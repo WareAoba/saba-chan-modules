@@ -339,6 +339,9 @@
   },
   "reset": {
     "label": "Reiniciar mundo",
-    "description": "Elimina el archivo de este mundo y sus copias .wld.bak y .wld.bak<número>. Se conservan serverconfig.txt, la lista de baneos, otros mundos y los archivos del servidor. Se creará un mundo nuevo al iniciar."
+    "description": "Elimina el archivo de este mundo y sus copias .wld.bak y .wld.bak<número>. Se conservan serverconfig.txt, la lista de baneos, otros mundos y los archivos del servidor. Se creará un mundo nuevo al iniciar.",
+    "items": {
+      "world": "Archivo del mundo y copias creadas por el juego (.bak)"
+    }
   }
 }

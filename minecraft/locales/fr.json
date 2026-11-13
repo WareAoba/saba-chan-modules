@@ -82,6 +82,9 @@
     "text_filtering_version": { "label": "Version du filtrage de texte", "description": "Version du filtrage de texte" },
     "use_native_transport": { "label": "Utiliser le transport natif", "description": "Utiliser le transport réseau optimisé pour Linux" }
   },
+  "settings_note": {
+    "version_hidden": "Depuis la 1.21.9, le PVP, l'accès au Nether, l'apparition des monstres et les blocs de commande sont des règles du jeu (gamerule). Les réglages d'apparition des animaux et des villageois ont été supprimés en 1.21.2."
+  },
   "presets": {
     "friends": { "label": "Entre amis (petit)", "description": "Jusqu'à 10 joueurs, difficulté normale" },
     "hardcore": { "label": "Hardcore", "description": "Une seule vie, difficulté difficile" }
@@ -122,6 +125,14 @@
       "description": "Changer l'heure du jour",
       "inputs": { "value": { "label": "Heure" } }
     },
+    "gamerule": {
+      "label": "Règle de jeu",
+      "description": "Modifier une règle de jeu, ou afficher sa valeur actuelle dans la console du serveur si la valeur est vide",
+      "inputs": {
+        "rule": { "label": "Règle", "placeholder": "ex. minecraft:advance_time (avant 1.21.11 : doDaylightCycle)" },
+        "value": { "label": "Valeur", "placeholder": "true, false ou un nombre. Vide affiche la valeur actuelle dans la console" }
+      }
+    },
     "tp": {
       "label": "Téléporter",
       "description": "Téléporter un joueur",
@@ -155,7 +166,17 @@
     "whitelist": {
       "label": "Liste blanche",
       "description": "Gérer la liste blanche du serveur",
-      "inputs": { "action": { "label": "Action" }, "player": { "label": "Nom du joueur" } }
+      "inputs": { "action": { "label": "Action" } }
+    },
+    "whitelist-add": {
+      "label": "Ajouter à la liste blanche",
+      "description": "Ajouter un joueur à la liste blanche",
+      "inputs": { "player": { "label": "Nom du joueur" } }
+    },
+    "whitelist-remove": {
+      "label": "Retirer de la liste blanche",
+      "description": "Retirer un joueur de la liste blanche",
+      "inputs": { "player": { "label": "Nom du joueur" } }
     },
     "seed": { "label": "Afficher la graine", "description": "Afficher la graine du monde", "done": "Graine du monde : {{seed}}" },
     "stop": { "label": "Arrêter", "description": "Arrêter le serveur proprement" }
@@ -176,6 +197,7 @@
     "server_jar_not_found": "Fichier jar du serveur non trouvé: {{path}}. Veuillez vérifier le chemin dans les paramètres d'instance.",
     "not_a_server_folder": "Ce dossier ne semble pas être un dossier de serveur Minecraft (pas de server.properties ni d'eula.txt), rien n'a donc été supprimé : {{path}}",
     "unsafe_world_name": "Le nom du monde (level-name) « {{name}} » ne désigne pas un dossier de monde dans le dossier du serveur ou correspond à un élément conservé, rien n'a donc été supprimé. Corrigez level-name dans server.properties puis réessayez.",
+    "unknown_reset_scope": "Portée de réinitialisation inconnue \"{{scope}}\" ; rien n'a été supprimé.",
     "properties_write_failed": "Échec de l'écriture de server.properties",
     "eula_write_failed": "Échec de l'écriture de eula.txt",
     "working_dir_error": "Impossible de créer le répertoire de travail: {{path}}",
@@ -214,7 +236,6 @@
     "java_download_warning": "Impossible de télécharger Java {{version}} : {{error}}. Veuillez installer Java {{version}} ou une version ultérieure manuellement.",
     "status_check_failed": "Échec de la vérification de l'état : {{error}}",
     "no_version": "Aucune version indiquée",
-    "no_instance_id": "Aucun identifiant d'instance indiqué",
     "version_info_unreadable": "Impossible de lire les informations de version du jar du serveur",
     "version_not_found": "Version « {{version}} » introuvable",
     "version_no_server": "La version {{version}} ne propose pas de téléchargement de serveur dédié",
@@ -250,9 +271,25 @@
   },
   "reset": {
     "label": "Réinitialiser le serveur",
-    "description": "Supprime ce que le serveur a créé : le monde, les paramètres, les plugins, les mods (JAR des mods compris), config et les journaux. Le JAR du serveur, eula.txt, le Java fourni et les autres fichiers du dossier sont conservés. Si le serveur est dans le dossier de l'instance, les journaux sont aussi conservés."
+    "description": "Supprime ce que le serveur a créé : le monde, les paramètres, les plugins, les mods (JAR des mods compris), config et les journaux. Le JAR du serveur, eula.txt, le Java fourni et les autres fichiers du dossier sont conservés. Si le serveur est dans le dossier de l'instance, les journaux sont aussi conservés.",
+    "scopes": {
+      "world": "Monde seulement",
+      "all": "Tout"
+    },
+    "items": {
+      "world": "Monde",
+      "settings": "Paramètres du jeu",
+      "lists": "Listes des opérateurs, liste blanche et bannissements",
+      "addons": "Plugins, mods et leurs réglages (Saba-chan ne les retélécharge pas)",
+      "logs": "Journaux et caches"
+    }
   },
   "agreements": {
     "eula": "Contrat de licence utilisateur final de Minecraft (CLUF)"
+  },
+  "lists": {
+    "whitelist": "Liste blanche",
+    "ops": "Opérateurs",
+    "banned": "Bannis"
   }
 }

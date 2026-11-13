@@ -599,7 +599,7 @@
           "label": "Nombre de zombies"
         },
         "player": {
-          "label": "Joueur (facultatif)",
+          "label": "Joueur",
           "placeholder": "Joueur ciblé"
         }
       }
@@ -707,6 +707,7 @@
     "data_home_unavailable": "Impossible de créer ou d'ouvrir le dossier de données du serveur. Vérifiez l'emplacement et les autorisations du dossier.",
     "settings_write_failed": "Les fichiers du serveur sont installés, mais les paramètres choisis n’ont pas pu être enregistrés : {{error}}",
     "player_not_found": "Joueur introuvable. Vérifiez le nom d'utilisateur.",
+    "quote_not_allowed": "Les noms et les motifs ne doivent pas contenir de guillemets doubles (\").",
     "connection_refused": "Impossible de se connecter au serveur. Vérifiez que le serveur est démarré et que le port est correct.",
     "timeout": "Le serveur n'a pas répondu à temps. Vérifiez l'état du serveur.",
     "admin_password_required": "Le premier démarrage demande un mot de passe administrateur. Sans lui, le serveur s'arrête et l'attend dans la console.",
@@ -719,6 +720,7 @@
     "server_reset_partial": "Certains éléments n'ont pas pu être supprimés : {{errors}}",
     "invalid_server_name": "Ce nom de serveur ne peut pas être utilisé : {{name}}. Utilisez un nom sans séparateur de dossier (/ \\), ':' ni '..', qui ne se termine pas par un espace ou un point",
     "extension_not_enabled": "L'extension SteamCMD n'est pas activée. Activez-la d'abord dans Paramètres → Extensions.",
+    "unknown_branch": "Cette branche ne peut pas être choisie : {{branch}}",
     "detect": {
       "out_of_memory": "Le serveur manque de mémoire (OutOfMemoryError)",
       "port_in_use": "Le port {{port}} est déjà utilisé par une autre application",
@@ -746,6 +748,11 @@
     "command_send_failed": "Impossible d'envoyer la commande : {{error}}",
     "backup_paths_failed": "Impossible de lire le dossier de sauvegarde pour la copie : {{error}}"
   },
+  "versions": {
+    "public": "Stable (par défaut)",
+    "unstable": "Instable (unstable)",
+    "legacy41": "Ancien build 41 (legacy41)"
+  },
   "messages": {
     "server_reset_complete": "Données du monde serveur réinitialisées",
     "server_starting_no_response": "Le processus tourne mais le serveur ne répond pas encore aux requêtes RCON",
@@ -768,6 +775,9 @@
   },
   "reset": {
     "label": "Réinitialiser le monde",
-    "description": "Supprime seulement la sauvegarde du monde et conserve les paramètres du serveur."
+    "description": "Supprime seulement la sauvegarde du monde et conserve les paramètres du serveur.",
+    "items": {
+      "world": "Sauvegarde du monde"
+    }
   }
 }

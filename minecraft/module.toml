@@ -95,16 +95,18 @@ chat_send = "send_chat"
 # 접속을 받기 시작할 때의 줄 (데몬 instance.ready). PC 정규 설치 26.3 서버의 실제 줄에서 확인
 ready_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: Done \(\d+(\.\d+)?s\)! For help, type "help"']
 # 접속·퇴장 줄 (데몬 instance.player, name 그룹). 앞에 `System chat: `가 붙기도 한다 (PC 실측 10-30). 문구는 server jar en_us.json multiplayer.player.joined·
-# joined.renamed·left (26.3에서 확인). 이름은 영숫자·밑줄 16자
+# joined.renamed·left (26.3에서 확인). 이름은 영숫자·`_.-` 16자: Floodgate는 베드락 이름 앞에 `.`을 붙이고
+# (Floodgate config.yml username-prefix 기본값) online-mode=false 서버는 `-`도 받는다. 허용 글자만 받는다: 이 이름이 데몬 자동 강퇴의
+# `kick {player}` 인자가 되므로 대상 선택자(`@a`)가 이름으로 잡히면 안 되고, `[]`·`*`가 빠져야 `/say`·`/me` 줄이 접속으로 맞지 않는다
 player_join_patterns = [
-    '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:System chat: )?(?P<name>[A-Za-z0-9_]{1,16}) joined the game\s*$',
-    '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:System chat: )?(?P<name>[A-Za-z0-9_]{1,16}) \(formerly known as [A-Za-z0-9_]{1,16}\) joined the game\s*$',
+    '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:System chat: )?(?P<name>[A-Za-z0-9_.\-]{1,16}) joined the game\s*$',
+    '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:System chat: )?(?P<name>[A-Za-z0-9_.\-]{1,16}) \(formerly known as [A-Za-z0-9_.\-]{1,16}\) joined the game\s*$',
 ]
 # Spigot·CraftBukkit은 추방·밴으로 나갈 때 끝에 마침표를 찍는다 (`left the game.`, 클라우드 실측 26.1)
-player_leave_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:System chat: )?(?P<name>[A-Za-z0-9_]{1,16}) left the game\.?\s*$']
+player_leave_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:System chat: )?(?P<name>[A-Za-z0-9_.\-]{1,16}) left the game\.?\s*$']
 # 게임 채팅 줄 (saba-chan 0.1.12 게임 채팅 전달, name·message 그룹). 플레이어 채팅은 `<이름> 본문`이고 서명되지 않은 채팅은
 # 앞에 `[Not Secure] `가 붙는다 (1.19.1+). `/say`(`[이름] …`)·`/me`(`* 이름 …`)는 받지 않는다
-chat_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:\[Not Secure\] )?<(?P<name>[A-Za-z0-9_]{1,16})> (?P<message>.*)$']
+chat_patterns = ['^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )INFO\](?: \[[^\]]*\])?: (?:\[Not Secure\] )?<(?P<name>[A-Za-z0-9_.\-]{1,16})> (?P<message>.*)$']
 
 # ─── Settings (displayed in GUI for instance configuration) ───
 
@@ -208,6 +210,8 @@ default = false
 name = "allow_nether"
 restart_required = true
 file_key = "allow-nether"
+# 1.21.9가 server.properties에서 빼고 게임 규칙으로 옮겼다 (minecraft.net Java Edition 1.21.9 changelog)
+versions = "<1.21.9"
 type = "boolean"
 label = "Allow Nether"
 description = "Allow players to travel to the Nether"
@@ -247,6 +251,8 @@ default = "normal"
 name = "enable_command_block"
 restart_required = true
 file_key = "enable-command-block"
+# 1.21.9가 server.properties에서 빼고 게임 규칙으로 옮겼다 (minecraft.net Java Edition 1.21.9 changelog)
+versions = "<1.21.9"
 type = "boolean"
 label = "Command Blocks"
 description = "Enable command blocks"
@@ -590,6 +596,8 @@ group = "advanced"
 name = "pvp"
 restart_required = true
 file_key = "pvp"
+# 1.21.9가 server.properties에서 빼고 게임 규칙으로 옮겼다 (minecraft.net Java Edition 1.21.9 changelog)
+versions = "<1.21.9"
 type = "boolean"
 label = "PVP"
 description = "Allow player vs player combat"
@@ -787,6 +795,8 @@ max = 32
 name = "spawn_animals"
 restart_required = true
 file_key = "spawn-animals"
+# 1.21.2(24w33a)가 server.properties에서 없앴다 (minecraft.wiki Java Edition 24w33a)
+versions = "<1.21.2"
 type = "boolean"
 label = "Spawn Animals"
 description = "Allow animals to spawn"
@@ -797,6 +807,8 @@ group = "advanced"
 name = "spawn_monsters"
 restart_required = true
 file_key = "spawn-monsters"
+# 1.21.9가 server.properties에서 빼고 게임 규칙으로 옮겼다 (minecraft.net Java Edition 1.21.9 changelog)
+versions = "<1.21.9"
 type = "boolean"
 label = "Spawn Monsters"
 description = "Allow hostile mobs to spawn"
@@ -807,6 +819,8 @@ group = "advanced"
 name = "spawn_npcs"
 restart_required = true
 file_key = "spawn-npcs"
+# 1.21.2(24w33a)가 server.properties에서 없앴다 (minecraft.wiki Java Edition 24w33a)
+versions = "<1.21.2"
 type = "boolean"
 label = "Spawn NPCs"
 description = "Allow villagers to spawn"
@@ -1026,7 +1040,8 @@ method = "console"
 console_template = "gamemode {mode} {player}"
 inputs = [
     { name = "mode", type = "select", label = "Game Mode", required = true, options = ["survival", "creative", "adventure", "spectator"] },
-    { name = "player", type = "text", label = "Player Name", required = false, placeholder = "Leave empty for all" }
+    # 콘솔은 실행 주체가 플레이어가 아니라 대상을 꼭 줘야 한다 (minecraft.wiki Commands/gamemode)
+    { name = "player", type = "text", label = "Player Name", required = true }
 ]
 
 [[commands.fields]]
@@ -1038,6 +1053,19 @@ method = "console"
 console_template = "time set {value}"
 inputs = [
     { name = "value", type = "select", label = "Time", required = true, options = ["day", "noon", "night", "midnight", "0", "6000", "12000", "18000"] }
+]
+
+[[commands.fields]]
+name = "gamerule"
+risk = "caution"
+label = "Game Rule"
+description = "Set a game rule, or print its current value to the server console when the value is empty"
+method = "console"
+console_template = "gamerule {rule} {value}"
+# 규칙 이름은 1.21.11(스냅숏 25w44a)부터 snake_case 리소스 위치로 바뀌어 고정 선택지를 두지 않는다 (minecraft.net 25w44a)
+inputs = [
+    { name = "rule", type = "text", label = "Rule", required = true, placeholder = "e.g. minecraft:advance_time (before 1.21.11: doDaylightCycle)" },
+    { name = "value", type = "text", label = "Value", required = false, placeholder = "true, false or a number. Empty prints the current value to the console" }
 ]
 
 [[commands.fields]]
@@ -1115,10 +1143,32 @@ risk = "danger"
 label = "Whitelist"
 description = "Manage the server whitelist"
 method = "console"
-console_template = "whitelist {action} {player}"
+console_template = "whitelist {action}"
 inputs = [
-    { name = "action", type = "select", label = "Action", required = true, options = ["add", "remove", "list", "on", "off", "reload"] },
-    { name = "player", type = "text", label = "Player Name", required = false, placeholder = "Player name (for add/remove)" }
+    { name = "action", type = "select", label = "Action", required = true, options = ["list", "on", "off", "reload"] }
+]
+
+# add·remove는 <targets>가 필수라 따로 둔다 (minecraft.wiki Commands/whitelist)
+[[commands.fields]]
+name = "whitelist-add"
+risk = "danger"
+label = "Whitelist Add"
+description = "Add a player to the whitelist"
+method = "console"
+console_template = "whitelist add {player}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true }
+]
+
+[[commands.fields]]
+name = "whitelist-remove"
+risk = "danger"
+label = "Whitelist Remove"
+description = "Remove a player from the whitelist"
+method = "console"
+console_template = "whitelist remove {player}"
+inputs = [
+    { name = "player", type = "text", label = "Player Name", required = true }
 ]
 
 [[commands.fields]]
@@ -1399,7 +1449,7 @@ priority = 62
 # 채팅 <Player>
 [[syntax_highlight.rules]]
 name = "chat_name"
-pattern = '<(?P<hl>\w{3,16})>'
+pattern = '<(?P<hl>[A-Za-z0-9_.\-]{3,16})>'
 color = "player"
 bold = true
 priority = 50
@@ -1407,7 +1457,7 @@ priority = 50
 # 접속 — "Player joined the game" (로그 머리 바로 뒤: 채팅 본문의 같은 문구는 아니다. 이름은 player_join_patterns와 같이 1~16자)
 [[syntax_highlight.rules]]
 name = "player_join"
-pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<hl>[A-Za-z0-9_]{1,16}) (?:\(formerly known as [A-Za-z0-9_]{1,16}\) )?joined the game\s*$'
+pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<hl>[A-Za-z0-9_.\-]{1,16}) (?:\(formerly known as [A-Za-z0-9_.\-]{1,16}\) )?joined the game\s*$'
 color = "success"
 bold = true
 priority = 50
@@ -1415,14 +1465,14 @@ priority = 50
 # 퇴장 — "Player left the game"
 [[syntax_highlight.rules]]
 name = "player_leave"
-pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<hl>[A-Za-z0-9_]{1,16}) left the game\.?\s*$'
+pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?:System chat: )?(?P<hl>[A-Za-z0-9_.\-]{1,16}) left the game\.?\s*$'
 color = "warning"
 priority = 50
 
 # 로그인 — "Player[/IP:port] logged in ..." (이름 부분만)
 [[syntax_highlight.rules]]
 name = "player_login"
-pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?P<hl>[A-Za-z0-9_]{1,16})\[/'
+pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: (?P<hl>[A-Za-z0-9_.\-]{1,16})\[/'
 color = "player"
 bold = true
 priority = 50
@@ -1430,7 +1480,7 @@ priority = 50
 # 연결 끊김 사유 — "Player lost connection: <reason>"
 [[syntax_highlight.rules]]
 name = "player_disconnect_reason"
-pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: [A-Za-z0-9_]{1,16} lost connection: (?P<hl>.+)'
+pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )[A-Z]+\](?: \[[^\]]*\])?: [A-Za-z0-9_.\-]{1,16} lost connection: (?P<hl>.+)'
 color = "info"
 priority = 50
 
@@ -1584,6 +1634,25 @@ difficulty = "hard"
 [[agreements]]
 id = "eula"
 url = "https://aka.ms/MinecraftEULA"
+
+# 플레이어 목록 (saba-core `[[lists]]`, 이름은 locales `lists.<id>`). 지금 명단은 read_lists()가 서버 폴더의
+# whitelist.json·ops.json·banned-players.json에서 읽고(PaperMC 문서 "Vanilla data files"), 넣기·빼기는 위 명령으로 한다
+[[lists]]
+id = "whitelist"
+add = "whitelist-add"
+remove = "whitelist-remove"
+setting = "white_list"
+
+[[lists]]
+id = "ops"
+add = "op"
+remove = "deop"
+
+[[lists]]
+id = "banned"
+add = "ban"
+remove = "pardon"
+danger = true
 
 # ── [[diagnose]] 서버 로그 진단 (diagnose_log가 공용 diagnose_lines로 읽는다. 문구: errors.detect.<code>·errors.solutions.<code>) ──
 

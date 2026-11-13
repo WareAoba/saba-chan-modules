@@ -51,6 +51,11 @@ NOT_PLAY_DATA = re.compile(r"(^|/)logs?/|\.log$|\.lock$|(^|/)Saved/Logs/|\.(jar|
 
 # ── 판정 규칙 (test_trial.py) ──
 
+def has_console(manifest):
+    """stdin을 받는 모듈인지: 아니면 데몬은 콘솔 명령(stop_command 포함)을 보내지 않는다"""
+    return "stdin" in manifest.get("protocols", {}).get("supported", [])
+
+
 def console_verbs(manifest):
     """콘솔로 보내는 선언 명령의 첫 낱말과 정지 명령 (정렬)"""
     verbs = set()
@@ -586,7 +591,7 @@ class Trial:
         return True
 
     def help(self):
-        if "stdin" not in self.manifest.get("protocols", {}).get("supported", []):
+        if not has_console(self.manifest):
             self.report.add("help", "skip", "콘솔(stdin)이 없는 모듈")
             return
         lines = self.console_since(0)
@@ -628,7 +633,7 @@ class Trial:
             time.sleep(0.3)
         request.join()
         status, body = answer.get("r", (0, None))
-        functions = ["stop"] if "stdin" not in self.manifest.get("protocols", {}).get("supported", []) else []
+        functions = [] if has_console(self.manifest) else ["stop"]
         if not self.step("stop", functions, status, body, describe=lambda b: ""):
             d.call("POST", f"/api/instance/{self.instance}/stop", {"force": True}, timeout=60)
             self.reset()

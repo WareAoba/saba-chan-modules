@@ -89,6 +89,9 @@
     "text_filtering_version": { "label": "Text Filtering Version", "description": "Text filtering version" },
     "use_native_transport": { "label": "Use Native Transport", "description": "Use Linux optimized network transport" }
   },
+  "settings_note": {
+    "version_hidden": "Since 1.21.9, PVP, Allow Nether, monster spawning and command blocks are game rules (gamerule). The animal and villager spawning settings were removed in 1.21.2."
+  },
   "presets": {
     "friends": { "label": "Friends (small)", "description": "Up to 10 players on normal difficulty" },
     "hardcore": { "label": "Hardcore", "description": "One life on hard difficulty" }
@@ -133,6 +136,14 @@
       "description": "Change the time of day",
       "inputs": { "value": { "label": "Time" } }
     },
+    "gamerule": {
+      "label": "Game Rule",
+      "description": "Set a game rule, or print its current value to the server console when the value is empty",
+      "inputs": {
+        "rule": { "label": "Rule", "placeholder": "e.g. minecraft:advance_time (before 1.21.11: doDaylightCycle)" },
+        "value": { "label": "Value", "placeholder": "true, false or a number. Empty prints the current value to the console" }
+      }
+    },
     "tp": {
       "label": "Teleport",
       "description": "Teleport a player",
@@ -166,7 +177,17 @@
     "whitelist": {
       "label": "Whitelist",
       "description": "Manage the server whitelist",
-      "inputs": { "action": { "label": "Action" }, "player": { "label": "Player Name" } }
+      "inputs": { "action": { "label": "Action" } }
+    },
+    "whitelist-add": {
+      "label": "Whitelist Add",
+      "description": "Add a player to the whitelist",
+      "inputs": { "player": { "label": "Player Name" } }
+    },
+    "whitelist-remove": {
+      "label": "Whitelist Remove",
+      "description": "Remove a player from the whitelist",
+      "inputs": { "player": { "label": "Player Name" } }
     },
     "seed": { "label": "Show Seed", "description": "Display the world seed", "done": "World seed: {{seed}}" },
     "stop": { "label": "Stop", "description": "Gracefully stop the server" }
@@ -187,6 +208,7 @@
     "server_jar_not_found": "Server jar not found: {{path}}. Please check the path in instance settings.",
     "not_a_server_folder": "This folder does not look like a Minecraft server folder (no server.properties or eula.txt), so nothing was deleted: {{path}}",
     "unsafe_world_name": "The world name (level-name) \"{{name}}\" does not point to a world folder inside the server folder, or it matches a file the reset keeps, so nothing was deleted. Fix level-name in server.properties and try again.",
+    "unknown_reset_scope": "Unknown reset scope \"{{scope}}\", so nothing was deleted.",
     "properties_write_failed": "Failed to write server.properties",
     "eula_write_failed": "Failed to write eula.txt",
     "working_dir_error": "Cannot create working directory: {{path}}",
@@ -225,7 +247,6 @@
     "java_download_warning": "Failed to download Java {{version}}: {{error}}. Please install Java {{version}} or later manually.",
     "status_check_failed": "Status check failed: {{error}}",
     "no_version": "No version specified",
-    "no_instance_id": "No instance ID specified",
     "version_info_unreadable": "Could not read version info from the server jar",
     "version_not_found": "Version '{{version}}' not found",
     "version_no_server": "Version {{version}} has no dedicated server download",
@@ -261,9 +282,25 @@
   },
   "reset": {
     "label": "Reset server",
-    "description": "Deletes what the server made: the world, settings, plugins, mods (including mod JARs), configs and logs. The server JAR, eula.txt, the bundled Java and other files in the folder are kept. If the server lives in the instance folder, logs are kept too."
+    "description": "Deletes what the server made: the world, settings, plugins, mods (including mod JARs), configs and logs. The server JAR, eula.txt, the bundled Java and other files in the folder are kept. If the server lives in the instance folder, logs are kept too.",
+    "scopes": {
+      "world": "World only",
+      "all": "Everything"
+    },
+    "items": {
+      "world": "World",
+      "settings": "Game settings",
+      "lists": "Operator, whitelist and ban lists",
+      "addons": "Plugins, mods and their settings (Saba-chan does not download them again)",
+      "logs": "Logs and caches"
+    }
   },
   "agreements": {
     "eula": "Minecraft End User License Agreement (EULA)"
+  },
+  "lists": {
+    "whitelist": "Whitelist",
+    "ops": "Operators",
+    "banned": "Bans"
   }
 }

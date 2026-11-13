@@ -13,7 +13,7 @@
 | `prior_art.py "<게임>" [--out F]` | Pelican 에그·LinuxGSM에서 실행·설치·정지 단서를 모은 보고서(단서일 뿐 출처가 아니다) |
 | `inspect_dist.py <zip·tar·폴더>` | 배포물 항목 전체, OS 폴더, 같은 이름 실행 파일, 설정 파일 원래 바이트(인코딩·줄바꿈·키) |
 | `probe_server.py --cwd <폴더> ... -- <실행 파일>` | 서버를 파이프로 띄워 준비 줄, 명령 응답, 정지 뒤 줄, 생긴 파일을 원문으로 기록 |
-| `check.py <name> [--saba-core ...] [--trial]` | PR 전 관문 중 기계로 잴 수 있는 것 전부와 직접 확인 목록, `--trial`이면 `conformance/trial.py` 실측까지 |
+| `check.py <name> [--help-output probe/probe-report.json] [--saba-core ...] [--trial]` | PR 전 관문 중 기계로 잴 수 있는 것 전부(선언한 콘솔 명령이 서버 `help`에 있는지 포함)와 직접 확인 목록, `--trial`이면 `conformance/trial.py` 실측까지 |
 
 ## 받기
 

@@ -339,6 +339,9 @@
   },
   "reset": {
     "label": "Reset World",
-    "description": "Deletes this server world file and its .wld.bak and .wld.bak<number> backups. serverconfig.txt, the ban list, other worlds and server files stay. A new world is created on the next start."
+    "description": "Deletes this server world file and its .wld.bak and .wld.bak<number> backups. serverconfig.txt, the ban list, other worlds and server files stay. A new world is created on the next start.",
+    "items": {
+      "world": "World file and the backups the game made (.bak)"
+    }
   }
 }

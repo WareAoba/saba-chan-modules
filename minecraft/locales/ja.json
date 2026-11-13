@@ -85,6 +85,9 @@
     "text_filtering_version": { "label": "テキストフィルタリングのバージョン", "description": "テキストフィルタリングのバージョン" },
     "use_native_transport": { "label": "ネイティブ転送を使用", "description": "Linux向けに最適化されたネットワーク転送を使用する" }
   },
+  "settings_note": {
+    "version_hidden": "1.21.9 から PVP・ネザーの許可・モンスターのスポーン・コマンドブロックはゲームルール（gamerule）に移り、動物・村人のスポーン設定は 1.21.2 でなくなりました。"
+  },
   "presets": {
     "friends": { "label": "友達向け(小規模)", "description": "最大10人、ノーマル難易度" },
     "hardcore": { "label": "ハードコア", "description": "命はひとつ、ハード難易度" }
@@ -125,6 +128,14 @@
       "description": "時刻を変更します",
       "inputs": { "value": { "label": "時間" } }
     },
+    "gamerule": {
+      "label": "ゲームルール",
+      "description": "ゲームルールを変更します。値が空なら現在の値をサーバーコンソールに表示します",
+      "inputs": {
+        "rule": { "label": "ルール", "placeholder": "例: minecraft:advance_time (1.21.11より前: doDaylightCycle)" },
+        "value": { "label": "値", "placeholder": "true、false または数値。空ならコンソールに現在の値を表示" }
+      }
+    },
     "tp": {
       "label": "テレポート",
       "description": "プレイヤーをテレポートします",
@@ -158,7 +169,17 @@
     "whitelist": {
       "label": "ホワイトリスト",
       "description": "サーバーのホワイトリストを管理します",
-      "inputs": { "action": { "label": "操作" }, "player": { "label": "プレイヤー名" } }
+      "inputs": { "action": { "label": "操作" } }
+    },
+    "whitelist-add": {
+      "label": "ホワイトリストに追加",
+      "description": "プレイヤーをホワイトリストに追加します",
+      "inputs": { "player": { "label": "プレイヤー名" } }
+    },
+    "whitelist-remove": {
+      "label": "ホワイトリストから削除",
+      "description": "プレイヤーをホワイトリストから削除します",
+      "inputs": { "player": { "label": "プレイヤー名" } }
     },
     "seed": { "label": "シード表示", "description": "ワールドのシード値を表示します", "done": "ワールドシード: {{seed}}" },
     "stop": { "label": "停止", "description": "サーバーを正常に停止します" }
@@ -179,6 +200,7 @@
     "server_jar_not_found": "サーバー jar が見つかりません: {{path}}。インスタンス設定でパスを確認してください。",
     "not_a_server_folder": "このフォルダーはMinecraftサーバーのフォルダーではないようです(server.properties・eula.txtがありません)。何も削除していません: {{path}}",
     "unsafe_world_name": "ワールド名(level-name)「{{name}}」がサーバーフォルダー内のワールドフォルダーを指していないか、残すべき項目と同じため、何も削除していません。server.propertiesのlevel-nameを直してからもう一度お試しください。",
+    "unknown_reset_scope": "初期化の範囲「{{scope}}」が不明なため、何も削除しませんでした。",
     "properties_write_failed": "server.properties の書き込みに失敗しました",
     "eula_write_failed": "eula.txt の書き込みに失敗しました",
     "working_dir_error": "作業ディレクトリを作成できません: {{path}}",
@@ -217,7 +239,6 @@
     "java_download_warning": "Java {{version}} のダウンロードに失敗しました: {{error}}。Java {{version}} 以降を手動でインストールしてください。",
     "status_check_failed": "状態の確認に失敗しました: {{error}}",
     "no_version": "バージョンが指定されていません",
-    "no_instance_id": "インスタンス ID が指定されていません",
     "version_info_unreadable": "サーバー jar からバージョン情報を読み取れません",
     "version_not_found": "バージョン '{{version}}' が見つかりません",
     "version_no_server": "バージョン {{version}} には専用サーバーのダウンロードがありません",
@@ -253,9 +274,25 @@
   },
   "reset": {
     "label": "サーバー初期化",
-    "description": "サーバーが作成したワールド・設定・プラグイン・Mod(Mod JARを含む)・config・ログを削除します。サーバーJAR、eula.txt、同梱のJava、フォルダー内のほかのファイルは残します。サーバーがインスタンスフォルダーにある場合はログも残します。"
+    "description": "サーバーが作成したワールド・設定・プラグイン・Mod(Mod JARを含む)・config・ログを削除します。サーバーJAR、eula.txt、同梱のJava、フォルダー内のほかのファイルは残します。サーバーがインスタンスフォルダーにある場合はログも残します。",
+    "scopes": {
+      "world": "ワールドのみ",
+      "all": "すべて"
+    },
+    "items": {
+      "world": "ワールド",
+      "settings": "ゲーム設定",
+      "lists": "管理者・ホワイトリスト・BANリスト",
+      "addons": "プラグイン・MODとその設定(サバちゃんは再ダウンロードしません)",
+      "logs": "ログとキャッシュ"
+    }
   },
   "agreements": {
     "eula": "Minecraft エンドユーザー使用許諾契約 (EULA)"
+  },
+  "lists": {
+    "whitelist": "ホワイトリスト",
+    "ops": "管理者",
+    "banned": "BAN"
   }
 }

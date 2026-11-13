@@ -67,6 +67,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 ### `[install]` ○
 `method` (`"manual"` 기본 / `"download"`는 내장, 그 밖의 값은 그 방식을 처리하는 익스텐션 id, 예: `"steamcmd"`), `app_id`, `anonymous`(기본 true), `install_subdir`, `platform`, `download_url`, `beta`(지정하면 항상 이 브랜치로 설치), `requires_extensions`(필요한 익스텐션 id 목록).
+- `platform`은 받기만 하고 읽는 곳이 없다: steamcmd는 언제나 데몬이 도는 OS의 배포물을 받는다. 적지 않는다. 모듈이 도는 OS는 `[extensions.saba-core] platforms`로 선언한다.
 - 익스텐션 방식이면 데몬이 인스턴스 `extension_data`에 `install_method_<방식>`=true와 `<방식>_<필드>`(anonymous, app_id, beta, platform, download_url)를 쓴다. 서버 업데이트(`apply-update`)는 이런 인스턴스만 받는다.
 - 모듈 Python은 `import extensions.<이름>`으로 익스텐션을 쓴다. 활성화된 익스텐션만 import된다: 데몬이 넣는 import 가드가 나머지를 `ModuleNotFoundError`로 막는다(`-`와 `_`는 같다). 익스텐션을 쓰는 코드는 함수 안에서 import하고 `ImportError`를 "익스텐션 없음" 응답으로 바꾼다(palworld의 `ExtensionMissing` 참고).
 
@@ -76,6 +77,7 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 - `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`·`rest_port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
 - `arg`: 이 값이 실행 인자로 들어가는 모양. 문자열 하나나 배열이고, 공백으로 나눈 토큰에 `{value}`는 많아야 한 번이다(`"--port={value}"`, `"-servername {value}"`, `["-Xmx{value}", "-Xms{value}"]`). `{value}`가 없으면 boolean 플래그다. `{value}`뿐인 모양은 로드 오류다. 실행 인자 미리보기가 사용자가 친 추가 인자를 이 필드로 되돌릴 때만 쓴다. 실제 실행 줄은 여전히 `get_launch_command`가 만들므로 같은 모양으로 넣는다. 실행 인자로 들어가는 필드에만 쓴다.
 - `format`: 값 형식. `memory_size`(숫자+K/M/G 한 글자, `4G`·`1024M`), `port`(1~65535), `integer`, `path`. `pattern`: 값 전체가 맞아야 하는 정규식. 둘 다 저장과 미리보기에서 검사하고, 틀리면 "잘못된 형식입니다"로 막는다(모듈이 안내 문구를 줄 필요는 없다).
+- `versions`: 이 설정이 있는 게임 버전 범위. 비교(`<` `<=` `>` `>=` `=`)와 점으로 나눈 숫자 버전을 공백이나 쉼표로 잇는다(`"<1.21.9"`, `">=1.13 <1.20"`). 설치된 버전(인스턴스 `server_version`)이 밖이면 그 서버에는 없는 설정이라 앱과 CLI가 숨기고 `required`를 보지 않는다. 버전을 모르거나 숫자 버전이 아니면 모두 보인다. 읽을 수 없는 범위는 로드 오류. 숨긴 설정이 있을 때 안내 줄에 덧붙일 한 문장은 locales `settings_note.version_hidden`(선택)에 둔다.
 - 문자열 `default`의 `{instance_dir}`은 새 인스턴스 폴더로 바뀐다(인스턴스마다 따로 둘 게임 데이터 폴더 등). 기존 서버를 가져올 때는 빈 값이 들어가므로 모듈은 빈 값을 그 게임의 기본 위치로 다룬다(zomboid `cache_dir` 참고).
 데몬이 직접 의미를 아는 이름: `rest_port`, `rest_host`, `managed_start`, `log_sessions_keep`, `auto_restart`(크래시 때 다시 띄우기, 기본 true), `restart_on_unknown_exit`(원인 모를 종료도 다시 띄우기, 기본 false). 모듈이 선언하지 않아도 인스턴스 설정에 넣으면 데몬이 읽는다.
 
@@ -101,6 +103,9 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 
 ### `[[agreements]]` ○
 서버를 켜기 전에 사용자가 동의해야 하는 약관(예: 게임 EULA). `id`(소문자·숫자·`-`·`_`, 모듈 안에서 겹치지 않음), `url`(원문, https). 표시 이름은 모듈 locales의 `agreements.<id>`. 데몬이 동의를 받아 기록하고(이 PC에서만, 디스코드·챗봇에서는 받지 않는다), 동의하지 않은 약관이 있으면 시작을 막는다. 동의한 약관 id는 config `accepted_agreements`로 `install_server`·`accept_agreements`에 온다. 모듈이 직접 동의를 가정하면 안 된다.
+
+### `[[lists]]` ○
+게임이 지키는 플레이어 이름 명단(화이트리스트·관리자·밴 등)을 목록 화면으로 보인다. 선언한 모듈의 서버에만 "플레이어" 탭이 생긴다. `id`(소문자·숫자·`-`·`_`, 모듈 안에서 겹치지 않음), `add`·`remove`(이름을 넣고 빼는 `[[commands.fields]]` 이름. 첫 입력이 플레이어 이름이고, `add`의 나머지 입력(예: 이유)은 화면이 옆 칸으로 보인다), `setting`(선택: 이 명단을 쓸지 정하는 boolean `[[settings.fields]]` 이름), `danger`(선택: 넣으면 그 사람을 막는 명단. 넣기 단추가 위험 색이다). 표시 이름은 모듈 locales의 `lists.<id>`. 지금 명단은 진입 파일 `read_lists`가 읽어 준다(§3 표). 넣기·빼기는 그 명령을 그대로 보내므로 명령을 받을 수 있을 때(보통 켜진 서버)만 된다.
 
 ### `[status]` ○
 `players`: 접속자 수를 돌려주는 진입 파일 함수 이름(Python 식별자, 상태를 바꾸는 함수는 안 된다). 데몬이 켜진 서버마다 1분에 한 번, 10초 안에 부른다. 그 값은 서버 목록과 디스코드 `/사바쨩 상태`에 접속자 수로 나온다. 함수 계약은 §3 표.
@@ -139,9 +144,11 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 | `command` | `method = "module"` 명령 | `success`, `message` |
 | `get_credentials` | REST 접속 정보가 필요할 때 | `rest_username`, `rest_password` |
 | `validate`, `configure`, `read_properties`, `reset_properties`, `reset_server` | 설정 화면 | `success` (+ 읽은 값) |
+| `reset_preview` (선택) | 초기화 확인 창을 열 때. 아무것도 지우지 않는다 | `success`, `scopes: [{id, label?, note?, items: [{label, paths[]}]}]`: 범위마다 `reset_server`가 지울 경로(서버 폴더 기준 상대 경로나 절대 경로)와 이름. 데몬이 지금 있는 것만 크기와 함께 보인다. 범위가 둘 이상이면 화면이 고르게 하고 고른 `id`가 `reset_server`의 config `scope`로 온다(없으면 모듈의 기본 범위). `label`은 범위가 둘 이상일 때만 쓴다 |
+| `read_lists` | 플레이어 탭을 열 때, `[[lists]]`를 선언했으면. 서버가 꺼져 있어도 온다. 읽기만 한다 | `success`, `lists: {<id>: [{name, added?, note?}]}`: 목록 id마다 지금 명단. `added`는 넣은 때(ISO 8601 날짜나 시각), `note`는 덧붙일 말(예: 밴 이유). 데몬은 이 세 값만 남긴다 |
 | `accept_agreements` | 사용자가 `[[agreements]]`에 동의한 뒤. config `accepted_agreements[]`에 있는 약관만 반영한다(예: eula.txt) | `success` |
 | `diagnose_log` | 로그 진단 | `success` |
-| `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록 / `executable_path`, `install_path` / `version` |
+| `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록(`versions[]`: 문자열이나 `{id, name?, type?}`, `latest.release`) / `executable_path`, `install_path` / `version`. 설치 방식 익스텐션(Steam 등)으로 받는 모듈이 `list_versions`를 만들면 그 목록은 서버마다 고르는 브랜치 목록이다: 고른 `id`가 `install_server`의 `version`으로 오고, 데몬이 인스턴스에 적어 업데이트 때도 같은 값을 넘긴다(예: zomboid) |
 | `import_settings` | 기존 서버 가져오기 | `settings{}` |
 | `backup_paths` | 백업 때, `[backup] hook = true`이면 | `paths[]`, 선택 `restore_roots[]`(복원만 허용하는 범위, 백업 대상 아님) (실패하면 백업과 그 뒤 업데이트·복원이 멈춘다) |
 | `instance_commands` | 명령 목록·실행 때, `[commands] hook = true`이면 | `commands[]` |

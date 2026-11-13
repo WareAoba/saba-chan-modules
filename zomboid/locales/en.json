@@ -188,7 +188,7 @@
       "description": "Spawn a zombie horde near a player",
       "inputs": {
         "count": { "label": "Zombie Count" },
-        "player": { "label": "Player (optional)", "placeholder": "Target player" }
+        "player": { "label": "Player", "placeholder": "Target player" }
       }
     },
     "godmod": {
@@ -246,6 +246,7 @@
     "settings_write_failed": "The server files were installed, but the selected settings could not be saved: {{error}}",
     "backup_paths_failed": "Could not read the save folder for backup: {{error}}",
     "player_not_found": "Player not found. Please check the username.",
+    "quote_not_allowed": "Names and reasons must not contain double quotes (\").",
     "connection_refused": "Cannot connect to the server. Please check that the server is running and the port is correct.",
     "timeout": "Server response timed out. Please check the server status.",
     "admin_password_required": "The first launch needs an admin password. Without one the server stops and waits for it in the console.",
@@ -258,6 +259,7 @@
     "server_reset_partial": "Some items could not be deleted: {{errors}}",
     "invalid_server_name": "This server name cannot be used: {{name}}. Use a name without folder separators (/ \\), ':' or '..' that does not end with a space or dot",
     "extension_not_enabled": "SteamCMD extension is not enabled. Enable it in Settings → Extensions first.",
+    "unknown_branch": "This branch cannot be chosen: {{branch}}",
     "detect": {
       "out_of_memory": "Server ran out of memory (OutOfMemoryError)",
       "port_in_use": "Port {{port}} is already in use by another application",
@@ -284,6 +286,11 @@
     },
     "command_send_failed": "Failed to send command: {{error}}"
   },
+  "versions": {
+    "public": "Stable (default)",
+    "unstable": "Unstable (unstable)",
+    "legacy41": "Legacy Build 41 (legacy41)"
+  },
   "messages": {
     "server_starting_no_response": "Process is running but server is not yet responding to RCON queries",
     "properties_updated": "Server configuration updated",
@@ -306,6 +313,9 @@
   },
   "reset": {
     "label": "Reset world",
-    "description": "Deletes only the world save and keeps the server settings."
+    "description": "Deletes only the world save and keeps the server settings.",
+    "items": {
+      "world": "World save"
+    }
   }
 }

@@ -339,6 +339,9 @@
   },
   "reset": {
     "label": "Welt zurücksetzen",
-    "description": "Löscht die Weltdatei dieses Servers sowie die Sicherungen .wld.bak und .wld.bak<Zahl>. serverconfig.txt, die Bannliste, andere Welten und Serverdateien bleiben erhalten. Beim nächsten Start wird eine neue Welt erstellt."
+    "description": "Löscht die Weltdatei dieses Servers sowie die Sicherungen .wld.bak und .wld.bak<Zahl>. serverconfig.txt, die Bannliste, andere Welten und Serverdateien bleiben erhalten. Beim nächsten Start wird eine neue Welt erstellt.",
+    "items": {
+      "world": "Weltdatei und vom Spiel erstellte Sicherungen (.bak)"
+    }
   }
 }

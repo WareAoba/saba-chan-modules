@@ -13,13 +13,16 @@
       "difficulty": ["난이도", "어려움"],
       "gamemode": ["겜모드", "게임모드"],
       "time": ["시간"],
+      "gamerule": ["게임규칙", "규칙"],
       "tp": ["텔레포트", "이동"],
       "kick": ["킥", "추방"],
       "ban": ["밴", "차단"],
       "pardon": ["언밴", "해제"],
       "op": ["오피"],
       "deop": ["디옵"],
-      "whitelist": ["화이트리스트", "화리"]
+      "whitelist": ["화이트리스트", "화리"],
+      "whitelist-add": ["화리추가"],
+      "whitelist-remove": ["화리제거"]
     }
   },
   "module": {
@@ -105,6 +108,9 @@
     "text_filtering_version": { "label": "텍스트 필터링 버전", "description": "텍스트 필터링 버전" },
     "use_native_transport": { "label": "네이티브 전송 사용", "description": "Linux 최적화 네트워크 전송 사용" }
   },
+  "settings_note": {
+    "version_hidden": "1.21.9부터 PVP·네더 허용·몬스터 스폰·커맨드 블록은 게임 규칙(gamerule)으로 옮겨졌고, 동물·주민 스폰 설정은 1.21.2에서 없어졌어요."
+  },
   "presets": {
     "friends": { "label": "친구용 소규모", "description": "최대 10명, 보통 난이도" },
     "hardcore": { "label": "하드코어", "description": "목숨 하나, 어려움 난이도" }
@@ -149,6 +155,14 @@
       "description": "하루 중 시간을 변경합니다",
       "inputs": { "value": { "label": "시간" } }
     },
+    "gamerule": {
+      "label": "게임 규칙",
+      "description": "게임 규칙을 바꿉니다. 값을 비우면 지금 값이 서버 콘솔에 나옵니다",
+      "inputs": {
+        "rule": { "label": "규칙", "placeholder": "예: minecraft:advance_time (1.21.11 이전: doDaylightCycle)" },
+        "value": { "label": "값", "placeholder": "true, false 또는 숫자. 비우면 지금 값이 콘솔에 나옴" }
+      }
+    },
     "tp": {
       "label": "텔레포트",
       "description": "플레이어를 이동시킵니다",
@@ -182,7 +196,17 @@
     "whitelist": {
       "label": "화이트리스트",
       "description": "서버 화이트리스트를 관리합니다",
-      "inputs": { "action": { "label": "작업" }, "player": { "label": "플레이어 이름" } }
+      "inputs": { "action": { "label": "작업" } }
+    },
+    "whitelist-add": {
+      "label": "화이트리스트 추가",
+      "description": "플레이어를 화이트리스트에 추가합니다",
+      "inputs": { "player": { "label": "플레이어 이름" } }
+    },
+    "whitelist-remove": {
+      "label": "화이트리스트 제거",
+      "description": "플레이어를 화이트리스트에서 뺍니다",
+      "inputs": { "player": { "label": "플레이어 이름" } }
     },
     "seed": { "label": "시드 확인", "description": "월드 시드를 표시합니다", "done": "월드 시드: {{seed}}" },
     "stop": { "label": "정지", "description": "월드를 저장하고 서버를 정지합니다" }
@@ -203,6 +227,7 @@
     "server_jar_not_found": "서버 jar를 찾을 수 없습니다: {{path}}. 인스턴스 설정의 경로를 확인해주세요.",
     "not_a_server_folder": "이 폴더는 마인크래프트 서버 폴더가 아닌 것 같아서 아무것도 지우지 않았습니다 (server.properties와 eula.txt가 없음): {{path}}",
     "unsafe_world_name": "월드 이름(level-name) \"{{name}}\"을(를) 쓸 수 없어서 아무것도 지우지 않았습니다. 이 이름은 서버 폴더 안의 월드 폴더를 가리키지 않거나, 초기화 때 남기는 항목과 같습니다. server.properties의 level-name을 고친 뒤 다시 시도해 주세요.",
+    "unknown_reset_scope": "초기화 범위 \"{{scope}}\"을(를) 알 수 없어서 아무것도 지우지 않았습니다.",
     "properties_write_failed": "server.properties 파일 저장에 실패했습니다",
     "eula_write_failed": "eula.txt 파일 저장에 실패했습니다",
     "working_dir_error": "작업 디렉토리를 생성할 수 없습니다: {{path}}",
@@ -241,7 +266,6 @@
     "java_download_warning": "Java {{version}} 다운로드 실패: {{error}}. Java {{version}} 이상을 직접 설치해 주세요.",
     "status_check_failed": "상태 확인 실패: {{error}}",
     "no_version": "버전이 지정되지 않았습니다",
-    "no_instance_id": "인스턴스 ID가 지정되지 않았습니다",
     "version_info_unreadable": "서버 jar에서 버전 정보를 읽을 수 없습니다",
     "version_not_found": "'{{version}}' 버전을 찾을 수 없습니다",
     "version_no_server": "{{version}} 버전에는 전용 서버 다운로드가 없습니다",
@@ -277,9 +301,25 @@
   },
   "reset": {
     "label": "서버 초기화",
-    "description": "서버가 만든 월드, 설정, 플러그인, 모드(모드 JAR 포함), config, 로그를 지웁니다. 서버 JAR, eula.txt, 함께 받은 Java와 폴더의 다른 파일은 남깁니다. 서버가 인스턴스 폴더에 있으면 로그도 남깁니다."
+    "description": "서버가 만든 월드, 설정, 플러그인, 모드(모드 JAR 포함), config, 로그를 지웁니다. 서버 JAR, eula.txt, 함께 받은 Java와 폴더의 다른 파일은 남깁니다. 서버가 인스턴스 폴더에 있으면 로그도 남깁니다.",
+    "scopes": {
+      "world": "월드만",
+      "all": "전체"
+    },
+    "items": {
+      "world": "월드",
+      "settings": "게임 설정",
+      "lists": "관리자·화이트리스트·밴 목록",
+      "addons": "플러그인·모드와 그 설정 (사바쨩이 다시 받아 주지 않아요)",
+      "logs": "로그·캐시"
+    }
   },
   "agreements": {
     "eula": "마인크래프트 최종 사용자 라이선스 계약(EULA)"
+  },
+  "lists": {
+    "whitelist": "화이트리스트",
+    "ops": "관리자",
+    "banned": "밴"
   }
 }

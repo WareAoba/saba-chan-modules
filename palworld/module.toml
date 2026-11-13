@@ -78,7 +78,6 @@ method = "steamcmd"
 app_id = 2394010
 anonymous = true
 install_subdir = "server"
-platform = "windows"
 requires_extensions = ["steamcmd", "ue4-ini"]
 
 [status]

@@ -599,7 +599,7 @@
           "label": "Anzahl Zombies"
         },
         "player": {
-          "label": "Spieler (optional)",
+          "label": "Spieler",
           "placeholder": "Zielspieler"
         }
       }
@@ -707,6 +707,7 @@
     "data_home_unavailable": "Der Server-Datenordner konnte nicht erstellt oder geöffnet werden. Prüfe den Speicherort und die Berechtigungen.",
     "settings_write_failed": "Die Serverdateien wurden installiert, aber die gewählten Einstellungen konnten nicht gespeichert werden: {{error}}",
     "player_not_found": "Spieler nicht gefunden. Bitte prüfe den Benutzernamen.",
+    "quote_not_allowed": "Namen und Gründe dürfen keine doppelten Anführungszeichen (\") enthalten.",
     "connection_refused": "Keine Verbindung zum Server. Bitte prüfe, ob der Server läuft und der Port stimmt.",
     "timeout": "Zeitüberschreitung bei der Serverantwort. Bitte prüfe den Serverstatus.",
     "admin_password_required": "Der erste Start braucht ein Admin-Passwort. Ohne es hält der Server an und wartet in der Konsole darauf.",
@@ -719,6 +720,7 @@
     "server_reset_partial": "Einige Elemente konnten nicht gelöscht werden: {{errors}}",
     "invalid_server_name": "Dieser Servername kann nicht verwendet werden: {{name}}. Verwende einen Namen ohne Ordnertrennzeichen (/ \\), ':' oder '..', der nicht mit Leerzeichen oder Punkt endet",
     "extension_not_enabled": "Die SteamCMD-Erweiterung ist nicht aktiviert. Aktivieren Sie sie zuerst unter Einstellungen → Erweiterungen.",
+    "unknown_branch": "Dieser Branch kann nicht gewählt werden: {{branch}}",
     "detect": {
       "out_of_memory": "Dem Server ist der Speicher ausgegangen (OutOfMemoryError)",
       "port_in_use": "Port {{port}} wird bereits von einer anderen Anwendung verwendet",
@@ -746,6 +748,11 @@
     "command_send_failed": "Befehl konnte nicht gesendet werden: {{error}}",
     "backup_paths_failed": "Der Speicherordner konnte für die Sicherung nicht gelesen werden: {{error}}"
   },
+  "versions": {
+    "public": "Stabil (Standard)",
+    "unstable": "Instabil (unstable)",
+    "legacy41": "Alter Build 41 (legacy41)"
+  },
   "messages": {
     "server_reset_complete": "Server-Weltdaten zurückgesetzt",
     "server_starting_no_response": "Der Prozess läuft, aber der Server antwortet noch nicht auf RCON-Abfragen",
@@ -768,6 +775,9 @@
   },
   "reset": {
     "label": "Welt zurücksetzen",
-    "description": "Löscht nur den Weltspielstand und behält die Servereinstellungen."
+    "description": "Löscht nur den Weltspielstand und behält die Servereinstellungen.",
+    "items": {
+      "world": "Weltspielstand"
+    }
   }
 }

@@ -409,6 +409,21 @@ def test_reset_deletes_only_this_world(lc, tmp_path):
         assert kept.exists(), kept
 
 
+def test_reset_preview_lists_the_world_and_its_backups_without_deleting(lc, tmp_path):
+    server = _populated_server(tmp_path, lc)
+    worlds = server / "Worlds"
+    (worlds / "Island.wld.bak2").write_bytes(b"backup")
+    seen = lc.reset_preview(_config(server))
+    assert seen["success"], seen
+    [scope] = seen["scopes"]
+    [item] = scope["items"]
+    assert set(item["paths"]) == {str(worlds / "Island.wld"), str(worlds / "Island.wld.bak"), str(worlds / "Island.wld.bak2")}
+    assert item["label"] and scope["note"]
+    assert (worlds / "Island.wld").exists() and (worlds / "Island.wld.bak2").exists()
+    assert lc.reset_server(_config(server))["success"]
+    assert [p for p in item["paths"] if os.path.exists(p)] == []
+
+
 @pytest.mark.parametrize("name", ["..", ".", "a/b", "C:", "x."])
 def test_reset_refuses_bad_names(lc, tmp_path, name):
     server = _populated_server(tmp_path, lc)

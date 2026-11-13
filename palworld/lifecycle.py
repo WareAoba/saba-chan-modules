@@ -727,6 +727,15 @@ def reset_server(config):
     return reset_properties(config)
 
 
+def reset_preview(config):
+    """초기화 확인 창에 보일 것 (데몬 `GET /server/reset`): 설정 파일 하나를 기본값으로 되돌리고 월드는 남는다"""
+    ini_path = _get_settings_ini_path(config)
+    if not ini_path:
+        return {"success": False, "message": i18n.t("reset.no_path")}
+    item = {"label": i18n.t("reset.items.settings"), "paths": [ini_path]}
+    return {"success": True, "scopes": [{"id": "settings", "items": [item], "note": i18n.t("reset.description")}]}
+
+
 def _entries(path):
     """폴더 항목. 없는 폴더는 빈 목록, 읽지 못하는 폴더는 OSError (빈 세이브로 보고 성공하면 백업이 비어도 모른다)"""
     try:
@@ -1053,6 +1062,7 @@ FUNCTIONS = {
     "config_files": config_files,
     "reset_properties": reset_properties,
     "reset_server": reset_server,
+    "reset_preview": reset_preview,
     "diagnose_log": diagnose_log,
     "list_versions": list_versions,
     "get_version_details": get_version_details,

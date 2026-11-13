@@ -12,7 +12,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 데몬이 호출하는 lifecycle 함수 전체 (src/supervisor/mod.rs, src/ipc/handlers/*)
 DAEMON_FUNCTIONS = {
     "get_launch_command", "stop", "status", "command", "validate", "configure",
-    "read_properties", "reset_properties", "reset_server", "import_settings",
+    "read_properties", "reset_properties", "reset_server", "reset_preview", "read_lists", "import_settings",
     "accept_agreements", "diagnose_log", "list_versions",
     "get_version_details", "install_server", "get_installed_version", "instance_commands",
 }
@@ -389,6 +389,21 @@ def test_every_daemon_function_is_registered():
     assert DAEMON_FUNCTIONS <= set(FUNCTIONS), sorted(DAEMON_FUNCTIONS - set(FUNCTIONS))
 
 
+def test_a_console_line_without_a_command_path_says_so():
+    """켜진 서버에 콘솔도 RCON도 없으면(데몬 재시작 뒤 다시 붙은 서버) 데몬은 정의에 없는 콘솔 한 줄을
+    lifecycle `command`로 넘긴다 (saba-chan src/ipc/handlers/command.rs Plan::Raw). 그때 "Unknown function"이 아니라
+    화면·디스코드가 아는 코드(no_command_path)로 실패한다"""
+    import daemon_rcon
+    from minecraft import lifecycle
+    refused = ConnectionError("Daemon host request failed (no_command_path): no console or RCON")
+    refused.error_code = "no_command_path"
+    with mock.patch.object(daemon_rcon, "daemon_stdin_command", side_effect=refused) as stdin:
+        result = lifecycle.FUNCTIONS["command"]({"command": "foo bar", "args": {}, "instance_id": "x"})
+    stdin.assert_called_once_with("x", "foo bar", timeout=5)
+    assert (result["success"], result["error_code"]) == (False, "no_command_path")
+    assert "no_command_path" in result["message"]
+
+
 def test_cli_unknown_function_returns_json_with_zero_exit():
     import daemon_rcon
     import i18n
@@ -478,6 +493,27 @@ def test_status_does_not_signal_process():
         result = lifecycle.status({"pid": 1234, "port": 25565})
     assert result["status"] == "starting"
     alive.assert_called_once_with(1234)
+
+
+def test_status_pings_the_address_the_server_listens_on(tmp_path):
+    """관리형 시작을 끈 서버: server-ip로 묶은 주소로 핑해야 '시작 중'에 머물지 않는다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("server-ip=192.168.0.10\n", encoding="utf-8")
+    ping = {"players": {"online": 1, "max": 20}, "version": {"name": "1.21"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping) as p:
+        result = lifecycle.status({"pid": 1234, "port": 25565, "working_dir": str(tmp_path)})
+    assert result["status"] == "running"
+    p.assert_called_once_with("192.168.0.10", 25565, timeout=3)
+
+
+def test_status_without_server_list_ping_follows_the_process(tmp_path):
+    """enable-status=false면 핑에 답하지 않는다: 프로세스가 살아 있으면 실행 중이다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("enable-status=false\n", encoding="utf-8")
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", side_effect=AssertionError("pinged")), \
+         mock.patch.object(lifecycle, "is_process_alive", return_value=True):
+        result = lifecycle.status({"pid": 1234, "port": 25565, "working_dir": str(tmp_path)})
+    assert (result["success"], result["status"]) == (True, "running")
 
 
 def test_ping_closes_socket_on_error():
@@ -761,6 +797,19 @@ def test_player_count_names_the_players_from_the_console_list():
         result = lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})
     send.assert_called_once_with("i1", "list", timeout=5)
     assert result == {"success": True, "online": 2, "max": 20, "players": [{"name": "Steve"}, {"name": "Alex_99"}]}
+
+    # Floodgate 베드락 이름(`.` 접두사)이 섞여 있어도 이름을 답한다
+    bedrock = {"success": True, "data": {"response": "There are 2 of a max of 20 players online: Steve, .BedrockSteve"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping), \
+         mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=bedrock):
+        assert lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})["players"] == \
+            [{"name": "Steve"}, {"name": ".BedrockSteve"}]
+
+    # 대상 선택자처럼 보이는 이름(`@a`)은 이름으로 답하지 않는다: 데몬 자동 강퇴의 `kick {player}` 인자가 된다
+    selector = {"success": True, "data": {"response": "There are 2 of a max of 20 players online: Steve, @a"}}
+    with mock.patch.object(lifecycle.MinecraftPing, "ping", return_value=ping), \
+         mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=selector):
+        assert "players" not in lifecycle.player_count({"port": 25565, "instance_id": "i1", "players_detail": True})
 
     # 아무도 없으면 이름 칸이 빈다
     empty = {"success": True, "data": {"response": "There are 0 of a max of 20 players online: "}}
@@ -1121,6 +1170,79 @@ def test_reset_server_only_deletes_what_the_server_made(tmp_path):
         assert not (tmp_path / rel).exists(), rel
 
 
+def test_read_lists_reads_the_whitelist_ops_and_bans_the_server_keeps(tmp_path):
+    """플레이어 목록(`[[lists]]`): 서버가 서버 폴더에 두는 whitelist.json·ops.json·banned-players.json을 그대로 읽는다.
+    밴은 넣은 때와 이유를 같이 주고, 이유를 주지 않은 밴의 기본 문구는 이유로 보이지 않는다. 파일을 고치지 않는다"""
+    from minecraft import lifecycle
+    files = {
+        "whitelist.json": [{"uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5", "name": "Notch"},
+                           {"uuid": "61699b2e-d327-4a01-9f1e-0ea8c3f06bc6", "name": "Dinnerbone"}],
+        "ops.json": [{"uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5", "name": "Notch", "level": 4,
+                      "bypassesPlayerLimit": False}],
+        "banned-players.json": [
+            {"uuid": "853c80ef-3c37-49fd-aa49-938b674adae6", "name": "jeb_", "created": "2026-11-09 21:03:11 +0900",
+             "source": "Server", "expires": "forever", "reason": "spam"},
+            {"uuid": "f8cdb683-9e90-43ee-a819-39f85d9c5d69", "name": "mollstam", "created": "not a date",
+             "source": "Server", "expires": "forever", "reason": "Banned by an operator."},
+        ],
+    }
+    for name, entries in files.items():
+        (tmp_path / name).write_text(json.dumps(entries), encoding="utf-8")
+    before = {name: (tmp_path / name).read_bytes() for name in files}
+    seen = lifecycle.read_lists({"working_dir": str(tmp_path)})
+    assert seen == {"success": True, "lists": {
+        "whitelist": [{"name": "Notch"}, {"name": "Dinnerbone"}],
+        "ops": [{"name": "Notch"}],
+        "banned": [{"name": "jeb_", "added": "2026-11-09T21:03:11+09:00", "note": "spam"}, {"name": "mollstam"}],
+    }}
+    assert before == {name: (tmp_path / name).read_bytes() for name in files}
+
+
+def test_read_lists_treats_missing_or_broken_files_as_empty(tmp_path):
+    """한 번도 켜지 않은 서버에는 목록 파일이 없다. 읽을 수 없는 파일도 빈 목록이다"""
+    from minecraft import lifecycle
+    (tmp_path / "ops.json").write_text("{not json", encoding="utf-8")
+    (tmp_path / "whitelist.json").write_text('[{"uuid": "x"}, "junk", {"name": "Notch"}]', encoding="utf-8")
+    seen = lifecycle.read_lists({"working_dir": str(tmp_path)})
+    assert seen == {"success": True, "lists": {"whitelist": [{"name": "Notch"}], "ops": [], "banned": []}}
+
+
+def test_reset_preview_lists_each_scope_and_a_world_only_reset_keeps_the_rest(tmp_path):
+    """미리 보기는 범위(월드만·전체)마다 지울 항목을 밝히고 아무것도 지우지 않는다.
+    '월드만'으로 초기화하면 설정·플러그인·모드가 남는다"""
+    from minecraft import lifecycle
+    files = ["world/level.dat", "world_nether/DIM-1/r.mca", "server.properties", "ops.json", "plugins/x.jar",
+             "mods/y.jar", "logs/latest.log", "server.jar", "eula.txt"]
+    for rel in files:
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x")
+    seen = lifecycle.reset_preview({"working_dir": str(tmp_path)})
+    assert seen["success"], seen
+    assert [s["id"] for s in seen["scopes"]] == ["world", "all"]
+    world, everything = seen["scopes"]
+    assert [i["paths"] for i in world["items"]] == [["world", "world_nether", "world_the_end"]]
+    listed = [p for i in everything["items"] for p in i["paths"]]
+    assert len(listed) == len(set(listed))
+    assert {"world", "server.properties", "ops.json", "plugins", "mods", "logs"} <= set(listed)
+    assert not {"server.jar", "eula.txt"} & set(listed)
+    assert all(s["label"] and all(i["label"] for i in s["items"]) for s in seen["scopes"])
+    for rel in files:
+        assert (tmp_path / rel).exists(), rel
+
+    assert lifecycle.reset_server({"working_dir": str(tmp_path), "scope": "nope"})["success"] is False
+    assert (tmp_path / "world/level.dat").exists()
+    assert lifecycle.reset_server({"working_dir": str(tmp_path), "scope": "world"})["success"]
+    assert not (tmp_path / "world").exists() and not (tmp_path / "world_nether").exists()
+    for rel in files[2:]:
+        assert (tmp_path / rel).exists(), rel
+
+    # 범위 없이 부르면 전체: 미리 보기의 '전체'에 적힌 것이 모두 지워진다
+    assert lifecycle.reset_server({"working_dir": str(tmp_path)})["success"]
+    assert [p for p in listed if (tmp_path / p).exists()] == []
+    assert (tmp_path / "server.jar").exists() and (tmp_path / "eula.txt").exists()
+
+
 def test_reset_server_keeps_daemon_files_when_the_server_lives_in_the_instance_folder(tmp_path):
     """인스턴스 폴더에 서버를 둔 경우 데몬의 백업·인스턴스 기록·로그를 지우지 않는다"""
     from minecraft import lifecycle
@@ -1333,7 +1455,7 @@ def test_command_risks_follow_user_rule():
     risks = {n: c.get("risk") for n, c in fields.items()}
     expected = {"safe": ("say", "list", "seed", "save-all", "save-flush", "save-on", "weather", "time"),
                 "caution": ("save-off", "difficulty", "give", "tp"),
-                "danger": ("kick", "gamemode", "ban", "pardon", "op", "deop", "whitelist", "stop")}
+                "danger": ("kick", "gamemode", "ban", "pardon", "op", "deop", "whitelist", "whitelist-add", "whitelist-remove", "stop")}
     for risk, names in expected.items():
         for name in names:
             assert risks[name] == risk, name
@@ -1707,6 +1829,30 @@ def test_server_properties_values_use_java_escapes():
     with tempfile.TemporaryDirectory() as tmpdir:
         ServerPropertiesManager(tmpdir).write(ServerPropertiesManager(tmpdir).get_defaults())
         assert "level-type=minecraft\\:normal\n" in open(os.path.join(tmpdir, "server.properties"), encoding="utf-8").read()
+
+
+def test_non_ascii_values_are_written_as_unicode_escapes():
+    """1.20 전 서버는 server.properties를 ISO 8859-1로 읽는다(1.20 Pre-release 1 변경 기록: UTF-8로 먼저 읽고
+    ISO 8859-1로 다시 읽는다). `\\uXXXX`로 쓰면 두 쪽 모두 같은 글자로 읽는다. 이모지는 서러게이트 쌍으로 쓴다"""
+    from minecraft.lifecycle import ServerPropertiesManager, configure, import_settings
+    motd = "한글 서버 \U0001F600"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = os.path.join(tmpdir, "server.properties")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("motd=old\n")
+        assert configure({"working_dir": tmpdir, "settings": {"motd": motd}})["success"]
+        raw = open(path, "rb").read()
+        # 줄 끝은 OS 기본(Windows는 CRLF)이다
+        assert b"motd=\\uD55C\\uAE00 \\uC11C\\uBC84 \\uD83D\\uDE00" in raw.splitlines()
+        assert raw.decode("iso-8859-1") == raw.decode("utf-8")
+        assert import_settings({"working_dir": tmpdir})["settings"]["motd"] == motd
+        # 읽은 값을 그대로 다시 저장할 수 있다
+        assert configure({"working_dir": tmpdir, "settings": {"motd": ServerPropertiesManager(tmpdir).read()["motd"]}})["success"]
+        assert ServerPropertiesManager(tmpdir).read()["motd"] == motd
+    with tempfile.TemporaryDirectory() as tmpdir:
+        ServerPropertiesManager(tmpdir).write({"motd": motd})
+        assert open(os.path.join(tmpdir, "server.properties"), "rb").read().isascii()
+        assert ServerPropertiesManager(tmpdir).read()["motd"] == motd
 
 
 def test_an_escaped_line_break_survives_import_and_save():
@@ -2129,3 +2275,14 @@ def test_buildtools_gets_the_java_closest_to_25_it_accepts(tmp_path):
                                                                    "jdk": True}, run)
         assert result["success"], result
         assert {c.args[0] for c in jre.call_args_list} == {want}, (java_max, jre.call_args_list)
+
+
+def test_reset_properties_keeps_this_servers_port(tmp_path):
+    """설정 초기화 뒤에도 이 서버의 포트(config port)는 그대로다. 기본값 25565로 쓰면 데몬이 파일을 다시 읽어
+    인스턴스 포트까지 25565로 맞추고, 포트를 옮겨 둔 둘째 서버가 첫 서버와 겹친다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("server-port=25570\nmotd=mine\n", encoding="utf-8")
+    assert lifecycle.reset_properties({"working_dir": str(tmp_path), "port": 25570})["success"]
+    props = lifecycle.ServerPropertiesManager(str(tmp_path)).read()
+    assert props["server-port"] == "25570"
+    assert props["motd"] == lifecycle.DEFAULT_PROPERTIES["motd"]

@@ -599,7 +599,7 @@
           "label": "Quantidade de zumbis"
         },
         "player": {
-          "label": "Jogador (opcional)",
+          "label": "Jogador",
           "placeholder": "Jogador alvo"
         }
       }
@@ -707,6 +707,7 @@
     "data_home_unavailable": "Não foi possível criar ou abrir a pasta de dados do servidor. Verifique o local e as permissões da pasta.",
     "settings_write_failed": "Os arquivos do servidor foram instalados, mas não foi possível salvar as configurações escolhidas: {{error}}",
     "player_not_found": "Jogador não encontrado. Verifique o nome de usuário.",
+    "quote_not_allowed": "Nomes e motivos não podem conter aspas duplas (\").",
     "connection_refused": "Não foi possível conectar ao servidor. Verifique se o servidor está em execução e se a porta está correta.",
     "timeout": "O servidor demorou demais para responder. Verifique o status do servidor.",
     "admin_password_required": "A primeira inicialização precisa de uma senha de administrador. Sem ela, o servidor para esperando a senha no console.",
@@ -719,6 +720,7 @@
     "server_reset_partial": "Alguns itens não puderam ser excluídos: {{errors}}",
     "invalid_server_name": "Este nome de servidor não pode ser usado: {{name}}. Use um nome sem separadores de pasta (/ \\), ':' ou '..', que não termine com espaço ou ponto",
     "extension_not_enabled": "A extensão do SteamCMD não está ativada. Ative-a primeiro em Configurações → Extensões.",
+    "unknown_branch": "Não é possível escolher este branch: {{branch}}",
     "detect": {
       "out_of_memory": "O servidor ficou sem memória (OutOfMemoryError)",
       "port_in_use": "A porta {{port}} já está em uso por outro aplicativo",
@@ -746,6 +748,11 @@
     "command_send_failed": "Falha ao enviar o comando: {{error}}",
     "backup_paths_failed": "Não foi possível ler a pasta de salvamento para o backup: {{error}}"
   },
+  "versions": {
+    "public": "Estável (padrão)",
+    "unstable": "Instável (unstable)",
+    "legacy41": "Build 41 antiga (legacy41)"
+  },
   "messages": {
     "server_reset_complete": "Dados do mundo do servidor redefinidos",
     "server_starting_no_response": "O processo está em execução, mas o servidor ainda não responde às consultas RCON",
@@ -768,6 +775,9 @@
   },
   "reset": {
     "label": "Redefinir mundo",
-    "description": "Apaga só o save do mundo e mantém as configurações do servidor."
+    "description": "Apaga só o save do mundo e mantém as configurações do servidor.",
+    "items": {
+      "world": "Save do mundo"
+    }
   }
 }

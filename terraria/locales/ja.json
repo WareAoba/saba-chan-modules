@@ -299,7 +299,7 @@
     },
     "exit-nosave": {
       "label": "保存せず停止",
-      "description": "ワールドを保存せずにサーバーを終了"
+      "description": "ワールドを保存せずにサーバーを停止"
     },
     "seed": {
       "label": "シード表示",
@@ -307,39 +307,39 @@
     }
   },
   "errors": {
-    "chat_failed": "ゲームチャットに送れませんでした: {{error}}",
-    "archive_corrupt": "サーバーアーカイブが壊れています({{file}})",
-    "backup_paths_failed": "バックアップするファイルを決められませんでした: {{error}}",
-    "executable_not_found": "テラリアのサーバー実行ファイルがありません。先にサーバーをインストールしてください",
+    "chat_failed": "ゲームチャット送信失敗: {{error}}",
+    "archive_corrupt": "サーバーのアーカイブが破損しています({{file}})",
+    "backup_paths_failed": "バックアップ対象ファイルの決定失敗: {{error}}",
+    "executable_not_found": "テラリアのサーバー実行ファイルなし。先にサーバーをインストールしてください。",
     "invalid_banlist": "BANリスト名「{{name}}」は単純なファイル名ではありません",
-    "invalid_world_name": "ワールド名「{{name}}」に / \\ : * ? \" < > | は使えず、空白や点で終われません",
+    "invalid_world_name": "ワールド名「{{name}}」には / \\ : * ? \" < > | を使えず、スペースやピリオドで終わることもできません。",
     "line_break": "{{setting}} の値に改行は使えません",
-    "no_version": "サーバーバージョンを選んでください(例: 1.4.5.8)",
-    "not_server_folder": "このフォルダーにテラリアのサーバーがないため、何も削除しませんでした",
-    "properties_read_failed": "serverconfig.txt を読めませんでした: {{error}}",
-    "properties_write_failed": "serverconfig.txt を保存できませんでした: {{error}}",
-    "server_not_in_archive": "ダウンロードしたファイルにこのシステム用の {{file}} がありません",
-    "server_reset_partial": "一部のワールドファイルを削除できませんでした: {{errors}}",
-    "settings_write_failed": "サーバーはインストールしましたが、設定を書き込めませんでした: {{error}}",
-    "version_list_failed": "terraria.org からサーバーバージョン一覧を取得できませんでした: {{error}}",
-    "xna_framework_missing": "サーバーフォルダーに XNA Framework 4.0 のファイルがありません。サーバーを再インストールすると配置されます。",
-    "xna_install_failed": "サーバーフォルダーに XNA Framework 4.0 を配置できませんでした: {{error}}",
+    "no_version": "サーバーバージョンを選択してください(例: 1.4.5.8)。",
+    "not_server_folder": "このフォルダーにテラリアのサーバーがないため、何も削除していません",
+    "properties_read_failed": "serverconfig.txt の読み込み失敗: {{error}}",
+    "properties_write_failed": "serverconfig.txt の保存失敗: {{error}}",
+    "server_not_in_archive": "ダウンロードしたファイルにこのシステム用の {{file}} なし",
+    "server_reset_partial": "ワールドファイルの一部を削除できませんでした: {{errors}}",
+    "settings_write_failed": "サーバーはインストール済みですが、設定の書き込み失敗: {{error}}",
+    "version_list_failed": "terraria.org からのサーバーバージョン一覧の取得失敗: {{error}}",
+    "xna_framework_missing": "サーバーフォルダーに XNA Framework 4.0 のファイルなし。サーバーを再インストールすると配置されます。",
+    "xna_install_failed": "サーバーフォルダーへの XNA Framework 4.0 の配置失敗: {{error}}",
     "xna_extension_missing": "Windows でテラリアサーバーを実行するには XNA エクステンションが必要です。「XNA Framework 4.0 (portable)」エクステンションをインストールして有効にしてください。",
-    "version_unknown": "インストールされたサーバーのバージョンが見つかりません。",
-    "players_unavailable": "サーバーコンソールからプレイヤー一覧を読み取れませんでした"
+    "version_unknown": "インストール済みサーバーのバージョン確認失敗",
+    "players_unavailable": "サーバーコンソールからの接続者一覧の読み込み失敗"
   },
   "messages": {
     "downloading": "テラリアサーバーをダウンロード中",
     "extracting": "サーバーファイルを展開中",
-    "install_complete": "テラリアサーバーをインストールしました",
-    "no_mappable_settings": "serverconfig.txt に書き込む値がありません",
-    "properties_updated": "serverconfig.txt に保存しました。サーバーを再起動すると反映されます",
-    "server_reset_complete": "ワールドを削除しました。次回起動時に新しいワールドを作ります",
-    "installing_xna": "サーバーフォルダーに XNA Framework 4.0 を配置しています..."
+    "install_complete": "テラリアサーバーのインストール完了",
+    "no_mappable_settings": "serverconfig.txt に書き込む値なし",
+    "properties_updated": "serverconfig.txt に保存しました。サーバーを再起動すると反映されます。",
+    "server_reset_complete": "ワールドを削除しました。次回の起動時に新しいワールドを作成します。",
+    "installing_xna": "サーバーフォルダーに XNA Framework 4.0 を配置中..."
   },
   "reset": {
     "label": "ワールドの初期化",
-    "description": "このサーバーのワールドファイルと .wld.bak および .wld.bak<数字> のバックアップを削除します。serverconfig.txt、BANリスト、他のワールド、サーバーファイルは残ります。次回起動時に新しいワールドを作成します。",
+    "description": "このサーバーのワールドファイルと、.wld.bak および .wld.bak<数字> バックアップを削除します。serverconfig.txt、BANリスト、他のワールド、サーバーファイルは残ります。次回の起動時に新しいワールドを作成します。",
     "items": {
       "world": "ワールドファイルとゲームが作成したバックアップ(.bak)"
     }

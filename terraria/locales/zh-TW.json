@@ -299,7 +299,7 @@
     },
     "exit-nosave": {
       "label": "不儲存停止",
-      "description": "不儲存世界直接關閉伺服器"
+      "description": "不儲存世界並停止伺服器"
     },
     "seed": {
       "label": "顯示種子",
@@ -307,34 +307,34 @@
     }
   },
   "errors": {
-    "chat_failed": "無法傳送到遊戲聊天：{{error}}",
-    "archive_corrupt": "伺服器壓縮檔已損壞（{{file}}）",
-    "backup_paths_failed": "無法確定要備份的檔案：{{error}}",
-    "executable_not_found": "找不到泰拉瑞亞伺服器程式，請先安裝伺服器",
+    "chat_failed": "傳送至遊戲聊天失敗：{{error}}",
+    "archive_corrupt": "伺服器壓縮檔損壞（{{file}}）",
+    "backup_paths_failed": "備份檔案判定失敗：{{error}}",
+    "executable_not_found": "找不到泰拉瑞亞伺服器執行檔。請先安裝伺服器。",
     "invalid_banlist": "封鎖清單名「{{name}}」不是單純的檔名",
-    "invalid_world_name": "世界名稱「{{name}}」不能包含 / \\ : * ? \" < > |，也不能以空格或點結尾",
-    "line_break": "{{setting}} 的值不能包含換行",
-    "no_version": "請選擇伺服器版本（例如 1.4.5.8）",
+    "invalid_world_name": "世界名稱「{{name}}」不能包含 / \\ : * ? \" < > |，也不能以空格或點結尾。",
+    "line_break": "{{setting}} 的值不可含換行",
+    "no_version": "選擇伺服器版本（例如 1.4.5.8）。",
     "not_server_folder": "此資料夾中沒有泰拉瑞亞伺服器，未刪除任何內容",
-    "properties_read_failed": "無法讀取 serverconfig.txt：{{error}}",
-    "properties_write_failed": "無法儲存 serverconfig.txt：{{error}}",
-    "server_not_in_archive": "下載的檔案中沒有適用於本系統的 {{file}}",
-    "server_reset_partial": "部分世界檔案無法刪除：{{errors}}",
-    "settings_write_failed": "伺服器已安裝，但無法寫入設定：{{error}}",
-    "version_list_failed": "無法從 terraria.org 取得伺服器版本：{{error}}",
+    "properties_read_failed": "讀取 serverconfig.txt 失敗：{{error}}",
+    "properties_write_failed": "儲存 serverconfig.txt 失敗：{{error}}",
+    "server_not_in_archive": "下載的檔案缺少適用於本系統的 {{file}}",
+    "server_reset_partial": "部分世界檔案刪除失敗：{{errors}}",
+    "settings_write_failed": "伺服器已安裝，但設定寫入失敗：{{error}}",
+    "version_list_failed": "取得 terraria.org 伺服器版本清單失敗：{{error}}",
     "xna_framework_missing": "伺服器資料夾中缺少 XNA Framework 4.0 檔案。重新安裝伺服器即可加入。",
-    "xna_install_failed": "無法將 XNA Framework 4.0 放入伺服器資料夾：{{error}}",
+    "xna_install_failed": "將 XNA Framework 4.0 放入伺服器資料夾失敗：{{error}}",
     "xna_extension_missing": "在 Windows 上執行 Terraria 伺服器需要 XNA 擴充功能。請安裝並啟用「XNA Framework 4.0 (portable)」擴充功能。",
-    "version_unknown": "找不到已安裝的伺服器版本。",
-    "players_unavailable": "無法從伺服器主控台讀取玩家清單"
+    "version_unknown": "確認已安裝的伺服器版本失敗",
+    "players_unavailable": "從伺服器主控台讀取玩家清單失敗"
   },
   "messages": {
-    "downloading": "正在下載泰拉瑞亞伺服器",
-    "extracting": "正在解壓縮伺服器檔案",
-    "install_complete": "泰拉瑞亞伺服器已安裝",
+    "downloading": "下載泰拉瑞亞伺服器中",
+    "extracting": "解壓縮伺服器檔案中",
+    "install_complete": "泰拉瑞亞伺服器安裝完成",
     "no_mappable_settings": "沒有要寫入 serverconfig.txt 的內容",
-    "properties_updated": "已儲存至 serverconfig.txt，重新啟動伺服器後生效",
-    "server_reset_complete": "世界已刪除，下次啟動時會建立新世界",
+    "properties_updated": "已儲存至 serverconfig.txt。重新啟動伺服器後生效。",
+    "server_reset_complete": "世界已刪除。下次啟動時會建立新世界。",
     "installing_xna": "正在將 XNA Framework 4.0 放入伺服器資料夾..."
   },
   "reset": {

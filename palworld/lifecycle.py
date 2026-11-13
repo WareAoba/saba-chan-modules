@@ -767,7 +767,8 @@ def _snapshot_time(stamp, path):
 
 def backup_snapshots(config):
     """게임이 스스로 만든 월드 자동 백업 (데몬 `[backup] snapshots`): `SaveGames/<번호>/<월드>/backup/world/<시각>/`.
-    새것부터. 스냅샷 안의 항목(Level.sav, Players/ …)은 월드 폴더의 같은 이름 자리로 돌아간다"""
+    새것부터. 스냅샷 안의 항목(Level.sav, Players/ …)은 월드 폴더의 같은 이름 자리로 돌아간다.
+    `folder`는 사바쨩에서 지울 때 없앨 그 스냅샷 폴더다"""
     saves = safe_join(config.get("working_dir") or "", "Pal", "Saved", "SaveGames")
     try:
         snapshots = []
@@ -787,6 +788,7 @@ def backup_snapshots(config):
                     snapshots.append({
                         "id": f"{slot}/{world}/{stamp}",
                         "created": _snapshot_time(stamp, snap),
+                        "folder": str(snap),
                         "paths": [{"from": str(safe_join(snap, name)), "to": str(safe_join(world_path, name))}
                                   for name in _entries(snap)],
                     })

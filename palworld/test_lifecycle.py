@@ -288,6 +288,8 @@ def test_backup_snapshots_list_the_games_world_backups_newest_first(tmp_path):
         (str(snap / "Level.sav"), str(world / "Level.sav")),
         (str(snap / "Players"), str(world / "Players")),
     ])
+    # 사바쨩에서 지우면 이 스냅샷 폴더 하나만 지운다
+    assert newest["folder"] == str(snap)
     assert backup_snapshots({"working_dir": str(tmp_path / "none")}) == {"success": True, "snapshots": []}
 
 

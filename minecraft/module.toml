@@ -1060,11 +1060,11 @@ name = "gamerule"
 risk = "caution"
 label = "Game Rule"
 description = "Set a game rule, or print its current value to the server console when the value is empty"
-method = "console"
-console_template = "gamerule {rule} {value}"
-# 규칙 이름은 1.21.11(스냅숏 25w44a)부터 snake_case 리소스 위치로 바뀌어 고정 선택지를 두지 않는다 (minecraft.net 25w44a)
+# 규칙 이름은 1.21.11(스냅숏 25w44a)부터 snake_case로 바뀌었다 (minecraft.net 25w44a). lifecycle.command()가
+# 옛·새 이름을 서버 버전에 맞춰 바꿔 보내고 서버 답을 돌려준다 (_GAMERULE_RENAMED)
+method = "module"
 inputs = [
-    { name = "rule", type = "text", label = "Rule", required = true, placeholder = "e.g. minecraft:advance_time (before 1.21.11: doDaylightCycle)" },
+    { name = "rule", type = "text", label = "Rule", required = true, placeholder = "e.g. keep_inventory or keepInventory (matched to the server version)" },
     { name = "value", type = "text", label = "Value", required = false, placeholder = "true, false or a number. Empty prints the current value to the console" }
 ]
 

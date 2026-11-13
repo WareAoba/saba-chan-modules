@@ -1732,18 +1732,113 @@ def get_installed_version(config):
 
 
 def command(config):
-    """정의에 없는 콘솔 한 줄. module.toml 명령은 전부 console이라 데몬이 직접 보내고, 켜진 서버에 콘솔도 RCON도
-    없을 때만 그 한 줄을 이 함수로 넘긴다 (saba-chan src/ipc/handlers/command.rs Plan::Raw). 데몬에 그대로 맡기고,
-    보낼 길이 없다는 코드(no_command_path)를 답에 실어 화면·디스코드가 자기 문구로 안내하게 한다"""
+    """module 명령(`gamerule`)과 정의에 없는 콘솔 한 줄. 다른 module.toml 명령은 console이라 데몬이 직접 보내고,
+    켜진 서버에 콘솔도 RCON도 없을 때만 그 한 줄을 이 함수로 넘긴다 (saba-chan src/ipc/handlers/command.rs Plan::Raw).
+    데몬에 그대로 맡기고, 보낼 길이 없다는 코드(no_command_path)를 답에 실어 화면·디스코드가 자기 문구로 안내하게 한다.
+    `gamerule`은 서버 답을 message로 돌려준다 (데몬이 [commands] failure_patterns로 거절을 가린다)"""
     from daemon_rcon import daemon_stdin_command
     line = config.get("command", "")
+    is_gamerule = line == "gamerule" and isinstance(config.get("args"), dict)
+    if is_gamerule:
+        line = _gamerule_line(config)
     try:
-        daemon_stdin_command(config.get("instance_id", ""), line, timeout=5)
+        reply = daemon_stdin_command(config.get("instance_id", ""), line, timeout=5)
     except PathOutside:
         raise
     except Exception as e:
         return {"success": False, "message": str(e), "error_code": getattr(e, "error_code", None)}
-    return {"success": True, "message": line}
+    data = reply.get("data") if isinstance(reply, dict) else None
+    answer = str(data.get("response") or "").strip() if is_gamerule and isinstance(data, dict) else ""
+    return {"success": True, "message": answer or line}
+
+
+# 1.21.11(스냅숏 25w44a)에 바뀐 게임 규칙 이름: 옛 이름 → 새 이름 (26.3 `help gamerule` 실측).
+# 값의 뜻이 뒤집힌 규칙(disableRaids → raids, disableElytraMovementCheck → elytra_movement_check,
+# disablePlayerMovementCheck → player_movement_check)과 값의 종류가 바뀐 규칙(allowFireTicksAwayFromPlayer)은
+# 이름만 바꾸면 다르게 걸리므로 넣지 않는다 (서버가 거절하면 화면이 실패로 알린다)
+_GAMERULE_RENAMED = {
+    "allowEnteringNetherUsingPortals": "allow_entering_nether_using_portals",
+    "announceAdvancements": "show_advancement_messages",
+    "blockExplosionDropDecay": "block_explosion_drop_decay",
+    "commandBlockOutput": "command_block_output",
+    "commandBlocksEnabled": "command_blocks_work",
+    "commandModificationBlockLimit": "max_block_modifications",
+    "doDaylightCycle": "advance_time",
+    "doEntityDrops": "entity_drops",
+    "doImmediateRespawn": "immediate_respawn",
+    "doInsomnia": "spawn_phantoms",
+    "doLimitedCrafting": "limited_crafting",
+    "doMobLoot": "mob_drops",
+    "doMobSpawning": "spawn_mobs",
+    "doPatrolSpawning": "spawn_patrols",
+    "doTileDrops": "block_drops",
+    "doTraderSpawning": "spawn_wandering_traders",
+    "doVinesSpread": "spread_vines",
+    "doWardenSpawning": "spawn_wardens",
+    "doWeatherCycle": "advance_weather",
+    "drowningDamage": "drowning_damage",
+    "enderPearlsVanishOnDeath": "ender_pearls_vanish_on_death",
+    "fallDamage": "fall_damage",
+    "fireDamage": "fire_damage",
+    "forgiveDeadPlayers": "forgive_dead_players",
+    "freezeDamage": "freeze_damage",
+    "globalSoundEvents": "global_sound_events",
+    "keepInventory": "keep_inventory",
+    "lavaSourceConversion": "lava_source_conversion",
+    "locatorBar": "locator_bar",
+    "logAdminCommands": "log_admin_commands",
+    "maxCommandChainLength": "max_command_sequence_length",
+    "maxCommandForkCount": "max_command_forks",
+    "maxEntityCramming": "max_entity_cramming",
+    "mobExplosionDropDecay": "mob_explosion_drop_decay",
+    "mobGriefing": "mob_griefing",
+    "naturalRegeneration": "natural_health_regeneration",
+    "playersNetherPortalCreativeDelay": "players_nether_portal_creative_delay",
+    "playersNetherPortalDefaultDelay": "players_nether_portal_default_delay",
+    "playersSleepingPercentage": "players_sleeping_percentage",
+    "projectilesCanBreakBlocks": "projectiles_can_break_blocks",
+    "randomTickSpeed": "random_tick_speed",
+    "reducedDebugInfo": "reduced_debug_info",
+    "sendCommandFeedback": "send_command_feedback",
+    "showDeathMessages": "show_death_messages",
+    "snowAccumulationHeight": "max_snow_accumulation_height",
+    "spawnMonsters": "spawn_monsters",
+    "spawnRadius": "respawn_radius",
+    "spawnerBlocksEnabled": "spawner_blocks_work",
+    "spectatorsGenerateChunks": "spectators_generate_chunks",
+    "tntExplodes": "tnt_explodes",
+    "tntExplosionDropDecay": "tnt_explosion_drop_decay",
+    "universalAnger": "universal_anger",
+    "waterSourceConversion": "water_source_conversion",
+}
+_GAMERULE_OLD_NAME = {new: old for old, new in _GAMERULE_RENAMED.items()}
+
+
+def _new_gamerule_names(version):
+    """이 버전이 새 게임 규칙 이름을 쓰는지. 모르면 None (친 이름을 그대로 보낸다)"""
+    text = str(version or "").strip()
+    snapshot = re.match(r"^(\d{2})w(\d{2})[a-z]$", text)
+    if snapshot:
+        return (int(snapshot.group(1)), int(snapshot.group(2))) >= (25, 44)
+    numbers = [int(n) for n in re.findall(r"\d+", text.split("-")[0])]
+    if not numbers:
+        return None
+    if numbers[0] != 1:
+        return True  # 연도 기반 버전 (26.1 등)
+    return (numbers + [0, 0])[1:3] >= [21, 11]
+
+
+def _gamerule_line(config):
+    """`gamerule <규칙> [값]`: 규칙 이름을 서버 버전(설치 때 기록한 server_version)에 맞춘다. 값이 비면 지금 값을 묻는다"""
+    args = config.get("args") or {}
+    rule = str(args.get("rule") or "").strip()
+    value = str(args.get("value") or "").strip()
+    new = _new_gamerule_names(config.get("server_version"))
+    if new is True:
+        rule = _GAMERULE_RENAMED.get(rule, rule)
+    elif new is False:
+        rule = _GAMERULE_OLD_NAME.get(rule, rule)
+    return " ".join(p for p in ("gamerule", rule, value) if p)
 
 
 # § 서식 코드(§ 뒤 한 글자, 끝에 홀로 남은 § 포함)

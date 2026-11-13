@@ -2286,3 +2286,29 @@ def test_reset_properties_keeps_this_servers_port(tmp_path):
     props = lifecycle.ServerPropertiesManager(str(tmp_path)).read()
     assert props["server-port"] == "25570"
     assert props["motd"] == lifecycle.DEFAULT_PROPERTIES["motd"]
+
+
+def test_gamerule_names_follow_the_server_version():
+    """1.21.11(25w44a)부터 게임 규칙 이름이 snake_case로 바뀌었다 (26.3 `help gamerule` 실측).
+    옛 이름을 새 서버에, 새 이름을 옛 서버에 보내면 서버가 거절하므로 버전에 맞는 이름으로 바꿔 보내고, 서버 답을 돌려준다.
+    뜻이 뒤집힌 규칙(disableRaids → raids)은 바꾸지 않는다"""
+    import daemon_rcon
+    from minecraft import lifecycle
+    reply = {"success": True, "data": {"response": "[02:33:25] [Server thread/INFO]: Gamerule keep_inventory is now set to: true"}}
+
+    def run(rule, version, value="true"):
+        with mock.patch.object(daemon_rcon, "daemon_stdin_command", return_value=reply) as stdin:
+            result = lifecycle.FUNCTIONS["command"]({"command": "gamerule", "args": {"rule": rule, "value": value}, "instance_id": "x", "server_version": version})
+        return stdin.call_args.args[1], result
+
+    line, result = run("keepInventory", "26.3")
+    assert line == "gamerule keep_inventory true"
+    assert result == {"success": True, "message": reply["data"]["response"]}
+    assert run("doDaylightCycle", "1.21.11")[0] == "gamerule advance_time true"
+    assert run("doInsomnia", "25w46a")[0] == "gamerule spawn_phantoms true"
+    assert run("keep_inventory", "1.21.1")[0] == "gamerule keepInventory true"
+    assert run("minecraft:keep_inventory", "26.3")[0] == "gamerule minecraft:keep_inventory true"
+    assert run("disableRaids", "26.3")[0] == "gamerule disableRaids true"
+    # 버전을 모르면 친 그대로, 값이 비면 지금 값을 묻는다
+    assert run("keepInventory", None)[0] == "gamerule keepInventory true"
+    assert run("keepInventory", "26.3", value="")[0] == "gamerule keep_inventory"

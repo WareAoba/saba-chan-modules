@@ -159,7 +159,7 @@
       "label": "게임 규칙",
       "description": "게임 규칙을 바꿉니다. 값을 비우면 지금 값이 서버 콘솔에 나옵니다",
       "inputs": {
-        "rule": { "label": "규칙", "placeholder": "예: minecraft:advance_time (1.21.11 이전: doDaylightCycle)" },
+        "rule": { "label": "규칙", "placeholder": "예: keep_inventory 또는 keepInventory (서버 버전에 맞춰 보냅니다)" },
         "value": { "label": "값", "placeholder": "true, false 또는 숫자. 비우면 지금 값이 콘솔에 나옴" }
       }
     },

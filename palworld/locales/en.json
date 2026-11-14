@@ -159,7 +159,6 @@
     "settings": { "label": "View Settings", "description": "View current server settings" }
   },
   "errors": {
-    "chat_failed": "Game chat send failed: {{error}}",
     "backup_paths_failed": "Backup save folder read failed: {{error}}",
     "server_not_running": "Server not running. Start the server first.",
     "auth_failed": "Authentication failed. Check the REST API username and password.",
@@ -168,13 +167,10 @@
     "timeout": "Server response timed out. Check the server status.",
     "rest_api_disabled": "REST API off. It turns on automatically at the next server start.",
     "internal_server_error": "Internal server error",
-    "daemon_connection_error": "Daemon connection error: {{error}}",
-    "invalid_json_response": "Invalid JSON response from daemon: {{error}}",
     "daemon_error": "Daemon error: {{error}}",
     "player_list_failed": "Failed to get player list: {{error}}",
     "no_executable": "server_executable not set in instance settings. Add the PalServer.exe path.",
     "executable_not_found": "Executable not found: {{path}}. Check the path in instance settings.",
-    "failed_to_get_status": "Failed to get status: {{error}}",
     "no_server_dir": "Server directory unknown. Set working_dir or server_executable.",
     "settings_write_failed": "Settings file write failed",
     "settings_invalid_value": "Setting value has a line break or disallowed character; not saved",
@@ -185,20 +181,29 @@
     "command_failed": "Failed to execute command: {{error}}",
     "userid_required": "Player ID (userid) required",
     "unknown_command": "Unknown command: {{command}}",
-    "player_ambiguous": "Multiple players match '{{player}}': {{names}}. Be more specific."
+    "player_ambiguous": "Multiple players match '{{player}}': {{names}}. Be more specific.",
+    "detect": {
+      "port_in_use": "Port already in use",
+      "out_of_memory": "Out of memory",
+      "executable_crash": "Server program crashed",
+      "save_corrupt": "Save data corrupted",
+      "steam_auth_failed": "Steam authentication failed"
+    },
+    "solutions": {
+      "port_in_use": "Stop the other process using the port, or change the server port.",
+      "out_of_memory": "Increase system memory or reduce server settings (max players, world size).",
+      "executable_crash": "Verify game files in Steam, check for mod conflicts, or update the server.",
+      "save_corrupt": "Restore from a backup save. Backups are in Pal/Saved/SaveGames/.",
+      "steam_auth_failed": "Check that Steam is running and the steamclient libraries are accessible."
+    }
   },
   "messages": {
-    "rest_api_forced_on": "[Policy] REST API force-enabled",
-    "rcon_forced_off": "[Policy] RCON force-disabled (deprecated)",
-    "process_running": "{{name}} is running",
-    "process_not_running": "{{name}} not running",
     "settings_updated": "Settings updated",
     "using_defaults": "Using DefaultPalWorldSettings.ini defaults (server not yet configured)",
-    "versions_via_steam": "The Palworld server is distributed via Steam/SteamCMD (App ID 2394010). Install or update with SteamCMD.",
-    "versions_managed_via_steam": "Palworld server versions are managed by Steam. Update with SteamCMD using app_update 2394010.",
-    "extension_not_enabled": "SteamCMD extension disabled. Enable it first in Settings → Extensions.",
-    "extension_missing": "{{extension}} extension required. Install and enable it in Settings → Extensions.",
-    "command_executed": "Command '{{command}}' executed"
+    "command_executed": "Command '{{command}}' executed",
+    "shutdown_notice": "Server is shutting down",
+    "kick_reason": "Kicked from server",
+    "ban_reason": "Banned from server"
   },
   "reset": {
     "no_path": "Server directory unknown. Set working_dir or server_executable.",
@@ -217,16 +222,6 @@
     "executable_not_found": "Executable not found: {{path}}",
     "executable_not_found_hint": "Check the executable path or reinstall the server.",
     "cannot_create_dir": "Working directory creation failed: {{path}}",
-    "cannot_create_dir_hint": "Check folder permissions or choose a different path.",
-    "log_port_in_use": "Port already in use",
-    "log_port_in_use_hint": "Stop the other process using the port, or change the server port.",
-    "log_out_of_memory": "Out of memory",
-    "log_out_of_memory_hint": "Increase system memory or reduce server settings (max players, world size).",
-    "log_executable_crash": "Server program crashed",
-    "log_executable_crash_hint": "Verify game files in Steam, check for mod conflicts, or update the server.",
-    "log_save_corrupt": "Save data corrupted",
-    "log_save_corrupt_hint": "Restore from a backup save. Backups are in Pal/Saved/SaveGames/.",
-    "log_steam_auth_failed": "Steam authentication failed",
-    "log_steam_auth_failed_hint": "Check that Steam is running and the steamclient libraries are accessible."
+    "cannot_create_dir_hint": "Check folder permissions or choose a different path."
   }
 }

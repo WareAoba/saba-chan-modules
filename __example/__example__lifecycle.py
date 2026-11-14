@@ -16,7 +16,7 @@
    2. validate()에 게임별 검증 추가 (Java 확인, 설정 파일 존재 등)
 
    3. stop()에 저장·종료 요청 구현 (managed면 요청 뒤 바로 반환)
-      → module.toml [config] stop_command만 적어도 데몬이 stdin으로 보내 줍니다
+      → 정지 명령은 module.toml [config] stop_command 한 곳에만 적습니다 (공용 stop_command가 읽습니다)
       → managed의 종료 대기·강제 종료는 데몬이 합니다
       → 명령 경로는 stdin → REST → RCON 순서입니다. RCON은 둘 다 없는 서버만 쓰고, 그때 정지 명령은
         daemon_rcon_command(instance_id, "<정지 명령>")로 데몬에 보냅니다 (0.1.12+)
@@ -40,13 +40,14 @@
   validate(config)               서버 시작 직전 (실패하면 시작 안 됨)
   get_launch_command(config)     validate 통과 후 (★ 가장 중요)
   stop(config)                   사용자가 서버 종료 요청 시
-  status(config)                 주기적 상태 조회
   configure(config)              시작 전 + 사용자가 설정 변경 시
   import_settings(config)        인스턴스 최초 등록 시 (기존 설정 가져오기)
   command(config)                method="console" 템플릿으로 안 되는 커스텀 명령어 실행 시
 
   선택 (게임에 따라):
   ─────────────────
+  status(config)                 non-managed 상태 조회. 만들지 않으면 데몬이 추적하는 PID로 답합니다 (0.1.14-beta.2).
+                                 게임에 물어 더 알 수 있을 때만 만듭니다 (예: minecraft의 Server List Ping)
   install_server(config)         서버 설치/업데이트
   accept_agreements(config)      약관 동의를 파일에 쓰기 (module.toml [[agreements]], 예: EULA)
   diagnose_log(config)           로그 분석/에러 진단
@@ -70,7 +71,8 @@
     config["settings"]          바꿀 설정 { "server_name": "My Server", ... }
 
   REST 모듈 (게임에 REST API가 있을 때만):
-    config["rest_host/port/username/password"]
+    접속 주소·포트·비밀번호는 module.toml [protocols.rest]가 가리키는 설정에 있습니다 (다른 설정처럼 그 이름으로 옵니다).
+    REST 호출은 직접 하지 않고 daemon_rest(instance_id, method, path)로 데몬에 맡깁니다
 
   stop() 호출 시:
     config["pid"]               종료할 프로세스 PID
@@ -83,11 +85,7 @@
     config["args"]              명령어 인자 dict
 """
 
-import sys
-import json
-import subprocess
 import os
-import time
 from i18n import I18n
 
 # ─── Path setup ──────────────────────────────────────────────────
@@ -101,10 +99,17 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 #   graceful_stop / request_console / request_terminate: stop()의 공용 절차 (saba-core 0.1.11부터)
 #   settings_to_file / settings_from_file: 설정 이름 ↔ 게임 설정 파일 키 (module.toml file_key, 0.1.11부터)
 #   read_key_values / update_key_values: `키=값` 설정 파일 읽기·바뀐 키만 쓰기 (인코딩·주석·순서 유지, 0.1.11부터)
-#   load_diagnose_rules / diagnose_lines / tail_lines: module.toml [[diagnose]]로 로그 진단 (0.1.11부터)
-from daemon_rcon import (atomic_write, daemon_stdin_command, diagnose_lines, graceful_stop, is_process_alive,
-                         load_diagnose_rules, read_key_values, request_console, request_terminate, run_lifecycle,
-                         settings_from_file, settings_to_file, tail_lines, update_key_values)
+#   stop_command: module.toml [config] stop_command 읽기 (0.1.14부터)
+#   setting_defaults_to_file: module.toml 설정 기본값 → 새 설정 파일 값 (기본값을 코드·파일에 다시 적지 않습니다, 0.1.14부터)
+#   delete_paths / chat_reply: reset_server·send_chat의 공용 절차 (0.1.14부터)
+#   diagnose_log: module.toml [[diagnose]]·[launch] diagnose_files로 로그 진단 (0.1.14-beta.2부터)
+#   extension_required: 필요한 익스텐션이 없을 때의 답 (0.1.14-beta.2부터)
+#   remote_access_values / enforce_remote_access: module.toml [remote_access]의 원격 접속 값 쓰기 (0.1.14-beta.2부터)
+#   auto_heap_mb / java_release_major: Java 서버의 자동 힙 크기·JRE 버전 (0.1.14-beta.2부터)
+#   list_dir / fetch_json: 폴더 항목·JSON 받기 (0.1.14-beta.2부터)
+import daemon_rcon
+from daemon_rcon import (daemon_stdin_command, extension_required, graceful_stop, read_key_values, request_console,
+                         request_terminate, run_lifecycle, settings_from_file, settings_to_file, stop_command, update_key_values)
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
 i18n = I18n(MODULE_DIR)
@@ -129,8 +134,8 @@ def validate(config):
         issues.append({
             "code": "EXECUTABLE_NOT_FOUND",
             "severity": "critical",
-            "message": f"Server executable not found: {executable}",
-            "solution": "Set the correct path in server settings, or install the server first."
+            "message": i18n.t("errors.executable_not_found", path=executable),
+            "solution": i18n.t("errors.executable_not_found_hint"),
         })
 
     # 2) 작업 디렉토리
@@ -139,13 +144,11 @@ def validate(config):
         issues.append({
             "code": "WORKING_DIR_MISSING",
             "severity": "warning",
-            "message": f"Working directory does not exist: {working_dir}",
-            "solution": "The directory will be created on server start."
+            "message": i18n.t("errors.working_dir_missing", path=working_dir),
+            "solution": i18n.t("errors.working_dir_missing_hint"),
         })
 
-    # 3) 포트 충돌 검사
-    port = config.get("port", 7777)
-    # ... 필요 시 소켓 바인드 테스트
+    # 포트 충돌은 데몬이 시작 전에 검사합니다 (모듈이 다시 하지 않습니다)
 
     has_critical = any(i["severity"] == "critical" for i in issues)
     return {
@@ -167,23 +170,20 @@ def validate(config):
 #    working_dir: str      작업 디렉토리 절대 경로
 #    env_vars: dict        환경 변수 (빈 dict 가능)
 #
-#  ── 선택 반환 키 (credential_map 연동) ──
-#    "GameSpecificKey": str   module.toml [credential_map]에서 선언한
-#                             게임 키의 값. 데몬이 자동으로 데몬 키에 동기화.
-#
-#    예: [credential_map] rest_password = "AdminPassword" 이면
-#        launch_result에 "AdminPassword": "xxxx" 포함 시
-#        → instance.rest_password = "xxxx" 자동 동기화
+#  ── 선택 반환 키 (REST 모듈) ──
+#    "rest_credentials": {"rest_password": str}
+#        게임 설정 파일에 실제로 있는(또는 모듈이 만든) REST 비밀번호. 데몬이 module.toml
+#        [protocols.rest] password_setting이 가리키는 설정에 적습니다 (0.1.14-beta.2)
 #
 def get_launch_command(config):
     executable = config.get("server_executable")
     # 실행 파일이 없으면 범용 코드 executable_not_found로 답한다: GUI·CLI가 경로 다시 고르기·새로 설치를 묻는다
     if not executable:
         return {"success": False, "action_required": "executable_not_found",
-                "message": "server_executable not specified", "options": ["update_path", "install_new"]}
+                "message": i18n.t("errors.no_executable"), "options": ["update_path", "install_new"]}
     if not os.path.exists(executable):
         return {"success": False, "action_required": "executable_not_found",
-                "message": f"Executable not found: {executable}", "configured_path": executable,
+                "message": i18n.t("errors.executable_not_found", path=executable), "configured_path": executable,
                 "options": ["update_path", "install_new"]}
 
     port = config.get("port", 7777)
@@ -191,9 +191,10 @@ def get_launch_command(config):
 
     # ── 실행 전 준비 작업 (게임별로 다름) ──
     # 예: 설정 파일 동기화, EULA 확인 등.
-    # 콘솔·REST가 있는 게임에 RCON 설정이 있으면 여기서 항상 끄세요 (예: minecraft enable-rcon=false).
-    # RCON만 받는 게임이면 데몬이 준 config["rcon_port"]·config["rcon_password"]를 게임 설정에 쓰고
-    # RCON을 127.0.0.1에서만 받게 하세요 (비밀번호는 로그에 쓰지 않습니다)
+    # 사바쨩이 정하는 원격 접속 값(RCON 끄기·켜기, REST 켜기)은 module.toml [remote_access]에 한 번만 적고,
+    # 여기서 enforce_remote_access(MODULE_DIR, config, <파일에서 읽은 값>, <바뀐 값 쓰기>)로 맞춥니다.
+    # 새 설정 파일을 만들 때와 configure()에서는 remote_access_values(MODULE_DIR, config)를 얹습니다.
+    # RCON은 127.0.0.1에서만 받게 하고, 비밀번호는 로그에 쓰지 않습니다
 
     args = [
         f"--port={port}",
@@ -208,10 +209,9 @@ def get_launch_command(config):
         "env_vars": {},
     }
 
-    # ── credential_map 연동 ──
-    # module.toml에 [credential_map] rest_password = "AdminPassword" 이면:
-    # result["AdminPassword"] = actual_password_value
-    # → 데몬이 instance.rest_password에 자동 동기화
+    # ── REST 비밀번호 ──
+    # module.toml [protocols.rest] password_setting을 선언했으면:
+    # result["rest_credentials"] = {"rest_password": actual_password_value}
 
     return result
 
@@ -231,43 +231,15 @@ def get_launch_command(config):
 #  config["pid"]: 데몬이 알려주는 프로세스 PID
 #  config["force"]: non-managed 강제 종료 플래그
 #
-STOP_COMMAND = "quit"  # 게임의 실제 저장 후 종료 명령어로 바꾸세요
-
-
 def _request_stop(config):
-    # 콘솔에 종료 명령, 안 되면 POSIX SIGTERM (managed 서버는 데몬의 프로세스라 신호를 보내지 않습니다)
-    if request_console(config, STOP_COMMAND):
+    # 콘솔에 종료 명령(module.toml [config] stop_command), 안 되면 POSIX SIGTERM (managed 서버는 데몬의 프로세스라 신호를 보내지 않습니다)
+    if request_console(config, stop_command(MODULE_DIR)):
         return True
     return not config.get("managed") and request_terminate(config.get("pid"))
 
 
 def stop(config):
     return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
-
-
-# ═══════════════════════════════════════════════════════════════════
-#  status(config)
-# ═══════════════════════════════════════════════════════════════════
-#  서버 상태를 조회합니다.
-#
-#  ── 반환 형식 ──
-#  { "success": True, "status": "running"|"stopped"|"starting",
-#    "players_online": int, "players_max": int, ... }
-#
-def status(config):
-    pid = config.get("pid")
-
-    if pid and is_process_alive(pid):
-        result = {
-            "success": True,
-            "status": "running",
-        }
-        # 선택: 게임 Query 포트나 로그로 접속자 수 등 상세 정보 조회
-        #     result["players_online"] = ...
-        #     result["players_max"] = ...
-        return result
-
-    return {"success": True, "status": "stopped"}
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -281,7 +253,7 @@ def status(config):
 def configure(config):
     settings = config.get("settings", {})
     if not settings:
-        return {"success": True, "message": "No settings to apply"}
+        return {"success": False, "message": i18n.t("errors.no_settings")}
 
     working_dir = config.get("working_dir", "")
     config_file = os.path.join(working_dir, "server.cfg")  # ← 게임별 설정 파일 경로
@@ -306,7 +278,7 @@ def import_settings(config):
     config_file = os.path.join(working_dir, "server.cfg")
 
     if not os.path.exists(config_file):
-        return {"success": False, "message": "Config file not found"}
+        return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
 
     try:
         # 파일 값은 문자열이다. settings_from_file이 module.toml 형식(number·boolean)으로 바꿉니다
@@ -358,13 +330,14 @@ def command(config):
 def install_server(config):
     install_dir = config.get("install_dir", "")
     if not install_dir:
-        return {"success": False, "message": "install_dir not specified"}
+        return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     # SteamCMD 예시: app_id·beta는 module.toml [install]에 한 번만 적습니다 (install_for_module이 읽습니다)
     try:
         from extensions.steamcmd import install_for_module
     except ImportError:
-        return {"success": False, "error_code": "extension_required", "message": "steamcmd extension not installed"}
+        # 익스텐션이 없거나 꺼져 있다: missing_extensions가 있어야 데몬이 설치·켜기 안내를 띄웁니다
+        return extension_required(i18n, "steamcmd")
     result = install_for_module(MODULE_DIR, install_dir)
     if result.get("success"):
         # 설치 후 초기 설정 적용
@@ -379,9 +352,9 @@ def install_server(config):
 #
 def diagnose_log(config):
     # 규칙은 module.toml [[diagnose]] (code, severity, patterns)에 둡니다. 문구는 locales의
-    # errors.detect.<소문자 code>·errors.solutions.<소문자 code>. 데몬이 준 이번 실행의 콘솔 줄을 먼저 봅니다
-    lines = config.get("log_lines") or tail_lines(os.path.join(config.get("working_dir", ""), "logs", "latest.log"))
-    return {"success": True, "issues": diagnose_lines(lines, load_diagnose_rules(MODULE_DIR), i18n)}
+    # errors.detect.<소문자 code>·errors.solutions.<소문자 code>. 데몬이 준 이번 실행의 콘솔 줄을 먼저 보고,
+    # 없으면 module.toml [launch] diagnose_files의 로그 파일을 읽습니다. 경로를 계산해야 하면 files=[...]로 넘깁니다
+    return daemon_rcon.diagnose_log(config, MODULE_DIR, i18n)
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -390,7 +363,7 @@ def diagnose_log(config):
 
 def _do_backup(config):
     """커스텀 백업 명령어 예시"""
-    return {"success": True, "message": "Backup not implemented yet"}
+    return {"success": False, "message": i18n.t("errors.not_implemented", command="backup")}
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -410,6 +383,7 @@ def _do_backup(config):
 #  데몬은 예약 함수 `functions`로 이 표의 이름을 물어 없는 기능을 화면에서 숨깁니다.
 #  run_lifecycle()이 대신 답하므로 따로 만들지 않습니다.
 #  기능을 지원할 때만 더 만드는 함수 (계약: docs/module-spec.md §3):
+#    status                   게임에 물어 PID보다 더 알 수 있을 때 (없으면 데몬이 추적 PID로 답합니다)
 #    get_credentials, read_properties, reset_properties, reset_server,
 #    reset_preview            초기화 확인 창에 지울 것을 보일 때 (reset_server와 같은 대상)
 #    list_versions, get_version_details, get_installed_version,
@@ -423,7 +397,6 @@ FUNCTIONS = {
     "validate": validate,
     "get_launch_command": get_launch_command,
     "stop": stop,
-    "status": status,
     "configure": configure,
     "import_settings": import_settings,
     "command": command,

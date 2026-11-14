@@ -468,6 +468,16 @@
             "null"
           ]
         },
+        "download_size": {
+          "default": null,
+          "description": "받을 파일의 대략적인 크기(바이트). 설치 방식 익스텐션이 진행률을 어림하는 데 쓴다 (saba-core >=0.1.14-beta.2)",
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "download_url": {
           "default": null,
           "type": [
@@ -519,6 +529,14 @@
           ],
           "default": "pipe",
           "description": "\"pipe\"(기본) | \"pty\". 출력을 파이프로 주면 끝날 때까지 모아 두는 서버(stdout 블록 버퍼링)는\n\"pty\"로 의사 콘솔(Windows ConPTY)에 띄워 줄마다 받는다. stdout과 stderr가 한 갈래로 합쳐진다."
+        },
+        "diagnose_files": {
+          "default": [],
+          "description": "로그 진단이 콘솔 줄이 없을 때 끝부분을 읽는 로그 파일 (서버 폴더 기준 상대 경로, 앞에서부터 줄이 있는 첫 파일).\n데몬은 모양만 검사하고, 공용 도우미 `daemon_rcon.diagnose_log`가 읽는다 (saba-core >=0.1.14-beta.2)",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "line_start": {
           "default": null,
@@ -845,6 +863,18 @@
             "null"
           ]
         },
+        "rest": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RestSettings"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "`[protocols.rest]` REST 접속값이 든 설정 (saba-core >=0.1.14-beta.2)"
+        },
         "supported": {
           "default": null,
           "description": "\"rcon\" | \"rest\" | \"stdin\"",
@@ -901,6 +931,109 @@
         "name",
         "function"
       ],
+      "type": "object"
+    },
+    "RemoteAccessRcon": {
+      "additionalProperties": false,
+      "description": "`[remote_access.rcon]`: 관리형 시작을 끈 서버만 데몬이 만든 포트·비밀번호로 RCON을 켠다",
+      "properties": {
+        "off": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "RCON을 끌 때 쓰는 값 (관리형 시작, 또는 데몬이 접속 정보를 주지 않았을 때)",
+          "type": "object"
+        },
+        "on": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "RCON을 켤 때 함께 쓰는 값",
+          "type": "object"
+        },
+        "password": {
+          "description": "데몬이 준 RCON 비밀번호를 쓰는 키",
+          "type": "string"
+        },
+        "port": {
+          "description": "데몬이 준 RCON 포트를 쓰는 키",
+          "type": "string"
+        }
+      },
+      "required": [
+        "port",
+        "password"
+      ],
+      "type": "object"
+    },
+    "RemoteAccessSection": {
+      "additionalProperties": false,
+      "description": "`[remote_access]`: 사바쨩이 정하는 원격 접속(RCON·REST) 값. 키는 게임 설정 파일의 키다 (saba-core >=0.1.14-beta.2).\n데몬은 읽지 않는다: 공용 도우미 `daemon_rcon.remote_access_values`가 설정 저장·첫 설치·실행 전에 같은 값을 쓴다",
+      "properties": {
+        "forced": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "description": "늘 이 값으로 둔다 (예: `{ RESTAPIEnabled = \"True\", RCONEnabled = \"False\" }`)",
+          "type": "object"
+        },
+        "rcon": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/RemoteAccessRcon"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "RestSettings": {
+      "additionalProperties": false,
+      "description": "`[protocols.rest]`: 데몬이 REST로 붙을 때 쓰는 값이 어느 설정에 있는가 (saba-core >=0.1.14-beta.2).\n값은 인스턴스 `module_settings`의 그 설정에만 있고, 모듈은 다른 설정처럼 그 설정 이름으로 받는다\n(`command` 호출 config에는 데몬이 붙을 주소를 `rest_host`·`rest_port`로도 싣는다)",
+      "properties": {
+        "host_setting": {
+          "default": "rest_host",
+          "description": "호스트가 든 설정 이름. 기본 `rest_host` (값도 기본값도 없으면 127.0.0.1)",
+          "type": "string"
+        },
+        "password_setting": {
+          "description": "비밀번호가 든 설정 이름. 있으면 \"비밀번호 자동 생성\"이 빈 값을 채우고 모듈이 준 `rest_credentials`를 여기에 적는다",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "port_setting": {
+          "default": "rest_port",
+          "description": "포트가 든 설정 이름. 기본 `rest_port`",
+          "type": "string"
+        },
+        "username": {
+          "description": "게임이 정한 사용자 이름 (기본 인증). 없으면 모듈 `get_credentials`가 준 이름만 쓴다",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "Runtime": {
+      "additionalProperties": false,
+      "description": "구성요소가 module.toml `[runtime]`·manifest.json `runtime`으로 밝히는 실행 방식",
+      "properties": {
+        "persistent": {
+          "default": false,
+          "description": "true면 호출마다 Python을 띄우지 않고 오래 사는 작업자 하나에 줄 단위 JSON으로 부른다 (`worker.rs`).\n진입점이 SDK `run_lifecycle`이어야 한다. 없으면 false(단발 실행)",
+          "type": "boolean"
+        }
+      },
       "type": "object"
     },
     "SettingFieldToml": {
@@ -1066,6 +1199,14 @@
             "null"
           ]
         },
+        "runtime": {
+          "default": null,
+          "description": "이 설정 값이 서버를 띄우는 런타임 실행 파일의 경로면 그 종류 (`SettingField::runtime`, saba-core >=0.1.14-beta.2)",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "step": {
           "default": null,
           "format": "double",
@@ -1227,17 +1368,6 @@
         }
       ]
     },
-    "credential_map": {
-      "additionalProperties": {
-        "type": "string"
-      },
-      "default": null,
-      "description": "[credential_map] 데몬 표준 키 ↔ 게임별 설정 키 매핑\n예: rest_password = \"AdminPassword\" → 데몬의 rest_password가 게임 INI의 AdminPassword에 대응",
-      "type": [
-        "object",
-        "null"
-      ]
-    },
     "detection": {
       "anyOf": [
         {
@@ -1305,6 +1435,14 @@
     "module": {
       "$ref": "#/definitions/ModuleSection"
     },
+    "patterns": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {},
+      "description": "[patterns] 이름 붙인 정규식 조각. 데몬이 읽는 정규식 키에서 `{이름}`으로 쓰면 로드할 때 `(?:조각)`으로 바뀐다\n(이름은 글자·숫자·`_`, 숫자로 시작하지 않음. 조각끼리도 참조할 수 있지만 자기 자신은 안 된다)",
+      "type": "object"
+    },
     "permissions": {
       "allOf": [
         {
@@ -1345,6 +1483,28 @@
         "$ref": "#/definitions/QueryToml"
       },
       "type": "array"
+    },
+    "remote_access": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/RemoteAccessSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "[remote_access] 사바쨩이 정하는 원격 접속 값"
+    },
+    "runtime": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Runtime"
+        }
+      ],
+      "default": {
+        "persistent": false
+      },
+      "description": "[runtime] 실행 방식. 실행기가 호출 때 module.toml에서 읽는다 (`plugin::Runtime`)"
     },
     "settings": {
       "anyOf": [

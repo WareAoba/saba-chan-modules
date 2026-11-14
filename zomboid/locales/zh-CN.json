@@ -720,7 +720,6 @@
     "server_not_running": "服务器未运行。请先启动服务器。",
     "server_reset_partial": "部分项目删除失败:{{errors}}",
     "invalid_server_name": "服务器名称不可用:{{name}}。名称不能含文件夹分隔符(/ \\)、“:”、“..”,且不能以空格或点结尾。",
-    "extension_not_enabled": "SteamCMD 扩展未启用。请先在 设置 → 扩展 中启用。",
     "unknown_branch": "无法选择的分支:{{branch}}",
     "detect": {
       "out_of_memory": "服务器内存不足 (OutOfMemoryError)",
@@ -755,14 +754,11 @@
     "legacy41": "旧版 Build 41 (legacy41)"
   },
   "messages": {
-    "server_starting_no_response": "进程正在运行,服务器尚未响应 RCON 查询",
     "properties_updated": "服务器设置已更新",
     "properties_using_defaults": "没有配置文件,显示默认值",
     "no_mappable_settings": "没有可识别为服务器设置的项目",
     "server_reset_complete": "服务器世界数据已重置",
-    "rcon_disabled_managed": "托管启动,RCON 已关闭(命令通过控制台 stdin 发送)",
-    "command_sent": "已向控制台发送命令:{{command}}",
-    "no_log_files": "没有日志文件"
+    "command_sent": "已向控制台发送命令:{{command}}"
   },
   "rcon": {
     "connecting": "正在连接到 {{host}}:{{port}}...",

@@ -12,7 +12,11 @@
 | 정지 | `graceful_stop`, `request_console`, `request_terminate`, `stop_timeout` |
 | 내려받기·풀기 | `download`(`checksums=`, 틀리면 `ChecksumMismatch`), `safe_extract`, `progress` |
 | 경로 | `safe_join` (밖으로 나가면 `PathOutside`) |
-| 로그 진단 | `load_diagnose_rules`, `diagnose_lines`, `tail_lines` |
+| 로그 진단 | `diagnose_log(config, MODULE_DIR, i18n)` 한 줄(0.1.14-beta.2: `log_lines` → `files=` → `[launch] diagnose_files`). 그 아래 조각은 `load_diagnose_rules`, `diagnose_lines`, `tail_lines` |
+| 사바쨩이 정하는 RCON·REST 값 | `remote_access_values`, `enforce_remote_access`, `rcon_access` (module.toml `[remote_access]`, 0.1.14-beta.2) |
+| Java 서버 기본값 | `auto_heap_mb`(메모리를 비웠을 때의 힙), `java_release_major`(JRE 주 버전) (0.1.14-beta.2) |
+| 익스텐션이 없을 때의 답 | `extension_required(i18n, "<id>")` (0.1.14-beta.2) |
+| 폴더 목록·JSON 받기 | `list_dir`(없는 폴더는 빈 목록, 못 읽으면 오류), `fetch_json` (0.1.14-beta.2) |
 | 파일 저장 | `atomic_write` |
 | 어느 게임에나 같은 문구 | `common_locales.json`(정지·설치 문구 등, 모듈 locales에 없을 때 쓰인다) |
 
@@ -22,12 +26,13 @@
 - 필수는 `get_launch_command` 하나. `program`, `args`, `working_dir`, `env_vars`; `extra_args`를 알맞은 자리에 넣었으면 `extra_args_placed: true`; `preview: true`이면 파일을 쓰지 않는다. 실행 파일이 없으면 `action_required: "executable_not_found"`.
 - 값은 `config_value(config, key, default)`로 읽는다(빈 값은 없는 값). `config.get(key, default)`는 빈 문자열을 그대로 돌려주므로 이름·경로 값에 쓰지 않는다. 상태를 메모리에 두지 않는다.
 - 경로는 데몬이 준 `server_executable`·`working_dir`을 쓴다. 같은 경로를 함수마다 다르게 계산하지 않고 한 함수로 모은다.
-- 데몬이 이미 주는 값을 쓴다: `pid`, `log_lines`(로그 진단), `players_detail`, `rest_*`. 파일 위치를 짐작해 대신하지 않는다.
+- 데몬이 이미 주는 값을 쓴다: `pid`, `log_lines`(로그 진단), `players_detail`, `[protocols.rest]`가 가리키는 REST 설정 값. 파일 위치를 짐작해 대신하지 않는다.
+- `status`는 만들지 않아도 된다: 없으면 데몬이 추적하는 PID가 살아 있는지로 답한다(0.1.14-beta.2). PID가 살아 있는지만 보는 `status`는 쓰지 않는다.
 - 모든 실패는 종료 코드 0 + `{"success": false, "message": ...}`. 로그는 stderr로만, 진행률은 stderr `PROGRESS:{json}`. 실패를 삼키고 `success: true`로 답하지 않는다.
 - `validate`: `issues[]`의 `severity: critical`이 시작을 막는다.
 - 서버 로컬 REST·소켓은 `daemon_rcon.loopback_http`/`loopback_exchange`로 연다(격리 실행에서도 데몬이 중계).
 - 인스턴스 REST(저장·정지 등)는 `daemon_rcon.daemon_rest`로 보낸다. 격리 실행에서도 데몬이 그 인스턴스 서버의 REST 포트로만 대신 보낸다. 콘솔 `daemon_stdin_command`는 격리 실행에서 `op_not_allowed`다(saba-chan 0.1.11부터. 그 전 데몬은 격리 실행에서 둘 다 막는다).
-- 익스텐션은 함수 안에서 `import extensions.<id>`, 없으면 `error_code: "extension_required"`, `missing_extensions[]`. PATH의 도구로 대신 실행하지 않는다.
+- 익스텐션은 함수 안에서 `import extensions.<id>`, 없으면 공용 `extension_required(i18n, "<id>")`(`error_code: "extension_required"`, `missing_extensions[]`, 공용 문구)를 돌려준다. PATH의 도구로 대신 실행하지 않는다.
 - 비밀값(관리자 비밀번호 등)을 실행 인자에 매번 싣지 않는다. 첫 생성에만 필요한 플래그는 그때만 붙인다.
 - 화면 문구·오류는 `I18n(MODULE_DIR).t(...)`, 키는 `locales/en.json`이 기준이고 ko를 반드시 채운다(10개 언어). `check.py` locales가 ko 누락을 잡는다.
 - 공용 `PathOutside`는 `ValueError`의 하위 클래스다. `except ValueError`가 경로 경계 위반까지 삼켜 "잘못된 이름" 같은 일반 실패로 바꾸지 않게, 그 앞에 `except PathOutside: raise`를 둔다(데몬이 경계 위반을 따로 다룬다).
@@ -41,7 +46,7 @@
 - **인코딩을 가정하지 않는다.** 동봉 기본 파일의 실제 인코딩(`inspect_dist.py`)으로 읽고, 읽은 인코딩·줄바꿈 그대로 다시 쓴다. UTF-8로만 읽으면 레거시 코드페이지 파일(테라리아 Windows `serverconfig.txt`는 cp1252, 주석에 0x92)에서 시작·설정 저장·가져오기가 모두 실패한다. 테스트에는 공식 파일의 원래 바이트를 쓴다.
 - 파일의 다른 키·주석·순서는 그대로 두고 바뀐 키만 고친다. 실행 전용 설정(JVM 인자 등)은 게임 파일에 쓰지 않는다.
 - **파일 없음 / 읽기 실패 / 파싱 실패를 구별한다.** 못 읽었으면 쓰지 않는다. 빈 dict에 바뀐 키만 넣어 저장하면 나머지 설정이 사라진다.
-- 기본값의 출처는 하나: 게임이 설치·첫 실행 때 만든 기본 파일, 없으면 배포물에 동봉된 예시 파일. 코드 dict·toml default·동봉 샘플에 따로 적으면 반드시 어긋난다. 코드 dict는 그 파일이 없을 때만 쓰고, toml default와 같은지 테스트로 묶는다.
+- 기본값의 출처는 하나: 게임이 주는 공식 기본 파일이 있으면 그 파일(palworld `DefaultPalWorldSettings.ini`), 사바쨩이 새 설정 파일을 써야 하면 module.toml `default`(공용 `setting_defaults_to_file`, minecraft·zomboid). 설정 화면이 보이는 기본값과 새 파일·초기화가 쓰는 값이 같아야 한다. 코드 dict·동봉 샘플에 같은 값을 다시 적으면 반드시 어긋난다. 공식 기본 파일을 쓰는 모듈은 toml default와 같은지 테스트로 묶는다.
 - 서버가 시작할 때만 읽는 값(관리 비밀번호, REST 포트)은 실행 중에 바꾸면 관리 경로가 끊긴다. 재시작이 필요하다고 알리거나 시작 때 값을 따로 둔다.
 - 파일 값은 `load_setting_types` + `coerce_setting`으로 화면 형식에 맞춰 읽는다.
 - 왕복 테스트를 쓴다: 모든 설정에 대해 `configure`로 쓴 파일을 `import_settings`로 읽으면 같은 값이 나와야 하고, 쓴 파일이 공식 기본 파일과 같은 표기여야 한다. 특수 문자(`:`, `=`, `\`, 한글, 따옴표)를 넣은 값도 넣는다. 마지막에 실서버가 그 값을 실제로 적용했는지 실측한다.

@@ -11,7 +11,7 @@ icon = "icon.png"
 log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
-saba-core = ">=0.1.14-0"
+saba-core = ">=0.1.14-beta.2"
 ext-steamcmd = ">=0.1.5"
 
 [permissions]
@@ -23,6 +23,13 @@ supported = ["stdin", "rcon"]
 rcon_port = 27015  # 관리형 시작을 끈 서버의 명령 길 (데몬이 빈 포트·비밀번호를 정해 넘긴다)
 default = "stdin"
 interaction_mode = "console"
+
+# 사바쨩이 정하는 원격 접속 값 (saba-chan 0.1.14-beta.2, 공용 remote_access_values). 관리형 시작을 끄면 데몬이 준
+# 포트·비밀번호로 RCON을 켜고, 관리형이면 끈다 (Project Zomboid는 RCONPassword가 비면 RCON을 끈다)
+[remote_access.rcon]
+port = "RCONPort"
+password = "RCONPassword"
+off = { RCONPassword = "" }
 
 [config]
 # 큰 월드는 정지 때 저장이 30초(기본)를 넘는다: 저장 도중 강제 종료되지 않게
@@ -69,6 +76,8 @@ player_leave_patterns = [
 method = "steamcmd"
 app_id = 380870
 anonymous = true
+# 받는 양의 어림값(바이트). SteamCMD가 전체 크기를 알려 주기 전의 진행률에 쓴다 (saba-chan 0.1.14-beta.2)
+download_size = 6_300_000_000
 install_subdir = "server"
 requires_extensions = ["steamcmd"]
 

@@ -165,7 +165,6 @@
     "settings": { "label": "Ver configurações", "description": "Ver as configurações atuais do servidor" }
   },
   "errors": {
-    "chat_failed": "Falha ao enviar ao chat do jogo: {{error}}",
     "backup_paths_failed": "Falha ao ler a pasta de saves para o backup: {{error}}",
     "server_not_running": "Servidor não iniciado. Inicie o servidor primeiro.",
     "auth_failed": "Falha na autenticação. Verifique o usuário e a senha da API REST.",
@@ -174,13 +173,10 @@
     "timeout": "Tempo de resposta do servidor esgotado. Verifique o estado do servidor.",
     "rest_api_disabled": "API REST desativada. Será ativada automaticamente na próxima inicialização do servidor.",
     "internal_server_error": "Erro interno do servidor",
-    "daemon_connection_error": "Erro de conexão do daemon: {{error}}",
-    "invalid_json_response": "Resposta JSON inválida do daemon: {{error}}",
     "daemon_error": "Erro do daemon: {{error}}",
     "player_list_failed": "Falha ao obter lista de jogadores: {{error}}",
     "no_executable": "server_executable não especificado na configuração da instância. Adicione o caminho de PalServer.exe.",
     "executable_not_found": "Executável não encontrado: {{path}}. Verifique o caminho na configuração da instância.",
-    "failed_to_get_status": "Falha ao obter o status: {{error}}",
     "no_server_dir": "Falha ao determinar o diretório do servidor. Defina working_dir ou server_executable.",
     "settings_write_failed": "Falha ao gravar o arquivo de configuração",
     "settings_invalid_value": "O valor contém quebra de linha ou caractere inválido; não foi salvo",
@@ -191,20 +187,29 @@
     "command_failed": "Falha ao executar o comando: {{error}}",
     "userid_required": "ID do jogador (userid) obrigatório",
     "unknown_command": "Comando desconhecido: {{command}}",
-    "player_ambiguous": "Vários jogadores correspondem a '{{player}}': {{names}}. Seja mais específico."
+    "player_ambiguous": "Vários jogadores correspondem a '{{player}}': {{names}}. Seja mais específico.",
+    "detect": {
+      "port_in_use": "Porta já em uso",
+      "out_of_memory": "Memória insuficiente",
+      "executable_crash": "Encerramento anormal do executável do servidor",
+      "save_corrupt": "Dados de save corrompidos",
+      "steam_auth_failed": "Falha na autenticação do Steam"
+    },
+    "solutions": {
+      "port_in_use": "Encerre o outro processo que usa a porta ou altere a porta do servidor.",
+      "out_of_memory": "Aumente a RAM do sistema ou reduza as configurações do servidor (máximo de jogadores, tamanho do mundo).",
+      "executable_crash": "Verifique os arquivos do jogo no Steam, confira conflitos de mods ou atualize o servidor.",
+      "save_corrupt": "Restaure um backup. Os backups ficam em Pal/Saved/SaveGames/.",
+      "steam_auth_failed": "Verifique se o Steam está em execução e se as bibliotecas do steamclient estão acessíveis."
+    }
   },
   "messages": {
-    "rest_api_forced_on": "[Política] API REST ativada à força",
-    "rcon_forced_off": "[Política] RCON desativado à força (obsoleto)",
-    "process_running": "{{name}} está em execução",
-    "process_not_running": "{{name}} não está em execução",
     "settings_updated": "Configurações atualizadas",
     "using_defaults": "Usando os valores padrão de DefaultPalWorldSettings.ini (servidor ainda não configurado)",
-    "versions_via_steam": "O servidor de Palworld é distribuído pelo Steam/SteamCMD (App ID 2394010). Instale ou atualize com o SteamCMD.",
-    "versions_managed_via_steam": "As versões do servidor de Palworld são gerenciadas pelo Steam. Atualize com app_update 2394010 no SteamCMD.",
-    "extension_not_enabled": "Extensão SteamCMD desativada. Ative-a primeiro em Configurações → Extensões.",
-    "extension_missing": "Extensão {{extension}} necessária. Instale e ative-a em Configurações → Extensões.",
-    "command_executed": "Comando '{{command}}' executado"
+    "command_executed": "Comando '{{command}}' executado",
+    "shutdown_notice": "O servidor está sendo desligado",
+    "kick_reason": "Expulso do servidor",
+    "ban_reason": "Banido do servidor"
   },
   "reset": {
     "no_path": "Falha ao determinar o diretório do servidor. Defina working_dir ou server_executable.",
@@ -223,16 +228,6 @@
     "executable_not_found": "Executável não encontrado: {{path}}",
     "executable_not_found_hint": "Verifique o caminho do executável ou reinstale o servidor.",
     "cannot_create_dir": "Falha ao criar o diretório de trabalho: {{path}}",
-    "cannot_create_dir_hint": "Verifique as permissões da pasta ou escolha outro caminho.",
-    "log_port_in_use": "Porta já em uso",
-    "log_port_in_use_hint": "Encerre o outro processo que usa a porta ou altere a porta do servidor.",
-    "log_out_of_memory": "Memória insuficiente",
-    "log_out_of_memory_hint": "Aumente a RAM do sistema ou reduza as configurações do servidor (máximo de jogadores, tamanho do mundo).",
-    "log_executable_crash": "Encerramento anormal do executável do servidor",
-    "log_executable_crash_hint": "Verifique os arquivos do jogo no Steam, confira conflitos de mods ou atualize o servidor.",
-    "log_save_corrupt": "Dados de save corrompidos",
-    "log_save_corrupt_hint": "Restaure um backup. Os backups ficam em Pal/Saved/SaveGames/.",
-    "log_steam_auth_failed": "Falha na autenticação do Steam",
-    "log_steam_auth_failed_hint": "Verifique se o Steam está em execução e se as bibliotecas do steamclient estão acessíveis."
+    "cannot_create_dir_hint": "Verifique as permissões da pasta ou escolha outro caminho."
   }
 }

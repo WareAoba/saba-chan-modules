@@ -185,7 +185,6 @@
     "stop": { "label": "停止", "description": "サーバーを正常に停止します" }
   },
   "errors": {
-    "chat_failed": "ゲームチャット送信失敗: {{error}}",
     "backup_paths_failed": "バックアップ対象のプラグインフォルダー読み込み失敗: {{error}}",
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
     "timeout": "サーバー応答タイムアウト。サーバーの状態を確認してください。",

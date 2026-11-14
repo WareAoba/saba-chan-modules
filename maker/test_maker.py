@@ -567,7 +567,7 @@ def test_check_reads_its_own_version_and_requirement():
     plugin = json.loads((MAKER / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
 
     assert check.maker_version() == plugin["version"]
-    assert check.requirement() == ">=0.1.12-0"
+    assert check.requirement() == ">=0.1.14-beta.2"
 
 
 @pytest.mark.parametrize("installed, status", [("0.1.10", "ok"), ("0.1.11", "ok"), ("0.2.0", "ok"), ("0.1.9", "fail")])

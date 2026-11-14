@@ -311,6 +311,14 @@ def test_gamerule_takes_any_rule_name_and_an_optional_value():
     assert {i.get("type", "text") for i in gamerule["inputs"]} == {"text"}
 
 
+def test_the_java_path_setting_declares_the_java_runtime():
+    """데몬은 `runtime = "java"`인 설정을 가진 모듈에만 찾은 Java 목록(SABA_JAVA_RUNTIMES)을 넘기고,
+    사용자가 고른 경로를 격리된 실행에 열어 준다 (감사 D4: 데몬이 java_path라는 이름을 알지 않는다)"""
+    fields = {f["name"]: f for f in MANIFEST["settings"]["fields"]}
+    assert {name for name, f in fields.items() if "runtime" in f} == {"java_path"}
+    assert fields["java_path"]["runtime"] == "java"
+
+
 def test_settings_removed_from_server_properties_name_their_last_version():
     """1.21.2가 없앤 설정(spawn-animals, spawn-npcs)과 1.21.9가 게임 규칙으로 옮긴 설정(pvp, allow-nether,
     spawn-monsters, enable-command-block)은 그 앞 버전까지만 있다고 밝힌다: 데몬이 설치된 버전에 없는 설정을 숨긴다.

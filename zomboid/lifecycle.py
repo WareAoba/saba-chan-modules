@@ -25,17 +25,14 @@ from pathlib import Path
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Add project root for shared extensions
-_root_dir = os.path.normpath(os.path.join(MODULE_DIR, '..', '..'))
-if _root_dir not in sys.path:
-    sys.path.insert(0, _root_dir)
-
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, safe_join, daemon_stdin_command, diagnose_lines, graceful_stop, is_process_alive,
-                         load_diagnose_rules, read_key_values, request_console, request_terminate, setting_file_keys,
+import daemon_rcon
+from daemon_rcon import (PathOutside, safe_join, auto_heap_mb, daemon_stdin_command, enforce_remote_access, extension_required,
+                         graceful_stop, java_release_major, list_dir, rcon_access, read_key_values, remote_access_values,
+                         request_console, request_terminate, setting_file_keys,
                          delete_paths, setting_defaults_to_file, stop_command,
-                         settings_to_file, tail_lines, update_key_values)
+                         settings_to_file, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
@@ -235,6 +232,8 @@ def _parse_bat(content, variables):
     # 1단계: SET 변수 수집 (SET PZ_CLASSPATH=..., SET JAVA_HOME=... 등)
     for m in re.finditer(r'(?im)^\s*SET\s+(\w+)=(.+)$', content):
         variables[m.group(1).strip()] = m.group(2).strip()
+    for m in re.finditer(r'(?im)^\s*SET\s+"(\w+)=([^"\r\n]*)"', content):  # set "VAR=값"
+        variables[m.group(1)] = m.group(2).strip()
 
     # 2단계: java 실행 행 찾기 — "java" 또는 "java.exe"가 포함된 행
     #   SET, REM, PAUSE 등 명령은 제외
@@ -260,6 +259,8 @@ def _parse_bat(content, variables):
         name = m.group(1)
         return variables.get(name, m.group(0))
     java_line = re.sub(r'%(\w+)%', expand_var, java_line)
+    # %~dp0 = 스크립트 폴더 (= 서버 폴더, 상대 경로와 같다)
+    java_line = re.sub(r'(?i)%~dp0', '', java_line)
     # 후행 %1 %2 등 제거
     java_line = re.sub(r'%\d+', '', java_line).strip()
 
@@ -365,6 +366,22 @@ def _parse_java_cmdline(cmdline):
     }
 
 
+# 스크립트가 실행할 때 입력받던 값처럼 사바쨩이 채울 수 없는 변수 (%RAM%, $RAM, ${RAM})
+_UNRESOLVED_RE = re.compile(r"%[^%\s]+%|\$\{?\w+")
+
+
+def _known_game_args(args):
+    """메인 클래스 뒤 인자에서 값을 모르는 변수가 남은 것을 뺀다. 값 자리였으면 그 옵션(-adminusername 등)도 함께"""
+    out = []
+    for arg in args:
+        if _UNRESOLVED_RE.search(arg):
+            if out and out[-1].startswith("-") and not _UNRESOLVED_RE.search(out[-1]):
+                out.pop()
+            continue
+        out.append(arg)
+    return out
+
+
 def _parse_launch_info(config, server_dir):
     """배치/쉘 스크립트를 파싱하여 실행 정보를 반환합니다.
     
@@ -415,52 +432,58 @@ def _find_java(server_dir):
     return None
 
 
-# 자동 힙 크기 (minecraft 모듈과 같은 규칙): 8G. PC 몫으로 1.5GB를 남기지 못하면 4G, 그것도 못 남기면 PC − 1.5GB(2G 아래로는 내리지 않는다)
-_AUTO_HEAP_MB = 8 * 1024
-_SMALL_HEAP_MB = 4 * 1024
-_HOST_RESERVE_MB = 1536
-_MIN_AUTO_HEAP_MB = 2 * 1024
-
-
 def _heap_size(ram):
-    """설정한 메모리(GB 숫자) → JVM 크기 문자열("4g"). 비었으면 데몬이 넘긴 PC 메모리(`SABA_HOST_MEMORY`, 바이트)로 정한다"""
+    """설정한 메모리(GB 숫자) → JVM 크기 문자열("4g"). 비었으면 PC 메모리에 맞춘 자동값(공용 auto_heap_mb)"""
     if ram is not None and str(ram).strip() != "":
         try:
             return f"{int(ram)}g"
         except (ValueError, TypeError):
             return "4g"
-    try:
-        host_mb = int(os.environ.get("SABA_HOST_MEMORY") or 0) // (1024 * 1024)
-    except ValueError:
-        host_mb = 0
-    if host_mb <= 0 or host_mb - _HOST_RESERVE_MB >= _AUTO_HEAP_MB:
-        mb = _AUTO_HEAP_MB
-    elif host_mb - _HOST_RESERVE_MB >= _SMALL_HEAP_MB:
-        mb = _SMALL_HEAP_MB
-    else:
-        mb = max(host_mb - _HOST_RESERVE_MB, _MIN_AUTO_HEAP_MB)
+    mb = auto_heap_mb()
     return f"{mb // 1024}g" if mb % 1024 == 0 else f"{mb}m"
 
 
 _COH_FLAG = "-XX:+UseCompactObjectHeaders"
 
 
-def _bundled_java_major(java_path):
-    """동봉 JRE의 주 버전 (JRE 폴더 release 파일의 JAVA_VERSION). 읽지 못하면 0"""
-    release = os.path.join(os.path.dirname(os.path.dirname(java_path)), "release")
-    try:
-        with open(release, encoding="utf-8", errors="replace") as f:
-            match = re.search(r'^JAVA_VERSION="(\d+)', f.read(), re.MULTILINE)
-    except OSError:
-        return 0
-    return int(match.group(1)) if match else 0
-
-
 def _coh_flags(java_path, flags):
     """동봉 JRE가 Java 25 이상이면 Compact Object Headers(JEP 519, 힙 절약)를 켠다. 스크립트가 이미 정했으면 그대로 둔다"""
-    if any("CompactObjectHeaders" in f for f in flags) or _bundled_java_major(java_path) < 25:
+    java_home = os.path.dirname(os.path.dirname(java_path))
+    if any("CompactObjectHeaders" in f for f in flags) or java_release_major(java_home) < 25:
         return []
     return [_COH_FLAG]
+
+
+# 게임 공식 실행 스크립트의 JVM 인자 (메모리·GC·라이브러리 경로 말고)
+_OFFICIAL_JVM_FLAGS = (
+    "-Djava.awt.headless=true",
+    "-Dzomboid.steam=1",
+    "-Dzomboid.znetlog=1",
+    "-XX:-CreateCoredumpOnCrash",
+    "-XX:-OmitStackTraceInFastThrow",
+)
+
+
+def _is_jvm_arg(arg):
+    """메인 클래스 앞에 와야 JVM이 읽는 인자 (-D·-X·-javaagent 등). PZ 게임 인자(-debug, -nosteam 등)는 이렇게 시작하지 않는다"""
+    return arg.startswith(("-D", "-X", "-javaagent:", "-agentlib:", "-agentpath:", "--add-", "--enable-"))
+
+
+def _managed_jvm_arg(arg):
+    """사바쨩이 정하는 JVM 인자: 공식 스크립트 인자, 메모리, GC, 라이브러리 경로, 데이터 폴더, Compact Object Headers"""
+    return (arg in _OFFICIAL_JVM_FLAGS or arg == "-Dzomboid.steam=0" or arg == _COH_FLAG
+            or arg.startswith(("-Xms", "-Xmx", "-Djava.library.path=", "-Ddeployment.user.cachedir="))
+            or bool(re.fullmatch(r"-XX:\+Use\w+GC|-XX:[+-]ZGenerational", arg)))
+
+
+def _script_jvm_args(server_dir):
+    """쓰던 실행 스크립트에만 있던 JVM 인자 (자바 모드 로더 등). Steam 업데이트가 스크립트를 공식 내용으로 되돌려도 남게
+    가져오기가 추가 실행 인자로 옮긴다"""
+    script = _find_launch_script(server_dir) if server_dir else None
+    info = _parse_launch_script(script) if script else None
+    if not info:
+        return []
+    return [a for a in info["jvm_flags"] if not _managed_jvm_arg(a) and not _UNRESOLVED_RE.search(a)]
 
 
 def _gc_flags(config, flags):
@@ -504,35 +527,20 @@ def _get_native_libs(server_dir):
     return ";".join(paths) if sys.platform == "win32" else ":".join(paths)
 
 
-def _rcon_access(config):
-    """관리형 시작을 끈 서버의 RCON 접속 정보 (데몬이 만든 포트·비밀번호). 관리형이거나 데몬이 주지 않았으면 None"""
-    config = config or {}
-    if config.get("managed", True) is not False:
-        return None
-    password, port = config.get("rcon_password"), config.get("rcon_port")
-    return (str(port), str(password)) if password and port else None
-
-
 def _enforce_rcon_policy(ini_path, config=None):
     """RCON은 관리형 시작을 끈 서버에서만 켠다 (Project Zomboid는 RCONPassword가 비면 RCON을 끈다).
 
     관리형 시작은 콘솔(stdin)로 명령을 보낸다. 끄면 콘솔이 없어 데몬이 만든 포트·비밀번호의 RCON으로 보낸다.
+    쓸 값은 module.toml `[remote_access]` (공용 remote_access_values).
     Returns the RCON password written ("" when RCON is off).
     """
-    props = IniManager.read(ini_path) if os.path.exists(ini_path) else {}
-    access = _rcon_access(config)
-    if access:
-        port, password = access
-        if not os.path.exists(ini_path):
-            # 첫 시작: 서버가 만들 기본값 위에 RCON을 얹어 미리 만든다 (콘솔도 RCON도 없이 뜨지 않게)
-            IniManager.update(ini_path, {**setting_defaults_to_file(MODULE_DIR), "RCONPort": port, "RCONPassword": password})
-        elif (props.get("RCONPort"), props.get("RCONPassword")) != (port, password):
-            IniManager.update(ini_path, {"RCONPort": port, "RCONPassword": password})
-        return password
-    if props.get("RCONPassword", ""):
-        IniManager.update(ini_path, {"RCONPassword": ""})
-        print(i18n.t("messages.rcon_disabled_managed"), file=sys.stderr)
-    return ""
+    access = rcon_access(config)
+    if os.path.exists(ini_path):
+        enforce_remote_access(MODULE_DIR, config, IniManager.read(ini_path), lambda changes: IniManager.update(ini_path, changes))
+    elif access:
+        # 첫 시작: 서버가 만들 기본값 위에 RCON을 얹어 미리 만든다 (콘솔도 RCON도 없이 뜨지 않게)
+        IniManager.update(ini_path, {**setting_defaults_to_file(MODULE_DIR), **remote_access_values(MODULE_DIR, config)})
+    return access[1] if access else ""
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -637,18 +645,29 @@ def get_launch_command(config):
     # ── 1차: 배치/쉘 스크립트 파싱 ──
     parsed = _parse_launch_info(config, server_dir)
 
+    # 사용자가 더한 인자: JVM 인자는 메인 클래스 앞에, 게임 인자는 뒤에 (스크립트에 이미 있는 JVM 인자는 거듭 넣지 않는다)
+    user_args = config.get("extra_args")
+    user_args = [str(a) for a in user_args] if isinstance(user_args, list) else []
+    in_script = set(parsed["jvm_flags"]) if parsed else set()
+    user_jvm = [a for a in user_args if _is_jvm_arg(a) and a not in in_script]
+    user_game = [a for a in user_args if not _is_jvm_arg(a)]
+
     if parsed:
         java_path = parsed["java_exe_abs"]
         classpath = parsed["classpath"]
+        if not classpath or _UNRESOLVED_RE.search(classpath):
+            classpath = _resolve_classpath(server_dir)
+            if not classpath:
+                return {"success": False, "message": i18n.t("errors.classpath_not_found")}
         
-        # 파싱된 JVM 플래그에서 메모리 설정만 사용자 값으로 교체
+        # 파싱된 JVM 플래그에서 메모리 설정만 사용자 값으로 교체. 값을 모르는 변수가 남은 플래그는 뺀다 (JVM이 시작을 거절한다)
         jvm_flags = []
         for flag in parsed["jvm_flags"]:
             if flag.startswith("-Xms"):
                 jvm_flags.append(f"-Xms{heap}")
             elif flag.startswith("-Xmx"):
                 jvm_flags.append(f"-Xmx{heap}")
-            else:
+            elif not _UNRESOLVED_RE.search(flag):
                 jvm_flags.append(flag)
         jvm_flags = _gc_flags(config, jvm_flags)
         jvm_flags += _coh_flags(java_path, jvm_flags)
@@ -658,7 +677,7 @@ def get_launch_command(config):
         extra_args = []
         skip_next = False
         servername_set = False
-        for i, arg in enumerate(parsed["extra_args"]):
+        for i, arg in enumerate(_known_game_args(parsed["extra_args"])):
             if skip_next:
                 skip_next = False
                 continue
@@ -672,7 +691,7 @@ def get_launch_command(config):
         if not servername_set:
             extra_args.extend(["-servername", server_name])
         
-        args = jvm_flags + ["-cp", classpath, main_class] + extra_args
+        args = jvm_flags + user_jvm + ["-cp", classpath, main_class] + extra_args + user_game
     else:
         # ── 2차: 하드코딩 폴백 ──
         java_path = _find_java(server_dir)
@@ -686,12 +705,8 @@ def get_launch_command(config):
         native_libs = _get_native_libs(server_dir)
         
         args = _gc_flags(config, [
-            "-Djava.awt.headless=true",
-            "-Dzomboid.steam=1",
-            "-Dzomboid.znetlog=1",
+            *_OFFICIAL_JVM_FLAGS,
             "-XX:+UseZGC",
-            "-XX:-CreateCoredumpOnCrash",
-            "-XX:-OmitStackTraceInFastThrow",
             f"-Xms{heap}",
             f"-Xmx{heap}",
             *_coh_flags(java_path, []),
@@ -701,6 +716,8 @@ def get_launch_command(config):
             "-servername", server_name,
             "-statistic", "0",
         ])
+        main = args.index("-cp")
+        args = args[:main] + user_jvm + args[main:] + user_game
     
     # ── 공통 후처리 ──
     # No-steam mode
@@ -749,19 +766,8 @@ def get_launch_command(config):
         "program": java_path,
         "args": args,
         "working_dir": server_dir,
+        "extra_args_placed": True,
     }
-
-
-def status(config):
-    """Check the current server status by the daemon-tracked PID."""
-    pid = config.get("pid")
-    if pid and is_process_alive(pid):
-        return {
-            "success": True,
-            "status": "running",
-            "message": i18n.t("messages.server_starting_no_response"),
-        }
-    return {"success": True, "status": "stopped"}
 
 
 # ╔═══════════════════════════════════════════════════════════╗
@@ -846,9 +852,9 @@ def _script_settings(server_dir):
     if ram:
         found["ram"] = ram
     for flag in info["jvm_flags"]:
-        if flag.startswith("-Ddeployment.user.cachedir="):
+        if flag.startswith("-Ddeployment.user.cachedir=") and not _UNRESOLVED_RE.search(flag):
             found["data_home"] = flag.split("=", 1)[1]
-    args = info["extra_args"]
+    args = _known_game_args(info["extra_args"])  # 실행할 때 입력받던 값(%NAME%)은 가져오지 않는다
     for i, arg in enumerate(args):
         if arg == "-servername" and i + 1 < len(args):
             found["server_name"] = args[i + 1]
@@ -896,8 +902,10 @@ def import_settings(config):
         if not result.get("success"):
             return result
         raw_props = result.get("properties", {})
+    extra = {"extra_args": script_args} if (script_args := _script_jvm_args(server_dir)) else {}
     if not raw_props:
-        return {"success": True, "settings": {**found, "data_home": _zomboid_home(config)}, "message": i18n.t("messages.no_properties_found")}
+        return {"success": True, "settings": {**found, "data_home": _zomboid_home(config)}, **extra,
+                "message": i18n.t("messages.no_properties_found")}
 
     from daemon_rcon import coerce_setting, load_setting_types
     types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
@@ -905,7 +913,7 @@ def import_settings(config):
     settings.update(found)
     settings["data_home"] = _zomboid_home(config)
 
-    return {"success": True, "settings": settings}
+    return {"success": True, "settings": settings, **extra}
 
 
 def config_files(config):
@@ -1037,24 +1045,13 @@ def player_count(config):
 
 
 def diagnose_log(config):
-    """Analyze server log for known error patterns (module.toml [[diagnose]]).
+    """Analyze server log for known error patterns (module.toml [[diagnose]], 공용 diagnose_log).
     데몬이 준 이번 실행의 콘솔 줄을 먼저 보고, 없으면 서버 콘솔 로그(server-console.txt) 끝부분을 본다.
     클라이언트 로그(console.txt)는 보지 않는다: 같은 PC에서 게임을 한 기록을 서버 문제로 보게 된다"""
-    log_lines = config.get("log_lines") or []
-    if isinstance(log_lines, str):
-        log_lines = log_lines.splitlines()
-    if not log_lines:
-        candidates = [os.path.join(_zomboid_home(config), "server-console.txt")]
-        if config.get("working_dir"):
-            candidates.insert(0, os.path.join(config["working_dir"], "server-console.txt"))
-        for path in candidates:
-            log_lines = tail_lines(path)
-            if log_lines:
-                break
-    if not log_lines:
-        return {"success": True, "issues": [], "message": i18n.t("messages.no_log_files")}
-    return {"success": True, "issues": diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n),
-            "lines_analyzed": len(log_lines)}
+    files = [os.path.join(_zomboid_home(config), "server-console.txt")]
+    if config.get("working_dir"):
+        files.insert(0, os.path.join(config["working_dir"], "server-console.txt"))
+    return daemon_rcon.diagnose_log(config, MODULE_DIR, i18n, files=files)
 
 
 # 서버마다 고를 수 있는 Steam 브랜치 (첫 항목이 기본). 이름은 locales `versions.<id>`.
@@ -1083,11 +1080,7 @@ def install_server(config):
         return {"success": False, "message": i18n.t("errors.unknown_branch", branch=branch)}
     install_dir = config.get("install_dir", "")
     if not install_dir:
-        working_dir = config.get("working_dir", "")
-        if working_dir:
-            install_dir = os.path.join(working_dir, "server")
-        else:
-            return {"success": False, "message": i18n.t("errors.no_install_dir")}
+        return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     os.makedirs(install_dir, exist_ok=True)
 
@@ -1095,8 +1088,7 @@ def install_server(config):
     try:
         from extensions.steamcmd import install_for_module
     except ImportError:
-        return {"success": False, "message": i18n.t("errors.extension_not_enabled"),
-                "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
+        return extension_required(i18n, "steamcmd")
     try:
         # 정식으로 돌아갈 때도 브랜치 이름(public)을 적어 넘긴다: -beta 없이 받으면 받아 둔 브랜치에 머문다
         result = install_for_module(MODULE_DIR, install_dir, beta=branch)
@@ -1217,11 +1209,11 @@ def backup_snapshots(config):
     root = safe_join(home, "backups")
     try:
         snapshots = []
-        for kind in _entries_or_empty(root):
+        for kind in list_dir(root):
             folder = safe_join(root, kind)
             if not os.path.isdir(folder):
                 continue
-            for name in _entries_or_empty(folder):
+            for name in list_dir(folder):
                 path = safe_join(folder, name)
                 if not (name.endswith(".zip") and os.path.isfile(path)):
                     continue
@@ -1242,11 +1234,7 @@ def backup_snapshots(config):
         return {"success": False, "message": i18n.t("errors.backup_paths_failed", error=str(e))}
 
 
-def _entries_or_empty(path):
-    try:
-        return sorted(os.listdir(path))
-    except FileNotFoundError:
-        return []
+
 
 
 def _server_config_files(server_dir, server_name):
@@ -1292,7 +1280,6 @@ def backup_paths(config):
 FUNCTIONS = {
     "validate":           validate,
     "get_launch_command": get_launch_command,
-    "status":             status,
     "stop":               stop,
     "command":            command,
     "configure":          configure,

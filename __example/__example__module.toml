@@ -44,7 +44,7 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 
 # 공용 SDK import 중 가장 새 SINCE 버전 이상을 선언합니다.
 [module.dependencies]
-saba-core = ">=0.1.11-0"
+saba-core = ">=0.1.14-beta.2"
 
 # ── [protocols] 통신 프로토콜 ────────────────────────────────────
 #
@@ -79,25 +79,39 @@ supported = ["stdin"]                   # ← 게임에 맞게 선택 ("stdin" |
 default = "stdin"
 interaction_mode = "console"            # "console" 또는 "commands"
 
-# ── [credential_map] 자격증명 자동 동기화 ────────────────────────
+# ── [protocols.rest] REST 접속값 (saba-chan 0.1.14-beta.2) ───────
 #
-#  데몬 표준 키 ↔ 게임별 설정 키 매핑을 선언합니다.
-#  get_launch_command()가 게임 키 값을 반환하면, 데몬이 자동으로
-#  해당 데몬 키에 동기화합니다.
+#  REST API가 있는 게임만 적습니다. 접속 주소·포트·비밀번호는 인스턴스 설정에만 있고,
+#  어느 설정인지를 여기서 가리킵니다 (값을 데몬·모듈에 다시 적지 않습니다).
+#    host_setting      접속 주소가 든 설정 이름 (기본 "rest_host")
+#    port_setting      포트가 든 설정 이름 (기본 "rest_port"). `port = true`인 설정이어야 합니다
+#    password_setting  비밀번호가 든 설정 이름. `type = "password"`인 설정이어야 합니다.
+#                      "비밀번호 자동 생성"이 빈 값을 채우고, get_launch_command()가
+#                      `rest_credentials: {rest_password}`로 돌려준 값을 데몬이 여기에 적습니다
+#    username          게임이 정한 사용자 이름 (기본 인증)
 #
-#  사용 가능한 데몬 키:
-#    - rest_password  : REST API 비밀번호
-#    - rest_username  : REST API 사용자명
+#  예시: Palworld는 REST 비밀번호가 INI의 AdminPassword(설정 admin_password)이고 사용자 이름은 admin
+#    [protocols.rest]
+#    port_setting = "rest_port"
+#    password_setting = "admin_password"
+#    username = "admin"
+
+# ── [remote_access] 사바쨩이 정하는 원격 접속 값 (saba-chan 0.1.14-beta.2) ──
 #
-#  예시: Palworld는 REST API 비밀번호가 INI의 AdminPassword와 같음
-#    [credential_map]
-#    rest_password = "AdminPassword"
+#  RCON 끄기·켜기, REST 켜기처럼 사용자가 아니라 사바쨩이 정하는 게임 설정 파일 값을 한 곳에 적습니다.
+#  공용 remote_access_values(MODULE_DIR, config)가 읽고, 새 설정 파일·configure·실행 전이 모두 그 값을 씁니다.
+#    forced               늘 쓰는 값 {게임 설정 파일 키 = "값"}
+#    [remote_access.rcon] 관리형 시작을 끈 서버만 RCON을 켭니다: 데몬이 포트·비밀번호를 주면 on 값과
+#                         port·password 키에 그 값을, 아니면 off 값을 씁니다
 #
-#  매핑을 선언하면 lifecycle.py에서 rest_credentials를 직접 반환할
-#  필요 없이, 게임 키 값만 launch_result 최상위에 포함하면 됩니다.
+# [remote_access]
+# forced = { RESTAPIEnabled = "True" }
 #
-# [credential_map]
-# rest_password = "GameSpecificAdminPassword"
+# [remote_access.rcon]
+# port = "rcon.port"
+# password = "rcon.password"
+# on = { enable-rcon = "true" }
+# off = { enable-rcon = "false" }
 
 # ── [config] 기본 실행 설정 ──────────────────────────────────────
 [config]
@@ -105,7 +119,7 @@ executable_path = ""                    # 기본 실행 파일 전체 경로 (�
 server_executable = "MyGameServer.exe"  # 실행 파일명 (프로세스 탐지용)
 process_name = "MyGameServer"           # 프로세스 이름 (tasklist/pgrep 탐지용)
 default_port = 7777                     # 기본 게임 포트
-stop_command = "quit"                   # stdin으로 전송하는 graceful 종료 명령어
+stop_command = "quit"                   # 콘솔(stdin)에 보내는 저장 후 종료 명령. lifecycle은 공용 stop_command(MODULE_DIR)로 읽습니다
 
 # ── [install] 서버 설치 방법 ─────────────────────────────────────
 #
@@ -120,6 +134,7 @@ app_id = 123456                         # Steam App ID (steamcmd일 때 필수)
 anonymous = true                        # 익명 로그인 가능 여부
 install_subdir = "server"               # 설치 하위 폴더
 requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
+# download_size = 5_000_000_000         # 받는 양의 어림값(바이트). 익스텐션이 전체 크기를 모를 때 진행률에 씁니다 (0.1.14-beta.2)
 # download_url = "https://..."          # method="download"일 때 사용
 # beta = "experimental"                 # 베타 브랜치 이름 (선택)
 
@@ -140,6 +155,7 @@ dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해�
 # log_files = ["Logs/*.log"]            # 작업 폴더 기준, 마지막 칸만 * ?
 # console = "pty"                       # stdout이 파이프면 끝날 때까지 모아 두는 서버 (기본 "pipe")
 # line_start = '\[LOG\]'                # 줄바꿈 없이 이어 쓰는 서버: 이 정규식이 맞는 자리마다 새 줄 (빈 글자에 맞으면 안 됨)
+# diagnose_files = ["logs/latest.log"]  # 콘솔 줄이 없을 때 진단(diagnose_log)이 읽는 로그 파일 (서버 폴더 기준, 0.1.14-beta.2)
 
 # ── [extensions.<익스텐션 id>] 익스텐션별 설정 ───────────────────
 #  익스텐션이 읽는 모듈별 설정을 여기에 둡니다. 데몬은 내용을 보지 않고 넘깁니다.
@@ -165,6 +181,8 @@ dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해�
 #    arg = "-port={value}"   이 값이 실행 인자로 들어가는 모양(실행 인자 미리보기용)
 #    format = "memory_size" | "port" | "integer" | "path",  pattern = '정규식'   값 형식 검사
 #    default = "{instance_dir}/data"   인스턴스마다 따로 둘 폴더
+#    runtime = "java"   이 PC의 실행 환경(Java) 경로를 고르는 설정. 데몬이 찾은 목록(SABA_JAVA_RUNTIMES)을
+#                       이 모듈에 넘기고, 고른 경로를 격리된 실행에 열어 줍니다 (0.1.14-beta.2)
 #
 [settings]
 

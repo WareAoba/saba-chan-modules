@@ -193,7 +193,6 @@
     "stop": { "label": "Stop", "description": "Gracefully stop the server" }
   },
   "errors": {
-    "chat_failed": "Game chat send failed: {{error}}",
     "backup_paths_failed": "Backup plugin folder read failed: {{error}}",
     "server_not_running": "Server not running. Start the server first.",
     "timeout": "Server response timed out. Check the server status.",

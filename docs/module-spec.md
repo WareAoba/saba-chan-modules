@@ -43,6 +43,8 @@ saba-core module schema                    # JSON Schema 출력 (= schema/module
 ### `[protocols]` ○
 `supported` (`"stdin"` `"rest"` `"rcon"` 중. 우선순위는 stdin → rest → rcon이고, `"rcon"`은 stdin·rest가 없는 게임만 선언한다), `rcon_port` (게임의 기본 RCON 포트, `supported`가 rcon뿐이면 필수), `default`, `interaction_mode` (`"console"` 콘솔 화면 / `"commands"` 명령 버튼만).
 
+`[protocols.rest]` (REST를 받는 게임, saba-core 0.1.14-beta.2): 데몬이 REST로 붙을 때 쓰는 값이 어느 설정에 있는지 적는다. `host_setting`(기본 `rest_host`, 값이 없으면 127.0.0.1), `port_setting`(기본 `rest_port`, `port = true` 설정이어야 한다), `password_setting`(`type = "password"` 설정. 데몬의 "비밀번호 자동 생성"이 빈 값을 채우고, `get_launch_command`가 돌려준 `rest_credentials.rest_password`를 여기에 적는다), `username`(게임이 정한 기본 인증 사용자 이름). REST 접속값은 인스턴스 설정(`module_settings`)의 그 설정에만 있고, 모듈은 다른 설정처럼 config에서 그 이름으로 읽는다. 예전의 `[credential_map]`은 없어졌다(palworld 참고).
+
 RCON만 받는 모듈: 데몬이 인스턴스마다 포트·무작위 비밀번호를 정해 config에 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 이 값을 게임 설정에 쓰고 RCON을 127.0.0.1에서만 받게 한다. 콘솔 명령과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 정지는 모듈 `stop()`이 데몬 `/api/instance/:id/rcon`으로 보낸다. 계약 원문은 saba-chan `docs/architecture/02-modules.md` RCON 정책.
 
 ### `[config]` ○
@@ -51,6 +53,7 @@ RCON만 받는 모듈: 데몬이 인스턴스마다 포트·무작위 비밀번�
 ### `[launch]` ○
 `log_files`: 서버가 콘솔 대신 파일에만 로그를 쓸 때, 그 파일들을 콘솔에 합친다. 와일드카드 `*` `?`는 마지막 칸에만.
 `console`: `"pipe"`(기본) 또는 `"pty"`. stdout이 파이프면 끝날 때까지 모아 두는 서버(블록 버퍼링)는 `"pty"`로 의사 콘솔(Windows ConPTY)에 띄워 줄마다 받는다. stdout과 stderr가 한 갈래로 합쳐지고 터미널 제어 문자는 지워진다. stdin 명령은 Enter로 보내진다. 의사 콘솔에서 줄바꿈 없이 쓴 조각은 0.5초 동안 더 오는 출력이 없으면 한 줄로 보인다.
+`diagnose_files` (saba-core 0.1.14-beta.2): 로그 진단이 콘솔 줄을 받지 못했을 때 끝부분을 읽을 로그 파일(서버 폴더 기준 상대 경로, 앞에서부터 줄이 있는 첫 파일). 공용 `daemon_rcon.diagnose_log`가 읽는다.
 `line_start`: 줄 머리 정규식. 서버가 줄바꿈 없이 이어 쓰는 로그(팰월드 `[LOG] REST accessed ...`)를 맞는 자리마다 새 줄로 나눈다(줄 처음은 나누지 않는다). 없으면 나누지 않는다. 틀린 정규식이나 빈 글자에 맞는 정규식이면 모듈을 받지 않는다(스키마 이전 모듈은 경고 뒤 쓰지 않는다). §1.1 실측에서 연달아 찍힌 줄이 한 줄로 붙을 때만 쓴다.
 
 Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나거나 강제 종료되면 서버와 서버가 띄운 프로세스가 같이 끝난다. 런처 exe(곧바로 끝나고 진짜 서버를 남기는 것)를 띄우면 러너가 남은 프로세스를 따라가지만 콘솔 출력은 받지 못하므로, `get_launch_command`는 진짜 서버 exe를 돌려준다.
@@ -66,20 +69,21 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 종료 판정 순서: 사바쨩이 보낸 정지 → 크래시 흔적(Windows 예외 종료 코드, unix 크래시 시그널, 새 `crash_artifacts` 파일) → `graceful_exit_patterns` → 종료 코드 0 → 원인 모름. 크래시만 자동으로 다시 띄운다(10분에 3번까지). 흔적을 선언하지 않으면 크래시를 알아보지 못하니, 게임이 크래시 때 남기는 파일을 꼭 적는다.
 
 ### `[install]` ○
-`method` (`"manual"` 기본 / `"download"`는 내장, 그 밖의 값은 그 방식을 처리하는 익스텐션 id, 예: `"steamcmd"`), `app_id`, `anonymous`(기본 true), `install_subdir`, `platform`, `download_url`, `beta`(지정하면 항상 이 브랜치로 설치), `requires_extensions`(필요한 익스텐션 id 목록).
+`method` (`"manual"` 기본 / `"download"`는 내장, 그 밖의 값은 그 방식을 처리하는 익스텐션 id, 예: `"steamcmd"`), `app_id`, `anonymous`(기본 true), `install_subdir`, `platform`, `download_url`, `beta`(지정하면 항상 이 브랜치로 설치), `download_size`(받을 파일의 대략적인 크기, 바이트. 설치 방식 익스텐션이 진행률을 어림하는 데 쓴다. saba-core 0.1.14-beta.2), `requires_extensions`(필요한 익스텐션 id 목록).
 - `platform`은 받기만 하고 읽는 곳이 없다: steamcmd는 언제나 데몬이 도는 OS의 배포물을 받는다. 적지 않는다. 모듈이 도는 OS는 `[extensions.saba-core] platforms`로 선언한다.
-- 익스텐션 방식이면 데몬이 인스턴스 `extension_data`에 `install_method_<방식>`=true와 `<방식>_<필드>`(anonymous, app_id, beta, platform, download_url)를 쓴다. 서버 업데이트(`apply-update`)는 이런 인스턴스만 받는다.
+- 익스텐션 방식이면 데몬이 인스턴스 `extension_data`에 `install_method_<방식>`=true와 사용자가 고른 브랜치 `<방식>_beta`만 쓴다(0.1.14-beta.2부터 앱 ID 같은 `[install]` 값은 인스턴스에 복사하지 않는다: 익스텐션은 module.toml이나 hook ctx의 `install`에서 읽는다). 서버 업데이트(`apply-update`)는 이런 인스턴스만 받는다.
 - 모듈 Python은 `import extensions.<이름>`으로 익스텐션을 쓴다. 활성화된 익스텐션만 import된다: 데몬이 넣는 import 가드가 나머지를 `ModuleNotFoundError`로 막는다(`-`와 `_`는 같다). 익스텐션을 쓰는 코드는 함수 안에서 import하고 `ImportError`를 "익스텐션 없음" 응답으로 바꾼다(palworld의 `ExtensionMissing` 참고).
 
 ### `[[settings.fields]]` ○
 인스턴스 설정 화면 항목. `name` ✔, `type`(`text` `number` `password` `boolean` `select` `file`, 기본 text. 이 밖의 값은 GUI가 그리지 않아 설정이 보이지 않는다), `label`, `description`, `required`, `default`, `min`, `max`, `step`, `options`(문자열 목록), `group`(`basic` 기본 / `advanced` / `saba-chan`). `saba-chan`은 게임 설정 파일에 없는 사바쨩 설정(실행 방식·Java 경로·메모리·실행 인자 등)이라는 선언이라, 설정을 저장할 때 `configure`의 `settings`로 넘어가지 않는다. 진입 파일은 이 값을 config 최상위에서 읽는다.
 - `install = true`: 서버를 만들 때 고르는 값(받을 서버 파일이 달라지는 값, 예: 서버 종류). GUI 새 서버 화면과 CLI `server add`가 묻는다. GUI는 `select`만 보인다.
-- `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`·`rest_port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
+- `port = true`: 네트워크 포트 값. 같은 게임을 여러 개 만들면 데몬이 새 인스턴스의 포트를 모두 같은 폭(10의 배수)만큼 옮겨 다른 인스턴스와 겹치지 않게 한다. 인스턴스 필드 `port`는 표시하지 않아도 옮겨진다. 사용자가 포트를 직접 주거나 기존 서버를 가져오면 옮기지 않는다.
 - `arg`: 이 값이 실행 인자로 들어가는 모양. 문자열 하나나 배열이고, 공백으로 나눈 토큰에 `{value}`는 많아야 한 번이다(`"--port={value}"`, `"-servername {value}"`, `["-Xmx{value}", "-Xms{value}"]`). `{value}`가 없으면 boolean 플래그다. `{value}`뿐인 모양은 로드 오류다. 실행 인자 미리보기가 사용자가 친 추가 인자를 이 필드로 되돌릴 때만 쓴다. 실제 실행 줄은 여전히 `get_launch_command`가 만들므로 같은 모양으로 넣는다. 실행 인자로 들어가는 필드에만 쓴다.
 - `format`: 값 형식. `memory_size`(숫자+K/M/G 한 글자, `4G`·`1024M`), `port`(1~65535), `integer`, `path`. `pattern`: 값 전체가 맞아야 하는 정규식. 둘 다 저장과 미리보기에서 검사하고, 틀리면 "잘못된 형식입니다"로 막는다(모듈이 안내 문구를 줄 필요는 없다).
+- `runtime = "java"` (saba-core 0.1.14-beta.2): 이 설정 값이 서버를 띄우는 런타임 실행 파일의 경로라는 선언(지금 종류는 `java`). 사용자가 직접 정한 값만 확인되지 않은 모듈의 실행 대상으로 인정되고 격리 실행에 읽기로 열리며, 원격(디스코드·챗봇)에서는 바꿀 수 없다. 이 종류를 선언한 모듈의 호출에만 데몬이 찾은 런타임 목록(`SABA_JAVA_RUNTIMES`)이 온다(minecraft `java_path` 참고).
 - `versions`: 이 설정이 있는 게임 버전 범위. 비교(`<` `<=` `>` `>=` `=`)와 점으로 나눈 숫자 버전을 공백이나 쉼표로 잇는다(`"<1.21.9"`, `">=1.13 <1.20"`). 설치된 버전(인스턴스 `server_version`)이 밖이면 그 서버에는 없는 설정이라 앱과 CLI가 숨기고 `required`를 보지 않는다. 버전을 모르거나 숫자 버전이 아니면 모두 보인다. 읽을 수 없는 범위는 로드 오류. 숨긴 설정이 있을 때 안내 줄에 덧붙일 한 문장은 locales `settings_note.version_hidden`(선택)에 둔다.
 - 문자열 `default`의 `{instance_dir}`은 새 인스턴스 폴더로 바뀐다(인스턴스마다 따로 둘 게임 데이터 폴더 등). 기존 서버를 가져올 때는 빈 값이 들어가므로 모듈은 빈 값을 그 게임의 기본 위치로 다룬다(zomboid `cache_dir` 참고).
-데몬이 직접 의미를 아는 이름: `rest_port`, `rest_host`, `managed_start`, `log_sessions_keep`, `auto_restart`(크래시 때 다시 띄우기, 기본 true), `restart_on_unknown_exit`(원인 모를 종료도 다시 띄우기, 기본 false). 모듈이 선언하지 않아도 인스턴스 설정에 넣으면 데몬이 읽는다.
+데몬이 직접 의미를 아는 이름(REST 접속값은 `[protocols.rest]`가 가리키는 설정이다): `managed_start`, `log_sessions_keep`, `auto_restart`(크래시 때 다시 띄우기, 기본 true), `restart_on_unknown_exit`(원인 모를 종료도 다시 띄우기, 기본 false). 모듈이 선언하지 않아도 인스턴스 설정에 넣으면 데몬이 읽는다.
 
 ### `[[commands.fields]]` ○
 명령 카탈로그에 실리는 게임 명령. GUI 버튼, CLI, 디스코드, AI 명령 해석이 모두 이 선언을 쓴다.
@@ -123,7 +127,8 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 ### 그 밖
 - `[aliases]`: `module_aliases`(모듈 별명), `[aliases.commands.<명령>]` `aliases`·`description`.
 - `[errors]`: 오류 코드 → 사용자 문구 (채팅 응답용).
-- `[credential_map]`: 데몬 표준 키 → 게임 설정 키. 예: `rest_password = "AdminPassword"`.
+- `[remote_access]` (saba-core 0.1.14-beta.2): 사바쨩이 정하는 원격 접속 값. 키는 게임 설정 파일의 키다. `forced = { 키 = "값" }`은 늘 그 값으로 두고, `[remote_access.rcon]`(`port`, `password`, `on`, `off`)은 관리형 시작을 끈 서버만 데몬이 준 포트·비밀번호로 RCON을 켠다. 공용 `daemon_rcon.remote_access_values`·`enforce_remote_access`가 설정 저장·첫 설치·실행 전에 같은 값을 쓴다. 같은 값을 코드에 다시 적지 않는다.
+- `[credential_map]`은 0.1.14-beta.2에서 없어졌다(`[protocols.rest] password_setting`).
 - `[[syntax_highlight.rules]]`: `name`, `pattern`, `color`, `bold`, `italic`. 콘솔 강조.
 - `[extensions.<익스텐션 id>]`: 익스텐션이 읽는 모듈별 설정. 데몬은 내용을 보지 않고 그대로 넘긴다.
 
@@ -140,20 +145,22 @@ Windows에서 saba-runner는 서버를 Job Object에 넣는다. 러너가 끝나
 |---|---|---|
 | `get_launch_command` ✔ | 서버 시작, 실행 인자 미리보기 | `program`, `args[]`, `working_dir`, `env_vars{}`. config에 `extra_args`(사용자가 더한 인자)가 온다: 알맞은 자리에 넣었으면 `extra_args_placed: true`(없으면 데몬이 끝에 붙인다). `preview: true`이면 미리보기다: 설정 파일·폴더를 쓰지 말고 실행 줄만 돌려준다 |
 | `stop` | managed인데 stdin 정지 명령이 없거나 안 통할 때, 그리고 non-managed 정지 | `success`. `force: false`인데 저장 후 종료를 요청할 길(콘솔·REST·POSIX SIGTERM)이 없으면 서버를 끝내지 않고 `success: false`, `error_code: "graceful_stop_unavailable"`, `message` |
-| `status` | non-managed 상태 조회 | `status`, `pid` |
+| `status` (선택) | non-managed 상태 조회. 없으면 데몬이 추적하는 PID가 살아 있는지로 답한다(saba-core 0.1.14-beta.2). PID 말고 더 볼 것이 있을 때만 만든다 | `status`, `pid` |
 | `command` | `method = "module"` 명령 | `success`, `message` |
-| `get_credentials` | REST 접속 정보가 필요할 때 | `rest_username`, `rest_password` |
+| `get_credentials` | REST 접속 정보가 필요할 때 | `rest_password`(게임 설정 파일의 값). 사용자 이름은 `[protocols.rest] username`에 적는다 |
 | `validate`, `configure`, `read_properties`, `reset_properties`, `reset_server` | 설정 화면 | `success` (+ 읽은 값) |
 | `reset_preview` (선택) | 초기화 확인 창을 열 때. 아무것도 지우지 않는다 | `success`, `scopes: [{id, label?, note?, items: [{label, paths[]}]}]`: 범위마다 `reset_server`가 지울 경로(서버 폴더 기준 상대 경로나 절대 경로)와 이름. 데몬이 지금 있는 것만 크기와 함께 보인다. 범위가 둘 이상이면 화면이 고르게 하고 고른 `id`가 `reset_server`의 config `scope`로 온다(없으면 모듈의 기본 범위). `label`은 범위가 둘 이상일 때만 쓴다 |
 | `read_lists` | 플레이어 탭을 열 때, `[[lists]]`를 선언했으면. 서버가 꺼져 있어도 온다. 읽기만 한다 | `success`, `lists: {<id>: [{name, added?, note?}]}`: 목록 id마다 지금 명단. `added`는 넣은 때(ISO 8601 날짜나 시각), `note`는 덧붙일 말(예: 밴 이유). 데몬은 이 세 값만 남긴다 |
 | `accept_agreements` | 사용자가 `[[agreements]]`에 동의한 뒤. config `accepted_agreements[]`에 있는 약관만 반영한다(예: eula.txt) | `success` |
-| `diagnose_log` | 로그 진단 | `success` |
+| `diagnose_log` | 로그 진단 | `success`, `issues[]` (공용 `daemon_rcon.diagnose_log(config, MODULE_DIR, i18n)`이 `[[diagnose]]` 규칙으로 만든다) |
 | `list_versions`, `get_version_details`, `install_server`, `get_installed_version` | 설치·업데이트 | 버전 목록(`versions[]`: 문자열이나 `{id, name?, type?}`, `latest.release`) / `executable_path`, `install_path` / `version`. 설치 방식 익스텐션(Steam 등)으로 받는 모듈이 `list_versions`를 만들면 그 목록은 서버마다 고르는 브랜치 목록이다: 고른 `id`가 `install_server`의 `version`으로 오고, 데몬이 인스턴스에 적어 업데이트 때도 같은 값을 넘긴다(예: zomboid) |
 | `import_settings` | 기존 서버 가져오기 | `settings{}` |
 | `backup_paths` | 백업 때, `[backup] hook = true`이면 | `paths[]`, 선택 `restore_roots[]`(복원만 허용하는 범위, 백업 대상 아님) (실패하면 백업과 그 뒤 업데이트·복원이 멈춘다) |
 | `instance_commands` | 명령 목록·실행 때, `[commands] hook = true`이면 | `commands[]` |
 | `[[queries]]`의 `function` | 조회할 때. config에 `args{입력 이름: 값}`이 온다 | `data` |
 | `[status] players`가 가리키는 함수 | 켜진 서버마다 1분에 한 번 | `online`(0 이상 정수), `max`(정수, 모르면 빼거나 0), 선택 `players:[{name}]`(config에 `players_detail: true`가 있을 때만 데몬이 이름을 바란다. 그때만 콘솔 명령 등으로 이름을 읽고, 1분 갱신에는 싣지 않는다. 이름 말고는 싣지 않는다). 서버에 닿지 않으면 `success: false`. 읽기만 한다 |
+
+`install_server`는 설치는 됐지만 사용자가 알아야 할 것이 있으면 `warning`(한 줄 문구)을 붙인다(예: minecraft가 맞는 Java를 받지 못했을 때). 데몬이 설치 진행 알림에, 앱이 완료 알림에 덧붙이고 서버를 자동으로 켜지 않는다. `java_warning` 같은 게임별 이름은 읽지 않는다(saba-core 0.1.14-beta.2).
 
 ✔ 표시가 없는 함수는 기능을 지원할 때만 만든다. 만들었다면 반드시 `FUNCTIONS` 표에 넣는다. 훅을 켰거나(`[backup]`·`[commands]`) module.toml이 이름으로 가리키는 함수(`[[queries]]`, `[status] players`)는 반드시 만든다.
 

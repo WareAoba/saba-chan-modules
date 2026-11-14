@@ -16,6 +16,8 @@ def lifecycle():
 
 def _asked(lifecycle, monkeypatch, config, console):
     asked = []
+    # 정지 명령은 module.toml [config] stop_command에서 온다
+    monkeypatch.setattr(lifecycle, "stop_command", lambda module_dir: "quit")
     monkeypatch.setattr(lifecycle, "request_console", lambda config, command: asked.append(command) or console)
     monkeypatch.setattr(lifecycle, "request_terminate", lambda pid: asked.append("SIGTERM") or True)
     monkeypatch.setattr(lifecycle, "graceful_stop", lambda config, request, i18n, module_dir: request())

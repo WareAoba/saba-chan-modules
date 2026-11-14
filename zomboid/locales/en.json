@@ -259,7 +259,6 @@
     "server_not_running": "Server not running. Start the server first.",
     "server_reset_partial": "Some items could not be deleted: {{errors}}",
     "invalid_server_name": "Server name not allowed: {{name}}. Use no folder separators (/ \\), ':' or '..', and do not end with a space or dot.",
-    "extension_not_enabled": "SteamCMD extension disabled. Enable it first in Settings → Extensions.",
     "unknown_branch": "Branch not selectable: {{branch}}",
     "detect": {
       "out_of_memory": "Server ran out of memory (OutOfMemoryError)",
@@ -293,14 +292,11 @@
     "legacy41": "Legacy Build 41 (legacy41)"
   },
   "messages": {
-    "server_starting_no_response": "Process running, server not responding to RCON queries yet",
     "properties_updated": "Server settings updated",
     "properties_using_defaults": "Config file missing; showing defaults",
     "no_mappable_settings": "No entries recognized as server settings",
     "server_reset_complete": "Server world data reset",
-    "rcon_disabled_managed": "RCON off for managed start (commands go to console stdin)",
-    "command_sent": "Command sent to the console: {{command}}",
-    "no_log_files": "No log files"
+    "command_sent": "Command sent to the console: {{command}}"
   },
   "rcon": {
     "connecting": "Connecting to {{host}}:{{port}}...",

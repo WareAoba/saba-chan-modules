@@ -12,7 +12,7 @@ author = "WareAoba"
 
 # safe_join·PathOutside·atomic_write
 [module.dependencies]
-saba-core = ">=0.1.14-0"
+saba-core = ">=0.1.14-beta.2"
 ext-xna = ">=0.1.0"
 
 [permissions]

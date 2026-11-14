@@ -12,7 +12,7 @@ icon = "icon.png"
 log_pattern = '^\[\d{2}:\d{2}:\d{2}(?:\] \[[^\]]*/| )(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)\]'
 
 [module.dependencies]
-saba-core = ">=0.1.14-0"
+saba-core = ">=0.1.14-beta.2"
 
 [permissions]
 network = true          # 서버 파일 내려받기, 포트 확인
@@ -23,6 +23,18 @@ supported = ["stdin", "rcon"]
 rcon_port = 25575  # 관리형 시작을 끈 서버의 명령 길 (데몬이 빈 포트·비밀번호를 정해 넘긴다)
 default = "stdin"
 interaction_mode = "console"  # console: stdin 지원, 콘솔 UI 표시 | commands: 정해진 명령어만 실행
+
+# 사바쨩이 정하는 원격 접속 값 (saba-chan 0.1.14-beta.2, 공용 remote_access_values). 관리형 시작을 끄면 데몬이 준
+# 포트·비밀번호로 RCON을 켜고, 관리형이면(콘솔로 명령을 보낸다) 끈다. 새 설정 파일·첫 설치·실행 전이 같은 값을 쓴다
+[remote_access.rcon]
+port = "rcon.port"
+password = "rcon.password"
+on = { enable-rcon = "true", broadcast-rcon-to-ops = "false" }
+off = { enable-rcon = "false" }
+
+[launch]
+# 이번 실행의 콘솔 줄이 없을 때 진단이 읽는 로그 파일 (saba-chan 0.1.14-beta.2, 서버 폴더 기준)
+diagnose_files = ["logs/latest.log"]
 
 [config]
 # 큰 월드는 정지 때 저장이 30초(기본)를 넘는다: 저장 도중 강제 종료되지 않게
@@ -129,6 +141,9 @@ group = "saba-chan"
 name = "java_path"
 restart_required = true
 type = "file"
+# 이 PC의 실행 파일을 가리키는 설정 (saba-chan 0.1.14-beta.2): 데몬이 찾은 Java 목록(SABA_JAVA_RUNTIMES)을 넘기고,
+# 사용자가 고른 경로를 격리된 실행에 열어 준다
+runtime = "java"
 label = "Java Path"
 description = "Path to Java executable (auto-detected if left blank)"
 required = false

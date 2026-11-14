@@ -438,6 +438,93 @@ _CONSOLE_FLAGS = ["-Dstdin.encoding=UTF-8", "-Dstdout.encoding=UTF-8", "-Dstderr
                   "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8", "-Dfile.encoding=UTF-8",
                   "-Dterminal.ansi=false"]
 
+# 사바쨩이 스스로 정하는 JVM 옵션: 메모리, 실행 프로필의 GC 옵션, 콘솔 인코딩. 가져온 시작 스크립트와 Forge 인자 파일
+# (user_jvm_args.txt)에서는 이것들을 빼고 나머지(자바 에이전트, -D 값 등)만 쓴다. 이름만 맞춰 본다(-XX:+X와 -XX:-X는 같은 옵션).
+# 실험 옵션 잠금 풀기는 남긴다: 남은 다른 실험 옵션이 그것 없이는 JVM을 띄우지 못한다(겹쳐도 해가 없다)
+_AIKAR_MARKERS = ["-Dusing.aikars.flags", "-Daikars.new.flags"]
+_UNLOCK_OPTIONS = {"-XX:UnlockExperimentalVMOptions", "-XX:UnlockDiagnosticVMOptions"}
+
+
+def _option_name(arg):
+    return re.sub(r"^-XX:[+-]", "-XX:", arg.split("=", 1)[0])
+
+
+_MANAGED_OPTIONS = {_option_name(f) for f in [*_AIKAR_FLAGS, *_LARGE_FLAGS, *_ZGC_FLAGS, _PERIODIC_GC_FLAG, _COH_FLAG,
+                                              "-XX:+ZGenerational", *_CONSOLE_FLAGS, *_AIKAR_MARKERS]} - _UNLOCK_OPTIONS
+
+
+def _managed_jvm_arg(arg):
+    return bool(re.match(r"-X(mx|ms|mn)", arg) or re.fullmatch(r"-XX:[+-]Use\w+GC", arg)) or _option_name(arg) in _MANAGED_OPTIONS
+
+
+def _split_args(line):
+    """한 줄의 인자: 공백으로 나누고 따옴표로 묶은 것은 하나로, 인자 첫머리의 #부터는 주석 (Java 인자 파일 규칙)"""
+    args, current, quote, started = [], [], None, False
+    for ch in line:
+        if quote:
+            if ch == quote:
+                quote = None
+            else:
+                current.append(ch)
+        elif ch in "\"'":
+            quote, started = ch, True
+        elif ch == "#" and not started:
+            break
+        elif ch.isspace():
+            if started:
+                args.append("".join(current))
+                current, started = [], False
+        else:
+            current.append(ch)
+            started = True
+    if started:
+        args.append("".join(current))
+    return args
+
+
+def _read_text(path):
+    try:
+        with open(path, encoding="utf-8-sig", errors="replace") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def _modpack_jvm_args(working_dir):
+    """Forge·NeoForge 설치기가 만든 user_jvm_args.txt의 JVM 인자 (사바쨩이 정하는 것은 뺀다). 없으면 []"""
+    text = _read_text(os.path.join(working_dir, "user_jvm_args.txt")) or ""
+    return [a for line in text.splitlines() for a in _split_args(line) if not _managed_jvm_arg(a)]
+
+
+def _script_java_args(working_dir):
+    """가져온 서버가 쓰던 시작 스크립트의 실행 줄에서 java 다음, 실행 대상(-jar·-cp·@인자 파일) 앞의 인자. 없으면 None
+    사용자가 만든 스크립트도 읽는다: 안내 문구(echo java …)처럼 실행 대상이 없는 줄은 건너뛰고, 메뉴처럼 실행 줄이 여럿이면 첫 줄"""
+    for name in _START_SCRIPTS:
+        if name == "user_jvm_args.txt":
+            continue
+        for line in (_read_text(os.path.join(working_dir, name)) or "").splitlines():
+            if re.match(r"\s*(#|::|@?rem\b)", line, re.IGNORECASE):
+                continue
+            args = [a.lstrip("(").rstrip(")") for a in _split_args(line)]
+            # java 실행 파일, 또는 그것을 담은 변수(%JAVA%, $JAVA). 뒤에 실행 대상이 있어야 실행 줄로 본다
+            start = next((i for i, a in enumerate(args)
+                          if re.fullmatch(r"javaw?(\.exe)?", re.split(r"[\\/]", a)[-1], re.IGNORECASE)
+                          or re.fullmatch(r"%\w+%|\$\{?\w+\}?", a)), None)
+            if start is None:
+                continue
+            rest = args[start + 1:]
+            end = next((i for i, a in enumerate(rest) if a in ("-jar", "-cp", "-classpath") or a.startswith("@")), None)
+            if end is not None:
+                return rest[:end]
+    return None
+
+
+def _script_jvm_args(working_dir):
+    """쓰던 시작 스크립트의 JVM 인자 중 사바쨩이 정하지 않는 것. 없으면 []
+    변수가 남은 인자(%RAM%, $@)는 값을 모르므로 옮기지 않는다. 인자 파일(@…)은 실행 때 따로 읽는다"""
+    return [a for a in _script_java_args(working_dir) or []
+            if a.startswith("-") and not re.search(r"[%$]", a) and not _managed_jvm_arg(a)]
+
 
 def get_launch_command(config):
     """
@@ -480,7 +567,10 @@ def get_launch_command(config):
     extra_args = config.get("extra_args") or []
     user_args += [str(a) for a in extra_args] if isinstance(extra_args, list) else []
 
-    args = [*_java_tuning(config, ram, (java or {}).get("major_version") or 0, user_args), *_CONSOLE_FLAGS, *user_args]
+    # Forge·NeoForge 인자 파일로 뜨는 서버는 설치기의 run.bat처럼 모드팩의 user_jvm_args.txt도 넣는다 (사용자 인자가 뒤에서 이긴다)
+    modpack_args = _modpack_jvm_args(working_dir) if target[0].startswith("@") else []
+    args = [*_java_tuning(config, ram, (java or {}).get("major_version") or 0, user_args), *_CONSOLE_FLAGS,
+            *modpack_args, *user_args]
     # 사용자가 더한 실행 인자는 JVM 인자 자리, 실행 대상(-jar 등) 앞에 둔다
     args.extend(target)
 
@@ -532,19 +622,14 @@ _START_SCRIPTS = ("user_jvm_args.txt", "run.bat", "start.bat", "run.sh", "start.
 
 
 def _script_memory(working_dir):
-    """쓰던 실행 스크립트의 -Xmx ("10G", "3072M"). 없으면 None (모듈 기본값 그대로)"""
-    for name in _START_SCRIPTS:
-        try:
-            with open(os.path.join(working_dir, name), encoding="utf-8", errors="replace") as f:
-                text = f.read()
-        except OSError:
-            continue
-        for line in text.splitlines():
-            if line.lstrip().startswith(("#", "rem ", "REM ", "::")):
-                continue
-            m = re.search(r"(?<!\S)-Xmx(\d+[KMGkmg])(?!\S)", line)
-            if m:
-                return m.group(1).upper()
+    """쓰던 실행 스크립트의 -Xmx ("10G", "3072M"). Forge user_jvm_args.txt가 먼저, 다음은 시작 스크립트의 실행 줄.
+    없거나 실행할 때 입력받는 값(-Xmx%RAM%G)이면 None (모듈 기본값 그대로)"""
+    text = _read_text(os.path.join(working_dir, "user_jvm_args.txt")) or ""
+    args = [a for line in text.splitlines() for a in _split_args(line)] + (_script_java_args(working_dir) or [])
+    for arg in args:
+        m = re.fullmatch(r"-Xmx(\d+[KMGkmg])", arg)
+        if m:
+            return m.group(1).upper()
     return None
 
 
@@ -572,6 +657,9 @@ def import_settings(config):
     ram = _script_memory(working_dir)
     if ram:
         found["ram"] = ram
+    script_args = _script_jvm_args(working_dir)
+    if script_args:
+        extra["extra_args"] = script_args  # 데몬이 인스턴스의 추가 실행 인자로 저장한다 (JVM 인자 자리에 들어간다)
     extra.update(_fetch_portable_java(config))
 
     result = read_properties(config)

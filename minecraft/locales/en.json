@@ -140,7 +140,7 @@
       "label": "Game Rule",
       "description": "Set a game rule, or print its current value to the server console when the value is empty",
       "inputs": {
-        "rule": { "label": "Rule", "placeholder": "e.g. minecraft:advance_time (before 1.21.11: doDaylightCycle)" },
+        "rule": { "label": "Rule", "placeholder": "e.g. keep_inventory or keepInventory (matched to the server version)" },
         "value": { "label": "Value", "placeholder": "true, false or a number. Empty prints the current value to the console" }
       }
     },

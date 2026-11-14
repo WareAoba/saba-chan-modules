@@ -129,7 +129,7 @@
       "label": "Regra de jogo",
       "description": "Altera uma regra de jogo ou, se o valor estiver vazio, mostra o valor atual no console do servidor",
       "inputs": {
-        "rule": { "label": "Regra", "placeholder": "ex.: minecraft:advance_time (antes da 1.21.11: doDaylightCycle)" },
+        "rule": { "label": "Regra", "placeholder": "ex.: keep_inventory ou keepInventory (ajustado à versão do servidor)" },
         "value": { "label": "Valor", "placeholder": "true, false ou um número. Vazio mostra o valor atual no console" }
       }
     },

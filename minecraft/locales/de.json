@@ -129,7 +129,7 @@
       "label": "Spielregel",
       "description": "Eine Spielregel setzen oder bei leerem Wert ihren aktuellen Wert in der Serverkonsole ausgeben",
       "inputs": {
-        "rule": { "label": "Regel", "placeholder": "z. B. minecraft:advance_time (vor 1.21.11: doDaylightCycle)" },
+        "rule": { "label": "Regel", "placeholder": "z. B. keep_inventory oder keepInventory (passend zur Serverversion)" },
         "value": { "label": "Wert", "placeholder": "true, false oder eine Zahl. Leer gibt den aktuellen Wert in der Konsole aus" }
       }
     },

@@ -302,9 +302,10 @@ def test_console_commands_require_what_the_console_needs():
 def test_gamerule_takes_any_rule_name_and_an_optional_value():
     """`gamerule <rule name> [<value>]` (minecraft.wiki Commands/gamerule). 규칙 이름은 1.21.11(스냅숏 25w44a)부터
     snake_case 리소스 위치로 바뀌어(doDaylightCycle → minecraft:advance_time) 고정 선택지는 어느 한쪽 버전에서
-    없는 규칙이 된다. 그래서 직접 입력이고, 값을 비우면 서버가 지금 값을 답한다"""
+    없는 규칙이 된다. 그래서 직접 입력이고, lifecycle.command()가 이름을 서버 버전에 맞춘다(method = "module").
+    값을 비우면 서버가 지금 값을 답한다"""
     gamerule = command("gamerule")
-    assert gamerule["console_template"] == "gamerule {rule} {value}"
+    assert gamerule["method"] == "module" and "console_template" not in gamerule
     assert gamerule["risk"] == "caution"
     assert required_inputs("gamerule") == ["rule"]
     assert {i.get("type", "text") for i in gamerule["inputs"]} == {"text"}

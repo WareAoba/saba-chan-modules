@@ -1640,6 +1640,7 @@ def test_import_moves_the_unmanaged_jvm_args_of_the_start_script_to_extra_args(t
     ("start.sh", '#!/bin/bash\nread -p "RAM: " RAM\njava -Xmx${RAM}G -jar server.jar nogui\n', None, None),
     # 안내 문구의 java는 실행 줄이 아니다
     ("start.bat", "@echo off\necho java -Xmx2G 로 바꾸면 가벼워집니다\njava -Xmx6G -javaagent:x.jar -jar server.jar\n", "6G", ["-javaagent:x.jar"]),
+    ("start.bat", "@echo off\necho Run: java -Xmx2G -jar server.jar\njava -Xmx6G -Dreal=1 -jar server.jar\n", "6G", ["-Dreal=1"]),
     # 메뉴: 어느 쪽을 고를지 모르므로 첫 실행 줄
     ("start.bat", "@echo off\nchoice /c 12 /m \"select\"\nif errorlevel 2 goto big\njava -Xmx4G -jar server.jar nogui\ngoto end\n:big\n"
                   "java -Xmx8G -Dbig=1 -jar server.jar nogui\n:end\n", "4G", None),

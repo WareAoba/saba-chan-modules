@@ -503,7 +503,7 @@ def _script_java_args(working_dir):
         if name == "user_jvm_args.txt":
             continue
         for line in (_read_text(os.path.join(working_dir, name)) or "").splitlines():
-            if re.match(r"\s*(#|::|@?rem\b)", line, re.IGNORECASE):
+            if re.match(r"\s*(#|::|@?(rem|echo)\b)", line, re.IGNORECASE):  # 주석, 안내 문구
                 continue
             args = [a.lstrip("(").rstrip(")") for a in _split_args(line)]
             # java 실행 파일, 또는 그것을 담은 변수(%JAVA%, $JAVA). 뒤에 실행 대상이 있어야 실행 줄로 본다

@@ -12,7 +12,7 @@ log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
 
 [module.dependencies]
 # -0이 있어야 0.1.13-beta.N·rc.N 데몬도 받는다
-saba-core = ">=0.1.14-0"
+saba-core = ">=0.1.14-beta.2"
 ext-steamcmd = ">=0.1.5"
 ext-ue4-ini = ">=0.1.7"
 
@@ -25,10 +25,19 @@ supported = ["rest"]
 default = "rest"
 interaction_mode = "commands"  # console: stdin 지원, 콘솔 UI 표시 | commands: 정해진 명령어만 실행
 
-# 데몬 표준 키 ↔ 게임별 설정 키 매핑 (자격증명 자동 동기화)
-# Palworld의 AdminPassword가 곳 REST API 인증 비밀번호입니다.
-[credential_map]
-rest_password = "AdminPassword"  # daemon rest_password ↔ PalWorldSettings.ini AdminPassword
+# REST 접속값이 든 설정 (saba-chan 0.1.14-beta.2). 데몬은 접속 주소·포트·비밀번호를 이 설정들에서만 읽는다.
+# AdminPassword가 REST 인증 비밀번호이고 사용자 이름은 게임이 정한 admin이다. 실행할 때 쓴 비밀번호는
+# get_launch_command가 `rest_credentials`로 돌려주고 데몬이 password_setting에 적는다
+[protocols.rest]
+host_setting = "rest_host"
+port_setting = "rest_port"
+password_setting = "admin_password"
+username = "admin"
+
+# 사바쨩이 정하는 원격 접속 값 (saba-chan 0.1.14-beta.2, 공용 remote_access_values). 설정 저장·첫 설치·실행 전에 같은 값을 쓴다.
+# 사바쨩은 REST로만 조작한다. RCON은 개발사가 지원을 끝냈다
+[remote_access]
+forced = { RESTAPIEnabled = "True", RCONEnabled = "False" }
 
 [config]
 executable_path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\PalServer\\PalServer.exe"
@@ -55,6 +64,8 @@ snapshots = true
 # 시각이 붙은 줄 머리마다 나눈다. `[LOG]`만으로 나누면 시각이 앞 줄에 남는다.
 [launch]
 console = "pty"
+# 이번 실행의 콘솔 줄이 없을 때 진단이 읽는 로그 파일 (saba-chan 0.1.14-beta.2, 서버 폴더 기준)
+diagnose_files = ["Pal/Saved/Logs/Pal.log"]
 line_start = '\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\]'
 
 [extensions.saba-core]
@@ -77,6 +88,8 @@ player_leave_patterns = ['^(?:\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\] \[LOG\] RE
 method = "steamcmd"
 app_id = 2394010
 anonymous = true
+# 받는 양의 어림값(바이트). SteamCMD가 전체 크기를 알려 주기 전의 진행률에 쓴다 (saba-chan 0.1.14-beta.2)
+download_size = 5_700_000_000
 install_subdir = "server"
 requires_extensions = ["steamcmd", "ue4-ini"]
 
@@ -1710,7 +1723,7 @@ pattern = '^(?:\[[\d.:-]+\]\[\s*\d+\])?Log\w+: (?P<hl>Warning):'
 color = "warn"
 priority = 45
 
-# ── [[diagnose]] 서버 로그 진단 (diagnose_log가 공용 diagnose_lines로 읽는다. 문구: validate.log_<code>·validate.log_<code>_hint) ──
+# ── [[diagnose]] 서버 로그 진단 (공용 diagnose_log가 읽는다. 문구: errors.detect.<code>·errors.solutions.<code>) ──
 
 [[diagnose]]
 code = "PORT_IN_USE"

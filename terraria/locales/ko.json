@@ -320,7 +320,6 @@
     }
   },
   "errors": {
-    "chat_failed": "게임 채팅 전송 실패: {{error}}",
     "archive_corrupt": "서버 압축 파일 손상({{file}})",
     "backup_paths_failed": "백업할 파일 결정 실패: {{error}}",
     "executable_not_found": "테라리아 서버 실행 파일 없음. 먼저 서버를 설치해 주세요.",
@@ -337,7 +336,6 @@
     "version_list_failed": "terraria.org에서 서버 버전 목록 받기 실패: {{error}}",
     "xna_framework_missing": "서버 폴더에 XNA Framework 4.0 파일 없음. 서버를 다시 설치하면 넣습니다.",
     "xna_install_failed": "서버 폴더에 XNA Framework 4.0 넣기 실패: {{error}}",
-    "xna_extension_missing": "Windows에서 테라리아 서버를 실행하려면 XNA 익스텐션이 필요합니다. \"XNA Framework 4.0 (portable)\" 익스텐션을 설치하고 켜 주세요.",
     "version_unknown": "설치된 서버 버전 확인 실패",
     "players_unavailable": "서버 콘솔에서 접속자 목록 읽기 실패"
   },

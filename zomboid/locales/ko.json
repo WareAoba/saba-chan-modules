@@ -274,7 +274,6 @@
     "server_not_running": "서버 실행 중 아님. 먼저 서버를 시작해 주세요.",
     "server_reset_partial": "일부 항목 삭제 실패: {{errors}}",
     "invalid_server_name": "쓸 수 없는 서버 이름: {{name}}. 폴더 구분자(/ \\), ':', '..' 없이, 공백이나 점으로 끝나지 않게 입력해 주세요.",
-    "extension_not_enabled": "SteamCMD 익스텐션 비활성화 상태. 설정 → 익스텐션에서 먼저 활성화해 주세요.",
     "unknown_branch": "고를 수 없는 브랜치: {{branch}}",
     "detect": {
       "out_of_memory": "서버 메모리 부족 (OutOfMemoryError)",
@@ -308,14 +307,11 @@
     "legacy41": "옛 빌드 41 (legacy41)"
   },
   "messages": {
-    "server_starting_no_response": "프로세스는 실행 중이나 서버가 아직 RCON 쿼리에 응답 없음",
     "properties_updated": "서버 설정 수정됨",
     "properties_using_defaults": "설정 파일이 없어 기본값 표시",
     "no_mappable_settings": "서버 설정으로 인식되는 항목 없음",
     "server_reset_complete": "서버 월드 데이터 초기화됨",
-    "rcon_disabled_managed": "관리형 시작이라 RCON 끔 (명령은 콘솔 stdin으로 보냄)",
-    "command_sent": "콘솔로 명령 보냄: {{command}}",
-    "no_log_files": "로그 파일 없음"
+    "command_sent": "콘솔로 명령 보냄: {{command}}"
   },
   "rcon": {
     "connecting": "{{host}}:{{port}}에 연결 중...",

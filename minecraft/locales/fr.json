@@ -182,7 +182,6 @@
     "stop": { "label": "Arrêter", "description": "Arrêter le serveur proprement" }
   },
   "errors": {
-    "chat_failed": "Échec de l'envoi au chat du jeu : {{error}}",
     "backup_paths_failed": "Échec de la lecture du dossier des plugins à sauvegarder : {{error}}",
     "server_not_running": "Le serveur n'est pas démarré. Démarrez d'abord le serveur.",
     "timeout": "Délai de réponse du serveur dépassé. Vérifiez l'état du serveur.",

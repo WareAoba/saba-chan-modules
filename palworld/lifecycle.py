@@ -5,19 +5,13 @@ Always outputs JSON to stdout, logs to stderr.
 """
 
 import sys
-import json
 import os
 import re
-import struct
-import time
-import random
 from i18n import I18n
 
-# PYTHONPATH is injected by the Rust plugin runner; fallback for direct execution:
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-
-from daemon_rcon import (PathOutside, config_value, daemon_rest, diagnose_lines, format_setting, graceful_stop, is_process_alive, load_diagnose_rules,
-                         load_setting_types, safe_join, setting_file_keys, tail_lines, chat_reply)
+import daemon_rcon
+from daemon_rcon import (PathOutside, chat_reply, coerce_setting, config_value, daemon_rest, enforce_remote_access, extension_required,
+                         format_setting, graceful_stop, list_dir, load_setting_types, remote_access_values, safe_join, setting_file_keys)
 
 
 # UE4 INI parser (ue4-ini extension). Without it the module still answers;
@@ -32,30 +26,58 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
 
 
+class RestError(RuntimeError):
+    """REST 요청 실패. 데몬이 거절한 이유(error_code)가 있으면 지닌다"""
+
+    def __init__(self, message, error_code=None):
+        super().__init__(message)
+        self.error_code = error_code
+
+
 class PalworldRestClient:
-    """인스턴스의 REST 요청을 데몬에 맡긴다."""
+    """인스턴스의 REST 요청을 데몬에 맡긴다 (주소·비밀번호는 데몬이 붙인다). 이 모듈의 REST 호출은 모두 여기를 지난다"""
 
     def __init__(self, instance_id, timeout=5):
         self.instance_id = instance_id
         self.timeout = timeout
 
-    def _request(self, method, path, payload=None):
+    def call(self, method, path, payload=None):
+        """데몬의 답 전체. 요청을 보내지 못했거나 서버가 거절하면 RestError"""
         try:
             result = daemon_rest(self.instance_id, method, f"/v1/api{path}", body=payload, timeout=self.timeout)
         except ConnectionError as e:
-            raise RuntimeError(str(e)) from e
+            raise RestError(str(e), getattr(e, "error_code", None)) from e
         if not result.get("success", True):
-            raise RuntimeError(result.get("message") or result.get("error") or i18n.t("errors.daemon_error", error="REST"))
-        return (result.get("data") or {}).get("response")
+            raise RestError(result.get("message") or result.get("error") or i18n.t("errors.daemon_error", error="REST"),
+                            result.get("error_code"))
+        return result
 
-    def info(self):
-        return self._request("GET", "/info")
+    def _get(self, path):
+        return (self.call("GET", path).get("data") or {}).get("response")
 
     def players(self):
-        return self._request("GET", "/players")
+        return self._get("/players")
 
     def metrics(self):
-        return self._request("GET", "/metrics")
+        return self._get("/metrics")
+
+    def save(self):
+        return self.call("POST", "/save", {})
+
+    def shutdown(self, message):
+        return self.call("POST", "/shutdown", {"waittime": 1, "message": message})
+
+    def announce(self, message):
+        return self.call("POST", "/announce", {"message": message})
+
+    def kick(self, userid, message):
+        return self.call("POST", "/kick", {"userid": userid, "message": message})
+
+    def ban(self, userid, message):
+        return self.call("POST", "/ban", {"userid": userid, "message": message})
+
+    def unban(self, userid):
+        return self.call("POST", "/unban", {"userid": userid})
 
 
 def _exact_player_id(players, player_input):
@@ -166,20 +188,17 @@ def _read_admin_password_from_ini(config):
     return None
 
 def _enforce_rest_policy(working_dir, config=None):
-    """
-    Enforce REST-only policy in PalWorldSettings.ini before server launch.
+    """실행 전 PalWorldSettings.ini를 사바쨩이 조작할 수 있게 맞춘다.
 
-    Palworld RCON is deprecated by the developer — saba-chan uses REST API exclusively.
-    - RESTAPIEnabled = True  (always on)
-    - RCONEnabled = False    (always off)
-    - AdminPassword synced with daemon's rest_password (required for REST API auth)
-    - ServerPassword is NOT touched (user-facing join password)
+    - 원격 접속 값(REST 켜기, RCON 끄기)은 module.toml `[remote_access]` (공용 enforce_remote_access)
+    - RESTAPIPort는 데몬이 접속할 포트(설정 rest_port)
+    - AdminPassword(REST 인증 비밀번호)가 비어 있으면 설정 admin_password, 그것도 없으면 새로 만든다
+    - ServerPassword(접속 비밀번호)는 건드리지 않는다
 
-    Returns dict with details of what was changed + the actual admin_password, or None if INI doesn't exist yet.
+    바뀐 것과 실제 AdminPassword를 돌려준다. INI가 아직 없으면 None
     """
-    # Build a fake config to reuse _get_settings_ini_path
-    fake_config = {"working_dir": working_dir}
-    ini_path = _get_settings_ini_path(fake_config)
+    config = config or {}
+    ini_path = _get_settings_ini_path({"working_dir": working_dir})
     if not ini_path or not os.path.isfile(ini_path):
         return None  # INI will be generated on first run
 
@@ -189,66 +208,43 @@ def _enforce_rest_policy(working_dir, config=None):
         return {"changed": False, "unreadable": True}
 
     props = _parse_option_settings(ini_path)
-    changes = {}
+    changed = False
 
     # INI 파일이 존재하지만 비어있는 경우(빈 파일/파싱 실패) → 기본 설정으로 채움
     if not props:
         print("[Palworld] INI file is empty/corrupt, populating with defaults", file=sys.stderr)
         props = _default_settings()
-        changes["__populated_defaults"] = True
+        changed = True
 
-    # Force REST API enabled
-    if props.get("RESTAPIEnabled", "False") != "True":
-        props["RESTAPIEnabled"] = "True"
-        changes["RESTAPIEnabled"] = "True"
-        print(i18n.t("messages.rest_api_forced_on"), file=sys.stderr)
+    if enforce_remote_access(MODULE_DIR, config, props, props.update):
+        changed = True
 
-    # 데몬이 접속할 REST 포트(인스턴스 rest_port, 자동 배정될 수 있다)를 INI에 맞춘다
-    rest_port = (config or {}).get("rest_port")
+    # 데몬이 접속할 REST 포트(설정 rest_port, 자동 배정될 수 있다)를 INI에 맞춘다
+    rest_port = config_value(config, "rest_port")
     if rest_port and props.get("RESTAPIPort") != str(rest_port):
         props["RESTAPIPort"] = str(rest_port)
-        changes["RESTAPIPort"] = str(rest_port)
+        changed = True
 
-    # Force RCON disabled
-    if props.get("RCONEnabled", "False") != "False":
-        props["RCONEnabled"] = "False"
-        changes["RCONEnabled"] = "False"
-        print(i18n.t("messages.rcon_forced_off"), file=sys.stderr)
+    # 데몬은 시작할 때 "비밀번호 자동 생성"이 켜져 있으면 빈 admin_password만 채우고, 꺼져 있으면 비워 둔다.
+    # 그래서 config에 없을 수 있다: 그때는 INI 값을 쓰거나 여기서 만든다 (get_launch_command가 데몬에 돌려준다)
+    ini_admin_pw = current_admin_pw = props.get("AdminPassword", "").strip()
+    if not current_admin_pw:
+        current_admin_pw = config_value(config, "admin_password")
+        if current_admin_pw:
+            print("[Palworld] Synced AdminPassword from config", file=sys.stderr)
+        else:
+            import uuid
+            current_admin_pw = uuid.uuid4().hex[:16]
+            print("[Palworld] No password from daemon or INI — generated fallback AdminPassword", file=sys.stderr)
+        props["AdminPassword"] = current_admin_pw
+        changed = True
 
-    # Sync AdminPassword with daemon's rest_password to ensure credentials match.
-    # 데몬은 시작할 때 "비밀번호 자동 생성"이 켜져 있으면 빈 rest_password만 채우고, 꺼져 있으면 비워 둔다
-    # (ensure_passwords). 그래서 config에 없을 수 있다: 그때는 INI 값을 쓰거나 아래에서 만든다.
-    current_admin_pw = props.get("AdminPassword", "").strip()
-    daemon_pw = (config or {}).get("rest_password") or (config or {}).get("admin_password", "")
-
-    ini_admin_pw = current_admin_pw
-    if current_admin_pw:
-        # INI already has a password — use it
-        pass
-    elif daemon_pw:
-        # No INI password but daemon has one — write it to INI
-        props["AdminPassword"] = daemon_pw
-        current_admin_pw = daemon_pw
-        changes["AdminPassword"] = "***synced-from-config***"
-        print(f"[Palworld] Synced AdminPassword from config", file=sys.stderr)
-    else:
-        # 비밀번호가 어디에도 없는 경우 (첫 실행, 빈 INI 등)
-        # RESTAPIEnabled=True / RCONEnabled=False는 반드시 기록해야 하므로
-        # 임시 비밀번호를 생성하여 INI에 기록하고, credential_map을 통해
-        # 데몬에 동기화되도록 한다.
-        import uuid
-        fallback_pw = uuid.uuid4().hex[:16]
-        props["AdminPassword"] = fallback_pw
-        current_admin_pw = fallback_pw
-        changes["AdminPassword"] = "***auto-generated***"
-        print(f"[Palworld] No password from daemon or INI — generated fallback AdminPassword", file=sys.stderr)
-
-    if changes:
+    if changed:
         if not _write_option_settings(ini_path, props):
             # 저장하지 못했다: INI에 실제로 있는 비밀번호만 데몬에 넘긴다
             print("[Palworld] Failed to write REST policy to PalWorldSettings.ini", file=sys.stderr)
             return {"changed": False, "write_failed": True, "admin_password": ini_admin_pw}
-        return {"changed": True, "changes": changes, "admin_password": current_admin_pw}
+        return {"changed": True, "admin_password": current_admin_pw}
     return {"changed": False, "admin_password": current_admin_pw}
 
 
@@ -306,11 +302,9 @@ def get_launch_command(config):
         "env_vars": {},
     }
 
-    # credential_map 기반 자동 동기화: module.toml [credential_map]에서
-    # rest_password = "AdminPassword" 매핑이 선언되어 있으므로,
-    # AdminPassword 값을 최상위에 반환하면 데몬이 자동으로 rest_password에 동기화한다.
+    # 실제로 쓰는 REST 비밀번호를 데몬에 돌려준다: 데몬이 module.toml `[protocols.rest] password_setting`에 적는다
     if rest_result and rest_result.get("admin_password"):
-        result["AdminPassword"] = rest_result["admin_password"]
+        result["rest_credentials"] = {"rest_password": rest_result["admin_password"]}
 
     return result
 
@@ -364,11 +358,11 @@ def _rest_shutdown(config):
     if client is None:
         return False
     try:
-        client._request("POST", "/save", {})
+        client.save()
     except RuntimeError as e:
         print(f"[Palworld] REST save before shutdown failed: {e}", file=sys.stderr)
     try:
-        client._request("POST", "/shutdown", {"waittime": 1, "message": "Server is shutting down"})
+        client.shutdown(i18n.t("messages.shutdown_notice"))
         return True
     except RuntimeError as e:
         print(f"[Palworld] REST shutdown failed: {e}", file=sys.stderr)
@@ -389,33 +383,13 @@ def get_credentials(config):
     Rust daemon이 명령어 실행 전에 호출하여 실제 비밀번호를 얻습니다.
     매번 파일에서 읽으므로 메모리 동기화 문제가 없습니다."""
     try:
-        pw = _read_admin_password_from_ini(config)
-        return {
-            "success": True,
-            "rest_password": pw or "",
-            "rest_username": "admin",
-        }
+        # 사용자 이름은 module.toml `[protocols.rest] username`에 있다
+        return {"success": True, "rest_password": _read_admin_password_from_ini(config) or ""}
     except PathOutside:
         raise
     except Exception as e:
         return {"success": False, "message": str(e)}
 
-
-def status(config):
-    """서버 상태. 데몬이 추적하는 PID로만 판단한다: 실행 파일 이름으로 찾으면 같은 게임의 다른 인스턴스와 섞인다"""
-    try:
-        exe_name = os.path.basename(config.get("server_executable") or "PalServer.exe")
-        pid = config.get("pid")
-        running = bool(pid) and is_process_alive(pid)
-        key = "messages.process_running" if running else "messages.process_not_running"
-        return {"success": True, "status": "running" if running else "stopped", "message": i18n.t(key, name=exe_name)}
-    except PathOutside:
-        raise
-    except Exception as e:
-        return {
-            "success": False,
-            "message": i18n.t("errors.failed_to_get_status", error=str(e))
-        }
 
 # ╔═══════════════════════════════════════════════════════════╗
 # ║            PalWorldSettings.ini Manager                   ║
@@ -601,8 +575,8 @@ def configure(config):
         return {"success": False, "error_code": "settings_invalid_value",
                 "message": i18n.t("errors.settings_invalid_value")}
 
-    # RCON은 보안 정책으로 막는다: 손으로 켠 INI라도 저장할 때 끈다
-    props["RCONEnabled"] = "False"
+    # 원격 접속 값은 사바쨩이 정한다(module.toml [remote_access]): 손으로 바꾼 INI라도 저장할 때 되돌린다
+    props.update(remote_access_values(MODULE_DIR, config))
     try:
         ok = _write_option_settings(ini_path, props)
     except OSError:
@@ -642,8 +616,7 @@ def import_settings(config):
     # INI key → saba-chan key (module.toml file_key)
     reverse_map = {v: k for k, v in setting_file_keys(MODULE_DIR).items()}
 
-    from daemon_rcon import coerce_setting, load_setting_types
-    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
+    types = load_setting_types(MODULE_DIR)
     settings = {}
     for ini_key, raw_value in ini_props.items():
         saba_key = reverse_map.get(ini_key)
@@ -736,14 +709,6 @@ def reset_preview(config):
     return {"success": True, "scopes": [{"id": "settings", "items": [item], "note": i18n.t("reset.description")}]}
 
 
-def _entries(path):
-    """폴더 항목. 없는 폴더는 빈 목록, 읽지 못하는 폴더는 OSError (빈 세이브로 보고 성공하면 백업이 비어도 모른다)"""
-    try:
-        return sorted(os.listdir(path))
-    except FileNotFoundError:
-        return []
-
-
 def backup_paths(config):
     """백업할 세이브 (데몬 `[backup] hook`): `Pal/Saved/SaveGames/<번호>/<월드>/` 안의 항목 전부.
     다만 게임이 월드 폴더 안에 쌓는 자동 백업 `backup/`(bIsUseBackupSaveData)은 뺀다.
@@ -772,16 +737,16 @@ def backup_snapshots(config):
     saves = safe_join(config.get("working_dir") or "", "Pal", "Saved", "SaveGames")
     try:
         snapshots = []
-        for slot in _entries(saves):
+        for slot in list_dir(saves):
             slot_path = safe_join(saves, slot)
             if not os.path.isdir(slot_path):
                 continue
-            for world in _entries(slot_path):
+            for world in list_dir(slot_path):
                 world_path = safe_join(slot_path, world)
                 kept = safe_join(world_path, "backup", "world")
                 if not os.path.isdir(kept):
                     continue
-                for stamp in _entries(kept):
+                for stamp in list_dir(kept):
                     snap = safe_join(kept, stamp)
                     if not os.path.isdir(snap):
                         continue
@@ -790,7 +755,7 @@ def backup_snapshots(config):
                         "created": _snapshot_time(stamp, snap),
                         "folder": str(snap),
                         "paths": [{"from": str(safe_join(snap, name)), "to": str(safe_join(world_path, name))}
-                                  for name in _entries(snap)],
+                                  for name in list_dir(snap)],
                     })
         # 게임이 적은 시각 순 (CLI·GUI의 "가장 최근"과 데몬의 기본 선택이 같은 것을 고른다)
         snapshots.sort(key=lambda s: s["created"], reverse=True)
@@ -801,63 +766,25 @@ def backup_snapshots(config):
 
 def _save_entries(saves):
     paths = []
-    for slot in _entries(saves):
+    for slot in list_dir(saves):
         slot_path = safe_join(saves, slot)
         if not os.path.isdir(slot_path):
             paths.append(str(slot_path))
             continue
-        for world in _entries(slot_path):
+        for world in list_dir(slot_path):
             world_path = safe_join(slot_path, world)
             if not os.path.isdir(world_path):
                 paths.append(str(world_path))
                 continue
-            paths.extend(str(safe_join(world_path, name)) for name in _entries(world_path)
+            paths.extend(str(safe_join(world_path, name)) for name in list_dir(world_path)
                          if name.lower() != "backup")
     return paths
 
 
 
 def diagnose_log(config):
-    """Diagnose errors from provided log lines or server log files. 규칙은 module.toml [[diagnose]]"""
-    log_lines = config.get("log_lines", [])
-    working_dir = config.get("working_dir", "")
-
-    if isinstance(log_lines, str):
-        log_lines = log_lines.splitlines()
-
-    # If no lines provided, try to read from Palworld log file
-    if not log_lines and working_dir:
-        log_lines = tail_lines(safe_join(working_dir, "Pal", "Saved", "Logs", "Pal.log"))
-
-    issues = diagnose_lines(log_lines, load_diagnose_rules(MODULE_DIR), i18n,
-                            message="validate.log_{code}", solution="validate.log_{code}_hint")
-
-    return {
-        "success": True,
-        "issues": issues,
-        "lines_analyzed": len(log_lines),
-    }
-
-
-def list_versions(config):
-    """Palworld server versions are managed via Steam/SteamCMD, not a download API."""
-    return {
-        "success": True,
-        "versions": [],
-        "message": i18n.t("messages.versions_via_steam"),
-        "install_method": "steamcmd",
-        "steam_app_id": "2394010",
-    }
-
-
-def get_version_details(config):
-    """Palworld does not expose a public version API."""
-    return {
-        "success": True,
-        "message": i18n.t("messages.versions_managed_via_steam"),
-        "install_method": "steamcmd",
-        "steam_app_id": "2394010",
-    }
+    """서버 로그 진단. 규칙은 module.toml [[diagnose]], 콘솔 줄이 없을 때 읽을 파일은 [launch] diagnose_files"""
+    return daemon_rcon.diagnose_log(config, MODULE_DIR, i18n)
 
 
 def install_server(config):
@@ -867,19 +794,14 @@ def install_server(config):
     """
     install_dir = config.get("install_dir", "")
     if not install_dir:
-        working_dir = config.get("working_dir", "")
-        if working_dir:
-            install_dir = str(safe_join(working_dir, "server"))
-        else:
-            return {"success": False, "message": i18n.t("errors.no_install_dir")}
+        return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     os.makedirs(install_dir, exist_ok=True)
 
     try:
         from extensions.steamcmd import install_for_module
     except ImportError:
-        return {"success": False, "message": i18n.t("messages.extension_not_enabled"),
-                "error_code": "extension_required", "missing_extensions": ["steamcmd"]}
+        return extension_required(i18n, "steamcmd")
     try:
         result = install_for_module(MODULE_DIR, install_dir)
     except PathOutside:
@@ -896,27 +818,19 @@ def install_server(config):
 
         # ── 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성 ──
         # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
-        # 기본 값 + RESTAPIEnabled=True, RCONEnabled=False 로 미리 기록한다.
+        # 기본 값 + 사바쨩이 정하는 원격 접속 값(module.toml [remote_access])을 미리 기록한다.
         try:
-            if sys.platform == "win32":
-                platform_dir = "WindowsServer"
-            else:
-                platform_dir = "LinuxServer"
-            ini_dir = safe_join(
-                install_dir, "Pal", "Saved", "Config", platform_dir
-            )
-            os.makedirs(ini_dir, exist_ok=True)
-            ini_path = safe_join(ini_dir, "PalWorldSettings.ini")
+            ini_path = _get_settings_ini_path({"working_dir": install_dir})
+            os.makedirs(os.path.dirname(ini_path), exist_ok=True)
 
             # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
             if os.path.isfile(ini_path) and (_parse_option_settings(ini_path) or _option_line_unreadable(ini_path)):
                 print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
             else:
                 defaults = _default_settings()
-                defaults["RESTAPIEnabled"] = "True"
                 # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
                 _apply_settings(defaults, config.get("settings"))
-                defaults["RCONEnabled"] = "False"
+                defaults.update(remote_access_values(MODULE_DIR, config))
                 if _write_option_settings(ini_path, defaults):
                     print(
                         f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
@@ -940,32 +854,24 @@ def install_server(config):
 
 
 def command(config):
-    """서버 명령을 데몬의 REST 경로로 실행한다"""
+    """method = "module" 명령(kick·ban·unban)을 REST로 실행한다.
+    method = "rest" 명령은 module.toml 정의대로 데몬이 직접 보내므로 여기 오지 않는다"""
     try:
-        # 디버그: 전달받은 config 출력
-        print(f"[Palworld] Received config keys: {list(config.keys())}", file=sys.stderr)
-        
         command_text = config.get("command")
         args = config.get("args", {})
-        instance_id = config.get("instance_id")
-        print(f"[Palworld] command={command_text}, instance_id={instance_id}", file=sys.stderr)
-        
         if not command_text:
             return {"success": False, "message": i18n.t("errors.no_command")}
-        
-        if not instance_id and not os.environ.get("SABA_HOST_DIR"):
+        client = _rest_client(config)
+        if client is None:
             return {"success": False, "message": i18n.t("errors.no_instance_id")}
-        
-        print(f"[Palworld] Executing command '{command_text}' with args: {args}", file=sys.stderr)
-        
-        # Normalize command for branching
+
         command_lower = command_text.lower()
-        
+
         # 플레이어 ID 변환 (kick, ban, unban 명령어의 경우)
         if command_lower in ["kick", "ban", "unban"]:
             player_input = args.get("userid") or args.get("player_id") or args.get("steam_id") or args.get("name") or args.get("player")
             if player_input:
-                success, result = resolve_player_id(instance_id, player_input, config, allow_partial=command_lower == "unban")
+                success, result = resolve_player_id(client.instance_id, player_input, config, allow_partial=command_lower == "unban")
                 if success:
                     args = dict(args)  # 원본 수정 방지
                     args["userid"] = result
@@ -974,9 +880,9 @@ def command(config):
                     return {"success": False, "message": result}
                 else:
                     print(f"[Palworld] Player lookup failed for unban, using original: {player_input}", file=sys.stderr)
-        
-        return execute_command_via_rest(instance_id, command_lower, args, config)
-    
+
+        return execute_command_via_rest(client, command_lower, args)
+
     except PathOutside:
         raise
     except Exception as e:
@@ -989,70 +895,38 @@ def command(config):
         }
 
 
-def execute_command_via_rest(instance_id, command_lower, args, config):
-    """method = "module" 명령(kick·ban·unban)을 데몬 REST 경로로 보낸다.
-    method = "rest" 명령은 module.toml 정의대로 데몬이 직접 보내므로 여기 오지 않는다"""
+def execute_command_via_rest(client, command_lower, args):
+    """kick·ban·unban을 보내고 데몬의 답에 결과 문구를 붙인다. 사유를 주지 않으면 기본 사유(locales)"""
     userid = args.get("userid")
-    if command_lower == "kick":
-        body = {"userid": userid, "message": args.get("message", "Kicked from server")}
-    elif command_lower == "ban":
-        body = {"userid": userid, "message": args.get("message", "Banned from server")}
-    elif command_lower == "unban":
-        body = {"userid": userid}
-    else:
+    if command_lower not in ("kick", "ban", "unban"):
         return {"success": False, "message": i18n.t("errors.unknown_command", command=command_lower)}
     if not userid:
         return {"success": False, "message": i18n.t("errors.userid_required")}
-    return execute_rest_via_daemon(instance_id, f"/v1/api/{command_lower}", body, command_lower)
-
-
-def execute_rest_via_daemon(instance_id, endpoint, body, command_text, method="POST"):
-    """데몬 HOST 통로로 이 인스턴스의 REST를 부른다."""
     try:
-        result = daemon_rest(instance_id, method, endpoint, body=body, timeout=5)
-        result.setdefault("success", True)
-        result["protocol"] = "rest"
-        if result["success"]:
-            result["message"] = i18n.t("messages.command_executed", command=command_text)
+        if command_lower == "kick":
+            result = client.kick(userid, args.get("message") or i18n.t("messages.kick_reason"))
+        elif command_lower == "ban":
+            result = client.ban(userid, args.get("message") or i18n.t("messages.ban_reason"))
         else:
-            result.setdefault("message", result.get("error") or i18n.t("errors.daemon_error", error="REST"))
-        return result
-    
-    except ConnectionError as e:
-        print(f"[Palworld] Daemon connection error: {e}", file=sys.stderr)
-        result = {
-            "success": False,
-            "message": i18n.t("errors.daemon_connection_error", error=str(e))
-        }
-        if getattr(e, "error_code", None):
+            result = client.unban(userid)
+    except RestError as e:
+        print(f"[Palworld] REST {command_lower} failed: {e}", file=sys.stderr)
+        result = {"success": False, "message": i18n.t("errors.command_failed", error=str(e))}
+        if e.error_code:
             result["error_code"] = e.error_code
         return result
-    except json.JSONDecodeError as e:
-        print(f"[Palworld] Invalid JSON response from daemon: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t("errors.invalid_json_response", error=str(e))
-        }
-    except PathOutside:
-        raise
-    except Exception as e:
-        print(f"[Palworld] Daemon error: {e}", file=sys.stderr)
-        return {
-            "success": False,
-            "message": i18n.t("errors.daemon_error", error=str(e))
-        }
+    return {**result, "success": True, "protocol": "rest", "message": i18n.t("messages.command_executed", command=command_lower)}
 
 
 def send_chat(config):
     """디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`). 콘솔 입력이 없어 REST 공지로 이름·본문을 알린다"""
     message = f"{config.get('chat_name', '')}: {config.get('chat_text', '')}"
-    return chat_reply(lambda: daemon_rest(config.get("instance_id", ""), "POST", "/v1/api/announce", body={"message": message}, timeout=5), i18n)
+    return chat_reply(lambda: PalworldRestClient(config.get("instance_id", "")).announce(message), i18n)
 
 
 # Function dispatch table (matches daemon's expected interface)
 FUNCTIONS = {
     "stop": stop,
-    "status": status,
     "command": command,
     "send_chat": send_chat,
     "get_launch_command": get_launch_command,
@@ -1066,8 +940,6 @@ FUNCTIONS = {
     "reset_server": reset_server,
     "reset_preview": reset_preview,
     "diagnose_log": diagnose_log,
-    "list_versions": list_versions,
-    "get_version_details": get_version_details,
     "install_server": install_server,
     "player_count": player_count,
     "backup_paths": backup_paths,
@@ -1081,12 +953,7 @@ def _answering_missing_extension(fn):
         try:
             return fn(config)
         except ExtensionMissing as e:
-            return {
-                "success": False,
-                "message": i18n.t("messages.extension_missing", extension=e.extension),
-                "error_code": "extension_required",
-                "missing_extensions": [e.extension],
-            }
+            return extension_required(i18n, e.extension)
     return call
 
 

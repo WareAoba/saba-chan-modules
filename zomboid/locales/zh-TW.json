@@ -720,7 +720,6 @@
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
     "server_reset_partial": "部分項目刪除失敗：{{errors}}",
     "invalid_server_name": "伺服器名稱無法使用：{{name}}。名稱不可含資料夾分隔符號（/ \\）、「:」或「..」，且不可以空格或句點結尾。",
-    "extension_not_enabled": "SteamCMD 擴充功能未啟用。先在設定 → 擴充功能中啟用。",
     "unknown_branch": "不可選擇的分支：{{branch}}",
     "detect": {
       "out_of_memory": "伺服器記憶體不足 (OutOfMemoryError)",
@@ -755,14 +754,11 @@
     "legacy41": "舊版 Build 41 (legacy41)"
   },
   "messages": {
-    "server_starting_no_response": "程序執行中，伺服器尚未回應 RCON 查詢",
     "properties_updated": "伺服器設定已修改",
     "properties_using_defaults": "設定檔不存在，顯示預設值",
     "no_mappable_settings": "沒有可辨識為伺服器設定的項目",
     "server_reset_complete": "伺服器世界資料已重置",
-    "rcon_disabled_managed": "託管啟動，RCON 已關閉（指令透過主控台 stdin 傳送）",
-    "command_sent": "已向主控台傳送指令：{{command}}",
-    "no_log_files": "找不到記錄檔"
+    "command_sent": "已向主控台傳送指令：{{command}}"
   },
   "rcon": {
     "connecting": "正在連線至 {{host}}:{{port}}...",

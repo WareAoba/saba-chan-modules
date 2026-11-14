@@ -182,7 +182,6 @@
     "stop": { "label": "Detener", "description": "Detener el servidor correctamente" }
   },
   "errors": {
-    "chat_failed": "Error al enviar al chat del juego: {{error}}",
     "backup_paths_failed": "Error al leer la carpeta de plugins para la copia: {{error}}",
     "server_not_running": "Servidor no iniciado. Inicia primero el servidor.",
     "timeout": "Tiempo de espera del servidor agotado. Comprueba el estado del servidor.",

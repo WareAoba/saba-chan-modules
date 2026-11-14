@@ -23,15 +23,6 @@ import pytest
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODULE_TOML = os.path.join(MODULE_DIR, "module.toml")
 
-# 데몬이 호출하는 lifecycle 함수 전체 (src/supervisor/mod.rs, src/ipc/handlers/*)
-DAEMON_FUNCTIONS = {
-    "get_launch_command", "stop", "status", "command", "validate", "configure",
-    "read_properties", "reset_properties", "reset_server", "import_settings",
-    "get_credentials", "accept_agreements", "diagnose_log", "list_versions",
-    "get_version_details", "install_server", "get_installed_version",
-}
-
-
 # ─── 1. module.toml 자체 무결성 ─────────────────────────────
 
 def _load_module_toml():
@@ -59,35 +50,59 @@ def test_module_toml_parses():
 
 def test_module_toml_required_sections_present():
     cfg = _load_module_toml()
-    for section in ("module", "protocols", "credential_map", "config", "install", "settings"):
+    for section in ("module", "protocols", "config", "install", "settings"):
         assert section in cfg, f"missing [{section}] section"
 
 
-# ─── 2. credential_map 타겟 유효성 ──────────────────────────
+# ─── 2. REST 접속값 선언 ────────────────────────────────────
 
-def test_credential_map_targets_are_real_ini_keys():
-    """credential_map 우측 값은 실제 PalWorldSettings.ini 키여야 한다.
-    예: rest_password = "AdminPassword" → AdminPassword가 _PALWORLD_KEY_MAP의 값이거나
-        공식 기본 파일의 키여야 한다."""
-    _PALWORLD_KEY_MAP = _file_keys()
-
+def test_rest_connection_settings_are_declared_once_in_module_toml(tmp_path):
+    """REST 접속값(주소·포트·비밀번호가 든 설정, 사용자 이름)은 module.toml `[protocols.rest]` 한 곳에 둔다.
+    비밀번호 설정은 PalWorldSettings.ini의 AdminPassword이고, 실행할 때 쓴 값은 `rest_credentials`로 데몬에 돌아간다.
+    모듈은 사용자 이름을 다시 적지 않는다 (감사 D3)"""
+    from palworld import lifecycle
     cfg = _load_module_toml()
-    cred_map = cfg.get("credential_map", {})
-    assert cred_map, "credential_map must not be empty for Palworld (REST 인증 필수)"
+    assert cfg["protocols"]["rest"] == {"host_setting": "rest_host", "port_setting": "rest_port",
+                                         "password_setting": "admin_password", "username": "admin"}
+    assert "credential_map" not in cfg
+    assert _file_keys()["admin_password"] == "AdminPassword" and _file_keys()["rest_port"] == "RESTAPIPort"
 
-    known_ini_keys = set(_PALWORLD_KEY_MAP.values()) | set(_load_default_ini_props())
-    for daemon_key, ini_key in cred_map.items():
-        assert ini_key in known_ini_keys, (
-            f"credential_map.{daemon_key} = {ini_key!r} references unknown INI key. "
-            f"Must appear in _PALWORLD_KEY_MAP.values() or DefaultPalWorldSettings.ini."
-        )
+    exe = tmp_path / "PalServer.exe"
+    exe.write_text("", encoding="utf-8")
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    os.makedirs(os.path.dirname(ini))
+    lifecycle._write_option_settings(ini, {"ServerName": "s", "AdminPassword": ""})
+    launch = lifecycle.get_launch_command({"server_executable": str(exe), "working_dir": str(tmp_path),
+                                           "admin_password": "from-setting", "rest_port": 8300})
+    assert launch["rest_credentials"] == {"rest_password": "from-setting"} and "AdminPassword" not in launch
+    props = lifecycle._parse_option_settings(ini)
+    assert (props["AdminPassword"], props["RESTAPIPort"]) == ("from-setting", "8300")
+    assert lifecycle.get_credentials({"working_dir": str(tmp_path)}) == {"success": True, "rest_password": "from-setting"}
 
 
-def test_credential_map_rest_password_binds_admin_password():
-    """Palworld의 REST API 인증은 AdminPassword를 사용. 이 계약이 깨지면
-    데몬의 rest_password 동기화가 침묵한 채 실패한다."""
-    cfg = _load_module_toml()
-    assert cfg["credential_map"].get("rest_password") == "AdminPassword"
+def test_remote_access_values_are_declared_once_and_applied_at_every_step(tmp_path):
+    """사바쨩이 정하는 원격 접속 값(REST 켜기, RCON 끄기)은 module.toml `[remote_access]` 한 곳에 있고,
+    설정 저장·첫 설치·실행 전이 모두 그 값을 쓴다 (감사 A-02)"""
+    import extensions.steamcmd
+    from palworld import lifecycle
+    forced = _load_module_toml()["remote_access"]["forced"]
+    assert forced == {"RESTAPIEnabled": "True", "RCONEnabled": "False"}
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+
+    def written():
+        props = lifecycle._parse_option_settings(ini)
+        return {key: props[key] for key in forced}
+
+    with mock.patch.object(extensions.steamcmd, "install_for_module", return_value={"success": True}):
+        assert lifecycle.install_server({"install_dir": str(tmp_path), "settings": {"server_name": "x"}})["success"] is True
+    assert written() == forced
+    hand_edited = {**lifecycle._parse_option_settings(ini), "RESTAPIEnabled": "False", "RCONEnabled": "True"}
+    lifecycle._write_option_settings(ini, hand_edited)
+    assert lifecycle.configure({"working_dir": str(tmp_path), "settings": {"server_name": "y"}})["success"] is True
+    assert written() == forced
+    lifecycle._write_option_settings(ini, hand_edited)
+    assert lifecycle._enforce_rest_policy(str(tmp_path), {})["changed"] is True
+    assert written() == forced
 
 
 # ─── 3. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
@@ -239,13 +254,6 @@ def test_validate_empty_config_fails():
     assert result.get("success") in (False, None) or "message" in result
 
 
-def test_status_returns_stopped_when_no_executable():
-    from palworld.lifecycle import status
-    result = status({})
-    assert result.get("success") is True
-    assert result.get("status") == "stopped"
-
-
 def test_backup_paths_skip_the_games_own_backups(tmp_path):
     """백업은 월드를 살리는 최소 구성만: 게임이 월드 폴더 안에 쌓는 자동 백업(backup/)은 넣지 않는다"""
     from palworld.lifecycle import backup_paths
@@ -341,9 +349,9 @@ def _run_cli(function, config, include_extensions=False):
     return json.loads(proc.stdout.strip().splitlines()[-1])
 
 
-def test_status_and_stop_work_without_ue4_extension():
-    """ue4-ini 익스텐션이 없어도 status/stop은 동작해야 한다 (지연 import)."""
-    assert _run_cli("status", {})["status"] == "stopped"
+def test_stop_works_without_ue4_extension():
+    """ue4-ini 익스텐션이 없어도 stop은 동작해야 한다 (지연 import). status는 데몬이 추적 PID로 답한다 (감사 A-06)"""
+    assert "status" not in _run_cli("functions", {})["functions"]
     # REST 비밀번호가 없어 저장 후 종료를 요청할 수 없다: 죽이지 않고 알린다 (MK10)
     assert _run_cli("stop", {"pid": 2 ** 22 + 12345})["error_code"] == "graceful_stop_unavailable"
     assert _run_cli("stop", {"pid": 2 ** 22 + 12345, "force": True})["success"] is True
@@ -356,14 +364,6 @@ def test_validate_accepts_daemon_server_executable_key(tmp_path):
     exe.write_text("x")
     codes = {i["code"] for i in validate({"server_executable": str(exe), "port": 1})["issues"]}
     assert "NO_EXECUTABLE" not in codes and "EXECUTABLE_NOT_FOUND" not in codes
-
-
-def test_status_uses_pid_liveness():
-    from palworld import lifecycle
-    with mock.patch.object(lifecycle, "is_process_alive", return_value=True):
-        assert lifecycle.status({"pid": 77})["status"] == "running"
-    with mock.patch.object(lifecycle, "is_process_alive", return_value=False):
-        assert lifecycle.status({"pid": 77})["status"] == "stopped"
 
 
 def test_import_settings_keeps_string_fields(tmp_path):
@@ -468,12 +468,12 @@ def _daemon_rest_response(response, method, endpoint, body=None):
 
 def test_rest_client_leaves_host_and_credentials_to_the_daemon(monkeypatch):
     from palworld import lifecycle
-    rest = mock.Mock(return_value=_daemon_rest_response({"name": "Pal"}, "GET", "/v1/api/info"))
+    rest = mock.Mock(return_value=_daemon_rest_response({"currentplayernum": 1}, "GET", "/v1/api/metrics"))
     monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
     with mock.patch.object(lifecycle, "_read_admin_password_from_ini", side_effect=AssertionError("로컬 자격증명 조회")):
         client = lifecycle._rest_client({"instance_id": "i1", "rest_host": "10.0.0.5", "rest_port": 8300})
-        assert client.info() == {"name": "Pal"}
-    rest.assert_called_once_with("i1", "GET", "/v1/api/info", body=None, timeout=5)
+        assert client.metrics() == {"currentplayernum": 1}
+    rest.assert_called_once_with("i1", "GET", "/v1/api/metrics", body=None, timeout=5)
 
 
 def test_a_sandboxed_run_reaches_its_rest_api_through_the_daemon(monkeypatch, tmp_path):
@@ -572,7 +572,7 @@ def test_a_failed_rest_policy_write_does_not_sync_an_unwritten_password(tmp_path
     with mock.patch.object(lifecycle, "_get_settings_ini_path", return_value=str(ini)), \
          mock.patch.object(lifecycle, "_parse_option_settings", side_effect=lambda _path: {}), \
          mock.patch.object(lifecycle, "_write_option_settings", return_value=False):
-        result = lifecycle._enforce_rest_policy(str(tmp_path), {"rest_password": "fromdaemon"})
+        result = lifecycle._enforce_rest_policy(str(tmp_path), {"admin_password": "fromdaemon"})
         assert result["changed"] is False and result["write_failed"] is True
         assert not result.get("admin_password")
         result = lifecycle._enforce_rest_policy(str(tmp_path), {})
@@ -610,6 +610,25 @@ def test_rest_commands_keep_method_and_endpoint_at_the_sdk_boundary(monkeypatch,
     rest.assert_called_once_with("i1", method, endpoint, body=body, timeout=5)
 
 
+def test_default_reasons_and_the_shutdown_notice_come_from_locales(monkeypatch):
+    """플레이어에게 보이는 기본 사유·종료 공지는 locales를 거친다 (감사 A-11)"""
+    from palworld import lifecycle
+    rest = mock.Mock(return_value={"success": True})
+    monkeypatch.setattr(lifecycle, "daemon_rest", rest, raising=False)
+    t = lifecycle.i18n.t
+    for key in ("messages.kick_reason", "messages.ban_reason", "messages.shutdown_notice"):
+        assert t(key) != key
+    lifecycle.command({"instance_id": "i1", "command": "kick", "args": {"userid": "steam_1"}})
+    lifecycle.command({"instance_id": "i1", "command": "ban", "args": {"userid": "steam_1"}})
+    assert lifecycle._rest_shutdown({"instance_id": "i1"}) is True
+    assert [call.kwargs["body"] for call in rest.call_args_list] == [
+        {"userid": "steam_1", "message": t("messages.kick_reason")},
+        {"userid": "steam_1", "message": t("messages.ban_reason")},
+        {},
+        {"waittime": 1, "message": t("messages.shutdown_notice")},
+    ]
+
+
 def test_nickname_resolution_uses_the_sdk_player_list(monkeypatch):
     from palworld import lifecycle
     monkeypatch.setattr(lifecycle, "_urlopen", mock.Mock(side_effect=AssertionError("직접 REST 호출")), raising=False)
@@ -638,9 +657,10 @@ def test_rest_failure_keeps_the_daemon_error_code(monkeypatch):
     error = ConnectionError("요청 거부")
     error.error_code = "no_instance"
     monkeypatch.setattr(lifecycle, "daemon_rest", mock.Mock(side_effect=error), raising=False)
-    result = lifecycle.execute_rest_via_daemon("i1", "/v1/api/save", {}, "save")
+    result = lifecycle.command({"instance_id": "i1", "command": "kick", "args": {"userid": "steam_1"}})
     assert result["success"] is False
     assert result["error_code"] == "no_instance"
+    assert result["message"] == lifecycle.i18n.t("errors.command_failed", error="요청 거부")
 
 
 @pytest.mark.parametrize("failure", [False, OSError("쓰기 거부")])
@@ -668,7 +688,7 @@ def test_configure_reports_the_settings_write_failure_code(tmp_path, failure):
 def test_backup_rejects_a_name_outside_the_save_root(tmp_path, monkeypatch):
     from daemon_rcon import PathOutside
     from palworld import lifecycle
-    monkeypatch.setattr(lifecycle, "_entries", lambda path: ["../outside"])
+    monkeypatch.setattr(lifecycle, "list_dir", lambda path: ["../outside"])
     with pytest.raises(PathOutside):
         lifecycle.backup_paths({"working_dir": str(tmp_path)})
 
@@ -754,17 +774,23 @@ def test_stop_uses_the_shared_procedure_with_a_rest_shutdown():
 
 
 def test_diagnose_rules_come_from_module_toml_with_their_phrases(tmp_path):
-    """진단 규칙은 module.toml [[diagnose]] 하나에 둔다(공용 diagnose_lines). 문구는 validate.log_<code>(_hint)"""
+    """진단 규칙은 module.toml [[diagnose]] 하나에 둔다(공용 diagnose_log). 문구는 다른 모듈과 같은
+    errors.detect.<code>·errors.solutions.<code> (감사 A-07)"""
     from daemon_rcon import load_diagnose_rules
     from palworld import lifecycle
     rules = load_diagnose_rules(os.path.dirname(MODULE_TOML))
     with open(os.path.join(os.path.dirname(MODULE_TOML), "locales", "en.json"), encoding="utf-8") as f:
-        phrases = json.load(f)["validate"]
+        phrases = json.load(f)["errors"]
     for rule in rules:
-        assert f"log_{rule['code'].lower()}" in phrases and f"log_{rule['code'].lower()}_hint" in phrases, rule["code"]
+        assert rule["code"].lower() in phrases["detect"] and rule["code"].lower() in phrases["solutions"], rule["code"]
     issues = lifecycle.diagnose_log({"log_lines": ["LogNet: Error: Address already in use"]})["issues"]
-    assert [(i["code"], i["severity"], i["message"]) for i in issues] == [
-        ("PORT_IN_USE", "critical", phrases["log_port_in_use"])]
+    assert [(i["code"], i["severity"], i["message"], i["solution"]) for i in issues] == [
+        ("PORT_IN_USE", "critical", phrases["detect"]["port_in_use"], phrases["solutions"]["port_in_use"])]
+    # 콘솔 줄이 없으면 module.toml [launch] diagnose_files의 로그 파일을 읽는다
+    log = tmp_path / "Pal" / "Saved" / "Logs" / "Pal.log"
+    log.parent.mkdir(parents=True)
+    log.write_text("LogMemory: Ran out of memory\n", encoding="utf-8")
+    assert [i["code"] for i in lifecycle.diagnose_log({"working_dir": str(tmp_path)})["issues"]] == ["OUT_OF_MEMORY"]
 
 
 def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_extension(tmp_path, monkeypatch):
@@ -1042,7 +1068,7 @@ def test_an_ini_with_only_the_section_header_is_still_filled_with_defaults(tmp_p
     ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
     os.makedirs(os.path.dirname(ini))
     open(ini, "w", encoding="utf-8").write("[/Script/Pal.PalGameWorldSettings]\n")
-    assert lifecycle._enforce_rest_policy(str(tmp_path), {"rest_password": "x"})["changed"] is True
+    assert lifecycle._enforce_rest_policy(str(tmp_path), {"admin_password": "x"})["changed"] is True
     assert lifecycle._parse_option_settings(ini)["ServerName"] == _load_default_ini_props()["ServerName"]
 
 
@@ -1063,7 +1089,7 @@ def test_random_admin_password_is_only_for_the_admin_password(tmp_path):
         seen.add(r["admin_password"])
     assert len(seen) == 20
     # 이미 있는 값은 건드리지 않는다
-    r = lifecycle._enforce_rest_policy(str(tmp_path), {"rest_password": "other"})
+    r = lifecycle._enforce_rest_policy(str(tmp_path), {"admin_password": "other"})
     assert r["admin_password"] == props["AdminPassword"]
 
 

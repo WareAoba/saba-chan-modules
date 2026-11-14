@@ -19,6 +19,8 @@ import re
 import sys
 import zipfile
 
+from daemon_rcon import fetch_json
+
 USER_AGENT = "saba-chan/1.0 (https://github.com/WareAoba/saba-chan)"
 
 # id → 성격. family: 플러그인/모드 폴더 판정에 쓴다 (bukkit = plugins/, mod = mods/)
@@ -314,11 +316,8 @@ def launch_target(config, server_jar, working_dir):
 def _get_json(url, timeout=15):
     """받을 곳의 JSON. 그 버전이 없으면(404: Folia·Purpur·등록 초기의 Paper) ValueError("version_unavailable")"""
     import urllib.error
-    import urllib.request
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+        return fetch_json(url, timeout=timeout, user_agent=USER_AGENT)
     except urllib.error.HTTPError as e:
         if e.code == 404:
             raise ValueError("version_unavailable") from e

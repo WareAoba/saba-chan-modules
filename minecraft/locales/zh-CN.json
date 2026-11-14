@@ -182,7 +182,6 @@
     "stop": { "label": "停止", "description": "正常停止服务器" }
   },
   "errors": {
-    "chat_failed": "游戏聊天发送失败:{{error}}",
     "backup_paths_failed": "读取要备份的插件文件夹失败:{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
     "timeout": "服务器响应超时。请检查服务器状态。",

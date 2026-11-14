@@ -1188,28 +1188,34 @@ def _modpack_jvm_args(working_dir):
     return [a for line in text.splitlines() for a in _split_args(line) if not _managed_jvm_arg(a)]
 
 
-def _script_jvm_args(working_dir):
-    """가져온 서버가 쓰던 시작 스크립트의 java 줄에서 사바쨩이 정하지 않는 JVM 인자. 없으면 []
-    변수가 남은 인자(%RAM%, $@)는 값을 모르므로 옮기지 않는다. 인자 파일(@…)은 실행 때 따로 읽는다"""
+def _script_java_args(working_dir):
+    """가져온 서버가 쓰던 시작 스크립트의 실행 줄에서 java 다음, 실행 대상(-jar·-cp·@인자 파일) 앞의 인자. 없으면 None
+    사용자가 만든 스크립트도 읽는다: 안내 문구(echo java …)처럼 실행 대상이 없는 줄은 건너뛰고, 메뉴처럼 실행 줄이 여럿이면 첫 줄"""
     for name in _START_SCRIPTS:
         if name == "user_jvm_args.txt":
             continue
         for line in (_read_text(os.path.join(working_dir, name)) or "").splitlines():
             if re.match(r"\s*(#|::|@?rem\b)", line, re.IGNORECASE):
                 continue
-            args = _split_args(line)
+            args = [a.lstrip("(").rstrip(")") for a in _split_args(line)]
+            # java 실행 파일, 또는 그것을 담은 변수(%JAVA%, $JAVA). 뒤에 실행 대상이 있어야 실행 줄로 본다
             start = next((i for i, a in enumerate(args)
-                          if re.fullmatch(r"javaw?(\.exe)?", re.split(r"[\\/]", a)[-1], re.IGNORECASE)), None)
+                          if re.fullmatch(r"javaw?(\.exe)?", re.split(r"[\\/]", a)[-1], re.IGNORECASE)
+                          or re.fullmatch(r"%\w+%|\$\{?\w+\}?", a)), None)
             if start is None:
                 continue
-            found = []
-            for arg in args[start + 1:]:
-                if arg in ("-jar", "-cp", "-classpath") or arg.startswith("@"):
-                    break
-                if arg.startswith("-") and not re.search(r"[%$]", arg) and not _managed_jvm_arg(arg):
-                    found.append(arg)
-            return found
-    return []
+            rest = args[start + 1:]
+            end = next((i for i, a in enumerate(rest) if a in ("-jar", "-cp", "-classpath") or a.startswith("@")), None)
+            if end is not None:
+                return rest[:end]
+    return None
+
+
+def _script_jvm_args(working_dir):
+    """쓰던 시작 스크립트의 JVM 인자 중 사바쨩이 정하지 않는 것. 없으면 []
+    변수가 남은 인자(%RAM%, $@)는 값을 모르므로 옮기지 않는다. 인자 파일(@…)은 실행 때 따로 읽는다"""
+    return [a for a in _script_java_args(working_dir) or []
+            if a.startswith("-") and not re.search(r"[%$]", a) and not _managed_jvm_arg(a)]
 
 
 def get_launch_command(config):
@@ -1308,19 +1314,14 @@ _START_SCRIPTS = ("user_jvm_args.txt", "run.bat", "start.bat", "run.sh", "start.
 
 
 def _script_memory(working_dir):
-    """쓰던 실행 스크립트의 -Xmx ("10G", "3072M"). 없으면 None (모듈 기본값 그대로)"""
-    for name in _START_SCRIPTS:
-        try:
-            with open(os.path.join(working_dir, name), encoding="utf-8", errors="replace") as f:
-                text = f.read()
-        except OSError:
-            continue
-        for line in text.splitlines():
-            if line.lstrip().startswith(("#", "rem ", "REM ", "::")):
-                continue
-            m = re.search(r"(?<!\S)-Xmx(\d+[KMGkmg])(?!\S)", line)
-            if m:
-                return m.group(1).upper()
+    """쓰던 실행 스크립트의 -Xmx ("10G", "3072M"). Forge user_jvm_args.txt가 먼저, 다음은 시작 스크립트의 실행 줄.
+    없거나 실행할 때 입력받는 값(-Xmx%RAM%G)이면 None (모듈 기본값 그대로)"""
+    text = _read_text(os.path.join(working_dir, "user_jvm_args.txt")) or ""
+    args = [a for line in text.splitlines() for a in _split_args(line)] + (_script_java_args(working_dir) or [])
+    for arg in args:
+        m = re.fullmatch(r"-Xmx(\d+[KMGkmg])", arg)
+        if m:
+            return m.group(1).upper()
     return None
 
 

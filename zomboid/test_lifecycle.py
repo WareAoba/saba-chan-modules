@@ -1273,3 +1273,73 @@ def test_import_of_an_unchanged_official_script_moves_no_args(tmp_path, monkeypa
     ), monkeypatch)
 
     assert "extra_args" not in lifecycle.import_settings({"working_dir": str(server)})
+
+
+# ─── 사용자가 만든 실행 스크립트 (입력받는 값, 변수) ─────────────────────────
+
+def test_import_skips_script_values_that_are_typed_in_at_each_start(tmp_path, monkeypatch):
+    """set /p로 입력받는 서버 이름·데이터 폴더는 값을 모르므로 가져오지 않는다 (%NAME%라는 월드가 생기지 않게)"""
+    from zomboid import lifecycle
+    server = _existing_server(tmp_path, (
+        '@echo off\nset /p NAME=서버 이름? \nset /p RAM=램(GB)? \n'
+        '".\\jre64\\bin\\java.exe" -Xms%RAM%g -Xmx%RAM%g -cp java/ zombie.network.GameServer -servername %NAME% -cachedir=%DIR%\n'
+    ), monkeypatch)
+
+    found = lifecycle._script_settings(str(server))
+
+    assert found == {}
+
+
+def _user_script_server(tmp_path, monkeypatch, script):
+    server = _existing_server(tmp_path, script, monkeypatch)
+    (server / "jre64" / "bin").mkdir(parents=True)
+    (server / "jre64" / "bin" / "java.exe").write_text("", encoding="utf-8")
+    (server / "java").mkdir()
+    (server / "java" / "projectzomboid.jar").write_text("", encoding="utf-8")
+    return server
+
+
+def test_launch_drops_script_args_whose_variables_are_unknown(tmp_path, monkeypatch):
+    """실행할 때 입력받던 값(%VAR%)은 사바쨩이 시작할 때 채울 수 없다. 그대로 넘기면 JVM이 '%CPU%'를 읽지 못해 서버가 뜨지 않으므로
+    그 인자는 빼고(게임 인자는 값을 받는 옵션째로), 메모리·서버 이름은 사바쨩 값을 쓴다"""
+    from zomboid import lifecycle
+    server = _user_script_server(tmp_path, monkeypatch, (
+        '@echo off\nset /p RAM=RAM? \nset /p CPU=CPU? \n'
+        '".\\jre64\\bin\\java.exe" -Xms%RAM%g -Xmx%RAM%g -XX:ActiveProcessorCount=%CPU% -Dkeep=1 -cp java/ zombie.network.GameServer '
+        '-statistic 0 -adminusername %ADMIN% -servername %NAME%\n'
+    ))
+
+    args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 6, "server_name": "pvp", "preview": True})["args"]
+
+    assert not [a for a in args if "%" in a]
+    assert "-adminusername" not in args
+    assert "-Dkeep=1" in args and "-Xmx6g" in args
+    assert args[args.index("-servername") + 1] == "pvp"
+    assert args[args.index("-statistic") + 1] == "0"
+
+
+def test_launch_builds_the_classpath_when_the_scripts_classpath_variable_is_unknown(tmp_path, monkeypatch):
+    from zomboid import lifecycle
+    server = _user_script_server(tmp_path, monkeypatch,
+                                 '".\\jre64\\bin\\java.exe" -Xmx8g -cp %CP% zombie.network.GameServer\n')
+
+    args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 6, "preview": True})["args"]
+
+    assert "%CP%" not in args
+    assert "projectzomboid.jar" in args[args.index("-cp") + 1]
+
+
+@pytest.mark.parametrize("script", [
+    '@echo off\nset "PZ_CLASSPATH=java/;java/projectzomboid.jar"\n'
+    '".\\jre64\\bin\\java.exe" -Xmx8g -Dkeep=1 -cp %PZ_CLASSPATH% zombie.network.GameServer\n',
+    '"%~dp0jre64\\bin\\java.exe" -Xmx8g -Dkeep=1 -cp java/;java/projectzomboid.jar zombie.network.GameServer\n',
+])
+def test_launch_reads_common_user_script_forms(tmp_path, monkeypatch, script):
+    """따옴표로 감싼 set "VAR=값"과 스크립트 폴더 기준 경로(%~dp0)도 읽어, 스크립트 그대로의 classpath와 스크립트에 더한 인자(-Dkeep=1)를 지킨다"""
+    from zomboid import lifecycle
+    server = _user_script_server(tmp_path, monkeypatch, script)
+
+    args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 6, "preview": True})["args"]
+
+    assert "-Dkeep=1" in args
+    assert args[args.index("-cp") + 1] == "java/;java/projectzomboid.jar"

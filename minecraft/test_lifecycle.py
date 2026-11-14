@@ -1665,6 +1665,39 @@ def test_import_moves_the_unmanaged_jvm_args_of_the_start_script_to_extra_args(t
     assert "extra_args" not in result["settings"]
 
 
+@pytest.mark.parametrize("name,content,ram,extra", [
+    # 실행할 때마다 램을 입력받는 스크립트: 값을 모르므로 메모리는 모듈 기본값, 변수가 남은 인자는 옮기지 않는다
+    ("start.bat", "@echo off\nset /p RAM=램 몇 GB? \njava -Xmx%RAM%G -Xms%RAM%G -jar server.jar nogui\npause\n", None, None),
+    ("start.bat", '@echo off\nset /p "RAM=RAM: "\njava -Xmx%RAM%G -javaagent:a.jar -jar paper.jar\n', None, ["-javaagent:a.jar"]),
+    ("start.sh", '#!/bin/bash\nread -p "RAM: " RAM\njava -Xmx${RAM}G -jar server.jar nogui\n', None, None),
+    # 안내 문구의 java는 실행 줄이 아니다
+    ("start.bat", "@echo off\necho java -Xmx2G 로 바꾸면 가벼워집니다\njava -Xmx6G -javaagent:x.jar -jar server.jar\n", "6G", ["-javaagent:x.jar"]),
+    # 메뉴: 어느 쪽을 고를지 모르므로 첫 실행 줄
+    ("start.bat", "@echo off\nchoice /c 12 /m \"select\"\nif errorlevel 2 goto big\njava -Xmx4G -jar server.jar nogui\ngoto end\n:big\n"
+                  "java -Xmx8G -Dbig=1 -jar server.jar nogui\n:end\n", "4G", None),
+    ("start.bat", '@echo off\nset /p M=mode:\nif "%M%"=="1" (java -Xmx4G -Dfoo=1 -jar server.jar nogui) else (java -Xmx8G -jar server.jar nogui)\n',
+     "4G", ["-Dfoo=1"]),
+    ("start.bat", ':start\n"C:\\Program Files\\Java\\jdk-21\\bin\\java.exe" -Xmx10G -XX:+UseG1GC -Dlog4j2.formatMsgNoLookups=true -jar server.jar --nogui\n'
+                  "timeout 5\ngoto start\n", "10G", ["-Dlog4j2.formatMsgNoLookups=true"]),
+    ("start.bat", 'start "" /b javaw -Xmx4G -Dw=1 -jar server.jar\n', "4G", ["-Dw=1"]),
+    ("start.bat", 'set JAVA="C:\\jdk\\bin\\java.exe"\n%JAVA% -Xmx4G -Dx=1 -jar server.jar\n', "4G", ["-Dx=1"]),
+    ("start.sh", 'JAVA=/opt/jdk/bin/java\n"$JAVA" -Xmx5G -Dx=1 -jar server.jar\n', "5G", ["-Dx=1"]),
+    # 따옴표가 닫히지 않은 줄은 인자를 가를 수 없으니 읽지 않는다
+    ("start.bat", 'java -Xmx4G "-Dname=hello -jar server.jar\n', None, None),
+])
+def test_import_survives_user_made_start_scripts(tmp_path, name, content, ram, extra):
+    """사용자가 만든 시작 스크립트(입력받는 램, 메뉴, 재시작 루프, 안내 문구)도 가져오기가 실패하지 않고, 읽을 수 있는 값만 가져온다"""
+    from minecraft.lifecycle import import_settings, ServerPropertiesManager
+    ServerPropertiesManager(str(tmp_path)).write({"motd": "kept"})
+    (tmp_path / name).write_text(content, encoding="utf-8")
+
+    result = import_settings({"working_dir": str(tmp_path)})
+
+    assert result["success"] is True
+    assert result["settings"].get("ram") == ram
+    assert result.get("extra_args") == extra
+
+
 def test_import_without_a_start_script_leaves_the_memory_setting_alone(tmp_path):
     from minecraft.lifecycle import import_settings, ServerPropertiesManager
     ServerPropertiesManager(str(tmp_path)).write({"motd": "kept"})

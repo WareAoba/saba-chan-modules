@@ -1344,3 +1344,18 @@ def test_launch_reads_common_user_script_forms(tmp_path, monkeypatch, script):
 
     assert "-Dkeep=1" in args
     assert args[args.index("-cp") + 1] == "java/;java/projectzomboid.jar"
+
+
+def test_an_unreadable_ini_is_an_error_not_empty_settings(tmp_path, monkeypatch):
+    """읽지 못한 서버 ini를 빈 설정으로 답하지 않는다 (원인이 사용자 답에 남게)"""
+    from zomboid import lifecycle
+    ini = tmp_path / "Server" / "servertest.ini"
+    ini.parent.mkdir()
+    ini.write_text("PublicName=hi\n")
+
+    def denied(*_args, **_kwargs):
+        raise PermissionError(13, "Access is denied")
+    monkeypatch.setattr(lifecycle, "read_key_values", denied)
+
+    with pytest.raises(PermissionError):
+        lifecycle.read_properties({"cache_dir": str(tmp_path)})

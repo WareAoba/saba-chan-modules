@@ -124,11 +124,7 @@ class IniManager:
         인코딩 추측(UTF-8 → cp949 → 로캘, PZ·메모장이 ANSI로 쓴 파일)은 공용 read_key_values가 한다"""
         if not os.path.exists(ini_path):
             return {}
-        try:
-            return read_key_values(ini_path)
-        except OSError as e:
-            print(f"Warning: Could not read {ini_path}: {e}", file=sys.stderr)
-            return {}
+        return read_key_values(ini_path)
 
     @staticmethod
     def update(ini_path, updates):

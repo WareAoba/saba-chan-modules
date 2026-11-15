@@ -108,10 +108,7 @@ class ServerPropertiesManager:
         """Parse server.properties into a dict. 인코딩 추측(UTF-8 → cp949 → 로캘)은 공용 read_key_values가 한다"""
         if not self.exists():
             return {}
-        try:
-            return {k: _unescape_property(v) for k, v in read_key_values(self.path, strip_values=True).items()}
-        except OSError:
-            return {}
+        return {k: _unescape_property(v) for k, v in read_key_values(self.path, strip_values=True).items()}
 
     def write(self, properties):
         """Write a full properties dict (replaces entire file)."""

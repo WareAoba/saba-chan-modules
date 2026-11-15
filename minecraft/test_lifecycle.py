@@ -2353,3 +2353,18 @@ def test_gamerule_names_follow_the_server_version():
     # 버전을 모르면 친 그대로, 값이 비면 지금 값을 묻는다
     assert run("keepInventory", None)[0] == "gamerule keepInventory true"
     assert run("keepInventory", "26.3", value="")[0] == "gamerule keep_inventory"
+
+
+def test_an_unreadable_properties_file_is_an_error_not_empty_settings(tmp_path, monkeypatch):
+    """읽지 못한 server.properties를 빈 설정으로 답하지 않는다 (원인이 사용자 답에 남게)"""
+    import sys
+    from minecraft.lifecycle import read_properties
+    properties = sys.modules[read_properties.__globals__["ServerPropertiesManager"].__module__]
+    (tmp_path / "server.properties").write_text("motd=hi\n")
+
+    def denied(*_args, **_kwargs):
+        raise PermissionError(13, "Access is denied")
+    monkeypatch.setattr(properties, "read_key_values", denied)
+
+    with pytest.raises(PermissionError):
+        read_properties({"working_dir": str(tmp_path)})

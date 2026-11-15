@@ -30,7 +30,7 @@
     "max_players": { "label": "최대 플레이어 수", "description": "최대 플레이어 수 (1-32)" },
     "coop_max_players": { "label": "협동 최대 플레이어 수", "description": "협동 파티 최대 플레이어 수" },
     "public_ip": { "label": "공개 IP", "description": "공개 IP 주소 (빈 칸이면 자동)" },
-    "difficulty": { "label": "난이도", "description": "전체 게임 난이도", "options": { "None": "정하지 않음", "Casual": "캐주얼", "Normal": "보통", "Hard": "어려움" } },
+    "difficulty": { "label": "난이도", "description": "전체 게임 난이도", "options": { "None": "지정 안 함", "Casual": "캐주얼", "Normal": "보통", "Hard": "어려움" } },
     "is_pvp": { "label": "PvP", "description": "플레이어 간 전투를 활성화합니다" },
     "death_penalty": { "label": "사망 패널티", "description": "플레이어 사망 시 드롭 항목", "options": { "None": "아무것도 떨어뜨리지 않음", "Item": "아이템 (장비는 지킴)", "ItemAndEquipment": "아이템과 장비", "All": "아이템·장비·팰 모두" } },
     "exp_rate": { "label": "경험치 배율", "description": "경험치 획득 배율 (0.1-20.0)" },

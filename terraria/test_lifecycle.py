@@ -68,7 +68,7 @@ def _read(path):
     return Path(path).read_text(encoding="utf-8")
 
 
-# ─── module.toml ↔ lifecycle ────────────────────────────────
+# module.toml ↔ lifecycle
 
 def test_every_game_setting_maps_to_a_config_key(lc, toml):
     game = [f["name"] for f in toml["settings"]["fields"] if f.get("group") != "saba-chan"]
@@ -127,7 +127,7 @@ def test_measured_boolean_settings_roundtrip(lc):
     assert lc._settings_from_file({"worldrollbackstokeep": "0"})["worldrollbackstokeep"] == 0
 
 
-# ─── serverconfig.txt 문법 ──────────────────────────────────
+# serverconfig.txt 문법
 
 def test_configure_roundtrip_keeps_special_characters(lc, tmp_path):
     server = _server(tmp_path, lc)
@@ -246,7 +246,7 @@ def test_import_without_config_file_still_succeeds(lc, tmp_path):
     assert result["settings"] == {}
 
 
-# ─── 실행 ────────────────────────────────────────────────
+# 실행
 
 def test_launch_without_executable_asks_for_action(lc, tmp_path):
     server = _server(tmp_path, lc, exe=False)
@@ -327,7 +327,7 @@ def test_validate_flags_bad_world_name(lc, tmp_path):
     assert any(i["code"] == "invalid_world_name" for i in result["issues"])
 
 
-# ─── 정지 ────────────────────────────────────────────────
+# 정지
 
 def test_stop_uses_the_shared_procedure_with_the_console_exit(lc, monkeypatch):
     """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. 테라리아는 콘솔 `exit`로만 요청한다"""
@@ -339,7 +339,7 @@ def test_stop_uses_the_shared_procedure_with_the_console_exit(lc, monkeypatch):
     assert used["module_dir"] == lc.MODULE_DIR
 
 
-# ─── 백업 ────────────────────────────────────────────────
+# 백업
 
 def _populated_server(tmp_path, lc):
     server = _server(tmp_path, lc)
@@ -377,7 +377,7 @@ def test_backup_refuses_bad_banlist(lc, tmp_path):
     assert result["success"] is False
 
 
-# ─── 초기화 ──────────────────────────────────────────────
+# 초기화
 
 def test_reset_deletes_only_this_world(lc, tmp_path):
     server = _populated_server(tmp_path, lc)
@@ -429,7 +429,7 @@ def test_reset_refuses_folder_without_server(lc, tmp_path):
     assert (folder / "Worlds" / "Island.wld").exists()
 
 
-# ─── 버전·설치 ───────────────────────────────────────────
+# 버전·설치
 
 def test_list_versions_reads_official_names(lc, monkeypatch):
     monkeypatch.setattr(lc, "_fetch_server_names",
@@ -690,8 +690,6 @@ def test_install_reports_settings_write_failure(lc, tmp_path, monkeypatch):
     assert result["error_code"] == "settings_write_failed"
 
 
-# ─── 번역 ────────────────────────────────────────────────
-
 def test_installed_version_comes_from_the_changelog(lc, tmp_path):
     server = _server(tmp_path, lc)
     # 공식 Windows zip의 changelog.txt 첫 줄 (실측, CRLF)
@@ -814,7 +812,7 @@ def test_relative_world_path_is_under_the_server_folder(lc, tmp_path):
     assert Path(world_file) == server / "Worlds" / "a.wld"
 
 
-# ─── 연결 해제 때 되돌릴 설정 파일 (#70 계약) ───────────────────
+# 연결 해제 때 되돌릴 설정 파일
 
 def test_config_files_is_the_server_config(lc, tmp_path):
     server = _server(tmp_path, lc)
@@ -826,7 +824,7 @@ def test_config_files_needs_a_server_folder(lc):
     assert lc.config_files({})["success"] is False
 
 
-# ─── 실행 인자 모양은 module.toml `arg` 한 곳 ──────────────────
+# 실행 인자 모양은 module.toml `arg` 한 곳
 
 def test_launch_argument_shapes_come_from_module_toml(tmp_path):
     import shutil
@@ -844,7 +842,7 @@ def test_launch_argument_shapes_come_from_module_toml(tmp_path):
     assert result["args"] == ["-config", "serverconfig.txt", "-ip=127.0.0.1"]
 
 
-# ─── 접속·퇴장 (서버 파일 번역 문자열 LegacyMultiplayer.19·20, 12개 언어) ───
+# 접속·퇴장 (서버 파일 번역 문자열 LegacyMultiplayer.19·20, 12개 언어)
 
 _JOIN_LEAVE = [
     ("{0} has joined.", "{0} has left."),
@@ -905,7 +903,7 @@ def test_chat_lines_name_the_player_and_the_message(toml):
         assert _chat(chat, line) is None, line
 
 
-# ─── 접속자 (`playing`, 서버 파일 CLI.NoPlayers·OnePlayerConnected·PlayersConnected) ───
+# 접속자 (`playing`, 서버 파일 CLI.NoPlayers·OnePlayerConnected·PlayersConnected)
 
 def _playing(monkeypatch, lc, response):
     sent = []
@@ -1001,7 +999,7 @@ def test_join_and_leave_highlight_cover_every_detection_pattern(toml):
             assert _first_highlight(toml, line) == (token, "Steve"), (p, line)
 
 
-# ─── 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`, 사용자 요청 2026-10-30) ───
+# 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`)
 
 def test_send_chat_says_the_sender_and_the_message(lc, monkeypatch):
     sent = _playing(monkeypatch, lc, "")

@@ -73,7 +73,7 @@ def test_chat_with_the_stop_words_is_not_a_graceful_exit():
         assert not graceful(line), line
 
 
-# ─── 실제 서버 줄 (클라우드 Linux 실측 2026-10-28: 26.3 바닐라·Paper·Forge·NeoForge·Fabric·Spigot, 26.1 바닐라·NeoForge, Folia 26.1.2) ───
+# 실제 서버 줄 (클라우드 Linux 실측 2026-10-28: 26.3 바닐라·Paper·Forge·NeoForge·Fabric·Spigot, 26.1 바닐라·NeoForge, Folia 26.1.2)
 # 로그 머리 세 모양: 바닐라·Fabric·Quilt·Spigot `[시각] [스레드/레벨]: `, Paper 계열 `[시각 레벨]: `,
 # Forge·NeoForge `[시각] [스레드/레벨] [minecraft/로거]: `. 26.3은 명령 답 앞에 `System chat: `을 붙이고 26.1은 붙이지 않는다
 HEADS = ["[20:36:46] [Server thread/INFO]: ", "[19:56:12 INFO]: ", "[20:38:12] [Server thread/INFO] [minecraft/MinecraftServer]: "]

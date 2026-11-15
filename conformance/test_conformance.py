@@ -200,7 +200,7 @@ def sandbox_config(tmp_path):
     return {"instance_id": "conformance", "working_dir": str(work), "managed": True}
 
 
-# ── 1. module.toml ──────────────────────────────────────
+# 1. module.toml
 
 def test_manifest_matches_schema(module):
     errors = [
@@ -353,7 +353,7 @@ def test_kit_catches_rcon_misuse():
             f"rcon_port {bad!r}는 1~65535 정수가 아니다"]
     assert protocol_problems({"protocols": {"supported": ["rest"]}}) == []
 
-# ── 2. FUNCTIONS 표 ─────────────────────────────────────
+# 2. FUNCTIONS 표
 
 def test_functions_table(module):
     table, defined = functions_table(module)
@@ -387,7 +387,7 @@ def test_kit_catches_hook_without_function():
     assert hook_functions_missing({"backup": {"snapshots": True}}, {}) == ["[backup] snapshots → backup_snapshots"]
 
 
-# ── 3·4. 실행 계약 ──────────────────────────────────────
+# 3·4. 실행 계약
 
 def test_unknown_function_is_answered(module, shared_libs, tmp_path):
     result = call(module, shared_libs, "__conformance_no_such_function__", sandbox_config(tmp_path), tmp_path)
@@ -842,7 +842,7 @@ def test_path_errors_are_not_swallowed(module):
             source, local_sources=sources, module_name=name))
     assert not problems, "PathOutside를 다시 던지지 않는 예외 처리: " + ", ".join(problems)
 
-# ── 5. 번역 ─────────────────────────────────────────────
+# 5. 번역
 
 def test_translation_keys(module, shared_libs):
     locales = module.dir / "locales"
@@ -889,7 +889,7 @@ def test_translations_not_left_in_english(module):
     assert not problems, "\n".join(problems)
 
 
-# ── 코드 검사 (M12) ─────────────────────────────────────
+# 코드 검사
 
 @pytest.fixture
 def audit_findings(module, shared_libs):

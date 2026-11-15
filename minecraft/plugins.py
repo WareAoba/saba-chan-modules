@@ -40,7 +40,7 @@ _DESCRIPTORS = [
 _SCAN_DIRS = ("plugins", "mods")
 
 
-# ─── plugin.yml (YAML의 일부) ───────────────────────────────────
+# plugin.yml (YAML의 일부)
 # 데몬의 Python에는 PyYAML이 없다. plugin.yml에서 쓰는 모양(맵, 블록·흐름 목록, 따옴표 문자열,
 # | > 블록 문자열)만 읽는다. 앵커·태그 같은 나머지 YAML은 plugin.yml에 쓰이지 않는다.
 
@@ -182,7 +182,7 @@ def parse_yaml(text):
     return result if isinstance(result, dict) else {}
 
 
-# ─── mods.toml (TOML의 일부) ───────────────────────────────────
+# mods.toml (TOML의 일부)
 # Python 3.10에는 tomllib가 없다. [[mods]] 블록의 modId/version/displayName만 읽는다.
 
 def _parse_mods_toml(text):
@@ -273,7 +273,7 @@ def scan(working_dir):
     return found
 
 
-# ─── 명령 카탈로그 ─────────────────────────────────────────────
+# 명령 카탈로그
 
 def load_catalog():
     """plugin_catalog/*.json — 플러그인 id(소문자) → 정의"""

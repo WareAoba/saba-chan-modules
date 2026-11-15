@@ -91,22 +91,9 @@ from i18n import I18n
 # ─── Path setup ──────────────────────────────────────────────────
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# daemon_rcon.py(이름만 남은 데몬 연동 도우미), i18n.py는 saba-chan 본체(modules/)에 있습니다.
-# 데몬이 실행 시 PYTHONPATH로 해당 경로를 자동 주입하므로,
-# 모듈 폴더에 복사할 필요 없이 바로 import 가능합니다.
-#   daemon_stdin_command(instance_id, line): 데몬이 관리하는 서버 콘솔(stdin)에 한 줄 보내기
-#   is_process_alive / wait_for_exit / force_kill: OS별 프로세스 처리 (직접 만들지 마세요)
-#   graceful_stop / request_console / request_terminate: stop()의 공용 절차 (saba-core 0.1.11부터)
-#   settings_to_file / settings_from_file: 설정 이름 ↔ 게임 설정 파일 키 (module.toml file_key, 0.1.11부터)
-#   read_key_values / update_key_values: `키=값` 설정 파일 읽기·바뀐 키만 쓰기 (인코딩·주석·순서 유지, 0.1.11부터)
-#   stop_command: module.toml [config] stop_command 읽기 (0.1.14부터)
-#   setting_defaults_to_file: module.toml 설정 기본값 → 새 설정 파일 값 (기본값을 코드·파일에 다시 적지 않습니다, 0.1.14부터)
-#   delete_paths / chat_reply: reset_server·send_chat의 공용 절차 (0.1.14부터)
-#   diagnose_log: module.toml [[diagnose]]·[launch] diagnose_files로 로그 진단 (0.1.14-beta.2부터)
-#   extension_required: 필요한 익스텐션이 없을 때의 답 (0.1.14-beta.2부터)
-#   remote_access_values / enforce_remote_access: module.toml [remote_access]의 원격 접속 값 쓰기 (0.1.14-beta.2부터)
-#   auto_heap_mb / java_release_major: Java 서버의 자동 힙 크기·JRE 버전 (0.1.14-beta.2부터)
-#   list_dir / fetch_json: 폴더 항목·JSON 받기 (0.1.14-beta.2부터)
+# daemon_rcon.py(데몬 연동 도우미), i18n.py는 공용 파일입니다. 데몬이 실행 때 <data_dir>/python-shared/를
+# PYTHONPATH로 넣어 주므로 모듈 폴더에 복사하지 않고 바로 import합니다.
+# 도우미 목록과 도입 버전은 saba-chan docs/architecture/02-modules.md §2.5(원본은 daemon_rcon.SINCE)에 있습니다.
 import daemon_rcon
 from daemon_rcon import (daemon_stdin_command, extension_required, graceful_stop, read_key_values, request_console,
                          request_terminate, run_lifecycle, settings_from_file, settings_to_file, stop_command, update_key_values)

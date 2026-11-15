@@ -114,7 +114,7 @@ def test_report_without_failures_passes():
     assert "격리 없음" in report.markdown()
 
 
-# ── 전체 흐름: 데몬과 러너를 실제로 띄운다 ──
+# 전체 흐름: 데몬과 러너를 실제로 띄운다
 
 def test_trial_runs_the_fixture_module_through_a_real_daemon(pytestconfig, tmp_path):
     saba_core = pytestconfig.getoption("--saba-core")

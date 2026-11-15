@@ -42,7 +42,7 @@ def repo(tmp_path):
     return root
 
 
-# ── new_module ──
+# new_module
 
 def test_new_module_copies_the_template_under_the_module_name(repo):
     folder = new_module.create(repo, "mygamex", "My Game X")
@@ -106,7 +106,7 @@ def test_new_module_never_overwrites(repo):
     assert (repo / "mygamex" / "keep.txt").read_text() == "x"
 
 
-# ── inspect_dist ──
+# inspect_dist
 
 def make_zip(path, files):
     with zipfile.ZipFile(path, "w") as z:
@@ -185,7 +185,7 @@ def test_inspect_markdown_names_the_findings(tmp_path):
     assert "not utf-8" in text
 
 
-# ── probe_server ──
+# probe_server
 
 FAKE_SERVER = textwrap.dedent("""
     import sys, time, pathlib
@@ -290,7 +290,7 @@ def test_probe_reports_a_missing_ready_line(fake_server):
     assert result["stop"]["exited"] is True
 
 
-# ── check ──
+# check
 
 def translated(data, lang):
     """번역한 것처럼 모든 문구 앞에 언어를 붙인다"""
@@ -606,7 +606,7 @@ def test_check_trial_needs_saba_core(repo):
     assert "--saba-core" in done.stderr
 
 
-# ─── prior_art: 다른 관리 도구(Pelican eggs, LinuxGSM)의 단서 ────────────────
+# prior_art: 다른 관리 도구(Pelican eggs, LinuxGSM)의 단서
 
 EGG = {
     "meta": {"version": "PLCN_v3"},

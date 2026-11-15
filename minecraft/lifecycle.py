@@ -1,17 +1,7 @@
 #!/usr/bin/env python3
 """
-Minecraft server lifecycle management module for saba-chan.
-
-Provides complete server management:
-  - Java environment detection and validation (java.py)
-  - EULA management, server.properties read/write (properties.py)
-  - Server download and install (installer.py)
-  - Error detection and diagnosis with solutions
-  - Server launch command generation (for Rust managed process)
-  - Graceful shutdown (the daemon sends `stop` to the console; this module falls back to SIGTERM)
-  - Server List Ping for rich status info
-
-Always outputs JSON to stdout, logs to stderr.
+마인크래프트 서버 모듈 진입점. 데몬이 부르는 함수는 맨 아래 FUNCTIONS 표에 있다.
+Java 찾기·받기는 java.py, eula.txt·server.properties는 properties.py, 서버 설치는 installer.py
 """
 
 import sys
@@ -37,15 +27,10 @@ from daemon_rcon import (PathOutside, auto_heap_mb, enforce_remote_access, grace
                          request_console, request_terminate, safe_join, setting_file_keys, settings_from_file,
                          settings_to_file, chat_reply, delete_paths, stop_command)
 
-# ─── Init ─────────────────────────────────────────────────────
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║            Minecraft Server List Ping                     ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 class MinecraftPing:
     """Minecraft Server List Ping (SLP) protocol."""
@@ -70,7 +55,6 @@ class MinecraftPing:
         """핸드셰이크와 상태 요청을 보내고 응답을 읽는다."""
         sock.sendall(MinecraftPing._request(host, port))
 
-        # Read response
         data = b""
         while True:
             chunk = sock.recv(4096)
@@ -86,7 +70,6 @@ class MinecraftPing:
     @staticmethod
     def _request(host, port):
         """핸드셰이크와 상태 요청 바이트"""
-        # Handshake
         protocol_version = MinecraftPing._encode_varint(-1)
         host_bytes = host.encode("utf-8")
         host_len = MinecraftPing._encode_varint(len(host_bytes))
@@ -97,7 +80,6 @@ class MinecraftPing:
             MinecraftPing._encode_varint(0x00)
             + protocol_version + host_len + host_bytes + port_bytes + next_state
         )
-        # Status request
         return (MinecraftPing._encode_varint(len(handshake_data)) + handshake_data
                 + MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
 
@@ -146,11 +128,6 @@ class MinecraftPing:
             return json.loads(data[offset:offset + json_len].decode("utf-8"))
         except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
             return None
-
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                Lifecycle Functions                        ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 
 def _resolve_server_jar(config):
@@ -373,7 +350,6 @@ def validate(config):
             "solution": i18n.t("errors.solutions.server_type_mismatch"),
         })
 
-    # Working directory
     if working_dir and not os.path.isdir(working_dir):
         try:
             os.makedirs(working_dir, exist_ok=True)
@@ -518,10 +494,7 @@ def _script_jvm_args(working_dir):
 
 
 def get_launch_command(config):
-    """
-    Build the command for the Rust daemon to spawn as a ManagedProcess.
-    Returns { success, program, args, working_dir, env_vars }.
-    """
+    """데몬이 띄울 서버 실행 명령"""
     java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
     ram = _java_memory(config.get("ram"))
@@ -1036,8 +1009,6 @@ def _console_player_names(instance_id):
     return None
 
 
-# ─── JAR version parsing ──────────────────────────────────
-
 def _read_jar_version(install_dir, jar_name="server.jar"):
     """Read version.json from inside a Minecraft server.jar.
 
@@ -1228,10 +1199,6 @@ def send_chat(config):
     return chat_reply(lambda: daemon_stdin_command(config.get("instance_id", ""), line, timeout=5), i18n)
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║              Server Installation / Download               ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 def list_versions(config):
     """List available Minecraft server versions.
 
@@ -1333,10 +1300,6 @@ def install_server(config):
         server_type=server_type,
     )
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                      Main Entry                           ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 # plugins/ 안에서 백업에서 뺄 것: 플러그인이 다시 그릴 수 있는 지도 타일 (경로 조각, 대소문자 무시)
 # dynmap 기본 저장소 filetree의 tilespath = web/tiles (dynmap 위키 "Configuration.txt", fullrender로 다시 그림)

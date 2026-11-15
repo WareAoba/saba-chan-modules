@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Palworld server lifecycle management module.
-Always outputs JSON to stdout, logs to stderr.
+Palworld 서버 모듈 진입점. 데몬이 부르는 함수는 맨 아래 FUNCTIONS 표에 있다.
 """
 
 import sys
@@ -159,10 +158,7 @@ def resolve_player_id(instance_id, player_input, allow_partial=True):
 
 
 def _read_admin_password_from_ini(config):
-    """
-    PalWorldSettings.ini에서 AdminPassword를 직접 읽어 반환합니다.
-    매번 파일에서 읽으므로 메모리 동기화 문제가 없습니다.
-    """
+    """PalWorldSettings.ini의 AdminPassword. 없거나 읽지 못하면 None"""
     try:
         ini_path = _get_settings_ini_path(config)
         if ini_path and os.path.isfile(ini_path):
@@ -236,10 +232,7 @@ def _enforce_rest_policy(working_dir, config=None):
 
 
 def get_launch_command(config):
-    """
-    Build the command for the Rust daemon to spawn as a ManagedProcess.
-    Returns { success, program, args, working_dir, env_vars }.
-    """
+    """데몬이 띄울 서버 실행 명령"""
     executable = config.get("server_executable")
     if not executable:
         return {
@@ -378,10 +371,6 @@ def get_credentials(config):
         return {"success": False, "message": str(e)}
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║            PalWorldSettings.ini Manager                   ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 def _default_settings():
     """게임이 주는 공식 기본값 (모듈에 실린 DefaultPalWorldSettings.ini). 기본값은 이 파일 한 곳에만 둔다"""
     return _parse_option_settings(os.path.join(MODULE_DIR, "DefaultPalWorldSettings.ini"))
@@ -436,10 +425,6 @@ def _write_option_settings(ini_path, props):
     return write_option_settings(ini_path, props, quoted_keys=quoted, bare_keys=bare)
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║          Additional Lifecycle Functions                    ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 def validate(config):
     """Validate prerequisites before starting Palworld server."""
     issues = []
@@ -461,7 +446,6 @@ def validate(config):
             "solution": i18n.t("validate.executable_not_found_hint"),
         })
 
-    # Working directory
     working_dir = config.get("working_dir")
     if not working_dir and executable:
         working_dir = os.path.dirname(os.path.abspath(executable))
@@ -476,7 +460,6 @@ def validate(config):
                 "solution": i18n.t("validate.cannot_create_dir_hint"),
             })
 
-    # Settings file check
     ini_path = _get_settings_ini_path(config)
     settings_exist = ini_path and os.path.isfile(ini_path)
 

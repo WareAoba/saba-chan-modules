@@ -23,7 +23,7 @@ import pytest
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODULE_TOML = os.path.join(MODULE_DIR, "module.toml")
 
-# ─── 1. module.toml 자체 무결성 ─────────────────────────────
+# 1. module.toml 자체 무결성
 
 def _load_module_toml():
     """TOML을 UTF-8-BOM 허용하여 로드 (데몬 측 로더와 동일 정책)."""
@@ -54,7 +54,7 @@ def test_module_toml_required_sections_present():
         assert section in cfg, f"missing [{section}] section"
 
 
-# ─── 2. REST 접속값 선언 ────────────────────────────────────
+# 2. REST 접속값 선언
 
 def test_rest_connection_settings_are_declared_once_in_module_toml(tmp_path):
     """REST 접속값(주소·포트·비밀번호가 든 설정, 사용자 이름)은 module.toml `[protocols.rest]` 한 곳에 둔다.
@@ -105,7 +105,7 @@ def test_remote_access_values_are_declared_once_and_applied_at_every_step(tmp_pa
     assert written() == forced
 
 
-# ─── 3. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
+# 3. KEY_MAP ↔ DEFAULT 일관성
 
 def test_key_map_values_subset_of_defaults():
     """_PALWORLD_KEY_MAP의 모든 INI 키는 공식 기본 파일에 있어야 한다.
@@ -136,7 +136,7 @@ def test_key_map_no_duplicate_targets():
     assert not dupes, f"중복 매핑된 INI 키: {dupes}"
 
 
-# ─── 4. settings.fields ↔ KEY_MAP 계약 ──────────────────────
+# 4. settings.fields ↔ KEY_MAP 계약
 
 def _ini_bound_field_names(cfg):
     """module.toml에서 INI에 기록되어야 하는 필드만 추출.
@@ -170,7 +170,7 @@ def test_ini_bound_field_types_sane():
         assert f.get("type") in valid_types, f"{f.get('name')}: invalid type {f.get('type')!r}"
 
 
-# ─── 4b. 최신 업데이트(DefaultPalWorldSettings.ini) 완전성 ───
+# 4b. 최신 업데이트(DefaultPalWorldSettings.ini) 완전성
 # 목적: 게임 업데이트로 INI 옵션이 추가/제거될 때 (1) DEFAULT dict,
 # (2) _PALWORLD_KEY_MAP, (3) module.toml GUI 노출 세 곳 중 하나라도
 # drift하면 즉시 실패시킨다. "모든 옵션을 GUI에 노출" 요구사항의 회귀 가드.
@@ -233,7 +233,7 @@ def test_communication_and_advanced_groups_non_empty():
     assert any(f.get("group") == "advanced" for f in fields), "advanced 그룹이 비어있음"
 
 
-# ─── 5. 공개 API 방어 동작 ─────────────────────────────────
+# 5. 공개 API 방어 동작
 
 def test_get_launch_command_missing_executable():
     from palworld.lifecycle import get_launch_command
@@ -308,7 +308,7 @@ def test_backup_is_declared_as_hook():
     assert "Pal/Saved/Config" in cfg["backup"]["paths"]
 
 
-# ─── 6. 인코딩 계약 (BOM 처리) ──────────────────────────────
+# 6. 인코딩 계약 (BOM 처리)
 
 def test_module_toml_bom_roundtrip(tmp_path):
     """TOML 저장 시 BOM을 붙여도 로드가 동작해야 한다 (프로덕션 파일이 BOM으로
@@ -328,7 +328,7 @@ def test_module_toml_bom_roundtrip(tmp_path):
     assert parsed["module"]["name"] == "palworld"
 
 
-# ─── 7. 명령 응답 포매팅 (디스코드 표시 문구 복원) ──────────
+# 7. 명령 응답 포매팅 (디스코드 표시 문구 복원)
 
 def _runtime_env(include_extensions):
     import daemon_rcon
@@ -807,7 +807,7 @@ def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_ext
     assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]
 
 
-# ─── 게임 채팅 전달 (`chat_patterns`, 서버 콘솔 실측 v1.0.5.102999) ───
+# 게임 채팅 전달 (`chat_patterns`, 서버 콘솔 실측 v1.0.5.102999)
 
 def test_chat_lines_name_the_player_and_the_message():
     """채팅은 `[날짜 시각] [CHAT] <이름> 본문`. 접속·퇴장·REST 줄은 채팅이 아니다"""
@@ -867,7 +867,7 @@ def test_join_and_leave_lines_name_the_player():
     assert name(leave, "[2026-10-30 07:10:28] [CHAT] <KimchiMayo> Bob left the server. (User id: x)") is None
 
 
-# ─── 콘솔 하이라이팅 (데몬 highlight.rs와 같은 방식: priority 큰 규칙부터, 칠한 칸은 덮지 않는다) ───
+# 콘솔 하이라이팅 (데몬 highlight.rs와 같은 방식: priority 큰 규칙부터, 칠한 칸은 덮지 않는다)
 
 def _painted(line):
     """[(조각, 토큰)]"""
@@ -922,7 +922,7 @@ def test_send_chat_announces_the_sender_and_the_message(monkeypatch):
     assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False
 
 
-# ─── configure → PalWorldSettings.ini 구문·타입 ─────────────────
+# configure → PalWorldSettings.ini 구문·타입
 
 def _configure_and_read(tmp_path, settings):
     from palworld import lifecycle

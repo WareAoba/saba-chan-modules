@@ -96,7 +96,7 @@ def _make_fake_jar(tmpdir, name="server.jar"):
     return jar_path
 
 
-# ── get_launch_command tests ─────────────────────────────────
+# get_launch_command tests
 
 def test_build_launch_info_basic():
     """get_launch_command returns program, args, working_dir on valid config."""
@@ -332,7 +332,7 @@ def test_build_launch_info_working_dir_from_jar():
         assert result["working_dir"] == os.path.abspath(tmpdir)
 
 
-# ── get_launch_command delegates to get_launch_command ──
+# get_launch_command delegates to get_launch_command
 
 def test_get_launch_command_returns_success():
     """get_launch_command uses get_launch_command and returns its result."""
@@ -350,7 +350,7 @@ def test_get_launch_command_returns_success():
         assert "args" in result
 
 
-# ── 데몬 계약 ────────────────────────────────────────────────
+# 데몬 계약
 
 def test_every_daemon_function_is_registered():
     from minecraft.lifecycle import FUNCTIONS
@@ -493,7 +493,7 @@ def test_ping_closes_socket_on_error():
     conn.__exit__.assert_called_once()
 
 
-# ─── 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식) ───
+# 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식)
 
 def _module_toml():
     import tomllib
@@ -1890,7 +1890,7 @@ def test_an_escaped_line_break_survives_import_and_save():
             assert "motd=a\\nb\n" in f.read()
 
 
-# ─── 공식 설치기로 까는 서버 종류 (Quilt·Forge·NeoForge·BuildTools) ─────────────
+# 공식 설치기로 까는 서버 종류 (Quilt·Forge·NeoForge·BuildTools)
 
 def _installer_fixture(tmp_path, server_type, source, run, jre=None, bundled=None):
     """설치기 jar를 받고 Java를 갖춘 뒤 run(cmd, cwd, env)으로 설치기를 돌리는 install_server를 부른다"""
@@ -2133,7 +2133,7 @@ def lifecycle_module():
     return lifecycle
 
 
-# ─── 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`, 사용자 요청 2026-10-30) ───
+# 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`)
 
 def test_send_chat_tells_everyone_with_tellraw_json():
     """보낸 사람과 본문만. 본문은 JSON 글자로 넣어 명령이 되지 않고, 클라이언트가 JSON 글자 안에서도 읽는 § 서식은 뺀다"""
@@ -2151,7 +2151,7 @@ def test_send_chat_tells_everyone_with_tellraw_json():
         assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False
 
 
-# ── 실행 프로필 (힙 크기로 정한다: 소규모 ≤6G, 표준 <16G, 대규모 ≥16G) ─────────
+# 실행 프로필 (힙 크기로 정한다: 소규모 ≤6G, 표준 <16G, 대규모 ≥16G)
 
 _GIB = 1024 ** 3
 

@@ -27,7 +27,7 @@ def _load_module_toml():
     return tomllib.loads(raw.decode("utf-8"))
 
 
-# ─── 1. module.toml 자체 무결성 ─────────────────────────────
+# 1. module.toml 자체 무결성
 
 def test_module_toml_parses():
     cfg = _load_module_toml()
@@ -47,7 +47,7 @@ def test_only_measured_os_is_declared():
     assert _load_module_toml()["extensions"]["saba-core"]["platforms"] == ["windows"]
 
 
-# ─── 2. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
+# 2. KEY_MAP ↔ DEFAULT 일관성
 
 def test_defaults_for_a_new_server_come_from_module_toml(tmp_path):
     """servertest.ini가 아직 없을 때 보이는 값은 module.toml 설정 기본값이다 (기본값을 코드에 따로 두지 않는다)"""
@@ -74,7 +74,7 @@ def test_ini_key_map_no_duplicate_targets():
 
 
 
-# ─── 3. settings.fields ↔ KEY_MAP 계약 ──────────────────────
+# 3. settings.fields ↔ KEY_MAP 계약
 
 def _ini_bound_field_names(cfg):
     """group='saba-chan'은 데몬 내부 전용(ram, server_name 등). INI와 무관."""
@@ -109,7 +109,7 @@ def test_ui_field_types_sane():
         assert f.get("type") in valid_types, f"{f.get('name')}: invalid type {f.get('type')!r}"
 
 
-# ─── 4. IniManager 기본 I/O 라운드트립 ─────────────────────
+# 4. IniManager 기본 I/O 라운드트립
 
 def test_ini_manager_write_and_read_roundtrip(tmp_path):
     from zomboid.lifecycle import IniManager
@@ -162,7 +162,7 @@ def test_ini_manager_get_ini_path_uses_server_name():
         assert os.path.realpath(td) in path
 
 
-# ─── 5. 공개 API 방어 동작 ─────────────────────────────────
+# 5. 공개 API 방어 동작
 
 def test_validate_empty_config_fails():
     from zomboid.lifecycle import validate
@@ -321,7 +321,7 @@ def test_backup_paths_take_only_this_servers_files(tmp_path):
     taken = sorted(os.path.basename(p) for p in result["paths"] if os.path.dirname(p) == str(server))
     assert taken == sorted(ours), taken
 
-# ─── 6. 인코딩 계약 ────────────────────────────────────────
+# 6. 인코딩 계약
 
 def test_module_toml_bom_roundtrip(tmp_path):
     raw = open(MODULE_TOML, "rb").read()
@@ -337,7 +337,7 @@ def test_module_toml_bom_roundtrip(tmp_path):
     assert parsed["module"]["name"] == "zomboid"
 
 
-# ─── Regression: unknown function must not crash the plugin ────
+# Regression: unknown function must not crash the plugin
 # 데몬은 plugin 종료 코드 != 0 을 HTTP 500 으로 변환한다.
 # minecraft/palworld와 같이 그레이스풀 JSON + exit 0 으로 통일.
 def test_unknown_function_returns_graceful_json_with_zero_exit():
@@ -462,7 +462,7 @@ def test_console_templates_leave_no_empty_quotes_for_a_blank_input():
     assert blank == []
 
 
-# ─── 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식) ───
+# 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식)
 
 def _highlighted(line, rules):
     """priority 큰 규칙부터, 이미 칠한 칸은 덮지 않는다. [(조각, color)]"""
@@ -1176,7 +1176,7 @@ def test_g1_choice_also_applies_without_a_launch_script(tmp_path, monkeypatch):
     assert "-XX:+UseG1GC" in args and "-XX:+UseZGC" not in args
 
 
-# ─── 접속자 목록 ([status] players) ─────────────────────────
+# 접속자 목록 ([status] players)
 
 def _players_reply(monkeypatch, response):
     from zomboid import lifecycle
@@ -1219,7 +1219,7 @@ def test_player_list_does_not_guess_from_an_unknown_reply(monkeypatch):
     assert lifecycle.player_count({"instance_id": "inst-1", "players_detail": True}) == {"success": True, "online": 3}
 
 
-# ─── 사용자 실행 인자 (자바 모드 로더 등) ─────────────────────────
+# 사용자 실행 인자 (자바 모드 로더 등)
 
 def test_launch_puts_user_jvm_args_before_the_main_class_and_game_args_after(tmp_path, monkeypatch):
     """-javaagent 같은 JVM 인자는 메인 클래스 뒤에 붙으면 게임 인자가 되어 JVM이 읽지 않는다.
@@ -1269,7 +1269,7 @@ def test_import_of_an_unchanged_official_script_moves_no_args(tmp_path, monkeypa
     assert "extra_args" not in lifecycle.import_settings({"working_dir": str(server)})
 
 
-# ─── 사용자가 만든 실행 스크립트 (입력받는 값, 변수) ─────────────────────────
+# 사용자가 만든 실행 스크립트 (입력받는 값, 변수)
 
 def test_import_skips_script_values_that_are_typed_in_at_each_start(tmp_path, monkeypatch):
     """set /p로 입력받는 서버 이름·데이터 폴더는 값을 모르므로 가져오지 않는다 (%NAME%라는 월드가 생기지 않게)"""

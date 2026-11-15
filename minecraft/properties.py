@@ -13,10 +13,6 @@ from daemon_rcon import atomic_write, read_key_values, remote_access_values, set
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                EULA Management                            ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 class EulaManager:
     """Handle Minecraft Server EULA."""
 
@@ -51,10 +47,6 @@ class EulaManager:
         except OSError:
             return False
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║             server.properties Manager                     ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 def _unescape_property(value):
     """Java .properties 값의 이스케이프를 푼다 (\\uXXXX, \\:, \\= 등).

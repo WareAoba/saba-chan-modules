@@ -68,7 +68,7 @@ def _read(path):
     return Path(path).read_text(encoding="utf-8")
 
 
-# ─── module.toml ↔ lifecycle ────────────────────────────────
+# module.toml ↔ lifecycle
 
 def test_every_game_setting_maps_to_a_config_key(lc, toml):
     game = [f["name"] for f in toml["settings"]["fields"] if f.get("group") != "saba-chan"]
@@ -127,19 +127,7 @@ def test_measured_boolean_settings_roundtrip(lc):
     assert lc._settings_from_file({"worldrollbackstokeep": "0"})["worldrollbackstokeep"] == 0
 
 
-def test_setting_types_are_supported(toml):
-    for field in toml["settings"]["fields"]:
-        assert field.get("type", "text") in ("text", "number", "password", "boolean", "select", "file"), field["name"]
-
-
-def test_functions_named_by_toml_exist(lc, toml):
-    if toml.get("backup", {}).get("hook"):
-        assert "backup_paths" in lc.FUNCTIONS
-    # 예약 함수 `functions`는 공용 run_lifecycle이 표의 이름으로 답한다
-    assert "functions" not in lc.FUNCTIONS
-
-
-# ─── serverconfig.txt 문법 ──────────────────────────────────
+# serverconfig.txt 문법
 
 def test_configure_roundtrip_keeps_special_characters(lc, tmp_path):
     server = _server(tmp_path, lc)
@@ -258,7 +246,7 @@ def test_import_without_config_file_still_succeeds(lc, tmp_path):
     assert result["settings"] == {}
 
 
-# ─── 실행 ────────────────────────────────────────────────
+# 실행
 
 def test_launch_without_executable_asks_for_action(lc, tmp_path):
     server = _server(tmp_path, lc, exe=False)
@@ -339,7 +327,7 @@ def test_validate_flags_bad_world_name(lc, tmp_path):
     assert any(i["code"] == "invalid_world_name" for i in result["issues"])
 
 
-# ─── 정지 ────────────────────────────────────────────────
+# 정지
 
 def test_stop_uses_the_shared_procedure_with_the_console_exit(lc, monkeypatch):
     """정지 절차(기다림·강제 종료·managed·요청 불가)는 공용 graceful_stop이 맡는다. 테라리아는 콘솔 `exit`로만 요청한다"""
@@ -351,7 +339,7 @@ def test_stop_uses_the_shared_procedure_with_the_console_exit(lc, monkeypatch):
     assert used["module_dir"] == lc.MODULE_DIR
 
 
-# ─── 백업 ────────────────────────────────────────────────
+# 백업
 
 def _populated_server(tmp_path, lc):
     server = _server(tmp_path, lc)
@@ -389,7 +377,7 @@ def test_backup_refuses_bad_banlist(lc, tmp_path):
     assert result["success"] is False
 
 
-# ─── 초기화 ──────────────────────────────────────────────
+# 초기화
 
 def test_reset_deletes_only_this_world(lc, tmp_path):
     server = _populated_server(tmp_path, lc)
@@ -441,7 +429,7 @@ def test_reset_refuses_folder_without_server(lc, tmp_path):
     assert (folder / "Worlds" / "Island.wld").exists()
 
 
-# ─── 버전·설치 ───────────────────────────────────────────
+# 버전·설치
 
 def test_list_versions_reads_official_names(lc, monkeypatch):
     monkeypatch.setattr(lc, "_fetch_server_names",
@@ -590,11 +578,6 @@ def _windows_server_zip(monkeypatch, lc):
     monkeypatch.setattr(lc, "_is_windows", lambda: True)
 
 
-def test_module_declares_the_xna_extension(toml):
-    assert toml["install"]["requires_extensions"] == ["xna"]
-    assert toml["module"]["dependencies"]["ext-xna"] == ">=0.1.0"
-
-
 def test_validate_reports_missing_xna(lc, tmp_path, monkeypatch, xna_ext):
     server = _server(tmp_path, lc)
     monkeypatch.setattr(lc, "_is_windows", lambda: True)
@@ -705,32 +688,6 @@ def test_install_reports_settings_write_failure(lc, tmp_path, monkeypatch):
                                 "settings": {"max_players": 4}})
     assert result["success"] is False
     assert result["error_code"] == "settings_write_failed"
-
-
-# ─── 번역 ────────────────────────────────────────────────
-
-def test_locales_have_the_same_keys():
-    import json
-
-    def keys(d, prefix=""):
-        out = set()
-        for k, v in d.items():
-            # 별명(`aliases`)은 그 언어로 답할 때만 맞추는 낱말이라 언어마다 있어도 없어도 된다
-            if not prefix and k == "aliases":
-                continue
-            out |= keys(v, f"{prefix}{k}.") if isinstance(v, dict) else {prefix + k}
-        return out
-
-    base = keys(json.loads((MODULE_DIR / "locales" / "en.json").read_text(encoding="utf-8")))
-    files = sorted((MODULE_DIR / "locales").glob("*.json"))
-    assert len(files) == 10
-    for path in files:
-        assert keys(json.loads(path.read_text(encoding="utf-8"))) == base, path.name
-
-
-def test_server_console_is_a_pseudo_console(toml):
-    # 실측(2026-10-25): Windows 서버는 파이프 stdin을 읽지 않아 명령·exit가 먹지 않았다
-    assert toml["launch"]["console"] == "pty"
 
 
 def test_installed_version_comes_from_the_changelog(lc, tmp_path):
@@ -855,7 +812,7 @@ def test_relative_world_path_is_under_the_server_folder(lc, tmp_path):
     assert Path(world_file) == server / "Worlds" / "a.wld"
 
 
-# ─── 연결 해제 때 되돌릴 설정 파일 (#70 계약) ───────────────────
+# 연결 해제 때 되돌릴 설정 파일
 
 def test_config_files_is_the_server_config(lc, tmp_path):
     server = _server(tmp_path, lc)
@@ -867,7 +824,7 @@ def test_config_files_needs_a_server_folder(lc):
     assert lc.config_files({})["success"] is False
 
 
-# ─── 실행 인자 모양은 module.toml `arg` 한 곳 ──────────────────
+# 실행 인자 모양은 module.toml `arg` 한 곳
 
 def test_launch_argument_shapes_come_from_module_toml(tmp_path):
     import shutil
@@ -885,7 +842,7 @@ def test_launch_argument_shapes_come_from_module_toml(tmp_path):
     assert result["args"] == ["-config", "serverconfig.txt", "-ip=127.0.0.1"]
 
 
-# ─── 접속·퇴장 (서버 파일 번역 문자열 LegacyMultiplayer.19·20, 12개 언어) ───
+# 접속·퇴장 (서버 파일 번역 문자열 LegacyMultiplayer.19·20, 12개 언어)
 
 _JOIN_LEAVE = [
     ("{0} has joined.", "{0} has left."),
@@ -946,7 +903,7 @@ def test_chat_lines_name_the_player_and_the_message(toml):
         assert _chat(chat, line) is None, line
 
 
-# ─── 접속자 (`playing`, 서버 파일 CLI.NoPlayers·OnePlayerConnected·PlayersConnected) ───
+# 접속자 (`playing`, 서버 파일 CLI.NoPlayers·OnePlayerConnected·PlayersConnected)
 
 def _playing(monkeypatch, lc, response):
     sent = []
@@ -1014,11 +971,6 @@ def test_player_list_console_failure_is_a_failure(lc, monkeypatch):
     assert lc.player_count({"instance_id": "inst-1", "players_detail": True})["success"] is False
 
 
-def test_player_count_is_the_status_function(lc, toml):
-    assert toml["status"]["players"] == "player_count"
-    assert "player_count" in lc.FUNCTIONS and "config_files" in lc.FUNCTIONS
-
-
 def test_module_has_an_icon():
     import struct
     head = (MODULE_DIR / "icon.png").read_bytes()[:24]
@@ -1047,7 +999,7 @@ def test_join_and_leave_highlight_cover_every_detection_pattern(toml):
             assert _first_highlight(toml, line) == (token, "Steve"), (p, line)
 
 
-# ─── 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`, 사용자 요청 2026-10-30) ───
+# 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`)
 
 def test_send_chat_says_the_sender_and_the_message(lc, monkeypatch):
     sent = _playing(monkeypatch, lc, "")

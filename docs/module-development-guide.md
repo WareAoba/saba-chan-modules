@@ -14,59 +14,9 @@
 
 ## 0. 만들기 전에: 조사와 실측
 
-모듈이 틀리는 가장 흔한 이유는 문서나 기억으로 값을 채우는 것이다. 테라리아 모듈을 문서만 보고 만들었을 때, 단위 테스트와 적합성 검사는 모두 통과했지만 실제 서버에서는 결함이 9가지 나왔다(아래 표). 그래서 코드를 쓰기 전에 게임을 조사하고, 실제 서버를 받아 실행해 본다.
-
-### 0.1 조사 표를 만든다
-
-`<game>/RESEARCH.md`에 표를 만든다. 항목마다 출처를 붙이고, 출처가 "문서"인지 "실측"인지 적는다. 출처를 찾지 못한 항목은 비워 두고 "확인 못 함"으로 적는다.
-
-| 조사할 것 | 찾을 곳 |
-|---|---|
-| 실제 서버 실행 파일, 실행 인자, 기본 포트 | 공식 문서, 서버 `--help`, 동봉 실행 스크립트 |
-| 명령 전체와 인자 | 공식 명령 문서와 서버 `help` 출력. 둘을 한 줄씩 대조한다 |
-| 설정 전체(키, 형식, 범위, 기본값) | 서버가 처음 만든 기본 설정 파일, 없으면 배포물에 동봉된 예시 파일 |
-| 설정 파일의 문법과 인코딩 | 그 파일의 원래 바이트 |
-| 세이브 위치, 게임이 만드는 회전 백업 | 서버를 실행하고 저장한 뒤 생긴 파일 목록 |
-| 준비 완료·정상 종료·접속·퇴장 문구 | 서버 콘솔 원문. 서버 언어 설정이 문구를 번역하는지도 본다 |
-| 설치 방법과 검증 수단 | 공식 내려받기 주소, 공식 체크섬(없으면 "없음"과 근거) |
-| 실행 전제(런타임) | 실행 파일의 참조 목록, 공식 문서. 배포물에 없는 것을 찾는다 |
-| 인스턴스 폴더 밖에 쓰는 파일 | 실행 뒤 홈 폴더·문서 폴더 변화 |
-
-위키·커뮤니티 자료는 옛 버전 기준일 수 있다. 테라리아 위키의 `death` 명령은 1.4.5.8 서버에서 "Invalid command."였다.
-
-### 0.2 실물을 열어 본다
-
-서버를 받을 수 있으면 받아서 아래를 직접 확인한다.
-
-1. 배포물의 항목 전체를 출력한다. 여러 OS 폴더가 있는지, 같은 실행 파일 이름이 여러 폴더에 있는지 본다. 테라리아 zip은 `Linux/` 폴더에도 `TerrariaServer.exe`(Mono용)가 있다.
-2. 동봉 기본 파일을 바이트 단위로 본다. 인코딩(UTF-8, BOM, cp1252), 줄바꿈(LF, CRLF), 주석 처리된 예시 키, 주석이 아닌 줄을 본다. 주석 처리된 예시 키도 설정 목록에 넣는다. 주석이 아닌 줄의 값이 기본값이다.
-
-### 0.3 서버를 실행해 본다
-
-서버를 데몬과 같은 방식(stdin·stdout 파이프)으로 띄우고 원문을 기록한다. 제작 환경에서 다른 OS용 빌드밖에 실행할 수 없어도 실행한다. 다만 이것은 부분 실측이다. 게임 코드가 같으면 명령 이름, `help` 출력, 문구, 저장 동작은 그대로 옮겨 쓸 수 있다. 콘솔 입력 방식(파이프·pty), 런타임 전제 조건, 폴더 구조, 인코딩, 샌드박스 안 동작은 대상 OS에서 다시 실측해야 한다. 테라리아 Windows 서버는 파이프로 넣은 stdin을 무시한다(§0.4). 대상 OS에서 실측하기 전까지는 그 OS의 콘솔 동작을 "미검증"으로 적어 둔다.
-
-- 준비 완료 줄, 정상 종료 명령 뒤의 줄, 저장에 걸린 시간
-- `help` 출력. 문서에만 있는 명령은 실제로 보내 결과를 본다
-- 콘솔 프롬프트가 다음 줄 앞에 붙는지. 테라리아는 프롬프트 `: `를 줄바꿈 없이 찍어 `: Server started`처럼 붙는다
-- 파이프로 보낸 명령에 서버가 답하는지. 답하지 않으면 의사 콘솔(§4 "콘솔 방식")로 다시 잰다
-- 서버 언어 설정마다 바뀌는 문구
-- 실행·저장 뒤 생긴 파일(회전 백업 `world.wld.bak`, `world.wld.bak2` 같은 것)
-
-게임 클라이언트가 있어야 재는 항목(접속·퇴장 문구, 추방 대상)은 비워 두고 "실측 못 함"으로 적는다.
-
-### 0.4 테라리아에서 실제로 나온 결함
-
-| 결함 | 원인 | 막는 방법 |
-|---|---|---|
-| Windows에 설치하면 Linux 서버가 풀림 | "실행 파일이 든 가장 짧은 경로"로 폴더를 고름 | OS 폴더 이름으로 고른다 (§4 "설치") |
-| 공식 설정 파일이 있으면 시작·저장·가져오기가 모두 실패 | 설정 파일을 UTF-8로만 읽음. 실제 파일은 cp1252 | 읽은 인코딩으로 다시 쓴다 (§4 "설정 파일의 형식") |
-| 명령 4개가 서버에 없고 1개가 빠짐 | 위키 목록을 그대로 옮김 | `help` 출력과 대조한다 (§0.3) |
-| 준비 표시가 없음 | 준비 문구를 넣지 않음. 넣어도 프롬프트 접두와 번역 때문에 맞지 않음 | 원문으로 패턴을 쓴다 (§4 "콘솔 패턴") |
-| 초기화 뒤에도 옛 월드가 남음 | 회전 백업 `.bak2`를 지우지 않음 | 실행 뒤 생긴 파일로 대상을 정한다 |
-| Windows 서버가 시작 즉시 죽음 | XNA Framework 4.0이 없음 | 고정 판 런타임을 서버 폴더에 둔다 (§4 "실행 전제") |
-| 명령·`exit`가 먹지 않고 정지가 시간 초과로 강제 종료 | Windows 서버가 파이프 입력을 읽지 않음 | `[launch] console = "pty"` (§4 "콘솔 방식") |
-| 격리 실행에서 설정 파일 저장 실패 | 공용 `atomic_write`가 기존 파일을 바꾸지 못함(데몬 0.1.10에서 고침) | PC 실측을 격리 실행으로 한다 (§7) |
-| 격리 실행에서 XNA 설치 실패 | `msiexec`(1601)과 `tempfile.mkdtemp` 폴더를 쓸 수 없음 | 격리 실행 제약을 지킨다 (§4 "격리 실행") |
+모듈이 틀리는 가장 흔한 이유는 문서나 기억으로 값을 채우는 것이다. 코드를 쓰기 전에 게임을 조사하고, 실제 서버를 받아 실행해 본다.
+조사 표, 배포물 확인, 서버 실행의 절차는 [maker/references/research.md](../maker/references/research.md)에 있다.
+지난 모듈에서 실제로 난 결함과 막는 방법은 [maker/references/lessons.md](../maker/references/lessons.md)에 있다.
 
 ## 1. 통신 경로: STDIN → REST → RCON
 
@@ -256,7 +206,7 @@ world_dir = safe_join(config["working_dir"], config_value(config, "world_name", 
 data_roots = ["{data_dir}", "{home}/MyGame"]
 ```
 
-`{home}`은 데몬 사용자의 홈 폴더다. 설정 자리는 사용자가 직접 고른 값이나 마이그레이션에서 읽은 path형 값만 허용 루트가 된다. 모듈 기본값만으로 외부 폴더를 열지 않는다. 데이터 루트는 `{home}` 또는 path형 설정 자리로 시작해야 한다. `..`나 다른 절대 경로는 선언할 수 없다. 백업·복원·설치·마이그레이션의 반환 경로도 데몬이 실제 경로로 검사한다. `verified` 모듈도 같은 검사를 받는다. 세부 규칙은 [모듈 계약 §2.1](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md#21-실행-방식-dsrcpluginmodrs266-463)을 따른다.
+`{home}`은 데몬 사용자의 홈 폴더다. 설정 자리는 사용자가 직접 고른 값이나 마이그레이션에서 읽은 path형 값만 허용 루트가 된다. 모듈 기본값만으로 외부 폴더를 열지 않는다. 데이터 루트는 `{home}` 또는 path형 설정 자리로 시작해야 한다. `..`나 다른 절대 경로는 선언할 수 없다. 백업·복원·설치·마이그레이션의 반환 경로도 데몬이 실제 경로로 검사한다. `verified` 모듈도 같은 검사를 받는다. 세부 규칙은 [모듈 계약 §2.1](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md#21-실행-방식-dsrcpluginmodrs)을 따른다.
 
 ### 설정 화면: configure / import_settings
 
@@ -357,13 +307,13 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 
 ### 크래시 판정, 백업, 공지
 
-- `[detection] graceful_exit_patterns`(정상 종료 문구)와 `crash_artifacts`(크래시 때 생기는 파일)를 적어야 데몬이 크래시만 골라 자동 재시작한다. 판정 순서는 module-spec.md `[detection]`에 있다.
+- `[detection] graceful_exit_patterns`(정상 종료 문구)와 `crash_artifacts`(크래시 때 생기는 파일)를 적어야 데몬이 크래시만 골라 자동 재시작한다. 판정 순서는 [02-modules.md](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md) §3.6에 있다.
 - `[backup] paths`(작업 폴더 기준, `{설정 이름}` 치환), `save_command`(백업 직전 보낼 `[commands.fields]` 이름), 경로를 코드로 계산해야 하면 `hook = true` + `backup_paths(config)` → `{"success": true, "paths": [...], "restore_roots": [...]}`(`restore_roots`는 선택: 예전에 더 넓게 담은 백업도 복원되게 하는 범위이고 백업 대상은 아니다). 훅이 실패하면 백업도, 그 백업을 전제로 한 업데이트·복원도 멈춘다.
 - `[config] announce_command`: 예약 재시작 예고·공지에 쓸 `[commands.fields]` 이름(`message` 입력 하나).
 
 ### 선택 기능: 조회, 접속자 수, 인스턴스별 명령, 약관, 프리셋, 권한
 
-키의 정확한 규칙은 [모듈 계약](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md)에 있다. [module-spec.md](module-spec.md)는 저장소 안의 참조 안내다. 여기서는 언제 쓰는지만 적는다.
+키의 정확한 규칙은 [모듈 계약](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md)에 있다. 여기서는 언제 쓰는지만 적는다.
 
 - **설정 필드 선택 키**: 포트는 `port = true`(여러 인스턴스를 만들 때 데몬이 겹치지 않게 옮긴다). 서버를 만들 때 골라야 하는 값(서버 종류처럼 받을 파일이 달라지는 값)은 `install = true` + `type = "select"`. 실행 인자로 들어가는 값은 `arg`, 값 형식은 `format`/`pattern`(데몬이 저장 때 검사하므로 모듈이 다시 검사하지 않아도 된다). `type`은 `text` `number` `password` `boolean` `select` `file`만 쓴다.
 - **`[[queries]]`**: 접속자 목록처럼 읽기만 하는 조회. `function`이 `{"success": true, "data": ...}`를 돌려준다. 챗봇과 일반 사용자도 부르므로 아무것도 바꾸지 않는다.
@@ -375,21 +325,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 
 ## 5. 공용 도우미 (`daemon_rcon.py`, 데몬이 배포)
 
-| 함수 | 용도 |
-|---|---|
-| `daemon_stdin_command(instance_id, line, *, timeout=10)` | 데몬이 관리하는 서버 콘솔에 한 줄 보내기 |
-| `daemon_rest(instance_id, method, path, *, body=None, timeout=10)` | 데몬을 통해 게임 REST 요청 보내기 |
-| `daemon_rcon_command(instance_id, command, *, timeout=10)` | RCON만 받는 서버에 한 줄 보내기 (HOST, 0.1.12+) |
-| `is_process_alive(pid)`, `wait_for_exit(pid, timeout)`, `force_kill(pid, tree=True)` | PID 단위 프로세스 확인·대기·강제 종료 (Windows/POSIX 공용) |
-| `config_value(config, key, default)` | config 세 위치에서 설정 값 찾기 |
-| `load_setting_types(module_dir)`, `coerce_setting(value, type)` | 파일 값을 필드 타입으로 |
-| `run_lifecycle(FUNCTIONS)` | `python lifecycle.py <함수>` 진입점 |
-| `safe_join(root, *parts)`, `PathOutside` | 사용자 이름 조각을 루트 안 경로로 합치기·경로 위반 알리기 |
-| `remote_access_values(module_dir, config=None)`, `enforce_remote_access(module_dir, config, current, update)`, `rcon_access(config)` | module.toml `[remote_access]`가 정한 원격 접속 값 쓰기 (0.1.14-beta.2) |
-| `auto_heap_mb()`, `java_release_major(java_home)` | Java 서버의 자동 힙 크기, JRE 주 버전 (0.1.14-beta.2) |
-| `diagnose_log(config, module_dir, i18n, *, files=None)` | `diagnose_log()` 전체 절차: `log_lines` → `files` → `[launch] diagnose_files` (0.1.14-beta.2) |
-| `extension_required(i18n, *익스텐션 id)` | 익스텐션이 없을 때의 답 (0.1.14-beta.2) |
-| `list_dir(path)`, `fetch_json(url, *, timeout=15, user_agent="saba-chan")` | 폴더 항목(없으면 빈 목록), JSON 받기 (0.1.14-beta.2) |
+함수 목록과 시그니처, 도입 버전은 [02-modules.md §2.5](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md)에 있다(원본은 `daemon_rcon.SINCE`).
 
 콘솔 명령은 `daemon_stdin_command`, REST는 `daemon_rest`를 쓴다. SDK는 `SABA_HOST_DIR`의 HOST 통로로만 보낸다. HOST의 대상은 데몬이 정한 현재 인스턴스다. 모듈이 다른 `instance_id`를 넘겨도 대상을 바꾸지 못한다. 인스턴스 없는 호출은 `no_instance`로 실패한다. 요청 한도는 실행당 64건, 건당 30초, 보내기 64 KiB, 받기 1 MiB다. `LOOPBACK`과 요청 수를 함께 센다. HOST 실패는 `error_code` 속성이 있는 `ConnectionError`다.
 
@@ -428,7 +364,7 @@ pytest conformance --module path/to/mygame --shared-libs path/to/saba-chan/modul
 
 ### 제작 환경 실측 (PR 전)
 
-§0.3을 끝낸 상태에서 모듈 함수를 실제 서버 폴더에 직접 부른다.
+[research.md](../maker/references/research.md) §실물 확인을 끝낸 상태에서 모듈 함수를 실제 서버 폴더에 직접 부른다.
 
 1. `install_server`로 실제 배포물을 받아 푼다. 이 OS 파일만 풀렸는지 본다.
 2. `get_launch_command`가 만든 명령으로 서버를 띄운다. 준비 패턴이 맞는지 본다.
@@ -481,9 +417,9 @@ PC 실측을 위해 설치된 데몬 파일을 바꿔 넣었다면, 바꾸기 �
 
 ## 8. 체크리스트
 
-- [ ] `RESEARCH.md` 조사 표가 있고, 항목마다 출처와 "문서/실측" 구별이 있다 (§0.1)
-- [ ] 배포물 목록과 동봉 기본 파일의 원래 바이트를 확인했다 (§0.2)
-- [ ] 서버를 실제로 띄워 준비·정상 종료 원문, `help` 출력, 저장 뒤 생긴 파일을 기록했다 (§0.3)
+- [ ] `RESEARCH.md` 조사 표가 있고, 항목마다 출처와 "문서/실측" 구별이 있다 (research.md)
+- [ ] 배포물 목록과 동봉 기본 파일의 원래 바이트를 확인했다 (research.md §실물 확인)
+- [ ] 서버를 실제로 띄워 준비·정상 종료 원문, `help` 출력, 저장 뒤 생긴 파일을 기록했다 (research.md §실물 확인)
 - [ ] 선언한 명령이 `help` 출력과 한 줄씩 맞다
 - [ ] 파이프로 보낸 명령에 서버가 답한다. 아니면 `[launch] console = "pty"`
 - [ ] 콘솔 패턴이 실측 원문이고, 프롬프트 접두와 언어별 번역을 받는다

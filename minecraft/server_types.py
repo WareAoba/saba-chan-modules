@@ -311,7 +311,7 @@ def launch_target(config, server_jar, working_dir):
     return ["-jar", os.path.abspath(server_jar), "nogui"], None
 
 
-# ─── 설치 소스 ──────────────────────────────────────────────────
+# 설치 소스
 
 def _get_json(url, timeout=15):
     """받을 곳의 JSON. 그 버전이 없으면(404: Folia·Purpur·등록 초기의 Paper) ValueError("version_unavailable")"""

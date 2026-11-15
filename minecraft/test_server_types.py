@@ -30,7 +30,7 @@ def bundler(path, inner, version="1.21.4", main="io.papermc.paperclip.Main"):
     })
 
 
-# ─── 서버 종류 판정 ─────────────────────────────────────────────
+# 서버 종류 판정
 
 @pytest.mark.parametrize("inner,expected", [
     ("paper-1.21.4.jar", "paper"),
@@ -152,7 +152,7 @@ def test_server_jar_picks_the_newest_build_and_keeps_an_explicit_name(tmp_path):
     config = {"working_dir": str(tmp_path), "server_executable": "my-server.jar"}
     assert lifecycle._resolve_server_jar(config) == str(tmp_path / "my-server.jar")
 
-# ─── 설치 소스 ──────────────────────────────────────────────────
+# 설치 소스
 
 def test_paper_downloads_the_newest_stable_build():
     builds = [
@@ -298,7 +298,7 @@ def test_buildtools_bootstrap_jar_is_read_from_its_versions_list(tmp_path, inner
     assert (info["type"], info["version"]) == (expected, "1.21.1")
 
 
-# ─── plugin.yml 읽기 ────────────────────────────────────────────
+# plugin.yml 읽기
 
 PLUGIN_YML = """
 name: 'Essentials'
@@ -342,7 +342,7 @@ def test_plugin_yml_subset_parses_like_yaml():
     assert parsed == yaml.safe_load(PLUGIN_YML) | {"version": "2.21.0"}
 
 
-# ─── 플러그인·모드 판정과 명령 ─────────────────────────────────
+# 플러그인·모드 판정과 명령
 
 def server_with_plugins(tmp_path):
     make_jar(str(tmp_path / "plugins" / "LuckPerms-Bukkit-5.4.jar"), {
@@ -424,7 +424,7 @@ def test_migration_reports_type_jar_and_plugins(tmp_path):
     assert {c["id"] for c in result["detected"]["components"]} >= {"LuckPerms", "CoolPaper"}
 
 
-# ─── 카탈로그 데이터 ────────────────────────────────────────────
+# 카탈로그 데이터
 
 CATALOG = sorted(glob.glob(os.path.join(MODULE_DIR, "plugin_catalog", "*.json")))
 PLACEHOLDER = re.compile(r"\{(\w+)\}")

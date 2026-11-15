@@ -1,4 +1,4 @@
-"""모듈 계약 검사 (M10). 계약 원문은 docs/module-spec.md.
+"""모듈 계약 검사. 계약 원문은 saba-chan docs/architecture/02-modules.md.
 
 1. module.toml이 스키마 v1을 통과한다
 2. 진입 파일의 `FUNCTIONS` 표: `get_launch_command`가 있고, 데몬이 부르는 이름으로
@@ -16,10 +16,10 @@
 10. `[protocols]`: rcon은 stdin·rest가 없을 때만, 그때 rcon_port
 """
 import ast
+import importlib.util
 import json
 import os
 import pathlib
-import re
 import subprocess
 import sys
 import threading
@@ -30,6 +30,9 @@ import jsonschema
 import pytest
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
+_spec = importlib.util.spec_from_file_location("saba_translations", REPO / "conformance" / "translations.py")
+translations = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(translations)
 SCHEMA = json.loads((REPO / "schema" / "module.schema.json").read_text(encoding="utf-8"))
 
 # 데몬이 이름으로 부르는 함수 (saba-chan src/에서 부르는 이름 전부)
@@ -167,10 +170,6 @@ def hook_functions_missing(manifest, table):
             if (manifest.get(section) or {}).get(key) is True and function not in table]
 
 
-def without_aliases(locale):
-    return {k: v for k, v in locale.items() if k != "aliases"}
-
-
 def alias_problems(aliases, manifest):
     """locales `aliases`: {module: [낱말], commands: {<명령 이름>: [낱말]}}. 명령 이름은 내장(start·stop·status),
     접속자 조회(players, `[status] players`를 선언한 모듈만), 채팅에서 부를 수 있는 [[commands.fields]](`remote = false`는 채팅에 없는 명령이다)"""
@@ -195,20 +194,13 @@ def alias_problems(aliases, manifest):
     return out
 
 
-def flat_keys(obj, prefix=""):
-    keys = set()
-    for k, v in obj.items():
-        keys |= flat_keys(v, f"{prefix}{k}.") if isinstance(v, dict) else {prefix + k}
-    return keys
-
-
 def sandbox_config(tmp_path):
     work = tmp_path / "server"
     work.mkdir(exist_ok=True)
     return {"instance_id": "conformance", "working_dir": str(work), "managed": True}
 
 
-# ── 1. module.toml ──────────────────────────────────────
+# 1. module.toml
 
 def test_manifest_matches_schema(module):
     errors = [
@@ -361,7 +353,7 @@ def test_kit_catches_rcon_misuse():
             f"rcon_port {bad!r}는 1~65535 정수가 아니다"]
     assert protocol_problems({"protocols": {"supported": ["rest"]}}) == []
 
-# ── 2. FUNCTIONS 표 ─────────────────────────────────────
+# 2. FUNCTIONS 표
 
 def test_functions_table(module):
     table, defined = functions_table(module)
@@ -395,7 +387,7 @@ def test_kit_catches_hook_without_function():
     assert hook_functions_missing({"backup": {"snapshots": True}}, {}) == ["[backup] snapshots → backup_snapshots"]
 
 
-# ── 3·4. 실행 계약 ──────────────────────────────────────
+# 3·4. 실행 계약
 
 def test_unknown_function_is_answered(module, shared_libs, tmp_path):
     result = call(module, shared_libs, "__conformance_no_such_function__", sandbox_config(tmp_path), tmp_path)
@@ -850,7 +842,7 @@ def test_path_errors_are_not_swallowed(module):
             source, local_sources=sources, module_name=name))
     assert not problems, "PathOutside를 다시 던지지 않는 예외 처리: " + ", ".join(problems)
 
-# ── 5. 번역 ─────────────────────────────────────────────
+# 5. 번역
 
 def test_translation_keys(module, shared_libs):
     locales = module.dir / "locales"
@@ -859,7 +851,7 @@ def test_translation_keys(module, shared_libs):
     en_file = locales / "en.json"
     assert en_file.is_file(), "locales/en.json이 없다 (다른 언어의 기준)"
     # 별명(`aliases`)은 그 언어로 답할 때만 맞추는 낱말이라 언어마다 있어도 없어도 된다
-    en = flat_keys(without_aliases(json.loads(en_file.read_text(encoding="utf-8-sig"))))
+    en = translations.flat_keys(translations.without_aliases(json.loads(en_file.read_text(encoding="utf-8-sig"))))
 
     used = set()
     tree = ast.parse(module.entry.read_text(encoding="utf-8-sig"))
@@ -869,73 +861,23 @@ def test_translation_keys(module, shared_libs):
             used.add(n.args[0].value)
     # 공용 문구(saba-core 0.1.11, common_locales.json)는 모듈 locales에 다시 쓰지 않아도 된다
     common_file = shared_libs / "common_locales.json"
-    common = flat_keys(json.loads(common_file.read_text(encoding="utf-8"))["en"]) if common_file.is_file() else set()
+    common = translations.flat_keys(json.loads(common_file.read_text(encoding="utf-8"))["en"]) if common_file.is_file() else set()
     assert not (used - en - common), f"코드가 쓰는데 en.json(과 공용 문구)에 없는 키: {sorted(used - en - common)}"
 
-    problems = []
+    problems = translations.key_problems(locales)
     for f in sorted(locales.glob("*.json")):
         try:
             data = json.loads(f.read_text(encoding="utf-8-sig"))
-        except json.JSONDecodeError as e:
-            problems.append(f"{f.name}: JSON 오류 {e}")
-            continue
+        except json.JSONDecodeError:
+            continue  # key_problems가 이미 알렸다
         problems += [f"{f.name}: {p}" for p in alias_problems(data.get("aliases"), module.manifest)]
-        keys = flat_keys(without_aliases(data))
-        if keys - en:
-            problems.append(f"{f.name}: en.json에 없는 키 {sorted(keys - en)[:5]}")
-        if en - keys:
-            # 빠진 키는 그 언어에서 영어로 보인다 (사용자 문구는 10개 언어)
-            problems.append(f"{f.name}: 번역 안 된 키 {sorted(en - keys)[:5]}")
     assert not problems, "\n".join(problems)
-
-
-# en과 같아도 되는 문구: 고유명사·상표·약어·게임 안 이름, 언어 자기 이름
-SAME_AS_EN_OK = {
-    "MOTD", "PVP", "PvP", "IP", "JSON", "Deflate", "LZ4", "X", "Y", "x,y,z", "Steam VAC", "UPnP",
-    "Vanilla", "CraftBukkit", "Fabric", "Folia", "Forge", "NeoForge", "Paper", "Pufferfish", "Purpur", "Quilt", "Spigot",
-    "For the Worthy", "The Constant", "Remix", "Zenith",
-    "Deutsch", "English", "Español", "Français", "Italiano", "Polski", "Português (Brasil)", "Русский",
-    "日本語", "한국어", "简体中文", "繁體中文",
-}
-# 그 언어에서도 철자가 같은 낱말
-SAME_AS_EN_OK_BY_LANG = {
-    "de": {"Whitelist", "Hardcore", "Debug", "Normal", "Port", "Version", "Name", "Text", "Region", "Mods", "Ping"},
-    "es": {"Whitelist", "Hardcore", "Normal", "Casual", "Invisible", "Mods", "Ping"},
-    "fr": {"Message", "Destination", "Action", "Arguments", "Description", "Hardcore", "Normal", "Port", "Version",
-           "Expert", "Invisible", "Factions", "Mods", "Ping"},
-    "pt-BR": {"Whitelist", "Hardcore", "Normal", "Casual", "Expert", "Mods", "Ping"},
-    "ja": {"Ping"},
-}
-SAME_AS_EN_MAX_RATIO = 0.01
-
-
-def flat_strings(obj, prefix=""):
-    out = {}
-    for k, v in obj.items():
-        if isinstance(v, dict):
-            out.update(flat_strings(v, f"{prefix}{k}."))
-        elif isinstance(v, str):
-            out[prefix + k] = v
-    return out
-
-
-def untranslated(en, other, lang):
-    """en과 문자가 같은데 허용 목록에 없는 키. 글자 없는 값({{path}}, 숫자)과 module.display_name은 뺀다"""
-    ok = SAME_AS_EN_OK | SAME_AS_EN_OK_BY_LANG.get(lang, set())
-    out = []
-    for key, value in other.items():
-        if key == "module.display_name" or en.get(key) != value or value in ok:
-            continue
-        if not any(c.isalpha() for c in re.sub(r"\{\{.*?\}\}", "", value)):
-            continue
-        out.append(key)
-    return sorted(out)
 
 
 def test_untranslated_detection():
     en = {"a": "Server Name", "b": "MOTD", "c": "{{path}}", "module.display_name": "Game", "d": "Port"}
-    assert untranslated(en, dict(en), "ja") == ["a", "d"]
-    assert untranslated(en, dict(en), "de") == ["a"]
+    assert translations.untranslated(en, dict(en), "ja") == ["a", "d"]
+    assert translations.untranslated(en, dict(en), "de") == ["a"]
 
 
 def test_translations_not_left_in_english(module):
@@ -943,19 +885,11 @@ def test_translations_not_left_in_english(module):
     locales = module.dir / "locales"
     if not (locales / "en.json").is_file():
         pytest.skip("locales 없음")
-    en = flat_strings(json.loads((locales / "en.json").read_text(encoding="utf-8-sig")))
-    problems = []
-    for f in sorted(locales.glob("*.json")):
-        if f.stem == "en":
-            continue
-        other = flat_strings(json.loads(f.read_text(encoding="utf-8-sig")))
-        left = untranslated(en, other, f.stem)
-        if other and len(left) / len(other) > SAME_AS_EN_MAX_RATIO:
-            problems.append(f"{f.name}: en과 같은 문구 {len(left)}/{len(other)}개 {left[:5]}")
+    problems = translations.english_left(locales)
     assert not problems, "\n".join(problems)
 
 
-# ── 코드 검사 (M12) ─────────────────────────────────────
+# 코드 검사
 
 @pytest.fixture
 def audit_findings(module, shared_libs):

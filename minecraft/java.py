@@ -21,10 +21,6 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                    Java Detection                         ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 def required_java(mc_version):
     """Minecraft 버전에 필요한 최소 Java 주 버전 (서버 jar에 version.json이 없을 때의 폴백).
       연도 기반(26.1 등), 26년 이후 스냅샷 → 25
@@ -255,10 +251,6 @@ class JavaDetector:
         return issues
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║               Java Auto-Download (Adoptium)               ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 class JavaDownloader:
     """Download portable JRE from Eclipse Adoptium (Temurin) API.
 
@@ -369,12 +361,10 @@ class JavaDownloader:
         os_name, arch = JavaDownloader._platform_info()
         java_dir = os.path.join(install_dir, "java")
 
-        # Check if already downloaded
         existing = JavaDownloader.bundled_within(install_dir, major_version, max_major)
         if existing:
             return existing
 
-        # Determine archive type
         ext = "zip" if os_name == "windows" else "tar.gz"
 
         # 고정 판의 이 플랫폼 압축과 SHA-256: 해시가 다르면 풀지 않는다

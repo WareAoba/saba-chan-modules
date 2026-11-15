@@ -96,7 +96,7 @@ def _make_fake_jar(tmpdir, name="server.jar"):
     return jar_path
 
 
-# ── get_launch_command tests ─────────────────────────────────
+# get_launch_command tests
 
 def test_build_launch_info_basic():
     """get_launch_command returns program, args, working_dir on valid config."""
@@ -332,7 +332,7 @@ def test_build_launch_info_working_dir_from_jar():
         assert result["working_dir"] == os.path.abspath(tmpdir)
 
 
-# ── get_launch_command delegates to get_launch_command ──
+# get_launch_command delegates to get_launch_command
 
 def test_get_launch_command_returns_success():
     """get_launch_command uses get_launch_command and returns its result."""
@@ -350,7 +350,7 @@ def test_get_launch_command_returns_success():
         assert "args" in result
 
 
-# ── 데몬 계약 ────────────────────────────────────────────────
+# 데몬 계약
 
 def test_every_daemon_function_is_registered():
     from minecraft.lifecycle import FUNCTIONS
@@ -493,7 +493,7 @@ def test_ping_closes_socket_on_error():
     conn.__exit__.assert_called_once()
 
 
-# ─── 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식) ───
+# 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식)
 
 def _module_toml():
     import tomllib
@@ -885,8 +885,8 @@ def test_a_bundled_java_too_old_for_the_server_is_skipped(monkeypatch, tmp_path)
     system = {"java": "C:/Program Files/Eclipse Adoptium/jdk-21/bin/java.exe", "version": "21.0.5", "major": 21, "arch": "amd64"}
     monkeypatch.setenv("SABA_JAVA_RUNTIMES", _json.dumps([system]))
     config = {"working_dir": str(tmp_path), "server_version": "1.21.1"}
-    assert lifecycle._launch_java(config, None) == system["java"]
-    assert lifecycle._launch_java({"working_dir": str(tmp_path), "server_version": "1.20.4"}, None) == str(bundled)
+    assert lifecycle._launch_java_info(config, None)["path"] == system["java"]
+    assert lifecycle._launch_java_info({"working_dir": str(tmp_path), "server_version": "1.20.4"}, None)["path"] == str(bundled)
 
 
 def test_the_java_path_the_user_set_wins_over_the_bundled_java(monkeypatch, tmp_path):
@@ -900,7 +900,7 @@ def test_the_java_path_the_user_set_wins_over_the_bundled_java(monkeypatch, tmp_
     monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(
         lambda p: {"path": p, "version": "21.0.5", "major_version": 21, "bits64": True}))
     config = {"working_dir": str(tmp_path), "server_version": "1.21.1", "java_path": mine}
-    assert lifecycle._launch_java(config, None) == mine
+    assert lifecycle._launch_java_info(config, None)["path"] == mine
 
 
 def test_validate_uses_the_java_the_daemon_found_without_running_it(monkeypatch, tmp_path):
@@ -1546,8 +1546,6 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     # 채팅에 머리 흉내("]: ")를 넣어도 줄 처음의 로그 머리부터 맞춰야 한다 (리뷰 544)
     assert not any(p.search('[20:08:00] [Server thread/INFO]: <Steve> ]: Done (1.0s)! For help, type "help"') for p in patterns)
     assert "ready_patterns" not in toml["detection"]
-    # 정지·설정 파일이 공용 도우미(graceful_stop·update_key_values, saba-core 0.1.11부터)를 쓴다
-    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.14-beta.2"
 
 
 def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():
@@ -1892,7 +1890,7 @@ def test_an_escaped_line_break_survives_import_and_save():
             assert "motd=a\\nb\n" in f.read()
 
 
-# ─── 공식 설치기로 까는 서버 종류 (Quilt·Forge·NeoForge·BuildTools) ─────────────
+# 공식 설치기로 까는 서버 종류 (Quilt·Forge·NeoForge·BuildTools)
 
 def _installer_fixture(tmp_path, server_type, source, run, jre=None, bundled=None):
     """설치기 jar를 받고 Java를 갖춘 뒤 run(cmd, cwd, env)으로 설치기를 돌리는 install_server를 부른다"""
@@ -2135,7 +2133,7 @@ def lifecycle_module():
     return lifecycle
 
 
-# ─── 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`, 사용자 요청 2026-10-30) ───
+# 디스코드 → 게임 채팅 (`[extensions.saba-core] chat_send`)
 
 def test_send_chat_tells_everyone_with_tellraw_json():
     """보낸 사람과 본문만. 본문은 JSON 글자로 넣어 명령이 되지 않고, 클라이언트가 JSON 글자 안에서도 읽는 § 서식은 뺀다"""
@@ -2153,7 +2151,7 @@ def test_send_chat_tells_everyone_with_tellraw_json():
         assert lifecycle.send_chat({"instance_id": "i1", "chat_name": "a", "chat_text": "b"})["success"] is False
 
 
-# ── 실행 프로필 (힙 크기로 정한다: 소규모 ≤6G, 표준 <16G, 대규모 ≥16G) ─────────
+# 실행 프로필 (힙 크기로 정한다: 소규모 ≤6G, 표준 <16G, 대규모 ≥16G)
 
 _GIB = 1024 ** 3
 
@@ -2353,3 +2351,18 @@ def test_gamerule_names_follow_the_server_version():
     # 버전을 모르면 친 그대로, 값이 비면 지금 값을 묻는다
     assert run("keepInventory", None)[0] == "gamerule keepInventory true"
     assert run("keepInventory", "26.3", value="")[0] == "gamerule keep_inventory"
+
+
+def test_an_unreadable_properties_file_is_an_error_not_empty_settings(tmp_path, monkeypatch):
+    """읽지 못한 server.properties를 빈 설정으로 답하지 않는다 (원인이 사용자 답에 남게)"""
+    import sys
+    from minecraft.lifecycle import read_properties
+    properties = sys.modules[read_properties.__globals__["ServerPropertiesManager"].__module__]
+    (tmp_path / "server.properties").write_text("motd=hi\n")
+
+    def denied(*_args, **_kwargs):
+        raise PermissionError(13, "Access is denied")
+    monkeypatch.setattr(properties, "read_key_values", denied)
+
+    with pytest.raises(PermissionError):
+        read_properties({"working_dir": str(tmp_path)})

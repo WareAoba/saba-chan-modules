@@ -62,8 +62,8 @@ Windows 폴더 구조. 이 다섯은 Windows 실측 전까지 "확인 못 함"�
    - 사바쨩이 설치된 PC면 `saba-chan-cli module maker --json`으로 이 PC의 경로(saba-core, 데몬의 Python, 공용 런타임, 모듈 폴더)를 얻는다. `check.py`는 이 값을 스스로 읽는다.
    - 사바쨩이 없으면 saba-chan 저장소를 모듈 저장소 옆에 받는다(공용 런타임 `saba-chan/modules`). 이때 실측 관문은 "PC 실측 필요"로 남긴다.
    - 이 스킬이 맞는 데몬은 위 머리의 `metadata`(saba-core 최소 버전, 모듈 스키마 버전)다. `check.py`의 compat 관문이 잰다.
-1. **기준 문서를 읽는다.** 계약의 유일한 기준은 saba-chan 저장소 `docs/architecture/02-modules.md`다. 이 저장소의 `docs/module-spec.md`(키·함수 표)와
-   `docs/module-development-guide.md`(만드는 순서, 공용 도우미 표)는 요약이다. 다르면 02 문서와 데몬 코드(`src/supervisor/module_loader.rs`)를 믿는다.
+1. **기준 문서를 읽는다.** 계약의 유일한 기준은 saba-chan 저장소 `docs/architecture/02-modules.md`다. 이 저장소의
+   `docs/module-development-guide.md`(만드는 순서)는 계약을 되풀이하지 않는다. 02 문서와 데몬 코드(`src/supervisor/module_loader.rs`)가 다르면 코드를 믿는다.
    스키마는 `schema/module.schema.json`(= `saba-core module schema`). 저장소 `AGENTS.md`의 역할·검증 규칙도 따른다.
 2. **뼈대를 만든다** (새 모듈만).
    ```

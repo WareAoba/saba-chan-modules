@@ -1,4 +1,4 @@
-"""사바쨩 모듈 적합성 키트 설정 (M10).
+"""사바쨩 모듈 적합성 키트 설정.
 
     pytest conformance                              # 이 저장소의 모든 모듈
     pytest conformance --module path/to/mymodule    # 다른 곳의 모듈 하나

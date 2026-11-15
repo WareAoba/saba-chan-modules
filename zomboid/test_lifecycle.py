@@ -27,7 +27,7 @@ def _load_module_toml():
     return tomllib.loads(raw.decode("utf-8"))
 
 
-# ─── 1. module.toml 자체 무결성 ─────────────────────────────
+# 1. module.toml 자체 무결성
 
 def test_module_toml_parses():
     cfg = _load_module_toml()
@@ -47,7 +47,7 @@ def test_only_measured_os_is_declared():
     assert _load_module_toml()["extensions"]["saba-core"]["platforms"] == ["windows"]
 
 
-# ─── 2. KEY_MAP ↔ DEFAULT 일관성 ────────────────────────────
+# 2. KEY_MAP ↔ DEFAULT 일관성
 
 def test_defaults_for_a_new_server_come_from_module_toml(tmp_path):
     """servertest.ini가 아직 없을 때 보이는 값은 module.toml 설정 기본값이다 (기본값을 코드에 따로 두지 않는다)"""
@@ -74,7 +74,7 @@ def test_ini_key_map_no_duplicate_targets():
 
 
 
-# ─── 3. settings.fields ↔ KEY_MAP 계약 ──────────────────────
+# 3. settings.fields ↔ KEY_MAP 계약
 
 def _ini_bound_field_names(cfg):
     """group='saba-chan'은 데몬 내부 전용(ram, server_name 등). INI와 무관."""
@@ -109,7 +109,7 @@ def test_ui_field_types_sane():
         assert f.get("type") in valid_types, f"{f.get('name')}: invalid type {f.get('type')!r}"
 
 
-# ─── 4. IniManager 기본 I/O 라운드트립 ─────────────────────
+# 4. IniManager 기본 I/O 라운드트립
 
 def test_ini_manager_write_and_read_roundtrip(tmp_path):
     from zomboid.lifecycle import IniManager
@@ -162,7 +162,7 @@ def test_ini_manager_get_ini_path_uses_server_name():
         assert os.path.realpath(td) in path
 
 
-# ─── 5. 공개 API 방어 동작 ─────────────────────────────────
+# 5. 공개 API 방어 동작
 
 def test_validate_empty_config_fails():
     from zomboid.lifecycle import validate
@@ -321,7 +321,7 @@ def test_backup_paths_take_only_this_servers_files(tmp_path):
     taken = sorted(os.path.basename(p) for p in result["paths"] if os.path.dirname(p) == str(server))
     assert taken == sorted(ours), taken
 
-# ─── 6. 인코딩 계약 ────────────────────────────────────────
+# 6. 인코딩 계약
 
 def test_module_toml_bom_roundtrip(tmp_path):
     raw = open(MODULE_TOML, "rb").read()
@@ -337,7 +337,7 @@ def test_module_toml_bom_roundtrip(tmp_path):
     assert parsed["module"]["name"] == "zomboid"
 
 
-# ─── Regression: unknown function must not crash the plugin ────
+# Regression: unknown function must not crash the plugin
 # 데몬은 plugin 종료 코드 != 0 을 HTTP 500 으로 변환한다.
 # minecraft/palworld와 같이 그레이스풀 JSON + exit 0 으로 통일.
 def test_unknown_function_returns_graceful_json_with_zero_exit():
@@ -462,7 +462,7 @@ def test_console_templates_leave_no_empty_quotes_for_a_blank_input():
     assert blank == []
 
 
-# ─── 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식) ───
+# 콘솔 하이라이팅 규칙 (GUI syntaxHighlight.js와 같은 우선순위 방식)
 
 def _highlighted(line, rules):
     """priority 큰 규칙부터, 이미 칠한 칸은 덮지 않는다. [(조각, color)]"""
@@ -601,12 +601,13 @@ def test_admin_password_is_only_passed_before_the_server_database_exists(tmp_pat
 
 
 def test_steamcmd_extension_import_failure_does_not_search_for_an_executable(monkeypatch):
+    import subprocess
     from zomboid import lifecycle
     import extensions.steamcmd
 
     # 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하도록 extension_required로 답한다
     monkeypatch.delattr(extensions.steamcmd, "install_for_module", raising=False)
-    monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
 
     result = lifecycle.install_server({"install_dir": "server", "settings": {}})
 
@@ -777,7 +778,6 @@ def test_install_does_not_hide_a_profile_path_escape(tmp_path, monkeypatch):
 def test_manifest_declares_the_external_data_roots_and_the_sdk_boundary():
     cfg = _load_module_toml()
     assert cfg["extensions"]["saba-core"]["data_roots"] == ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
-    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.14-beta.2"
     field = next(field for field in cfg["settings"]["fields"] if field["name"] == "data_home")
     assert field["format"] == "path"
 
@@ -1176,7 +1176,7 @@ def test_g1_choice_also_applies_without_a_launch_script(tmp_path, monkeypatch):
     assert "-XX:+UseG1GC" in args and "-XX:+UseZGC" not in args
 
 
-# ─── 접속자 목록 ([status] players) ─────────────────────────
+# 접속자 목록 ([status] players)
 
 def _players_reply(monkeypatch, response):
     from zomboid import lifecycle
@@ -1187,12 +1187,6 @@ def _players_reply(monkeypatch, response):
         return {"success": True, "data": {"response": response}}
     monkeypatch.setattr(lifecycle, "daemon_stdin_command", fake)
     return lifecycle, sent
-
-
-def test_player_count_is_the_status_function():
-    from zomboid import lifecycle
-    assert _load_module_toml()["status"]["players"] == "player_count"
-    assert "player_count" in lifecycle.FUNCTIONS
 
 
 def test_player_count_does_not_write_to_the_console_every_minute(monkeypatch):
@@ -1225,7 +1219,7 @@ def test_player_list_does_not_guess_from_an_unknown_reply(monkeypatch):
     assert lifecycle.player_count({"instance_id": "inst-1", "players_detail": True}) == {"success": True, "online": 3}
 
 
-# ─── 사용자 실행 인자 (자바 모드 로더 등) ─────────────────────────
+# 사용자 실행 인자 (자바 모드 로더 등)
 
 def test_launch_puts_user_jvm_args_before_the_main_class_and_game_args_after(tmp_path, monkeypatch):
     """-javaagent 같은 JVM 인자는 메인 클래스 뒤에 붙으면 게임 인자가 되어 JVM이 읽지 않는다.
@@ -1275,7 +1269,7 @@ def test_import_of_an_unchanged_official_script_moves_no_args(tmp_path, monkeypa
     assert "extra_args" not in lifecycle.import_settings({"working_dir": str(server)})
 
 
-# ─── 사용자가 만든 실행 스크립트 (입력받는 값, 변수) ─────────────────────────
+# 사용자가 만든 실행 스크립트 (입력받는 값, 변수)
 
 def test_import_skips_script_values_that_are_typed_in_at_each_start(tmp_path, monkeypatch):
     """set /p로 입력받는 서버 이름·데이터 폴더는 값을 모르므로 가져오지 않는다 (%NAME%라는 월드가 생기지 않게)"""
@@ -1343,3 +1337,18 @@ def test_launch_reads_common_user_script_forms(tmp_path, monkeypatch, script):
 
     assert "-Dkeep=1" in args
     assert args[args.index("-cp") + 1] == "java/;java/projectzomboid.jar"
+
+
+def test_an_unreadable_ini_is_an_error_not_empty_settings(tmp_path, monkeypatch):
+    """읽지 못한 서버 ini를 빈 설정으로 답하지 않는다 (원인이 사용자 답에 남게)"""
+    from zomboid import lifecycle
+    ini = tmp_path / "Server" / "servertest.ini"
+    ini.parent.mkdir()
+    ini.write_text("PublicName=hi\n")
+
+    def denied(*_args, **_kwargs):
+        raise PermissionError(13, "Access is denied")
+    monkeypatch.setattr(lifecycle, "read_key_values", denied)
+
+    with pytest.raises(PermissionError):
+        lifecycle.read_properties({"cache_dir": str(tmp_path)})

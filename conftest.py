@@ -5,7 +5,7 @@
 실제 계약과 어긋나므로 두지 않는다.
 
 공용 런타임 탐색 순서:
-  1. 이미 import 가능한 경우 (run-tests.py가 PYTHONPATH 지정)
+  1. 이미 import 가능한 경우 (PYTHONPATH로 줬을 때)
   2. SABA_RUNTIME_DIR 환경 변수 (CI가 saba-chan/modules를 체크아웃한 경로)
   3. 형제 레포 ../saba-chan/modules
 설치본(%APPDATA%/saba-chan)은 찾지 않는다: 설치된 버전이 이 클론보다 오래되면 테스트가

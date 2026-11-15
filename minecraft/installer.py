@@ -25,10 +25,6 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║              Server Installation / Download               ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
 
@@ -90,7 +86,6 @@ class ServerInstaller:
         latest = manifest.get("latest", {})
         all_versions = manifest.get("versions", [])
 
-        # Filter
         if not include_snapshots:
             versions = [v for v in all_versions if v.get("type") == "release"]
         else:
@@ -218,7 +213,6 @@ class ServerInstaller:
             if server_type == "fabric" and jar_name == "server.jar":
                 jar_name = "fabric-server-launch.jar"
 
-        # Create install directory
         install_path = os.path.abspath(install_dir)
         try:
             os.makedirs(install_path, exist_ok=True)
@@ -252,10 +246,6 @@ class ServerInstaller:
             finally:
                 _remove_tree(build_dir)
 
-        # Download with progress
-        print(f"Downloading Minecraft server {version_id}...", file=sys.stderr)
-        print(f"  URL: {download_url}", file=sys.stderr)
-        print(f"  Destination: {jar_path}", file=sys.stderr)
         message = i18n.t("messages.downloading_server", version=version_id)
         shown = [-1]
 
@@ -280,7 +270,6 @@ class ServerInstaller:
                     "message": i18n.t("errors.checksum_mismatch", algorithm=e.algorithm,
                                       expected=e.expected, actual=e.actual)}
         except Exception as e:
-            # Clean up partial download
             _remove_quietly(part_path)
             return {
                 "success": False,
@@ -306,7 +295,6 @@ class ServerInstaller:
             # 서버가 jar를 잡고 있으면(Windows) 바꾸지 못한다: 옛 jar는 그대로 둔다
             _remove_quietly(part_path)
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
-        print(f"  Checksum verified: {actual_sha1}", file=sys.stderr)
 
         # Post-install setup
         result = {
@@ -361,7 +349,6 @@ class ServerInstaller:
             ok = EulaManager.accept_eula(install_path)
             result["eula_accepted"] = ok
 
-        # Apply initial server settings
         if initial_settings and isinstance(initial_settings, dict):
             mgr = ServerPropertiesManager(install_path)
             # 설정 이름은 server.properties 키로, 그 밖의 키(이미 파일 키인 것)는 그대로

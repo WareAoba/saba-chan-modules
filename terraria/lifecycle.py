@@ -12,7 +12,6 @@ Terraria 공식 데디케이티드 서버(TerrariaServer)를 다룬다.
 
 import os
 import re
-import shutil
 import sys
 import tempfile
 import zipfile
@@ -28,8 +27,6 @@ from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, downlo
 
 i18n = I18n(MODULE_DIR)
 
-
-# ─── Constants ───────────────────────────────────────────
 
 CONFIG_FILE = "serverconfig.txt"
 DEFAULT_WORLD_NAME = "world"
@@ -62,8 +59,6 @@ _PROMPT_RE = re.compile(r"^:(?: |$)")
 # 이름 조각 검사: 빈 값·구분자·드라이브·Windows가 잘라 내는 끝 공백/점("."·".." 포함)
 _BAD_NAME_CHARS = set('/\\:*?"<>|')
 
-
-# ─── Helpers ─────────────────────────────────────────────
 
 def _server_exe_name():
     """이 OS의 공식 서버 실행 파일 이름 (zip의 Windows/Linux 폴더)"""
@@ -141,7 +136,7 @@ def _format_value(key, value):
         raise ValueError(i18n.t("errors.line_break", setting=key)) from None
 
 
-# ─── serverconfig.txt ────────────────────────────────────
+# serverconfig.txt
 
 # 공식 예시 파일은 cp1252지만 서버는 UTF-8로 읽는다(PC 실측). cp1252로 못 쓰는 값(한국어 MOTD·경로)이면 UTF-8로 쓴다.
 # 키는 대소문자를 가리지 않는다
@@ -179,10 +174,6 @@ def _settings_from_file(props):
         settings["world_name"] = base[:-4] if base.lower().endswith(".wld") else base
     return settings
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                  Lifecycle Functions                      ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 def validate(config):
     """시작 전 점검: 실행 파일, 월드 이름, 밴 목록 이름"""
@@ -454,7 +445,7 @@ def reset_server(config):
     return {"success": True, "message": i18n.t("messages.server_reset_complete"), "deleted": deleted}
 
 
-# ─── 버전·설치 ───────────────────────────────────────────
+# 버전·설치
 
 _NAME_RE = re.compile(r"^terraria-server-(\d+)\.zip$")
 _VERSION_RE = re.compile(r"^\d+(\.\d+)*$")
@@ -596,10 +587,6 @@ def send_chat(config):
     line = f"say {config.get('chat_name', '')}: {config.get('chat_text', '')}"
     return chat_reply(lambda: daemon_stdin_command(config.get("instance_id", ""), line, timeout=5), i18n)
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                  Function Registry                        ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 FUNCTIONS = {
     "validate":           validate,

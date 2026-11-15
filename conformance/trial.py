@@ -49,7 +49,7 @@ DAEMON_DIRS = {"backups", "run"}
 NOT_PLAY_DATA = re.compile(r"(^|/)logs?/|\.log$|\.lock$|(^|/)Saved/Logs/|\.(jar|dll|exe|so|dylib|pdb)$", re.IGNORECASE)
 
 
-# ── 판정 규칙 (test_trial.py) ──
+# 판정 규칙 (test_trial.py)
 
 def has_console(manifest):
     """stdin을 받는 모듈인지: 아니면 데몬은 콘솔 명령(stop_command 포함)을 보내지 않는다"""
@@ -161,7 +161,7 @@ def port_settings(manifest, pick):
     return {f["name"]: pick() for f in fields if f.get("name") == "port" or f.get("port")}
 
 
-# ── 보고서 ──
+# 보고서
 
 STATUS_MARK = {"ok": "✅", "fail": "❌", "warn": "⚠️", "skip": "⏭️"}
 STATUS_ORDER = ("ok", "fail", "warn", "skip")
@@ -214,7 +214,7 @@ class Report:
         return "\n".join(lines) + "\n"
 
 
-# ── 데몬 ──
+# 데몬
 
 def free_port():
     with socket.socket() as s:
@@ -328,7 +328,7 @@ class Daemon:
             self.proc.wait()
 
 
-# ── 실측 흐름 ──
+# 실측 흐름
 
 def load_manifest(module_dir):
     path = module_dir / "module.toml"

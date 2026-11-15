@@ -74,7 +74,7 @@ def squash(text):
     return "".join(words(text))
 
 
-# ─── Pelican eggs ──────────────────────────────────────────────
+# Pelican eggs
 
 def match_eggs(query, paths):
     """egg 파일 경로 중 게임 이름에 맞는 것. 같은 폴더에 Pelican JSON이 있으면 Pterodactyl판은 뺀다
@@ -143,7 +143,7 @@ def read_egg(egg, url):
     }
 
 
-# ─── LinuxGSM ─────────────────────────────────────────────────
+# LinuxGSM
 
 def match_lgsm(query, csv_text):
     """serverlist.csv에서 shortname·gameservername이 같거나 게임 이름에 맞는 줄"""
@@ -173,7 +173,7 @@ def read_lgsm_cfg(text):
     }
 
 
-# ─── 보고서 ───────────────────────────────────────────────────
+# 보고서
 
 def _cell(text):
     return str(text).replace("|", "\\|").replace("\n", " ")
@@ -234,7 +234,7 @@ def markdown(game, eggs, lgsms, missing):
     return "\n".join(out)
 
 
-# ─── 내려받기 ─────────────────────────────────────────────────
+# 내려받기
 
 def fetch(url):
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})

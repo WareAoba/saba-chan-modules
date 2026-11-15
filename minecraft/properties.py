@@ -13,10 +13,6 @@ from daemon_rcon import atomic_write, read_key_values, remote_access_values, set
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                EULA Management                            ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 class EulaManager:
     """Handle Minecraft Server EULA."""
 
@@ -51,10 +47,6 @@ class EulaManager:
         except OSError:
             return False
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║             server.properties Manager                     ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 def _unescape_property(value):
     """Java .properties 값의 이스케이프를 푼다 (\\uXXXX, \\:, \\= 등).
@@ -108,10 +100,7 @@ class ServerPropertiesManager:
         """Parse server.properties into a dict. 인코딩 추측(UTF-8 → cp949 → 로캘)은 공용 read_key_values가 한다"""
         if not self.exists():
             return {}
-        try:
-            return {k: _unescape_property(v) for k, v in read_key_values(self.path, strip_values=True).items()}
-        except OSError:
-            return {}
+        return {k: _unescape_property(v) for k, v in read_key_values(self.path, strip_values=True).items()}
 
     def write(self, properties):
         """Write a full properties dict (replaces entire file)."""

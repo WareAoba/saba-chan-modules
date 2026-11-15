@@ -1,17 +1,7 @@
 #!/usr/bin/env python3
 """
-Minecraft server lifecycle management module for saba-chan.
-
-Provides complete server management:
-  - Java environment detection and validation (java.py)
-  - EULA management, server.properties read/write (properties.py)
-  - Server download and install (installer.py)
-  - Error detection and diagnosis with solutions
-  - Server launch command generation (for Rust managed process)
-  - Graceful shutdown (the daemon sends `stop` to the console; this module falls back to SIGTERM)
-  - Server List Ping for rich status info
-
-Always outputs JSON to stdout, logs to stderr.
+마인크래프트 서버 모듈 진입점. 데몬이 부르는 함수는 맨 아래 FUNCTIONS 표에 있다.
+Java 찾기·받기는 java.py, eula.txt·server.properties는 properties.py, 서버 설치는 installer.py
 """
 
 import sys
@@ -37,15 +27,10 @@ from daemon_rcon import (PathOutside, auto_heap_mb, enforce_remote_access, grace
                          request_console, request_terminate, safe_join, setting_file_keys, settings_from_file,
                          settings_to_file, chat_reply, delete_paths, stop_command)
 
-# ─── Init ─────────────────────────────────────────────────────
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 i18n = I18n(MODULE_DIR)
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║            Minecraft Server List Ping                     ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 class MinecraftPing:
     """Minecraft Server List Ping (SLP) protocol."""
@@ -70,26 +55,21 @@ class MinecraftPing:
         """핸드셰이크와 상태 요청을 보내고 응답을 읽는다."""
         sock.sendall(MinecraftPing._request(host, port))
 
-        # Read response
         data = b""
         while True:
             chunk = sock.recv(4096)
             if not chunk:
                 break
             data += chunk
-            try:
-                parsed = MinecraftPing._parse_response(data)
-                if parsed is not None:
-                    return parsed
-            except Exception:
-                continue
+            parsed = MinecraftPing._parse_response(data)
+            if parsed is not None:
+                return parsed
 
         return None
 
     @staticmethod
     def _request(host, port):
         """핸드셰이크와 상태 요청 바이트"""
-        # Handshake
         protocol_version = MinecraftPing._encode_varint(-1)
         host_bytes = host.encode("utf-8")
         host_len = MinecraftPing._encode_varint(len(host_bytes))
@@ -100,7 +80,6 @@ class MinecraftPing:
             MinecraftPing._encode_varint(0x00)
             + protocol_version + host_len + host_bytes + port_bytes + next_state
         )
-        # Status request
         return (MinecraftPing._encode_varint(len(handshake_data)) + handshake_data
                 + MinecraftPing._encode_varint(1) + MinecraftPing._encode_varint(0x00))
 
@@ -149,11 +128,6 @@ class MinecraftPing:
             return json.loads(data[offset:offset + json_len].decode("utf-8"))
         except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
             return None
-
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                Lifecycle Functions                        ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 
 def _resolve_server_jar(config):
@@ -287,12 +261,6 @@ def _minecraft_version(config, server_jar, jar_info=None):
     return server_types.detect(config["working_dir"], server_jar).get("version")
 
 
-def _launch_java(config, server_jar, jar_info=None):
-    """실제로 띄울 Java의 경로 (`_launch_java_info`). 찾지 못하면 설정의 java_path"""
-    info = _launch_java_info(config, server_jar, jar_info)
-    return info["path"] if info else config.get("java_path", "java")
-
-
 def _launch_java_info(config, server_jar, jar_info=None):
     """실제로 띄울 Java와 그 버전: 사용자가 정한 java_path, 포터블 Java(<working_dir>/java/, <instance_dir>/java/), 시스템 Java 순이다.
     시스템 Java는 이 서버에 필요한 주 버전 이상인 것을 고른다. 번들과 데몬이 찾은 런타임은 `-version`을 돌리지 않는다
@@ -382,7 +350,6 @@ def validate(config):
             "solution": i18n.t("errors.solutions.server_type_mismatch"),
         })
 
-    # Working directory
     if working_dir and not os.path.isdir(working_dir):
         try:
             os.makedirs(working_dir, exist_ok=True)
@@ -527,10 +494,7 @@ def _script_jvm_args(working_dir):
 
 
 def get_launch_command(config):
-    """
-    Build the command for the Rust daemon to spawn as a ManagedProcess.
-    Returns { success, program, args, working_dir, env_vars }.
-    """
+    """데몬이 띄울 서버 실행 명령"""
     java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
     ram = _java_memory(config.get("ram"))
@@ -1045,8 +1009,6 @@ def _console_player_names(instance_id):
     return None
 
 
-# ─── JAR version parsing ──────────────────────────────────
-
 def _read_jar_version(install_dir, jar_name="server.jar"):
     """Read version.json from inside a Minecraft server.jar.
 
@@ -1237,10 +1199,6 @@ def send_chat(config):
     return chat_reply(lambda: daemon_stdin_command(config.get("instance_id", ""), line, timeout=5), i18n)
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║              Server Installation / Download               ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 def list_versions(config):
     """List available Minecraft server versions.
 
@@ -1253,39 +1211,36 @@ def list_versions(config):
             만들기 화면과 데몬이 새 인스턴스의 버전을 고를 때 넘긴다.
             그 종류의 받을 곳을 읽지 못하면 거르지 않는다 (설치가 그 버전을 다시 확인한다)
     """
-    try:
-        include_snapshots = config.get("include_snapshots", False)
-        page = int(config.get("page", 1))
-        per_page = int(config.get("per_page", 25))
+    include_snapshots = config.get("include_snapshots", False)
+    page = int(config.get("page", 1))
+    per_page = int(config.get("per_page", 25))
 
-        server_type = (config.get("settings") or {}).get("server_type")
-        typed = bool(server_type) and server_type != "vanilla"
-        only = None
-        if typed:
-            try:
-                only = server_types.installable_versions(server_type)
-            except Exception as e:
-                print(f"Could not list the versions {server_type} offers: {e}", file=sys.stderr)
-        manifest = ServerInstaller.fetch_version_manifest()
-        latest = None
-        if typed:
-            releases = [v["id"] for v in ServerInstaller.list_versions(per_page=10, only=only, manifest=manifest)["versions"]]
-            latest = server_types.latest_installable(server_type, releases)
-            # 그보다 새 릴리스는 받아 보니 아직 받을 수 없었다 (Paper·Folia의 안정 빌드 전): 목록에서도 뺀다
-            if latest and only is not None:
-                only = only - set(releases[:releases.index(latest)])
-        result = ServerInstaller.list_versions(
-            include_snapshots=include_snapshots,
-            page=page,
-            per_page=per_page,
-            only=only,
-            manifest=manifest,
-        )
-        if latest:
-            result["latest"] = {**result.get("latest", {}), "release": latest}
-        return {"success": True, **result}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+    server_type = (config.get("settings") or {}).get("server_type")
+    typed = bool(server_type) and server_type != "vanilla"
+    only = None
+    if typed:
+        try:
+            only = server_types.installable_versions(server_type)
+        except Exception as e:
+            print(f"Could not list the versions {server_type} offers: {e}", file=sys.stderr)
+    manifest = ServerInstaller.fetch_version_manifest()
+    latest = None
+    if typed:
+        releases = [v["id"] for v in ServerInstaller.list_versions(per_page=10, only=only, manifest=manifest)["versions"]]
+        latest = server_types.latest_installable(server_type, releases)
+        # 그보다 새 릴리스는 받아 보니 아직 받을 수 없었다 (Paper·Folia의 안정 빌드 전): 목록에서도 뺀다
+        if latest and only is not None:
+            only = only - set(releases[:releases.index(latest)])
+    result = ServerInstaller.list_versions(
+        include_snapshots=include_snapshots,
+        page=page,
+        per_page=per_page,
+        only=only,
+        manifest=manifest,
+    )
+    if latest:
+        result["latest"] = {**result.get("latest", {}), "release": latest}
+    return {"success": True, **result}
 
 
 def get_version_details(config):
@@ -1294,18 +1249,15 @@ def get_version_details(config):
     Config options:
         version (str): Version ID (e.g., "1.21.11")
     """
-    try:
-        version_id = config.get("version")
-        if not version_id:
-            return {"success": False, "message": i18n.t("errors.no_version")}
+    version_id = config.get("version")
+    if not version_id:
+        return {"success": False, "message": i18n.t("errors.no_version")}
 
-        details = ServerInstaller.get_version_details(version_id)
-        if not details:
-            return {"success": False, "message": i18n.t("errors.version_not_found", version=version_id)}
+    details = ServerInstaller.get_version_details(version_id)
+    if not details:
+        return {"success": False, "message": i18n.t("errors.version_not_found", version=version_id)}
 
-        return {"success": True, **details}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+    return {"success": True, **details}
 
 
 def install_server(config):
@@ -1319,46 +1271,35 @@ def install_server(config):
         settings (dict): 인스턴스 설정. server.properties 키는 처음 값으로 쓴다
         initial_settings (dict): Optional initial server.properties values (settings보다 우선)
     """
-    try:
-        version_id = config.get("version")
-        install_dir = config.get("install_dir")
+    version_id = config.get("version")
+    install_dir = config.get("install_dir")
 
-        if not version_id:
-            return {"success": False, "message": i18n.t("errors.no_version")}
-        if not install_dir:
-            return {"success": False, "message": i18n.t("errors.no_install_dir")}
+    if not version_id:
+        return {"success": False, "message": i18n.t("errors.no_version")}
+    if not install_dir:
+        return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-        jar_name = os.path.basename(config.get("server_executable") or "server.jar")
-        do_eula = "eula" in (config.get("accepted_agreements") or [])
-        settings = config.get("settings") or {}
-        # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
-        file_keys = setting_file_keys(MODULE_DIR)
-        initial_settings = {k: v for k, v in settings.items() if k in file_keys and v is not None}
-        initial_settings.update(config.get("initial_settings") or {})
-        # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다.
-        # 없으면(GUI의 버전 설치) 폴더에 있는 서버의 종류를 따른다: Paper·Fabric을 바닐라로 덮지 않는다
-        server_type = (settings.get("server_type") or config.get("server_type")
-                       or server_types.detect(install_dir).get("type") or "vanilla")
+    jar_name = os.path.basename(config.get("server_executable") or "server.jar")
+    do_eula = "eula" in (config.get("accepted_agreements") or [])
+    settings = config.get("settings") or {}
+    # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
+    file_keys = setting_file_keys(MODULE_DIR)
+    initial_settings = {k: v for k, v in settings.items() if k in file_keys and v is not None}
+    initial_settings.update(config.get("initial_settings") or {})
+    # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다.
+    # 없으면(GUI의 버전 설치) 폴더에 있는 서버의 종류를 따른다: Paper·Fabric을 바닐라로 덮지 않는다
+    server_type = (settings.get("server_type") or config.get("server_type")
+                   or server_types.detect(install_dir).get("type") or "vanilla")
 
-        return ServerInstaller.install_server(
-            version_id=version_id,
-            install_dir=install_dir,
-            jar_name=jar_name,
-            accept_eula=do_eula,
-            initial_settings=initial_settings,
-            server_type=server_type,
-        )
-    except PathOutside:
-        raise
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc(), file=sys.stderr)
-        return {"success": False, "message": str(e)}
+    return ServerInstaller.install_server(
+        version_id=version_id,
+        install_dir=install_dir,
+        jar_name=jar_name,
+        accept_eula=do_eula,
+        initial_settings=initial_settings,
+        server_type=server_type,
+    )
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                      Main Entry                           ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 # plugins/ 안에서 백업에서 뺄 것: 플러그인이 다시 그릴 수 있는 지도 타일 (경로 조각, 대소문자 무시)
 # dynmap 기본 저장소 filetree의 tilespath = web/tiles (dynmap 위키 "Configuration.txt", fullrender로 다시 그림)

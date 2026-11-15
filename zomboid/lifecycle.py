@@ -1,27 +1,17 @@
 #!/usr/bin/env python3
 """
-saba-chan — Project Zomboid Module Lifecycle
+Project Zomboid 서버 모듈 진입점. 데몬이 부르는 함수는 맨 아래 FUNCTIONS 표에 있다.
 
-Manages the lifecycle of a Project Zomboid dedicated server.
-Handles validation, launch command generation, status checks,
-graceful shutdown, settings synchronization, and installation via SteamCMD.
-
-Project Zomboid is a Java-based game server (Steam App 380870) that:
-  - Uses a bundled JRE (jre64/bin/java.exe) with custom classpath
-  - Stores configs in ~/Zomboid/Server/{servername}.ini (separate from install dir)
-  - Takes commands on its console (stdin) with managed start; with managed start off, through RCON on the daemon-made port and password
+- 동봉 JRE(jre64)와 공식 실행 스크립트의 classpath로 띄운다
+- 설정은 설치 폴더 밖 <데이터 폴더>/Server/<servername>.ini에 있다
+- 관리 시작이면 콘솔(stdin)로, 아니면 데몬이 정한 포트·비밀번호의 RCON으로 명령을 보낸다
 """
 
 import sys
-import json
-import subprocess
 import os
 import re
 import sqlite3
-import hashlib
-from pathlib import Path
 
-# ─── Path setup ──────────────────────────────────────────
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -36,14 +26,6 @@ from daemon_rcon import (PathOutside, safe_join, auto_heap_mb, daemon_stdin_comm
 
 i18n = I18n(MODULE_DIR)
 
-
-# ─── Constants ───────────────────────────────────────────
-
-
-
-# ═══════════════════════════════════════════════════════════
-#                    INI File Manager
-# ═══════════════════════════════════════════════════════════
 
 def _server_name(config):
     """서버 이름 (-servername). 칸을 비우면 PZ 기본값 servertest"""
@@ -128,11 +110,7 @@ class IniManager:
         인코딩 추측(UTF-8 → cp949 → 로캘, PZ·메모장이 ANSI로 쓴 파일)은 공용 read_key_values가 한다"""
         if not os.path.exists(ini_path):
             return {}
-        try:
-            return read_key_values(ini_path)
-        except OSError as e:
-            print(f"Warning: Could not read {ini_path}: {e}", file=sys.stderr)
-            return {}
+        return read_key_values(ini_path)
 
     @staticmethod
     def update(ini_path, updates):
@@ -142,10 +120,6 @@ class IniManager:
 
     write = update
 
-
-# ═══════════════════════════════════════════════════════════
-#              Server Executable Helpers
-# ═══════════════════════════════════════════════════════════
 
 def _find_server_dir(config):
     """Resolve the server installation directory.
@@ -172,7 +146,7 @@ def _find_server_dir(config):
     return ""
 
 
-# ── 배치/쉘 스크립트 파싱으로 JVM 실행 정보 추출 ──
+# 배치/쉘 스크립트 파싱으로 JVM 실행 정보 추출
 
 def _find_launch_script(server_dir):
     """서버 디렉토리에서 공식 실행 스크립트를 찾습니다."""
@@ -229,22 +203,19 @@ def _parse_launch_script(script_path):
 
 def _parse_bat(content, variables):
     """Windows .bat 파일에서 Java 실행 명령을 파싱합니다."""
-    # 1단계: SET 변수 수집 (SET PZ_CLASSPATH=..., SET JAVA_HOME=... 등)
+    # SET 변수 (SET PZ_CLASSPATH=..., SET JAVA_HOME=... 등)
     for m in re.finditer(r'(?im)^\s*SET\s+(\w+)=(.+)$', content):
         variables[m.group(1).strip()] = m.group(2).strip()
     for m in re.finditer(r'(?im)^\s*SET\s+"(\w+)=([^"\r\n]*)"', content):  # set "VAR=값"
         variables[m.group(1)] = m.group(2).strip()
 
-    # 2단계: java 실행 행 찾기 — "java" 또는 "java.exe"가 포함된 행
-    #   SET, REM, PAUSE 등 명령은 제외
+    # "java" 또는 "java.exe"가 든 첫 실행 행 (SET, REM, PAUSE 등 명령은 건너뛴다)
     java_line = None
     for line in content.splitlines():
         stripped = line.strip()
         if not stripped:
             continue
-        # @ 접두사 제거
         bare = stripped.lstrip("@").strip()
-        # SET, REM, PAUSE 등 비실행 명령 건너뛰기
         if re.match(r'(?i)^(SET|REM|PAUSE|ECHO|CD|SETLOCAL|ENDLOCAL|IF|GOTO|CALL)\b', bare):
             continue
         if re.search(r'java(?:\.exe)?\b', bare, re.IGNORECASE):
@@ -269,11 +240,10 @@ def _parse_bat(content, variables):
 
 def _parse_sh(content, variables):
     """Linux .sh 파일에서 Java 실행 명령을 파싱합니다."""
-    # 1단계: 변수 수집 (EXPORT VAR=..., VAR=... 등)
+    # 변수 (export VAR=..., VAR=...)
     for m in re.finditer(r'(?m)^(?:export\s+)?(\w+)=["\'"]?([^"\'"\n]+)', content):
         variables[m.group(1).strip()] = m.group(2).strip()
 
-    # 2단계: java 실행 행 찾기
     java_line = None
     for line in content.splitlines():
         stripped = line.strip()
@@ -406,7 +376,7 @@ def _parse_launch_info(config, server_dir):
     return info
 
 
-# ── 폴백 헬퍼 (배치파일 파싱 실패 시 사용) ──
+# 폴백 헬퍼 (배치파일 파싱 실패 시 사용)
 
 def _find_java(server_dir):
     """Find the bundled Java executable within the PZ server directory."""
@@ -543,10 +513,6 @@ def _enforce_rcon_policy(ini_path, config=None):
     return access[1] if access else ""
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                  Required Functions                       ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 def validate(config):
     """Validate all prerequisites before starting the PZ server.
     
@@ -560,7 +526,6 @@ def validate(config):
     issues = []
     server_dir = _find_server_dir(config)
     
-    # Check server directory
     if not server_dir or not os.path.isdir(server_dir):
         issues.append({
             "severity": "critical",
@@ -570,7 +535,6 @@ def validate(config):
         })
         return {"success": False, "issues": issues}
     
-    # Check for server executable
     executable = config.get("executable_path", "")
     if not executable or not os.path.exists(executable):
         # 실행 경로(get_launch_command)와 같은 기준: 공식 스크립트, 없으면 동봉 JRE + java/*.jar
@@ -625,8 +589,8 @@ def _has_server_db(config):
 
 
 def get_launch_command(config):
-    """Build the server launch command for the Rust daemon.
-    
+    """데몬이 띄울 서버 실행 명령.
+
     배치/쉘 스크립트를 파싱하여 JVM 실행 정보를 추출합니다.
     PZ 업데이트로 classpath·JVM 플래그가 변경되어도 자동 반영됩니다.
     파싱 실패 시 기존 하드코딩 폴백을 사용합니다.
@@ -642,7 +606,7 @@ def get_launch_command(config):
     if not preview:
         _enforce_rcon_policy(IniManager.get_ini_path(config), config)
 
-    # ── 1차: 배치/쉘 스크립트 파싱 ──
+    # 1차: 배치/쉘 스크립트 파싱
     parsed = _parse_launch_info(config, server_dir)
 
     # 사용자가 더한 인자: JVM 인자는 메인 클래스 앞에, 게임 인자는 뒤에 (스크립트에 이미 있는 JVM 인자는 거듭 넣지 않는다)
@@ -693,7 +657,7 @@ def get_launch_command(config):
         
         args = jvm_flags + user_jvm + ["-cp", classpath, main_class] + extra_args + user_game
     else:
-        # ── 2차: 하드코딩 폴백 ──
+        # 2차: 하드코딩 폴백
         java_path = _find_java(server_dir)
         if not java_path:
             return {"success": False, "message": i18n.t("errors.java_not_found")}
@@ -719,7 +683,7 @@ def get_launch_command(config):
         main = args.index("-cp")
         args = args[:main] + user_jvm + args[main:] + user_game
     
-    # ── 공통 후처리 ──
+    # 공통 후처리
     # No-steam mode
     if config.get("no_steam", False):
         args.append("-nosteam")
@@ -769,10 +733,6 @@ def get_launch_command(config):
         "extra_args_placed": True,
     }
 
-
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                  Optional Functions                       ║
-# ╚═══════════════════════════════════════════════════════════╝
 
 def _request_stop(config):
     """저장 후 종료 요청: 콘솔 `[config] stop_command`(quit: 서버가 저장하고 끝난다, PZ 위키 "Server commands") → SIGTERM"""
@@ -1273,10 +1233,6 @@ def backup_paths(config):
     return {"success": True, "paths": paths, "restore_roots": [server_dir]}
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                  Function Registry                        ║
-# ╚═══════════════════════════════════════════════════════════╝
-
 FUNCTIONS = {
     "validate":           validate,
     "get_launch_command": get_launch_command,
@@ -1297,19 +1253,8 @@ FUNCTIONS = {
 }
 
 
-# ╔═══════════════════════════════════════════════════════════╗
-# ║                    Entry Point                            ║
-# ╚═══════════════════════════════════════════════════════════╝
-
-def main():
-    """Entry point when invoked by the saba-chan daemon: `python lifecycle.py <function_name>`, config JSON on stdin.
-
-    공용 진입점: 깨진 stdin은 빈 설정으로 계속 실행하지 않고 거절한다(기본 세이브 이름으로 지우지 않게).
-    모르는 함수·함수 안의 예외도 JSON으로 답하고 종료 코드 0을 지킨다.
-    """
+if __name__ == "__main__":
+    # 공용 진입점: 깨진 stdin은 빈 설정으로 계속 실행하지 않고 거절한다(기본 세이브 이름으로 지우지 않게).
+    # 모르는 함수·함수 안의 예외도 JSON으로 답하고 종료 코드 0을 지킨다
     from daemon_rcon import run_lifecycle
     run_lifecycle(FUNCTIONS)
-
-
-if __name__ == "__main__":
-    main()

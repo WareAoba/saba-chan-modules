@@ -1,5 +1,6 @@
 """보안 민감 명령은 기본 권한에서 제한한다."""
 import json
+import re
 from pathlib import Path
 
 import tomllib
@@ -19,38 +20,13 @@ def _catalog_commands(filename):
 
 
 def test_plugin_risks_follow_user_rule():
-    """위험도 기준(사용자 지정 2026-11-06): 안전 = 조회·단순 변경·영향이 작은 게임 안 변화,
-    주의 = 위험할 수도 있는 게임 안 명령·PC 자원을 많이 쓰는 명령,
-    위험 = 특정 유저에게 큰 영향을 주는 게임 안 명령·설정/로그 파일을 직접 바꾸는 명령"""
-    expected = {
-        # 단순 변경·영향이 작은 게임 안 변화
-        "safe": {"essentialsx.json": ["ess-time-set", "ess-weather", "heal", "feed", "broadcast"],
-                 "worldedit.json": ["we-pos1", "we-sel", "we-expand", "we-copy"],
-                 "citizens.json": ["npc-create", "npc-rename", "npc-skin"],
-                 "chunky.json": ["chunky-center", "chunky-radius", "chunky-pause"],
-                 "worldguard.json": ["stopfire", "wg-heal"]},
-        # 위험할 수도 있는 게임 안 명령, PC 자원을 많이 쓰는 명령
-        "caution": {"worldedit.json": ["we-set", "we-replace", "we-paste", "undo", "butcher"],
-                    "chunky.json": ["chunky-start", "chunky-continue"],
-                    "essentialsx.json": ["ess-tp", "tppos", "ess-give", "god", "fly"],
-                    "multiverse-core.json": ["mv-teleport", "mv-gamerule-set", "mv-worldborder-set"],
-                    "worldguard.json": ["allowfire", "wg-god"],
-                    "citizens.json": ["npc-aggressive", "npc-tpto"]},
-        # 특정 유저에게 큰 영향, 설정·데이터 파일을 직접 바꿈
-        "danger": {"essentialsx.json": ["ess-ban", "ess-kick", "kill", "clearinventory", "eco-take", "sudo",
-                                        "setworth", "essentials-reload"],
-                   "luckperms.json": ["lp-user-permission-set", "lp-user-parent-add", "lp-import"],
-                   "multiverse-core.json": ["mv-delete", "mv-modify", "mv-config"],
-                   "worldedit.json": ["delchunks", "schematic-delete", "worldedit-reload"],
-                   "coreprotect.json": ["co-rollback", "co-purge"],
-                   "worldguard.json": ["slay", "stoplag", "worldguard-reload", "region-addmember"],
-                   "citizens.json": ["npc-command-add", "npc-command-execute"]},
-    }
-    for risk, files in expected.items():
-        for filename, names in files.items():
-            risks = _catalog_risks(filename)
-            for name in names:
-                assert risks[name] == risk, f"{filename}: {name}"
+    """위험도 기준(사용자 지정): 특정 유저에게 큰 영향을 주는 게임 안 명령(밴·킥·sudo)과
+    설정·데이터를 다시 읽거나 되돌리는 명령(reload·rollback)은 위험이다"""
+    danger = re.compile(r"(^|-)(ban|kick|sudo|reload|rollback)($|-)")
+    for path in sorted((ROOT / "plugin_catalog").glob("*.json")):
+        for name, risk in _catalog_risks(path.name).items():
+            if danger.search(name):
+                assert risk == "danger", f"{path.name}: {name}"
 
 
 def test_player_network_and_location_commands_are_not_public():

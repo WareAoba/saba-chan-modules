@@ -7,6 +7,7 @@ Always outputs JSON to stdout, logs to stderr.
 import sys
 import os
 import re
+import traceback
 from i18n import I18n
 
 import daemon_rcon
@@ -88,13 +89,11 @@ def _exact_player_id(players, player_input):
         account_name = player.get("accountName", "")
         if player_name.lower() == player_input_lower or account_name.lower() == player_input_lower:
             player_userid = player.get("userId") or player.get("playerId") or player.get("steamId")
-            matched_name = account_name if account_name.lower() == player_input_lower else player_name
-            print(f"[Palworld] Found player: {matched_name} (char: {player_name}) -> {player_userid}", file=sys.stderr)
             return player_userid
     return None
 
 
-def resolve_player_id(instance_id, player_input, config, allow_partial=True):
+def resolve_player_id(instance_id, player_input, allow_partial=True):
     """
     플레이어 입력값을 SteamID로 변환합니다.
     - steam_ 로 시작하면 그대로 반환
@@ -106,7 +105,6 @@ def resolve_player_id(instance_id, player_input, config, allow_partial=True):
         tuple: (success, steamid_or_error_message)
     """
     if player_input.startswith("steam_"):
-        print(f"[Palworld] Input '{player_input}' is already a SteamID format", file=sys.stderr)
         return (True, player_input)
 
     # 숫자만 있는 입력은 닉네임(예: 12345)일 수도 있으니 정확히 같은 이름을 먼저 찾는다
@@ -120,18 +118,11 @@ def resolve_player_id(instance_id, player_input, config, allow_partial=True):
             matched = None
         if matched:
             return (True, matched)
-        print(f"[Palworld] Input '{player_input}' treated as an ID", file=sys.stderr)
         return (True, player_input)
-    
+
     # 닉네임으로 간주하고 플레이어 목록에서 검색
-    print(f"[Palworld] Resolving nickname '{player_input}' to SteamID...", file=sys.stderr)
-    
     try:
-        result = PalworldRestClient(instance_id).players()
-        players = result.get("players", [])
-            
-        print(f"[Palworld] Found {len(players)} online players", file=sys.stderr)
-            
+        players = PalworldRestClient(instance_id).players().get("players", [])
         matched = _exact_player_id(players, player_input)
         if matched:
             return (True, matched)
@@ -153,9 +144,7 @@ def resolve_player_id(instance_id, player_input, config, allow_partial=True):
                 partial_matches.append((display_name, player_userid))
             
         if len(partial_matches) == 1:
-            name, userid = partial_matches[0]
-            print(f"[Palworld] Found partial match: {name} -> {userid}", file=sys.stderr)
-            return (True, userid)
+            return (True, partial_matches[0][1])
         elif len(partial_matches) > 1:
             names = [m[0] for m in partial_matches]
             return (False, i18n.t("errors.player_ambiguous", player=player_input, names=", ".join(names)))
@@ -230,9 +219,7 @@ def _enforce_rest_policy(working_dir, config=None):
     ini_admin_pw = current_admin_pw = props.get("AdminPassword", "").strip()
     if not current_admin_pw:
         current_admin_pw = config_value(config, "admin_password")
-        if current_admin_pw:
-            print("[Palworld] Synced AdminPassword from config", file=sys.stderr)
-        else:
+        if not current_admin_pw:
             import uuid
             current_admin_pw = uuid.uuid4().hex[:16]
             print("[Palworld] No password from daemon or INI — generated fallback AdminPassword", file=sys.stderr)
@@ -816,7 +803,7 @@ def install_server(config):
         result["install_path"] = install_dir
         result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
 
-        # ── 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성 ──
+        # 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성.
         # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
         # 기본 값 + 사바쨩이 정하는 원격 접속 값(module.toml [remote_access])을 미리 기록한다.
         try:
@@ -824,19 +811,12 @@ def install_server(config):
             os.makedirs(os.path.dirname(ini_path), exist_ok=True)
 
             # 업데이트도 install_server를 다시 부른다: 사용자가 채운 INI는 그대로 둔다
-            if os.path.isfile(ini_path) and (_parse_option_settings(ini_path) or _option_line_unreadable(ini_path)):
-                print("[Palworld] Provisioning: keeping existing PalWorldSettings.ini", file=sys.stderr)
-            else:
+            if not (os.path.isfile(ini_path) and (_parse_option_settings(ini_path) or _option_line_unreadable(ini_path))):
                 defaults = _default_settings()
                 # 만들 때 고른 설정(이름·비밀번호·인원·포트 등)을 처음 값으로
                 _apply_settings(defaults, config.get("settings"))
                 defaults.update(remote_access_values(MODULE_DIR, config))
-                if _write_option_settings(ini_path, defaults):
-                    print(
-                        f"[Palworld] Provisioning: wrote default PalWorldSettings.ini with REST enabled",
-                        file=sys.stderr,
-                    )
-                else:
+                if not _write_option_settings(ini_path, defaults):
                     print("[Palworld] Provisioning: failed to write default INI", file=sys.stderr)
                     return {"success": False, "error_code": "settings_write_failed",
                             "message": i18n.t("errors.settings_write_failed")}
@@ -866,29 +846,27 @@ def command(config):
             return {"success": False, "message": i18n.t("errors.no_instance_id")}
 
         command_lower = command_text.lower()
+        if command_lower not in ("kick", "ban", "unban"):
+            return {"success": False, "message": i18n.t("errors.unknown_command", command=command_lower)}
 
-        # 플레이어 ID 변환 (kick, ban, unban 명령어의 경우)
-        if command_lower in ["kick", "ban", "unban"]:
-            player_input = args.get("userid") or args.get("player_id") or args.get("steam_id") or args.get("name") or args.get("player")
-            if player_input:
-                success, result = resolve_player_id(client.instance_id, player_input, config, allow_partial=command_lower == "unban")
-                if success:
-                    args = dict(args)  # 원본 수정 방지
-                    args["userid"] = result
-                elif command_lower != "unban":
-                    # unban은 오프라인일 수 있으므로 실패해도 진행
-                    return {"success": False, "message": result}
-                else:
-                    print(f"[Palworld] Player lookup failed for unban, using original: {player_input}", file=sys.stderr)
+        # 닉네임을 SteamID로 바꾼다
+        player_input = args.get("userid")
+        if player_input:
+            success, result = resolve_player_id(client.instance_id, player_input, allow_partial=command_lower == "unban")
+            if success:
+                args = {**args, "userid": result}
+            elif command_lower != "unban":
+                # unban은 오프라인일 수 있으므로 실패해도 진행
+                return {"success": False, "message": result}
+            else:
+                print(f"[Palworld] Player lookup failed for unban, using original: {player_input}", file=sys.stderr)
 
         return execute_command_via_rest(client, command_lower, args)
 
     except PathOutside:
         raise
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error details: {error_details}", file=sys.stderr)
+        traceback.print_exc()
         return {
             "success": False,
             "message": i18n.t("errors.command_failed", error=str(e))
@@ -898,8 +876,6 @@ def command(config):
 def execute_command_via_rest(client, command_lower, args):
     """kick·ban·unban을 보내고 데몬의 답에 결과 문구를 붙인다. 사유를 주지 않으면 기본 사유(locales)"""
     userid = args.get("userid")
-    if command_lower not in ("kick", "ban", "unban"):
-        return {"success": False, "message": i18n.t("errors.unknown_command", command=command_lower)}
     if not userid:
         return {"success": False, "message": i18n.t("errors.userid_required")}
     try:

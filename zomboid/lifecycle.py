@@ -13,13 +13,9 @@ Project Zomboid is a Java-based game server (Steam App 380870) that:
 """
 
 import sys
-import json
-import subprocess
 import os
 import re
 import sqlite3
-import hashlib
-from pathlib import Path
 
 # ─── Path setup ──────────────────────────────────────────
 
@@ -1301,15 +1297,8 @@ FUNCTIONS = {
 # ║                    Entry Point                            ║
 # ╚═══════════════════════════════════════════════════════════╝
 
-def main():
-    """Entry point when invoked by the saba-chan daemon: `python lifecycle.py <function_name>`, config JSON on stdin.
-
-    공용 진입점: 깨진 stdin은 빈 설정으로 계속 실행하지 않고 거절한다(기본 세이브 이름으로 지우지 않게).
-    모르는 함수·함수 안의 예외도 JSON으로 답하고 종료 코드 0을 지킨다.
-    """
+if __name__ == "__main__":
+    # 공용 진입점: 깨진 stdin은 빈 설정으로 계속 실행하지 않고 거절한다(기본 세이브 이름으로 지우지 않게).
+    # 모르는 함수·함수 안의 예외도 JSON으로 답하고 종료 코드 0을 지킨다
     from daemon_rcon import run_lifecycle
     run_lifecycle(FUNCTIONS)
-
-
-if __name__ == "__main__":
-    main()

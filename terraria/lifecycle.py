@@ -12,7 +12,6 @@ Terraria 공식 데디케이티드 서버(TerrariaServer)를 다룬다.
 
 import os
 import re
-import shutil
 import sys
 import tempfile
 import zipfile

@@ -885,8 +885,8 @@ def test_a_bundled_java_too_old_for_the_server_is_skipped(monkeypatch, tmp_path)
     system = {"java": "C:/Program Files/Eclipse Adoptium/jdk-21/bin/java.exe", "version": "21.0.5", "major": 21, "arch": "amd64"}
     monkeypatch.setenv("SABA_JAVA_RUNTIMES", _json.dumps([system]))
     config = {"working_dir": str(tmp_path), "server_version": "1.21.1"}
-    assert lifecycle._launch_java(config, None) == system["java"]
-    assert lifecycle._launch_java({"working_dir": str(tmp_path), "server_version": "1.20.4"}, None) == str(bundled)
+    assert lifecycle._launch_java_info(config, None)["path"] == system["java"]
+    assert lifecycle._launch_java_info({"working_dir": str(tmp_path), "server_version": "1.20.4"}, None)["path"] == str(bundled)
 
 
 def test_the_java_path_the_user_set_wins_over_the_bundled_java(monkeypatch, tmp_path):
@@ -900,7 +900,7 @@ def test_the_java_path_the_user_set_wins_over_the_bundled_java(monkeypatch, tmp_
     monkeypatch.setattr(lifecycle.JavaDetector, "get_java_info", staticmethod(
         lambda p: {"path": p, "version": "21.0.5", "major_version": 21, "bits64": True}))
     config = {"working_dir": str(tmp_path), "server_version": "1.21.1", "java_path": mine}
-    assert lifecycle._launch_java(config, None) == mine
+    assert lifecycle._launch_java_info(config, None)["path"] == mine
 
 
 def test_validate_uses_the_java_the_daemon_found_without_running_it(monkeypatch, tmp_path):

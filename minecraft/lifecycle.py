@@ -77,12 +77,9 @@ class MinecraftPing:
             if not chunk:
                 break
             data += chunk
-            try:
-                parsed = MinecraftPing._parse_response(data)
-                if parsed is not None:
-                    return parsed
-            except Exception:
-                continue
+            parsed = MinecraftPing._parse_response(data)
+            if parsed is not None:
+                return parsed
 
         return None
 
@@ -285,12 +282,6 @@ def _minecraft_version(config, server_jar, jar_info=None):
     if version or not config.get("working_dir"):
         return version
     return server_types.detect(config["working_dir"], server_jar).get("version")
-
-
-def _launch_java(config, server_jar, jar_info=None):
-    """실제로 띄울 Java의 경로 (`_launch_java_info`). 찾지 못하면 설정의 java_path"""
-    info = _launch_java_info(config, server_jar, jar_info)
-    return info["path"] if info else config.get("java_path", "java")
 
 
 def _launch_java_info(config, server_jar, jar_info=None):
@@ -1253,39 +1244,36 @@ def list_versions(config):
             만들기 화면과 데몬이 새 인스턴스의 버전을 고를 때 넘긴다.
             그 종류의 받을 곳을 읽지 못하면 거르지 않는다 (설치가 그 버전을 다시 확인한다)
     """
-    try:
-        include_snapshots = config.get("include_snapshots", False)
-        page = int(config.get("page", 1))
-        per_page = int(config.get("per_page", 25))
+    include_snapshots = config.get("include_snapshots", False)
+    page = int(config.get("page", 1))
+    per_page = int(config.get("per_page", 25))
 
-        server_type = (config.get("settings") or {}).get("server_type")
-        typed = bool(server_type) and server_type != "vanilla"
-        only = None
-        if typed:
-            try:
-                only = server_types.installable_versions(server_type)
-            except Exception as e:
-                print(f"Could not list the versions {server_type} offers: {e}", file=sys.stderr)
-        manifest = ServerInstaller.fetch_version_manifest()
-        latest = None
-        if typed:
-            releases = [v["id"] for v in ServerInstaller.list_versions(per_page=10, only=only, manifest=manifest)["versions"]]
-            latest = server_types.latest_installable(server_type, releases)
-            # 그보다 새 릴리스는 받아 보니 아직 받을 수 없었다 (Paper·Folia의 안정 빌드 전): 목록에서도 뺀다
-            if latest and only is not None:
-                only = only - set(releases[:releases.index(latest)])
-        result = ServerInstaller.list_versions(
-            include_snapshots=include_snapshots,
-            page=page,
-            per_page=per_page,
-            only=only,
-            manifest=manifest,
-        )
-        if latest:
-            result["latest"] = {**result.get("latest", {}), "release": latest}
-        return {"success": True, **result}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+    server_type = (config.get("settings") or {}).get("server_type")
+    typed = bool(server_type) and server_type != "vanilla"
+    only = None
+    if typed:
+        try:
+            only = server_types.installable_versions(server_type)
+        except Exception as e:
+            print(f"Could not list the versions {server_type} offers: {e}", file=sys.stderr)
+    manifest = ServerInstaller.fetch_version_manifest()
+    latest = None
+    if typed:
+        releases = [v["id"] for v in ServerInstaller.list_versions(per_page=10, only=only, manifest=manifest)["versions"]]
+        latest = server_types.latest_installable(server_type, releases)
+        # 그보다 새 릴리스는 받아 보니 아직 받을 수 없었다 (Paper·Folia의 안정 빌드 전): 목록에서도 뺀다
+        if latest and only is not None:
+            only = only - set(releases[:releases.index(latest)])
+    result = ServerInstaller.list_versions(
+        include_snapshots=include_snapshots,
+        page=page,
+        per_page=per_page,
+        only=only,
+        manifest=manifest,
+    )
+    if latest:
+        result["latest"] = {**result.get("latest", {}), "release": latest}
+    return {"success": True, **result}
 
 
 def get_version_details(config):
@@ -1294,18 +1282,15 @@ def get_version_details(config):
     Config options:
         version (str): Version ID (e.g., "1.21.11")
     """
-    try:
-        version_id = config.get("version")
-        if not version_id:
-            return {"success": False, "message": i18n.t("errors.no_version")}
+    version_id = config.get("version")
+    if not version_id:
+        return {"success": False, "message": i18n.t("errors.no_version")}
 
-        details = ServerInstaller.get_version_details(version_id)
-        if not details:
-            return {"success": False, "message": i18n.t("errors.version_not_found", version=version_id)}
+    details = ServerInstaller.get_version_details(version_id)
+    if not details:
+        return {"success": False, "message": i18n.t("errors.version_not_found", version=version_id)}
 
-        return {"success": True, **details}
-    except Exception as e:
-        return {"success": False, "message": str(e)}
+    return {"success": True, **details}
 
 
 def install_server(config):
@@ -1319,41 +1304,34 @@ def install_server(config):
         settings (dict): 인스턴스 설정. server.properties 키는 처음 값으로 쓴다
         initial_settings (dict): Optional initial server.properties values (settings보다 우선)
     """
-    try:
-        version_id = config.get("version")
-        install_dir = config.get("install_dir")
+    version_id = config.get("version")
+    install_dir = config.get("install_dir")
 
-        if not version_id:
-            return {"success": False, "message": i18n.t("errors.no_version")}
-        if not install_dir:
-            return {"success": False, "message": i18n.t("errors.no_install_dir")}
+    if not version_id:
+        return {"success": False, "message": i18n.t("errors.no_version")}
+    if not install_dir:
+        return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-        jar_name = os.path.basename(config.get("server_executable") or "server.jar")
-        do_eula = "eula" in (config.get("accepted_agreements") or [])
-        settings = config.get("settings") or {}
-        # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
-        file_keys = setting_file_keys(MODULE_DIR)
-        initial_settings = {k: v for k, v in settings.items() if k in file_keys and v is not None}
-        initial_settings.update(config.get("initial_settings") or {})
-        # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다.
-        # 없으면(GUI의 버전 설치) 폴더에 있는 서버의 종류를 따른다: Paper·Fabric을 바닐라로 덮지 않는다
-        server_type = (settings.get("server_type") or config.get("server_type")
-                       or server_types.detect(install_dir).get("type") or "vanilla")
+    jar_name = os.path.basename(config.get("server_executable") or "server.jar")
+    do_eula = "eula" in (config.get("accepted_agreements") or [])
+    settings = config.get("settings") or {}
+    # 데몬이 넘긴 인스턴스 설정(프리셋·옮긴 포트) 중 server.properties 키만 처음 값으로 쓴다
+    file_keys = setting_file_keys(MODULE_DIR)
+    initial_settings = {k: v for k, v in settings.items() if k in file_keys and v is not None}
+    initial_settings.update(config.get("initial_settings") or {})
+    # 서버 종류는 인스턴스 설정(`settings`)에서 — 데몬이 설치 때 넘긴다.
+    # 없으면(GUI의 버전 설치) 폴더에 있는 서버의 종류를 따른다: Paper·Fabric을 바닐라로 덮지 않는다
+    server_type = (settings.get("server_type") or config.get("server_type")
+                   or server_types.detect(install_dir).get("type") or "vanilla")
 
-        return ServerInstaller.install_server(
-            version_id=version_id,
-            install_dir=install_dir,
-            jar_name=jar_name,
-            accept_eula=do_eula,
-            initial_settings=initial_settings,
-            server_type=server_type,
-        )
-    except PathOutside:
-        raise
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc(), file=sys.stderr)
-        return {"success": False, "message": str(e)}
+    return ServerInstaller.install_server(
+        version_id=version_id,
+        install_dir=install_dir,
+        jar_name=jar_name,
+        accept_eula=do_eula,
+        initial_settings=initial_settings,
+        server_type=server_type,
+    )
 
 
 # ╔═══════════════════════════════════════════════════════════╗

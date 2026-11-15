@@ -252,10 +252,6 @@ class ServerInstaller:
             finally:
                 _remove_tree(build_dir)
 
-        # Download with progress
-        print(f"Downloading Minecraft server {version_id}...", file=sys.stderr)
-        print(f"  URL: {download_url}", file=sys.stderr)
-        print(f"  Destination: {jar_path}", file=sys.stderr)
         message = i18n.t("messages.downloading_server", version=version_id)
         shown = [-1]
 
@@ -306,7 +302,6 @@ class ServerInstaller:
             # 서버가 jar를 잡고 있으면(Windows) 바꾸지 못한다: 옛 jar는 그대로 둔다
             _remove_quietly(part_path)
             return {"success": False, "message": i18n.t("errors.download_failed", error=str(e))}
-        print(f"  Checksum verified: {actual_sha1}", file=sys.stderr)
 
         # Post-install setup
         result = {

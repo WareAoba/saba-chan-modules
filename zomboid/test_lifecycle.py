@@ -601,12 +601,13 @@ def test_admin_password_is_only_passed_before_the_server_database_exists(tmp_pat
 
 
 def test_steamcmd_extension_import_failure_does_not_search_for_an_executable(monkeypatch):
+    import subprocess
     from zomboid import lifecycle
     import extensions.steamcmd
 
     # 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하도록 extension_required로 답한다
     monkeypatch.delattr(extensions.steamcmd, "install_for_module", raising=False)
-    monkeypatch.setattr(lifecycle.subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
 
     result = lifecycle.install_server({"install_dir": "server", "settings": {}})
 

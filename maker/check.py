@@ -42,6 +42,9 @@ URL = re.compile(r"https?://\S+")
 _spec = importlib.util.spec_from_file_location("saba_trial", REPO / "conformance" / "trial.py")
 trial = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(trial)
+_spec = importlib.util.spec_from_file_location("saba_translations", REPO / "conformance" / "translations.py")
+translations = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(translations)
 MANUAL = (
     "조사 표의 모든 명령·설정·포트·경로·콘솔 문구에 출처가 있고 문서·실측이 구별돼 있다",
     "배포물 항목 전체와 동봉 기본 파일의 원래 바이트를 봤다 (inspect_dist.py)",
@@ -59,21 +62,6 @@ MANUAL = (
 
 def gate(name, status, detail=""):
     return {"gate": name, "status": status, "detail": detail}
-
-
-def leaves(data, prefix=""):
-    if isinstance(data, dict):
-        for key, value in data.items():
-            yield from leaves(value, f"{prefix}{key}.")
-    else:
-        yield prefix[:-1]
-
-
-def same_json(path, data):
-    try:
-        return json.loads(path.read_text(encoding="utf-8")) == data
-    except (OSError, ValueError):
-        return False
 
 
 def placeholders_gate(folder):
@@ -118,19 +106,11 @@ def locales_gate(folder):
     missing = [f"{lang}.json" for lang in LANGUAGES if not (locales / f"{lang}.json").is_file()]
     if missing:
         problems.append("없는 언어 파일: " + ", ".join(missing))
+    # 키·번역 규칙은 적합성 키트와 같다. new_module.py는 틀에 없는 언어를 en으로 채우므로 그대로 두면 여기서 걸린다
     try:
-        en = json.loads((locales / "en.json").read_text(encoding="utf-8"))
-        ko = json.loads((locales / "ko.json").read_text(encoding="utf-8"))
+        problems += translations.key_problems(locales) + translations.english_left(locales)
     except (OSError, ValueError) as e:
-        problems.append(f"en·ko를 읽지 못했다: {e}")
-    else:
-        untranslated = sorted(set(leaves(en)) - set(leaves(ko)))
-        if untranslated:
-            problems.append("ko에 없는 키: " + ", ".join(untranslated))
-        # new_module.py는 틀에 없는 언어를 en으로 채운다. 그대로 두면 번역하지 않은 것이다
-        copies = [f"{lang}.json" for lang in LANGUAGES if lang not in ("en", "ko") and same_json(locales / f"{lang}.json", en)]
-        if copies:
-            problems.append("en.json과 같은 (번역 안 된) 언어 파일: " + ", ".join(copies))
+        problems.append(f"언어 파일을 읽지 못했다: {e}")
     return gate("locales", "fail" if problems else "ok", "; ".join(problems))
 
 

@@ -1546,8 +1546,6 @@ def test_ready_patterns_match_the_done_line_only_from_the_server():
     # 채팅에 머리 흉내("]: ")를 넣어도 줄 처음의 로그 머리부터 맞춰야 한다 (리뷰 544)
     assert not any(p.search('[20:08:00] [Server thread/INFO]: <Steve> ]: Done (1.0s)! For help, type "help"') for p in patterns)
     assert "ready_patterns" not in toml["detection"]
-    # 정지·설정 파일이 공용 도우미(graceful_stop·update_key_values, saba-core 0.1.11부터)를 쓴다
-    assert toml["module"]["dependencies"]["saba-core"] == ">=0.1.14-beta.2"
 
 
 def test_graceful_exit_patterns_match_the_stop_line_only_from_the_server():

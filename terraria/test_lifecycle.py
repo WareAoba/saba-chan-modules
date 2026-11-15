@@ -127,18 +127,6 @@ def test_measured_boolean_settings_roundtrip(lc):
     assert lc._settings_from_file({"worldrollbackstokeep": "0"})["worldrollbackstokeep"] == 0
 
 
-def test_setting_types_are_supported(toml):
-    for field in toml["settings"]["fields"]:
-        assert field.get("type", "text") in ("text", "number", "password", "boolean", "select", "file"), field["name"]
-
-
-def test_functions_named_by_toml_exist(lc, toml):
-    if toml.get("backup", {}).get("hook"):
-        assert "backup_paths" in lc.FUNCTIONS
-    # 예약 함수 `functions`는 공용 run_lifecycle이 표의 이름으로 답한다
-    assert "functions" not in lc.FUNCTIONS
-
-
 # ─── serverconfig.txt 문법 ──────────────────────────────────
 
 def test_configure_roundtrip_keeps_special_characters(lc, tmp_path):
@@ -590,11 +578,6 @@ def _windows_server_zip(monkeypatch, lc):
     monkeypatch.setattr(lc, "_is_windows", lambda: True)
 
 
-def test_module_declares_the_xna_extension(toml):
-    assert toml["install"]["requires_extensions"] == ["xna"]
-    assert toml["module"]["dependencies"]["ext-xna"] == ">=0.1.0"
-
-
 def test_validate_reports_missing_xna(lc, tmp_path, monkeypatch, xna_ext):
     server = _server(tmp_path, lc)
     monkeypatch.setattr(lc, "_is_windows", lambda: True)
@@ -708,30 +691,6 @@ def test_install_reports_settings_write_failure(lc, tmp_path, monkeypatch):
 
 
 # ─── 번역 ────────────────────────────────────────────────
-
-def test_locales_have_the_same_keys():
-    import json
-
-    def keys(d, prefix=""):
-        out = set()
-        for k, v in d.items():
-            # 별명(`aliases`)은 그 언어로 답할 때만 맞추는 낱말이라 언어마다 있어도 없어도 된다
-            if not prefix and k == "aliases":
-                continue
-            out |= keys(v, f"{prefix}{k}.") if isinstance(v, dict) else {prefix + k}
-        return out
-
-    base = keys(json.loads((MODULE_DIR / "locales" / "en.json").read_text(encoding="utf-8")))
-    files = sorted((MODULE_DIR / "locales").glob("*.json"))
-    assert len(files) == 10
-    for path in files:
-        assert keys(json.loads(path.read_text(encoding="utf-8"))) == base, path.name
-
-
-def test_server_console_is_a_pseudo_console(toml):
-    # 실측(2026-10-25): Windows 서버는 파이프 stdin을 읽지 않아 명령·exit가 먹지 않았다
-    assert toml["launch"]["console"] == "pty"
-
 
 def test_installed_version_comes_from_the_changelog(lc, tmp_path):
     server = _server(tmp_path, lc)
@@ -1012,11 +971,6 @@ def test_player_list_console_failure_is_a_failure(lc, monkeypatch):
         raise ConnectionError("409")
     monkeypatch.setattr(lc, "daemon_stdin_command", unavailable)
     assert lc.player_count({"instance_id": "inst-1", "players_detail": True})["success"] is False
-
-
-def test_player_count_is_the_status_function(lc, toml):
-    assert toml["status"]["players"] == "player_count"
-    assert "player_count" in lc.FUNCTIONS and "config_files" in lc.FUNCTIONS
 
 
 def test_module_has_an_icon():

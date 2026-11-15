@@ -292,6 +292,15 @@ def test_probe_reports_a_missing_ready_line(fake_server):
 
 # ── check ──
 
+def translated(data, lang):
+    """번역한 것처럼 모든 문구 앞에 언어를 붙인다"""
+    if isinstance(data, dict):
+        return {k: translated(v, lang) for k, v in data.items()}
+    if isinstance(data, list):
+        return [translated(v, lang) for v in data]
+    return f"[{lang}] {data}" if isinstance(data, str) else data
+
+
 def finished_module(repo):
     """자리표시·조사 표를 채운 새 모듈"""
     folder = new_module.create(repo, "mygamex", "My Game X")
@@ -300,8 +309,7 @@ def finished_module(repo):
     for lang in new_module.LANGUAGES:
         if lang not in ("en", "ko"):
             locale = folder / "locales" / f"{lang}.json"
-            data = json.loads(locale.read_text(encoding="utf-8"))
-            data["settings"]["server_name"]["label"] = f"[{lang}] name"
+            data = translated(json.loads(locale.read_text(encoding="utf-8")), lang)
             locale.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     (folder / "RESEARCH.md").write_text("# 조사\n\n| 항목 | 값 | 출처 |\n|---|---|---|\n| 포트 | 1 | https://example.com 문서 |\n", encoding="utf-8")
     # 실측 로그에서 만든 하이라이트 규칙 하나 (틀의 예시 규칙만 두면 관문이 막는다)

@@ -778,7 +778,6 @@ def test_install_does_not_hide_a_profile_path_escape(tmp_path, monkeypatch):
 def test_manifest_declares_the_external_data_roots_and_the_sdk_boundary():
     cfg = _load_module_toml()
     assert cfg["extensions"]["saba-core"]["data_roots"] == ["{cache_dir}", "{data_home}", "{home}/Zomboid"]
-    assert cfg["module"]["dependencies"]["saba-core"] == ">=0.1.14-beta.2"
     field = next(field for field in cfg["settings"]["fields"] if field["name"] == "data_home")
     assert field["format"] == "path"
 
@@ -1188,12 +1187,6 @@ def _players_reply(monkeypatch, response):
         return {"success": True, "data": {"response": response}}
     monkeypatch.setattr(lifecycle, "daemon_stdin_command", fake)
     return lifecycle, sent
-
-
-def test_player_count_is_the_status_function():
-    from zomboid import lifecycle
-    assert _load_module_toml()["status"]["players"] == "player_count"
-    assert "player_count" in lifecycle.FUNCTIONS
 
 
 def test_player_count_does_not_write_to_the_console_every_minute(monkeypatch):

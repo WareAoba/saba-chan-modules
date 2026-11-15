@@ -1,7 +1,7 @@
 # lifecycle.py 쓰기
 
-함수마다 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다(testing.md). 공용 도우미 표는 `docs/module-development-guide.md` §5,
-기준은 saba-chan `docs/architecture/02-modules.md` §2.5(이름마다 처음 제공한 saba-core 버전은 `daemon_rcon.py`의 `SINCE`).
+함수마다 테스트를 먼저 쓰고 실패를 확인한 뒤 구현한다(testing.md). 공용 도우미 표는
+saba-chan `docs/architecture/02-modules.md` §2.5(이름마다 처음 제공한 saba-core 버전은 `daemon_rcon.py`의 `SINCE`).
 
 모듈마다 따로 만들던 일은 공용 도우미가 맡는다(saba-core 0.1.11부터). 같은 일을 모듈 안에 다시 짜지 않는다.
 

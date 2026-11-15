@@ -1,4 +1,4 @@
-"""모듈 계약 검사 (M10). 계약 원문은 docs/module-spec.md.
+"""모듈 계약 검사. 계약 원문은 saba-chan docs/architecture/02-modules.md.
 
 1. module.toml이 스키마 v1을 통과한다
 2. 진입 파일의 `FUNCTIONS` 표: `get_launch_command`가 있고, 데몬이 부르는 이름으로

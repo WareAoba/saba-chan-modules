@@ -19,14 +19,14 @@
 
 ## 지원하는 게임
 
-| 모듈 | 게임 | 버전 | 서버 설치 | 같이 쓰는 익스텐션 | CPU |
-|---|---|---|---|---|---|
-| [minecraft](minecraft/) | Minecraft (Java) | 0.1.14 | 서버 파일 내려받기 (Vanilla, Paper, Fabric, Forge 등 11종) | 없음 | x86_64, ARM64 |
-| [palworld](palworld/) | Palworld | 0.1.14 | SteamCMD | steamcmd 0.1.5 이상, ue4-ini 0.1.7 이상 | x86_64 |
-| [zomboid](zomboid/) | Project Zomboid | 0.1.13 | SteamCMD | steamcmd 0.1.5 이상 | x86_64 |
-| [terraria](terraria/) | Terraria | 0.1.7 | 서버 파일 내려받기 | xna 0.1.0 이상 (Windows 서버만) | x86_64 |
+| 모듈 | 게임 | 서버 설치 | 같이 쓰는 익스텐션 | CPU |
+|---|---|---|---|---|
+| [minecraft](minecraft/) | Minecraft (Java) | 서버 파일 내려받기 (Vanilla, Paper, Fabric, Forge 등 11종) | 없음 | x86_64, ARM64 |
+| [palworld](palworld/) | Palworld | SteamCMD | steamcmd, ue4-ini | x86_64 |
+| [zomboid](zomboid/) | Project Zomboid | SteamCMD | steamcmd | x86_64 |
+| [terraria](terraria/) | Terraria | 서버 파일 내려받기 | xna (Windows 서버만) | x86_64 |
 
-모든 모듈은 사바 코어(데몬) 0.1.14 이상이 필요해요. 버전은 각 모듈의 `module.toml` `[module].version`이 기준이고, 같이 쓰는 익스텐션은 [saba-chan-extensions](https://github.com/WareAoba/saba-chan-extensions)에 있어요.
+모듈 버전과 필요한 사바 코어·익스텐션 버전은 각 모듈의 `module.toml`(`[module].version`, `[module.dependencies]`)이 기준이에요. 같이 쓰는 익스텐션은 [saba-chan-extensions](https://github.com/WareAoba/saba-chan-extensions)에 있어요.
 
 ## 설치하고 쓰기
 
@@ -57,7 +57,7 @@
 ## 모듈 만들기
 
 1. `__example/`을 복사해서 시작하거나, `python maker/new_module.py <이름> --game-name "<게임 이름>"`으로 뼈대를 만들어요.
-2. [모듈 만들기 안내](docs/module-development-guide.md)와 [모듈 계약](docs/module-spec.md)을 보면서 채워요. 계약이 헷갈리면 사바쨩 저장소의 [02-modules.md](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md)가 코드와 맞춰 둔 쪽이에요.
+2. [모듈 만들기 안내](docs/module-development-guide.md)를 보면서 채워요. 키와 함수 계약은 사바쨩 저장소의 [02-modules.md](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md)가 기준이에요.
 3. `pip install -r requirements-dev.txt` 뒤 `pytest`(모듈 테스트)와 `pytest conformance`(적합성 검사)를 돌려요.
 
 Claude Code나 Codex 같은 AI 에이전트에게 맡길 거라면 [모듈 메이커](maker/README.md)를 쓰세요. 조사부터 실제 서버 실행 확인까지 같은 절차를 따르게 해 줘요. 사용법은 [모듈 메이커 안내](https://saba-chan.online/guide/module-maker)에도 있어요.
@@ -72,8 +72,8 @@ Claude Code나 Codex 같은 AI 에이전트에게 맡길 거라면 [모듈 메�
 
 ## English
 
-Per-game "modules" for [Saba-chan](https://saba-chan.online). Supported games: Minecraft (Java) 0.1.14, Palworld 0.1.14, Project Zomboid 0.1.13 and Terraria 0.1.7; all need saba-core 0.1.14 or later. Install them from the Modules tab of Saba Storage in the app, or with `saba-chan-cli module install <module>`; the extensions a module needs are installed and turned on with it. Each module is one game: `module.toml` says what it can do, `lifecycle.py` says how, and `locales/` holds the UI text. The daemon runs `python lifecycle.py <function>` once per call, with JSON on stdin and JSON back on stdout. To write one, copy `__example/` (or run `maker/new_module.py`), follow the [development guide](docs/module-development-guide.md) (Korean), and run `pytest` plus `pytest conformance`. For AI agents there's the [module maker](maker/README.md). Modules ship with each Saba-chan app release: bump `[module].version`, merge to `main`, and the app's release workflow packs and signs them.
+Per-game "modules" for [Saba-chan](https://saba-chan.online). Supported games: Minecraft (Java), Palworld, Project Zomboid and Terraria. Each module's version and the saba-core and extension versions it needs are in its `module.toml`. Install them from the Modules tab of Saba Storage in the app, or with `saba-chan-cli module install <module>`; the extensions a module needs are installed and turned on with it. Each module is one game: `module.toml` says what it can do, `lifecycle.py` says how, and `locales/` holds the UI text. The daemon runs `python lifecycle.py <function>` once per call, with JSON on stdin and JSON back on stdout. To write one, copy `__example/` (or run `maker/new_module.py`), follow the [development guide](docs/module-development-guide.md) (Korean), and run `pytest` plus `pytest conformance`. For AI agents there's the [module maker](maker/README.md). Modules ship with each Saba-chan app release: bump `[module].version`, merge to `main`, and the app's release workflow packs and signs them.
 
 ## 日本語
 
-[サバちゃん](https://saba-chan.online)のゲームごとの「モジュール」です。対応ゲームは Minecraft (Java) 0.1.14、Palworld 0.1.14、Project Zomboid 0.1.13、Terraria 0.1.7 で、どれも saba-core 0.1.14 以上が必要です。アプリのサバ ストレージのモジュールタブか、`saba-chan-cli module install <モジュール>` でインストールします。モジュールが使う拡張機能も一緒に入ってオンになります。1 モジュールが 1 ゲームで、`module.toml` に何ができるか、`lifecycle.py` にどうやるか、`locales/` に画面の文言が入っています。デーモンは呼ぶたびに `python lifecycle.py <関数名>` を 1 回実行し、stdin の JSON で入力を渡して stdout の JSON で結果を受け取ります。作るときは `__example/` をコピーするか `maker/new_module.py` を使い、[作り方ガイド](docs/module-development-guide.md)(韓国語)を見ながら書いて `pytest` と `pytest conformance` で確かめてください。AI エージェントに任せるなら[モジュールメーカー](maker/README.md)があります。モジュールはサバちゃんアプリのリリースと一緒に配布されます。`[module].version` を上げて `main` にマージすると、アプリのリリースワークフローがまとめて署名します。
+[サバちゃん](https://saba-chan.online)のゲームごとの「モジュール」です。対応ゲームは Minecraft (Java)、Palworld、Project Zomboid、Terraria です。各モジュールのバージョンと必要な saba-core・拡張機能のバージョンは `module.toml` にあります。アプリのサバ ストレージのモジュールタブか、`saba-chan-cli module install <モジュール>` でインストールします。モジュールが使う拡張機能も一緒に入ってオンになります。1 モジュールが 1 ゲームで、`module.toml` に何ができるか、`lifecycle.py` にどうやるか、`locales/` に画面の文言が入っています。デーモンは呼ぶたびに `python lifecycle.py <関数名>` を 1 回実行し、stdin の JSON で入力を渡して stdout の JSON で結果を受け取ります。作るときは `__example/` をコピーするか `maker/new_module.py` を使い、[作り方ガイド](docs/module-development-guide.md)(韓国語)を見ながら書いて `pytest` と `pytest conformance` で確かめてください。AI エージェントに任せるなら[モジュールメーカー](maker/README.md)があります。モジュールはサバちゃんアプリのリリースと一緒に配布されます。`[module].version` を上げて `main` にマージすると、アプリのリリースワークフローがまとめて署名します。

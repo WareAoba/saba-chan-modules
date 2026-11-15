@@ -1,6 +1,6 @@
 # 모듈 적합성 키트
 
-모듈이 데몬과의 계약(`docs/module-spec.md`)을 지키는지 검사한다. 이 저장소의 CI가 PR마다 돌린다.
+모듈이 데몬과의 계약(saba-chan `docs/architecture/02-modules.md`)을 지키는지 검사한다. 이 저장소의 CI가 PR마다 돌린다.
 
 ```bash
 pip install pytest jsonschema

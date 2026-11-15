@@ -206,7 +206,7 @@ world_dir = safe_join(config["working_dir"], config_value(config, "world_name", 
 data_roots = ["{data_dir}", "{home}/MyGame"]
 ```
 
-`{home}`은 데몬 사용자의 홈 폴더다. 설정 자리는 사용자가 직접 고른 값이나 마이그레이션에서 읽은 path형 값만 허용 루트가 된다. 모듈 기본값만으로 외부 폴더를 열지 않는다. 데이터 루트는 `{home}` 또는 path형 설정 자리로 시작해야 한다. `..`나 다른 절대 경로는 선언할 수 없다. 백업·복원·설치·마이그레이션의 반환 경로도 데몬이 실제 경로로 검사한다. `verified` 모듈도 같은 검사를 받는다. 세부 규칙은 [모듈 계약 §2.1](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md#21-실행-방식-dsrcpluginmodrs266-463)을 따른다.
+`{home}`은 데몬 사용자의 홈 폴더다. 설정 자리는 사용자가 직접 고른 값이나 마이그레이션에서 읽은 path형 값만 허용 루트가 된다. 모듈 기본값만으로 외부 폴더를 열지 않는다. 데이터 루트는 `{home}` 또는 path형 설정 자리로 시작해야 한다. `..`나 다른 절대 경로는 선언할 수 없다. 백업·복원·설치·마이그레이션의 반환 경로도 데몬이 실제 경로로 검사한다. `verified` 모듈도 같은 검사를 받는다. 세부 규칙은 [모듈 계약 §2.1](https://github.com/WareAoba/saba-chan/blob/main/docs/architecture/02-modules.md#21-실행-방식-dsrcpluginmodrs)을 따른다.
 
 ### 설정 화면: configure / import_settings
 

@@ -40,11 +40,10 @@ username = "admin"
 forced = { RESTAPIEnabled = "True", RCONEnabled = "False" }
 
 [config]
-executable_path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\PalServer\\PalServer.exe"
 server_executable = "PalServer.exe"
 process_name = "PalServer-Win64-Shipping-Cmd"
 default_port = 8211
-stop_command = "Shutdown"  # 데몬은 stdin을 받는 모듈에만 이 명령을 보낸다. 팰월드는 stdin이 없어 정지는 lifecycle stop()이 REST로 한다
+stop_command = "Shutdown"  # 정지 명령 이름(아래 REST 명령 shutdown). 데몬은 stdin을 받는 모듈에만 보내므로 정지는 lifecycle stop()이 REST로 하고, 적합성 키트가 이 이름으로 정지 요청을 확인한다
 stop_timeout = 60  # REST 저장·종료 뒤 끝나기를 기다리는 시간(초)
 announce_command = "announce"
 # 조작 가능한 사람만 접속(saba-chan 0.1.13): 명단에 없는 닉네임이 들어오면 데몬이 이 명령으로 내보낸다 (첫 입력 닉네임, 둘째 입력 이유)

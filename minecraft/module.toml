@@ -39,7 +39,6 @@ diagnose_files = ["logs/latest.log"]
 [config]
 # 큰 월드는 정지 때 저장이 30초(기본)를 넘는다: 저장 도중 강제 종료되지 않게
 stop_timeout = 120
-executable_path = ""
 server_executable = "server.jar"
 process_name = "java.exe"
 default_port = 25565

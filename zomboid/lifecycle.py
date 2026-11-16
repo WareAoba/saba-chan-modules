@@ -924,11 +924,10 @@ def _quote_refusal(args):
 
 def command(config):
     """Send a command to the server console (stdin) through the daemon."""
-    cmd_name = config.get("command_name", "") or config.get("command", "")
-    cmd_text = config.get("command_text", "")
+    cmd_name = config.get("command", "")
     instance_id = config.get("instance_id", "")
-    actual_cmd = cmd_text or cmd_name
-    if cmd_name in _REASON_COMMANDS and not cmd_text:
+    actual_cmd = cmd_name
+    if cmd_name in _REASON_COMMANDS:
         args = config.get("args") or {}
         refusal = _quote_refusal(args)
         if refusal:

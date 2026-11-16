@@ -406,7 +406,7 @@ def test_commands_go_to_the_console():
     from unittest import mock
     from zomboid import lifecycle
     with mock.patch.object(lifecycle, "daemon_stdin_command", return_value={"data": {}}) as stdin:
-        result = lifecycle.command({"command_text": "players", "instance_id": "z"})
+        result = lifecycle.command({"command": "players", "instance_id": "z"})
     assert result["success"] is True
     stdin.assert_called_once_with("z", "players")
 

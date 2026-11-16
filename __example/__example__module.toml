@@ -117,7 +117,6 @@ interaction_mode = "console"            # "console" 또는 "commands"
 
 # ── [config] 기본 실행 설정 ──────────────────────────────────────
 [config]
-executable_path = ""                    # 기본 실행 파일 전체 경로 (설치 후 설정)
 server_executable = "MyGameServer.exe"  # 실행 파일명 (프로세스 탐지용)
 process_name = "MyGameServer"           # 프로세스 이름 (tasklist/pgrep 탐지용)
 default_port = 7777                     # 기본 게임 포트

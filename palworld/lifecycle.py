@@ -246,7 +246,7 @@ def get_launch_command(config):
             "message": i18n.t("errors.executable_not_found", path=executable)
         }
 
-    port = config.get("port", 8211)
+    port = config.get("port")
     working_dir = config.get("working_dir")
     if not working_dir:
         working_dir = os.path.dirname(os.path.abspath(executable))
@@ -262,7 +262,8 @@ def get_launch_command(config):
         return {"success": False, "error_code": "settings_unreadable",
                 "message": i18n.t("errors.settings_unreadable")}
 
-    args = [f"--port={port}"]
+    # 인스턴스 포트가 없으면 게임이 PalWorldSettings.ini PublicPort를 쓴다
+    args = [f"--port={port}"] if port else []
 
     # PalServer.exe는 실제 서버(Shipping-Cmd)를 띄우고 빠지는 런처다. 데몬(saba-runner)이
     # 실제 서버의 PID·종료 코드를 쥐도록 런처가 하는 그대로 실제 서버를 직접 띄운다.

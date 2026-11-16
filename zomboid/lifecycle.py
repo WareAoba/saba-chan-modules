@@ -27,9 +27,17 @@ from daemon_rcon import (PathOutside, safe_join, auto_heap_mb, daemon_stdin_comm
 i18n = I18n(MODULE_DIR)
 
 
+def _setting_default(name):
+    """설정 기본값. 기본값은 module.toml 한 곳에만 둔다"""
+    import tomllib
+    with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
+        fields = tomllib.loads(f.read().decode("utf-8-sig")).get("settings", {}).get("fields", [])
+    return next((f.get("default") for f in fields if f.get("name") == name), None)
+
+
 def _server_name(config):
-    """서버 이름 (-servername). 칸을 비우면 PZ 기본값 servertest"""
-    return str(config.get("server_name") or "servertest")
+    """서버 이름 (-servername). 칸을 비우면 module.toml 기본값(PZ 기본 프로필 servertest)"""
+    return str(config.get("server_name") or _setting_default("server_name"))
 
 
 def _cache_dir(config):
@@ -832,7 +840,7 @@ def _only_profile(home):
         names = [f[:-4] for f in os.listdir(os.path.join(home, "Server")) if f.lower().endswith(".ini")]
     except OSError:
         return None
-    return names[0] if len(names) == 1 and names[0] != "servertest" else None
+    return names[0] if len(names) == 1 and names[0] != _setting_default("server_name") else None
 
 
 def import_settings(config):

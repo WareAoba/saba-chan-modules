@@ -36,7 +36,7 @@ class MinecraftPing:
     """Minecraft Server List Ping (SLP) protocol."""
 
     @staticmethod
-    def ping(host="127.0.0.1", port=25565, timeout=3):
+    def ping(host, port, timeout=3):
         """Ping a server and get status dict (players, version, motd) or None."""
         try:
             # 격리 실행(미확인 모듈)은 127.0.0.1에 닿지 못한다: 데몬이 이 인스턴스 포트로 대신 보낸다
@@ -887,6 +887,11 @@ def stop(config):
     return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
+def _port(config):
+    """인스턴스 포트. 데몬이 주지 않았으면 module.toml 기본값"""
+    return int(config.get("port") or _default_properties()["server-port"])
+
+
 def _ping_host(config):
     """Server List Ping을 보낼 주소. server.properties `enable-status=false`면 서버가 답하지 않으므로 None"""
     props = ServerPropertiesManager(config.get("working_dir", "")).read() if config.get("working_dir") else {}
@@ -901,10 +906,9 @@ def status(config):
     """Enhanced status with Server List Ping."""
     try:
         pid = config.get("pid")
-        port = config.get("port", 25565)
         host = _ping_host(config)
 
-        ping_result = MinecraftPing.ping(host, int(port), timeout=3) if host else None
+        ping_result = MinecraftPing.ping(host, _port(config), timeout=3) if host else None
         if ping_result:
             players = ping_result.get("players", {})
             version = ping_result.get("version", {})
@@ -955,7 +959,7 @@ def player_count(config):
     if not host:
         # 핑에 답하지 않는 설정: 수는 모르지만 실패가 아니다 (실패로 답하면 데몬이 응답 없음으로 알린다)
         return {"success": True}
-    ping_result = MinecraftPing.ping(host, int(config.get("port", 25565)), timeout=3)
+    ping_result = MinecraftPing.ping(host, _port(config), timeout=3)
     if not ping_result:
         return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
     players = ping_result.get("players")

@@ -80,6 +80,17 @@ def test_rest_connection_settings_are_declared_once_in_module_toml(tmp_path):
     assert lifecycle.get_credentials({"working_dir": str(tmp_path)}) == {"success": True, "rest_password": "from-setting"}
 
 
+def test_launch_takes_the_port_from_the_instance_only(tmp_path):
+    """게임 포트는 데몬이 준 인스턴스 포트로만 넘긴다. 없으면 `--port`를 붙이지 않아 게임이 PalWorldSettings.ini
+    PublicPort를 쓴다 (기본값 8211을 코드에 따로 두지 않는다)"""
+    from palworld import lifecycle
+    exe = tmp_path / "PalServer.exe"
+    exe.write_text("", encoding="utf-8")
+    base = {"server_executable": str(exe), "working_dir": str(tmp_path), "preview": True}
+    assert lifecycle.get_launch_command({**base, "port": 8300})["args"] == ["--port=8300"]
+    assert lifecycle.get_launch_command(base)["args"] == []
+
+
 def test_remote_access_values_are_declared_once_and_applied_at_every_step(tmp_path):
     """사바쨩이 정하는 원격 접속 값(REST 켜기, RCON 끄기)은 module.toml `[remote_access]` 한 곳에 있고,
     설정 저장·첫 설치·실행 전이 모두 그 값을 쓴다 (감사 A-02)"""

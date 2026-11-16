@@ -29,10 +29,6 @@ i18n = I18n(MODULE_DIR)
 
 
 CONFIG_FILE = "serverconfig.txt"
-DEFAULT_WORLD_NAME = "world"
-DEFAULT_PORT = 7777
-DEFAULT_BANLIST = "banlist.txt"
-DEFAULT_AUTOCREATE = "2"
 SERVER_NAMES_URL = "https://terraria.org/api/get/dedicated-servers-names"
 DOWNLOAD_URL = "https://terraria.org/api/download/pc-dedicated-server/{name}"
 # 서버 파일의 `playing` 답 마지막 줄(CLI.NoPlayers·OnePlayerConnected·PlayersConnected, 1.4.5.8 TerrariaServer.exe 12개 언어).
@@ -111,7 +107,7 @@ def _world(config):
     if not os.path.isabs(world_dir):
         # 가져온 serverconfig.txt의 상대 경로는 서버 폴더 기준이다 (모듈 실행 폴더가 아니라)
         world_dir = os.path.join(working_dir, world_dir)
-    name = str(config_value(config, "world_name", "") or DEFAULT_WORLD_NAME)
+    name = str(config_value(config, "world_name", "") or _setting_default("world_name"))
     if not _check_name(name):
         raise ValueError(i18n.t("errors.invalid_world_name", name=name))
     world_file = str(safe_join(world_dir, f"{name}.wld"))
@@ -119,7 +115,7 @@ def _world(config):
 
 
 def _banlist_path(config):
-    name = str(config_value(config, "banlist", "") or DEFAULT_BANLIST)
+    name = str(config_value(config, "banlist", "") or _setting_default("banlist"))
     if not _check_name(name):
         raise ValueError(i18n.t("errors.invalid_banlist", name=name))
     return str(safe_join(_working_dir(config), name))
@@ -204,13 +200,22 @@ def validate(config):
     return {"success": not any(i["severity"] == "critical" for i in issues), "issues": issues}
 
 
-def _launch_arg_shapes():
-    """실행 인자로만 들어가는 설정(group = "saba-chan")의 인자 모양: [(설정 이름, 토큰)]. module.toml `arg`가 원본이다"""
+def _setting_fields():
+    """module.toml `[[settings.fields]]`"""
     import tomllib
     with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-        fields = tomllib.loads(f.read().decode("utf-8-sig")).get("settings", {}).get("fields", [])
+        return tomllib.loads(f.read().decode("utf-8-sig")).get("settings", {}).get("fields", [])
+
+
+def _setting_default(name):
+    """설정 기본값. 기본값은 module.toml 한 곳에만 둔다"""
+    return next((f.get("default") for f in _setting_fields() if f.get("name") == name), None)
+
+
+def _launch_arg_shapes():
+    """실행 인자로만 들어가는 설정(group = "saba-chan")의 인자 모양: [(설정 이름, 토큰)]. module.toml `arg`가 원본이다"""
     shapes = []
-    for field in fields:
+    for field in _setting_fields():
         arg = field.get("arg")
         if field.get("group") == "saba-chan" and arg:
             shapes.append((field["name"], arg.split() if isinstance(arg, str) else list(arg)))
@@ -258,8 +263,8 @@ def get_launch_command(config):
             "world": world_file,
             "worldpath": world_dir,
             "worldname": name,
-            "autocreate": config_value(config, "autocreate", "") or DEFAULT_AUTOCREATE,
-            "port": config_value(config, "port", DEFAULT_PORT),
+            "autocreate": config_value(config, "autocreate", "") or _setting_default("autocreate"),
+            "port": config_value(config, "port", _setting_default("port")),
         }
         try:
             os.makedirs(world_dir, exist_ok=True)

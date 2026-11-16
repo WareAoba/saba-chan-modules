@@ -2397,3 +2397,42 @@ def test_a_console_line_the_daemon_cannot_send_is_a_translated_error(monkeypatch
     result = lifecycle.FUNCTIONS["command"]({"command": "say hi", "instance_id": "x"})
     assert result == {"success": False, "error_code": "no_command_path",
                       "message": lifecycle.i18n.t("errors.command_send_failed", error="no console")}
+
+
+def test_first_install_fails_when_the_chosen_settings_cannot_be_written(tmp_path):
+    """첫 설치에서 고른 설정을 server.properties에 쓰지 못하면 설치는 settings_write_failed 실패다 (02-modules 계약).
+    서버 파일만 깔렸다고 성공으로 답하면 사용자는 설정이 빠진 것을 모른다"""
+    import io
+    from minecraft import lifecycle
+    from minecraft.lifecycle import ServerInstaller
+    body = _jar_bytes({"META-INF/MANIFEST.MF": "Main-Class: net.minecraft.Main\n"})
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": None}
+    with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch("urllib.request.urlopen", return_value=Resp(body)), \
+            mock.patch.object(lifecycle.ServerPropertiesManager, "update", return_value=False):
+        result = ServerInstaller.install_server("1.21.1", str(tmp_path), initial_settings={"motd": "hi"})
+    assert result["success"] is False
+    assert result["error_code"] == "settings_write_failed"
+
+
+def test_start_is_refused_when_the_rcon_policy_cannot_be_saved(tmp_path):
+    """실행 전 RCON 정책을 server.properties에 쓰지 못하면 시작하지 않는다(palworld의 REST 정책과 같다).
+    관리형 시작인데 RCON이 켜진 채 뜨거나, 관리형 시작을 껐는데 RCON이 꺼진 채 뜨면 데몬이 명령을 보낼 길이 어긋난다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("enable-rcon=true\n", encoding="utf-8")
+    (tmp_path / "server.jar").write_bytes(b"jar")
+    with mock.patch.object(lifecycle.ServerPropertiesManager, "update", return_value=False):
+        result = lifecycle.get_launch_command({"working_dir": str(tmp_path), "server_executable": str(tmp_path / "server.jar"),
+                                               "java_path": "java"})
+    assert result["success"] is False
+    assert result["message"] == lifecycle.i18n.t("errors.properties_write_failed")

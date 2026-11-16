@@ -386,12 +386,15 @@ def _enforce_rcon_policy(working_dir, config=None):
 
     관리형 시작은 saba-runner가 쥔 콘솔(stdin)로 명령을 보낸다: RCON을 끈다. 관리형 시작을 끄면 콘솔이 없으므로
     데몬이 만든 포트·비밀번호(config `rcon_port`·`rcon_password`)로 RCON을 켠다. 접속 정보가 없으면 끈다.
+    값을 파일에 쓰지 못했으면 False
     """
     mgr = ServerPropertiesManager(working_dir)
     if not mgr.exists() and not rcon_access(config):
-        return  # server.properties will be generated on first run (defaults keep RCON off)
+        return True  # server.properties will be generated on first run (defaults keep RCON off)
     # 켤 때 파일이 없으면 기본값 위에 만든다 (ServerPropertiesManager.update)
-    enforce_remote_access(MODULE_DIR, config, mgr.read(), mgr.update)
+    written = []
+    enforce_remote_access(MODULE_DIR, config, mgr.read(), lambda changes: written.append(mgr.update(changes)))
+    return all(written)
 
 
 # 콘솔 입출력은 UTF-8로: 데몬은 stdin에 UTF-8을 쓰고 stdout을 UTF-8로 읽는다. JVM은 파이프의 문자 집합을
@@ -541,8 +544,9 @@ def get_launch_command(config):
     abs_working_dir = os.path.abspath(working_dir)
 
     # 미리보기(preview)는 아무 파일도 고치지 않는다
-    if not config.get("preview"):
-        _enforce_rcon_policy(abs_working_dir, config=config)
+    if not config.get("preview") and not _enforce_rcon_policy(abs_working_dir, config=config):
+        # RCON 값이 관리형 여부와 어긋난 채 뜨면 데몬이 명령을 보낼 길이 맞지 않는다: 띄우지 않고 알린다
+        return {"success": False, "message": i18n.t("errors.properties_write_failed")}
 
     return {
         "success": True,

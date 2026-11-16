@@ -399,10 +399,14 @@ class ExtensionMissing(Exception):
         self.extension = extension
 
 
+# PalWorldSettings.ini에서 설정이 든 섹션
+_SECTION = "[/Script/Pal.PalGameWorldSettings]"
+
+
 def _parse_option_settings(ini_path):
     if parse_option_settings is None:
         raise ExtensionMissing("ue4-ini")
-    return parse_option_settings(ini_path)
+    return parse_option_settings(ini_path, _SECTION)
 
 
 def _option_line_unreadable(ini_path):
@@ -423,7 +427,7 @@ def _write_option_settings(ini_path, props):
     keys, types = setting_file_keys(MODULE_DIR), load_setting_types(MODULE_DIR)
     quoted = {k for name, k in keys.items() if types.get(name) in ("text", "password")} - set(_LIST_KEYS)
     bare = {k for name, k in keys.items() if types.get(name) == "select"} | set(_LIST_KEYS)
-    return write_option_settings(ini_path, props, quoted_keys=quoted, bare_keys=bare)
+    return write_option_settings(ini_path, props, _SECTION, quoted_keys=quoted, bare_keys=bare)
 
 
 def validate(config):

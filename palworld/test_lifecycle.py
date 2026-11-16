@@ -192,9 +192,8 @@ _EXPECTED_INTERNAL_ONLY_INI_KEYS = {"RCONEnabled", "RCONPort", "RESTAPIEnabled"}
 
 
 def _load_default_ini_props():
-    from extensions.ue4_ini import parse_option_settings
-    ini_path = os.path.join(MODULE_DIR, "DefaultPalWorldSettings.ini")
-    return parse_option_settings(ini_path)
+    from palworld import lifecycle
+    return lifecycle._parse_option_settings(os.path.join(MODULE_DIR, "DefaultPalWorldSettings.ini"))
 
 
 

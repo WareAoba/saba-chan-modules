@@ -20,9 +20,9 @@ from i18n import I18n
 import daemon_rcon
 from daemon_rcon import (PathOutside, safe_join, auto_heap_mb, daemon_stdin_command, enforce_remote_access, extension_required,
                          graceful_stop, java_release_major, list_dir, rcon_access, read_key_values, remote_access_values,
-                         request_console, request_terminate, setting_file_keys,
+                         request_console, request_terminate,
                          delete_paths, setting_defaults_to_file, stop_command,
-                         settings_to_file, update_key_values)
+                         settings_from_file, settings_to_file, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
@@ -867,10 +867,7 @@ def import_settings(config):
         return {"success": True, "settings": {**found, "data_home": _zomboid_home(config)}, **extra,
                 "message": i18n.t("messages.no_properties_found")}
 
-    from daemon_rcon import coerce_setting, load_setting_types
-    types = load_setting_types(os.path.dirname(os.path.abspath(__file__)))
-    settings = {key: coerce_setting(raw_value, types.get(key)) for key, raw_value in raw_props.items()}
-    settings.update(found)
+    settings = {**raw_props, **found}
     settings["data_home"] = _zomboid_home(config)
 
     return {"success": True, "settings": settings, **extra}
@@ -882,33 +879,15 @@ def config_files(config):
 
 
 def read_properties(config):
-    """Read the server INI file and return settings.
-    
-    Returns properties mapped back to saba-chan internal key names.
-    """
+    """서버 INI → {설정 이름: 값}. 설정 화면에 없는 키는 돌려주지 않는다. INI가 없으면 module.toml 기본값"""
     ini_path = IniManager.get_ini_path(config)
-    # ini 키 → 설정 이름 (설정 화면에 없는 키는 이름 그대로)
-    names = {ini_key: name for name, ini_key in setting_file_keys(MODULE_DIR).items()}
-
     if not os.path.exists(ini_path):
-        # Return defaults mapped to internal keys
-        mapped_defaults = {}
-        for ini_key, value in setting_defaults_to_file(MODULE_DIR).items():
-            internal_key = names.get(ini_key, ini_key)
-            mapped_defaults[internal_key] = value
         return {
             "success": True,
-            "properties": mapped_defaults,
+            "properties": settings_from_file(MODULE_DIR, setting_defaults_to_file(MODULE_DIR)),
             "message": i18n.t("messages.properties_using_defaults"),
         }
-    
-    raw_props = IniManager.read(ini_path)
-    mapped = {}
-    for ini_key, value in raw_props.items():
-        internal_key = names.get(ini_key, ini_key)
-        mapped[internal_key] = value
-    
-    return {"success": True, "properties": mapped}
+    return {"success": True, "properties": settings_from_file(MODULE_DIR, IniManager.read(ini_path))}
 
 
 # 이유(-r)가 선택인 명령. 서버는 빈 인자를 받지 않아(CommandBase 인자 규칙 `(.+)`) `kick "이름" -r ""`는 명령 전체를 거절한다.

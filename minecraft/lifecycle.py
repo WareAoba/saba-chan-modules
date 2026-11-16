@@ -630,18 +630,10 @@ def import_settings(config):
     if not result.get("success"):
         return result
 
-    raw_props = result.get("properties", {})
-    if not raw_props:
+    settings = result.get("properties", {})
+    if not settings:
         return {"success": True, "settings": found, "message": i18n.t("messages.no_properties_found"), **extra}
-
-    # 설정 화면에 없는 키는 이름 그대로 넘긴다. 있는 키는 스키마 타입대로만 바꾼다:
-    # 숫자 같은 비밀번호("000123")나 이름은 문자열 그대로
-    known = set(setting_file_keys(MODULE_DIR).values())
-    settings = {key: value for key, value in raw_props.items() if key not in known}
-    settings.update(settings_from_file(MODULE_DIR, raw_props))
-    settings.update(found)
-
-    return {"success": True, "settings": settings, **extra}
+    return {"success": True, "settings": {**settings, **found}, **extra}
 
 
 def config_files(config):
@@ -664,7 +656,7 @@ def instance_commands(config):
 
 
 def read_properties(config):
-    """Read current server.properties."""
+    """server.properties → {설정 이름: 값}. 설정 화면에 없는 키는 돌려주지 않는다"""
     working_dir = config.get("working_dir")
     if not working_dir:
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
@@ -673,10 +665,10 @@ def read_properties(config):
     if not mgr.exists():
         return {
             "success": True, "exists": False,
-            "properties": _default_properties(),
+            "properties": settings_from_file(MODULE_DIR, _default_properties()),
             "message": i18n.t("messages.properties_using_defaults"),
         }
-    return {"success": True, "exists": True, "properties": mgr.read()}
+    return {"success": True, "exists": True, "properties": settings_from_file(MODULE_DIR, mgr.read())}
 
 
 def reset_properties(config):

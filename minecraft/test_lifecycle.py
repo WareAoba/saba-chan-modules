@@ -413,7 +413,7 @@ def test_import_settings_keeps_string_fields():
         assert settings["level_name"] == "0042"
         assert settings["max_players"] == 20
         assert settings["pvp"] is True
-        assert settings["custom-key"] == "true"
+        assert "custom-key" not in settings, "설정 화면에 없는 키는 가져오지 않는다"
 
 
 def test_reset_server_keeps_jar_eula_and_bundled_java():
@@ -2313,7 +2313,8 @@ def test_reset_and_the_first_write_use_the_defaults_the_settings_screen_shows(tm
     fresh.mkdir()
     assert lifecycle.ServerPropertiesManager(str(fresh)).update({"motd": "hi"})
     assert lifecycle.ServerPropertiesManager(str(fresh)).read() == {**shown, "enable-rcon": "false", "motd": "hi"}
-    assert lifecycle.read_properties({"working_dir": str(tmp_path / "none")})["properties"] == {**shown, "enable-rcon": "false"}
+    props = lifecycle.read_properties({"working_dir": str(tmp_path / "none")})["properties"]
+    assert (props["difficulty"], props["pause_when_empty_seconds"]) == ("normal", 60)
 
 
 def test_reset_properties_keeps_this_servers_port(tmp_path):

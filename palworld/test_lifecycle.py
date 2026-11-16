@@ -366,6 +366,21 @@ def test_validate_accepts_daemon_server_executable_key(tmp_path):
     assert "NO_EXECUTABLE" not in codes and "EXECUTABLE_NOT_FOUND" not in codes
 
 
+def test_read_properties_answers_setting_names(tmp_path):
+    """read_properties도 import_settings처럼 설정 이름으로 답한다: CLI `properties show`에 보인 키를 `properties set`에 그대로 쓴다"""
+    from palworld.lifecycle import read_properties
+    platform_dir = "WindowsServer" if sys.platform == "win32" else "LinuxServer"
+    ini_dir = tmp_path / "Pal" / "Saved" / "Config" / platform_dir
+    ini_dir.mkdir(parents=True)
+    (ini_dir / "PalWorldSettings.ini").write_text(
+        "[/Script/Pal.PalGameWorldSettings]\n"
+        'OptionSettings=(ServerName="mine",ServerPlayerMaxNum=32,bIsPvP=True)\n', encoding="utf-8")
+    props = read_properties({"working_dir": str(tmp_path)})["properties"]
+    assert props["server_name"] == "mine"
+    assert props["max_players"] == 32
+    assert "ServerName" not in props
+
+
 def test_import_settings_keeps_string_fields(tmp_path):
     from palworld.lifecycle import import_settings
     platform_dir = "WindowsServer" if sys.platform == "win32" else "LinuxServer"
@@ -512,11 +527,12 @@ def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypat
     install = str(tmp_path / "server")
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": install})["success"]
-        props = lifecycle.read_properties({"working_dir": install})["properties"]
+        ini = lifecycle._get_settings_ini_path({"working_dir": install})
+        props = lifecycle._parse_option_settings(ini)
         assert props["RESTAPIEnabled"] == "True", "a fresh install still gets the REST-enabled defaults"
         lifecycle.configure({"working_dir": install, "settings": {"server_name": "우리서버", "server_password": "secret"}})
         assert lifecycle.install_server({"install_dir": install})["success"]
-    props = lifecycle.read_properties({"working_dir": install})["properties"]
+    props = lifecycle._parse_option_settings(ini)
     assert props["ServerName"] == "우리서버"
     assert props["ServerPassword"] == "secret"
 
@@ -530,7 +546,7 @@ def test_a_new_server_starts_with_the_settings_chosen_when_creating_it(tmp_path,
     settings = {"server_name": "우리서버", "server_password": "secret", "max_players": 8, "managed_start": True}
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": install, "settings": settings})["success"]
-    props = lifecycle.read_properties({"working_dir": install})["properties"]
+    props = lifecycle._parse_option_settings(lifecycle._get_settings_ini_path({"working_dir": install}))
     assert props["ServerName"] == "우리서버"
     assert props["ServerPassword"] == "secret"
     assert props["ServerPlayerMaxNum"] == "8"

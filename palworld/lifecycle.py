@@ -569,35 +569,30 @@ def _unquote(value):
     return val
 
 
-def import_settings(config):
-    """Read PalWorldSettings.ini and return settings in saba-chan key format.
-
-    Used during migration to import existing server settings into saba-chan.
-    Returns {"success": True, "settings": { saba_key: value, ... }}
-    """
-    result = read_properties(config)
-    if not result.get("success"):
-        return result
-
-    ini_props = result.get("properties", {})
-    if not ini_props:
-        return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
-
-    # INI key → saba-chan key (module.toml file_key)
+def _settings_from_ini(ini_props):
+    """PalWorldSettings.ini 값 {INI 키: 문자열} → {설정 이름: 값}. 설정 화면에 없는 키는 뺀다"""
     reverse_map = {v: k for k, v in setting_file_keys(MODULE_DIR).items()}
-
     types = load_setting_types(MODULE_DIR)
     settings = {}
     for ini_key, raw_value in ini_props.items():
         saba_key = reverse_map.get(ini_key)
         if saba_key is None:
             continue
-
         if ini_key in _LIST_KEYS:
             settings[saba_key] = _from_ini_list(raw_value)
             continue
         settings[saba_key] = coerce_setting(_unquote(raw_value), types.get(saba_key))
+    return settings
 
+
+def import_settings(config):
+    """PalWorldSettings.ini → {설정 이름: 값} (가져오기·live 설정)"""
+    result = read_properties(config)
+    if not result.get("success"):
+        return result
+    settings = result.get("properties", {})
+    if not settings:
+        return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
     return {"success": True, "settings": settings}
 
 
@@ -610,7 +605,7 @@ def config_files(config):
 
 
 def read_properties(config):
-    """Read current PalWorldSettings.ini."""
+    """PalWorldSettings.ini → {설정 이름: 값}. 파일이 없으면 서버 폴더의 DefaultPalWorldSettings.ini"""
     ini_path = _get_settings_ini_path(config)
     if not ini_path:
         return {"success": False, "message": i18n.t("errors.no_server_dir")}
@@ -627,11 +622,10 @@ def read_properties(config):
             default_path = str(safe_join(working_dir, "DefaultPalWorldSettings.ini"))
 
         if default_path and os.path.isfile(default_path):
-            props = _parse_option_settings(default_path)
             return {
                 "success": True,
                 "exists": False,
-                "properties": props,
+                "properties": _settings_from_ini(_parse_option_settings(default_path)),
                 "message": i18n.t("messages.using_defaults"),
             }
         return {
@@ -641,8 +635,7 @@ def read_properties(config):
             "message": i18n.t("errors.settings_not_found"),
         }
 
-    props = _parse_option_settings(ini_path)
-    return {"success": True, "exists": True, "properties": props}
+    return {"success": True, "exists": True, "properties": _settings_from_ini(_parse_option_settings(ini_path))}
 
 
 def reset_properties(config):

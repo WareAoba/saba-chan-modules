@@ -54,10 +54,10 @@ def test_defaults_for_a_new_server_come_from_module_toml(tmp_path):
     from zomboid import lifecycle
     with mock.patch.object(lifecycle.IniManager, "get_ini_path", return_value=str(tmp_path / "servertest.ini")):
         props = lifecycle.read_properties({})["properties"]
-    assert props["max_players"] == "16"
+    assert props["max_players"] == 16
     assert props["public_name"] == "My PZ Server"
-    assert props["pvp"] == "true"
-    assert props["speed_limit"] == "70"
+    assert props["pvp"] is True
+    assert props["speed_limit"] == 70
 
 
 def test_ini_key_map_no_duplicate_targets():
@@ -859,6 +859,19 @@ def test_import_reads_memory_profile_and_data_folder_from_the_start_script(tmp_p
     assert settings["data_home"] == str(home)
     assert settings["public_name"] == "Mine"
     assert settings["max_players"] == 12
+
+
+def test_read_and_import_answer_only_setting_names(tmp_path):
+    """INI에 설정 화면에 없는 키가 있어도 read_properties·import_settings는 설정 이름만 돌려준다.
+    원본 키를 돌려주면 CLI `properties set`이 거절하고 module_settings에 쓰이지 않는 키가 쌓인다"""
+    from zomboid import lifecycle
+    ini = tmp_path / "servertest.ini"
+    lifecycle.IniManager.write(str(ini), {"MaxPlayers": "12", "NoSuchKey": "true"})
+    with mock.patch.object(lifecycle.IniManager, "get_ini_path", return_value=str(ini)):
+        props = lifecycle.read_properties({})["properties"]
+        settings = lifecycle.import_settings({})["settings"]
+    assert props == {"max_players": 12}
+    assert settings["max_players"] == 12 and "NoSuchKey" not in settings
 
 
 @pytest.mark.parametrize("profiles,expected", [(["pvp"], "pvp"), (["pvp", "servertest"], "servertest"), ([], "servertest")])

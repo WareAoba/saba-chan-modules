@@ -272,16 +272,6 @@
   "plugins": {
     "args_label": "Arguments"
   },
-  "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}"
-  },
   "reset": {
     "label": "Reset server",
     "description": "Deletes what the server made: the world, settings, plugins, mods (including mod JARs), configs and logs. The server JAR, eula.txt, the bundled Java and other files in the folder are kept. If the server lives in the instance folder, logs are kept too.",

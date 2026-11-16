@@ -261,16 +261,6 @@
   "plugins": {
     "args_label": "參數"
   },
-  "rcon": {
-    "connecting": "正在連線 {{host}}:{{port}}...",
-    "connected": "已連線！",
-    "authentication_failed": "身分驗證失敗",
-    "authenticated": "已驗證！",
-    "connection_failed": "連線失敗：{{error}}",
-    "sending_command": "傳送命令：{{command}}",
-    "response_received": "收到回應：{{response}}",
-    "command_failed": "命令失敗：{{error}}"
-  },
   "reset": {
     "label": "重設伺服器",
     "description": "刪除伺服器產生的世界、設定、外掛、模組(含模組 JAR)、config 和記錄。伺服器 JAR、eula.txt、附帶的 Java 以及資料夾中的其他檔案會保留。伺服器位於實例資料夾時,記錄也會保留。",

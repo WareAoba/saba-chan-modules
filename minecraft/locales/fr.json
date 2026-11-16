@@ -261,16 +261,6 @@
   "plugins": {
     "args_label": "Arguments"
   },
-  "rcon": {
-    "connecting": "Connexion à {{host}}:{{port}}...",
-    "connected": "Connecté !",
-    "authentication_failed": "Échec de l'authentification",
-    "authenticated": "Authentifié !",
-    "connection_failed": "Échec de la connexion: {{error}}",
-    "sending_command": "Envoi de la commande: {{command}}",
-    "response_received": "Réponse reçue: {{response}}",
-    "command_failed": "Échec de la commande: {{error}}"
-  },
   "reset": {
     "label": "Réinitialiser le serveur",
     "description": "Supprime ce que le serveur a créé : le monde, les paramètres, les plugins, les mods (JAR des mods compris), config et les journaux. Le JAR du serveur, eula.txt, le Java fourni et les autres fichiers du dossier sont conservés. Si le serveur est dans le dossier de l'instance, les journaux sont aussi conservés.",

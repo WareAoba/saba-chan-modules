@@ -313,16 +313,6 @@
     "server_reset_complete": "서버 월드 데이터 초기화됨",
     "command_sent": "콘솔로 명령 보냄: {{command}}"
   },
-  "rcon": {
-    "connecting": "{{host}}:{{port}}에 연결 중...",
-    "connected": "연결됨!",
-    "authentication_failed": "인증 실패",
-    "authenticated": "인증됨!",
-    "connection_failed": "연결 실패: {{error}}",
-    "sending_command": "명령 전송 중: {{command}}",
-    "response_received": "응답 수신: {{response}}",
-    "command_failed": "명령 실패: {{error}}"
-  },
   "reset": {
     "label": "월드 초기화",
     "description": "월드 세이브만 지우고 서버 설정은 남깁니다.",

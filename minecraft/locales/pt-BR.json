@@ -261,16 +261,6 @@
   "plugins": {
     "args_label": "Argumentos"
   },
-  "rcon": {
-    "connecting": "Conectando a {{host}}:{{port}}...",
-    "connected": "Conectado!",
-    "authentication_failed": "Falha na autenticação",
-    "authenticated": "Autenticado!",
-    "connection_failed": "Falha na conexão: {{error}}",
-    "sending_command": "Enviando comando: {{command}}",
-    "response_received": "Resposta recebida: {{response}}",
-    "command_failed": "Falha no comando: {{error}}"
-  },
   "reset": {
     "label": "Redefinir servidor",
     "description": "Exclui o que o servidor criou: o mundo, as configurações, os plugins, os mods (incluindo os JARs), config e os logs. O JAR do servidor, o eula.txt, o Java incluído e os outros arquivos da pasta são mantidos. Se o servidor estiver na pasta da instância, os logs também são mantidos.",

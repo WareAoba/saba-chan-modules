@@ -291,16 +291,6 @@
   "plugins": {
     "args_label": "인자"
   },
-  "rcon": {
-    "connecting": "{{host}}:{{port}}에 연결 중...",
-    "connected": "연결됨!",
-    "authentication_failed": "인증 실패",
-    "authenticated": "인증됨!",
-    "connection_failed": "연결 실패: {{error}}",
-    "sending_command": "명령 전송 중: {{command}}",
-    "response_received": "응답 수신: {{response}}",
-    "command_failed": "명령 실패: {{error}}"
-  },
   "reset": {
     "label": "서버 초기화",
     "description": "서버가 만든 월드, 설정, 플러그인, 모드(모드 JAR 포함), config, 로그를 지웁니다. 서버 JAR, eula.txt, 함께 받은 Java와 폴더의 다른 파일은 남깁니다. 서버가 인스턴스 폴더에 있으면 로그도 남깁니다.",

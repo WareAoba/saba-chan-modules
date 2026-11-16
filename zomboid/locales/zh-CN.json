@@ -760,16 +760,6 @@
     "server_reset_complete": "服务器世界数据已重置",
     "command_sent": "已向控制台发送命令:{{command}}"
   },
-  "rcon": {
-    "connecting": "正在连接到 {{host}}:{{port}}...",
-    "connected": "已连接！",
-    "authentication_failed": "认证失败",
-    "authenticated": "已认证！",
-    "connection_failed": "连接失败：{{error}}",
-    "sending_command": "正在发送命令：{{command}}",
-    "response_received": "收到响应：{{response}}",
-    "command_failed": "命令失败：{{error}}"
-  },
   "reset": {
     "label": "重置世界",
     "description": "只删除世界存档，保留服务器设置。",

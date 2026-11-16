@@ -261,16 +261,6 @@
   "plugins": {
     "args_label": "Argumente"
   },
-  "rcon": {
-    "connecting": "Verbindung zu {{host}}:{{port}}...",
-    "connected": "Verbunden!",
-    "authentication_failed": "Authentifizierung fehlgeschlagen",
-    "authenticated": "Authentifiziert!",
-    "connection_failed": "Verbindung fehlgeschlagen: {{error}}",
-    "sending_command": "Befehl wird gesendet: {{command}}",
-    "response_received": "Antwort erhalten: {{response}}",
-    "command_failed": "Befehl fehlgeschlagen: {{error}}"
-  },
   "reset": {
     "label": "Server zurücksetzen",
     "description": "Löscht, was der Server erstellt hat: Welt, Einstellungen, Plugins, Mods (inklusive Mod-JARs), Konfigurationen und Logs. Die Server-JAR, eula.txt, das mitgelieferte Java und andere Dateien im Ordner bleiben erhalten. Liegt der Server im Instanzordner, bleiben auch die Logs erhalten.",

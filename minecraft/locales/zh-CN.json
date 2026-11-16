@@ -261,16 +261,6 @@
   "plugins": {
     "args_label": "参数"
   },
-  "rcon": {
-    "connecting": "正在连接 {{host}}:{{port}}...",
-    "connected": "已连接！",
-    "authentication_failed": "身份验证失败",
-    "authenticated": "已验证！",
-    "connection_failed": "连接失败：{{error}}",
-    "sending_command": "发送命令：{{command}}",
-    "response_received": "收到响应：{{response}}",
-    "command_failed": "命令失败：{{error}}"
-  },
   "reset": {
     "label": "重置服务器",
     "description": "删除服务器生成的世界、设置、插件、模组(含模组 JAR)、config 和日志。服务器 JAR、eula.txt、附带的 Java 以及文件夹中的其他文件会保留。服务器位于实例文件夹时,日志也会保留。",

@@ -760,16 +760,6 @@
     "no_mappable_settings": "Нет элементов, распознанных как настройки сервера",
     "command_sent": "Команда отправлена в консоль: {{command}}"
   },
-  "rcon": {
-    "connecting": "Подключение к {{host}}:{{port}}...",
-    "connected": "Подключено!",
-    "authentication_failed": "Ошибка аутентификации",
-    "authenticated": "Аутентификация пройдена!",
-    "connection_failed": "Ошибка подключения: {{error}}",
-    "sending_command": "Отправка команды: {{command}}",
-    "response_received": "Получен ответ: {{response}}",
-    "command_failed": "Ошибка команды: {{error}}"
-  },
   "reset": {
     "label": "Сброс мира",
     "description": "Удаляет только сохранение мира, настройки сервера остаются.",

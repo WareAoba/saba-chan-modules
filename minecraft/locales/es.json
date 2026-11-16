@@ -261,16 +261,6 @@
   "plugins": {
     "args_label": "Argumentos"
   },
-  "rcon": {
-    "connecting": "Conectando a {{host}}:{{port}}...",
-    "connected": "¡Conectado!",
-    "authentication_failed": "Autenticación fallida",
-    "authenticated": "¡Autenticado!",
-    "connection_failed": "Conexión fallida: {{error}}",
-    "sending_command": "Enviando comando: {{command}}",
-    "response_received": "Respuesta recibida: {{response}}",
-    "command_failed": "Comando fallido: {{error}}"
-  },
   "reset": {
     "label": "Restablecer servidor",
     "description": "Elimina lo que creó el servidor: el mundo, la configuración, los plugins, los mods (incluidos sus JAR), config y los registros. Se conservan el JAR del servidor, eula.txt, el Java incluido y los demás archivos de la carpeta. Si el servidor está en la carpeta de la instancia, también se conservan los registros.",

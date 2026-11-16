@@ -261,16 +261,6 @@
   "plugins": {
     "args_label": "Аргументы"
   },
-  "rcon": {
-    "connecting": "Подключение к {{host}}:{{port}}...",
-    "connected": "Подключено!",
-    "authentication_failed": "Ошибка аутентификации",
-    "authenticated": "Аутентификация успешна!",
-    "connection_failed": "Ошибка подключения: {{error}}",
-    "sending_command": "Отправка команды: {{command}}",
-    "response_received": "Ответ получен: {{response}}",
-    "command_failed": "Ошибка команды: {{error}}"
-  },
   "reset": {
     "label": "Сброс сервера",
     "description": "Удаляет созданное сервером: мир, настройки, плагины, моды (включая JAR модов), config и журналы. JAR сервера, eula.txt, поставляемая Java и другие файлы в папке сохраняются. Если сервер находится в папке экземпляра, журналы тоже сохраняются.",

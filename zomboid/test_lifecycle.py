@@ -984,7 +984,7 @@ def test_install_reads_the_steam_app_from_module_toml(tmp_path):
     from zomboid import lifecycle
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
         lifecycle.install_server({"install_dir": str(tmp_path / "server"), "use_beta": True})
-    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta=None)
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta=None, executable=mock.ANY)
     assert _load_module_toml()["install"]["app_id"] == 380870
 
 
@@ -1013,7 +1013,7 @@ def test_install_downloads_the_chosen_branch(tmp_path):
     for branch in ("unstable", "legacy41", "public"):
         with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
             lifecycle.install_server({"install_dir": server, "version": branch})
-        install.assert_called_once_with(lifecycle.MODULE_DIR, server, beta=branch)
+        install.assert_called_once_with(lifecycle.MODULE_DIR, server, beta=branch, executable=mock.ANY)
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
         refused = lifecycle.install_server({"install_dir": server, "version": "b42 -validate"})
     install.assert_not_called()

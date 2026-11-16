@@ -12,7 +12,7 @@ log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
 saba-core = ">=0.1.14-beta.2"
-ext-steamcmd = ">=0.1.5"
+ext-steamcmd = ">=0.1.11"  # install_for_module이 install_path·executable_path를 붙인다
 
 [permissions]
 network = true          # 서버 파일 내려받기, 포트 확인

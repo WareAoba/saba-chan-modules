@@ -1028,29 +1028,16 @@ def install_server(config):
     if not install_dir:
         return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-    os.makedirs(install_dir, exist_ok=True)
-
     # app_id는 module.toml [install]. 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하게 답한다
     try:
         from extensions.steamcmd import install_for_module
     except ImportError:
         return extension_required(i18n, "steamcmd")
-    try:
-        # 정식으로 돌아갈 때도 브랜치 이름(public)을 적어 넘긴다: -beta 없이 받으면 받아 둔 브랜치에 머문다
-        result = install_for_module(MODULE_DIR, install_dir, beta=branch)
-    except PathOutside:
-        raise
-    except Exception as e:
-        print(f"[Zomboid] SteamCMD extension install failed: {e}", file=sys.stderr)
-        return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
+    # 정식으로 돌아갈 때도 브랜치 이름(public)을 적어 넘긴다: -beta 없이 받으면 받아 둔 브랜치에 머문다
+    result = install_for_module(MODULE_DIR, install_dir, beta=branch,
+                                executable="StartServer64.bat" if sys.platform == "win32" else "start-server.sh")
 
     if result.get("success"):
-        if sys.platform == "win32":
-            exe = os.path.join(install_dir, "StartServer64.bat")
-        else:
-            exe = os.path.join(install_dir, "start-server.sh")
-        result["install_path"] = install_dir
-        result["executable_path"] = exe if os.path.exists(exe) else ""
         settings_error = _write_initial_ini(config)
         if settings_error:
             return settings_error

@@ -826,7 +826,7 @@ def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_ext
     from palworld import lifecycle
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
         lifecycle.install_server({"install_dir": str(tmp_path / "server")})
-    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"))
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), executable=mock.ANY)
     assert _load_module_toml()["install"]["app_id"] == 2394010
     monkeypatch.delattr(extensions.steamcmd, "install_for_module")
     result = lifecycle.install_server({"install_dir": str(tmp_path / "server")})

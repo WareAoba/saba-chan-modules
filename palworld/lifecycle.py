@@ -773,26 +773,14 @@ def install_server(config):
     if not install_dir:
         return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-    os.makedirs(install_dir, exist_ok=True)
-
     try:
         from extensions.steamcmd import install_for_module
     except ImportError:
         return extension_required(i18n, "steamcmd")
-    try:
-        result = install_for_module(MODULE_DIR, install_dir)
-    except PathOutside:
-        raise
-    except Exception as e:
-        print(f"[Palworld] SteamCMD install failed: {e}", file=sys.stderr)
-        return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
+    result = install_for_module(MODULE_DIR, install_dir,
+                                executable="PalServer.exe" if sys.platform == "win32" else "PalServer.sh")
 
     if result.get("success"):
-        exe_name = "PalServer.exe" if sys.platform == "win32" else "PalServer.sh"
-        exe_path = str(safe_join(install_dir, exe_name))
-        result["install_path"] = install_dir
-        result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
-
         # 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성.
         # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
         # 기본 값 + 사바쨩이 정하는 원격 접속 값(module.toml [remote_access])을 미리 기록한다.

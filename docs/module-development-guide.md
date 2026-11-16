@@ -20,7 +20,7 @@
 
 ## 1. 통신 경로: STDIN → REST → RCON
 
-- 게임 명령은 전부 데몬을 거친다. 게임이 지원하는 것 중 **서버 콘솔(stdin)**을 먼저, 없으면 게임의 **REST API**, 둘 다 없을 때만 **RCON**을 쓴다. 다른 경로가 있으면 RCON은 쓰지 않는다(`supported`에 넣지 않는다).
+- 게임 명령은 전부 데몬을 거친다. 게임이 지원하는 것 중 **서버 콘솔(stdin)**을 먼저, 없으면 게임의 **REST API**, 둘 다 없을 때만 **RCON**을 쓴다. REST가 있으면 RCON은 `supported`에 넣지 않는다. 콘솔 게임이 RCON도 받으면 `supported = ["stdin", "rcon"]`과 `rcon_port`를 적는다: 데몬은 관리형 시작을 끈 인스턴스(콘솔이 없다)에만 RCON을 쓴다(02-modules.md §1.2 RCON 정책, minecraft·zomboid).
 - 콘솔이나 REST가 있는 게임에 RCON 설정이 있으면 모듈이 실행 전·설정 저장·첫 설치 때마다 **끈다**. 끄는 값은 코드에 적지 않고 module.toml `[remote_access]` 한 곳에 적는다(saba-core 0.1.14-beta.2). 공용 `remote_access_values(MODULE_DIR, config)`가 그 값을 주고 `enforce_remote_access`가 실행 전에 파일과 다른 값만 쓴다. 예: minecraft `[remote_access.rcon] off = { enable-rcon = "false" }`, palworld `forced = { RESTAPIEnabled = "True", RCONEnabled = "False" }`, zomboid는 `RCONPassword`를 비운다. 관리형 시작을 끈 콘솔 게임(stdin이 없다)만 데몬이 준 포트·비밀번호로 RCON을 켠다(`[remote_access.rcon] on`·`port`·`password`).
 - **RCON만 받는 게임**(`supported = ["rcon"]`): `[protocols] rcon_port`(게임의 기본 RCON 포트)가 필수다. 데몬이 처음 시작할 때 인스턴스마다 포트와 무작위 비밀번호를 정해 인스턴스 폴더 `rcon.json`에 두고, 모듈 config에 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 `get_launch_command`(또는 실행 전 준비)에서 이 값을 게임 설정에 쓰고, RCON을 127.0.0.1에서만 받게 한다. 데몬은 `127.0.0.1:<rcon_port>`에만 접속한다.
   - 콘솔 명령(`method = "console"`)과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 모듈이 RCON 소켓을 직접 열지 않는다.
@@ -434,7 +434,7 @@ PC 실측을 위해 설치된 데몬 파일을 바꿔 넣었다면, 바꾸기 �
 - [ ] `FUNCTIONS`에 만든 함수가 다 있고, 모든 실패가 종료 코드 0 + `success: false` + 이유
 - [ ] `python lifecycle.py functions`가 FUNCTIONS 표의 이름을 돌려준다(`run_lifecycle`이면 자동)
 - [ ] 로그는 stderr로만
-- [ ] 콘솔·REST가 있으면 RCON은 끄고 `supported`에 `"rcon"`이 없다. RCON만 받는 게임이면 `supported = ["rcon"]`, `rcon_port`, 데몬이 준 `rcon_port`·`rcon_password`를 게임 설정에 쓰고 127.0.0.1에서만 받는다
+- [ ] REST가 있으면 `supported`에 `"rcon"`이 없다. 콘솔 게임이 RCON도 받으면 `supported = ["stdin", "rcon"]`과 `rcon_port`를 적고, 관리형 시작이면 실행 전에 RCON을 끈다. RCON만 받는 게임이면 `supported = ["rcon"]`, `rcon_port`, 데몬이 준 `rcon_port`·`rcon_password`를 게임 설정에 쓰고 127.0.0.1에서만 받는다
 - [ ] 콘솔이 있으면 `stop_command`를 선언했다. `managed: true`의 `stop`은 저장·종료 요청 뒤 바로 반환한다. non-managed만 데몬이 준 시간만큼 기다린 뒤 필요하면 강제 종료한다
 - [ ] 정상 종료를 요청할 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 답한다. 프로세스는 데몬이 준 `pid`만 다룬다
 - [ ] 사용자 이름 조각은 `safe_join`으로 경로에 붙인다. 넓은 예외 처리에서도 `PathOutside`를 다시 던진다

@@ -14,7 +14,7 @@
 8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다. `read_properties`·`import_settings`는
    설정 이름만 돌려준다
 9. 콘솔 없는 서버의 일반 정지는 저장 후 종료를 요청하거나, 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 알린다
-10. `[protocols]`: rcon은 stdin·rest가 없을 때만, 그때 rcon_port
+10. `[protocols]`: rest가 있으면 rcon을 두지 않고, rcon을 두면 rcon_port
 """
 import ast
 import importlib.util

@@ -82,7 +82,6 @@ install_subdir = "server"
 requires_extensions = ["steamcmd"]
 
 [detection]
-process_patterns = ["ProjectZomboid64", "zombie.network.GameServer", "start-server"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Zomboid 서버를 식별하는 패턴
 # 같은 java.exe를 쓰는 다른 게임 서버(예: Minecraft)와 구분하기 위해 사용
 cmd_patterns = ["zombie.network.GameServer", "ProjectZomboid", "pzserver", "zomboid"]

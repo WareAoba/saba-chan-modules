@@ -353,16 +353,6 @@
             "type": "string"
           },
           "type": "array"
-        },
-        "process_patterns": {
-          "default": null,
-          "items": {
-            "type": "string"
-          },
-          "type": [
-            "array",
-            "null"
-          ]
         }
       },
       "type": "object"

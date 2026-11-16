@@ -82,7 +82,6 @@ install_subdir = "server"
 players = "player_count"
 
 [detection]
-process_patterns = ["java.exe", "java", "minecraft_server", "server.jar"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Minecraft 서버를 식별하는 패턴
 # 같은 java.exe를 쓰는 다른 게임 서버(예: Zomboid)와 구분하기 위해 사용
 cmd_patterns = ["server.jar", "minecraft_server", "nogui", "net.minecraft", "paper-", "purpur-", "folia-", "fabric-server-launch", "net.minecraftforge", "net.neoforged"]

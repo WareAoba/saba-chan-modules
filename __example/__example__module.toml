@@ -142,7 +142,6 @@ requires_extensions = ["steamcmd"]      # 필요한 익스텐션 목록
 #  이미 실행 중인 서버를 자동으로 찾기 위한 패턴입니다.
 #
 [detection]
-process_patterns = ["MyGameServer"]     # 프로세스 이름 패턴 (부분 일치)
 # cmd_patterns = ["zombie.network"]     # 커맨드라인 패턴 (같은 실행파일을 쓰는 게임 구분용)
 dir_signatures = ["MyGameServer.exe"]   # 이 파일들이 모두 있으면 해당 게임으로 판정
 # 서버가 끝났을 때 사용자가 끈 것인지, 크래시인지 가리는 데 씁니다 (크래시만 자동 재시작)

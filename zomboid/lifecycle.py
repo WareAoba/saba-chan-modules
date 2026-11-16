@@ -411,12 +411,13 @@ def _find_java(server_dir):
 
 
 def _heap_size(ram):
-    """설정한 메모리(GB 숫자) → JVM 크기 문자열("4g"). 비었으면 PC 메모리에 맞춘 자동값(공용 auto_heap_mb)"""
-    if ram is not None and str(ram).strip() != "":
-        try:
-            return f"{int(ram)}g"
-        except (ValueError, TypeError):
-            return "4g"
+    """설정한 메모리(GB 숫자) → JVM 크기 문자열("4g"). 비었거나 읽을 수 없으면 PC 메모리에 맞춘 자동값(공용 auto_heap_mb)"""
+    try:
+        gb = int(ram)
+    except (ValueError, TypeError):
+        gb = 0
+    if gb > 0:
+        return f"{gb}g"
     mb = auto_heap_mb()
     return f"{mb // 1024}g" if mb % 1024 == 0 else f"{mb}m"
 

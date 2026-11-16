@@ -176,7 +176,7 @@ def test_memory_size_values_pass_through_and_old_numbers_still_work():
     from minecraft.lifecycle import get_launch_command
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
-        for ram, want in [("4G", "-Xmx4G"), ("1024M", "-Xmx1024M"), (4, "-Xmx4G"), ("bad", "-Xmx2G")]:
+        for ram, want in [("4G", "-Xmx4G"), ("1024M", "-Xmx1024M"), (4, "-Xmx4G")]:
             result = get_launch_command({"server_executable": jar, "working_dir": tmpdir, "ram": ram})
             assert want in result["args"], (ram, result["args"])
 
@@ -2444,3 +2444,11 @@ def test_start_is_refused_when_the_rcon_policy_cannot_be_saved(tmp_path):
                                                "java_path": "java"})
     assert result["success"] is False
     assert result["message"] == lifecycle.i18n.t("errors.properties_write_failed")
+
+
+@pytest.mark.parametrize("ram", ["", "lots", "0", "-2"])
+def test_an_unreadable_memory_setting_falls_back_to_the_automatic_heap(ram, monkeypatch):
+    """메모리 설정을 읽을 수 없으면 비었을 때(module.toml 기본값 "")와 같은 자동 힙을 쓴다. zomboid도 같은 폴백이다"""
+    from minecraft import lifecycle
+    monkeypatch.setattr(lifecycle, "auto_heap_mb", lambda: 6 * 1024)
+    assert lifecycle._java_memory(ram) == "6G"

@@ -1365,3 +1365,11 @@ def test_an_unreadable_ini_is_an_error_not_empty_settings(tmp_path, monkeypatch)
 
     with pytest.raises(PermissionError):
         lifecycle.read_properties({"cache_dir": str(tmp_path)})
+
+
+@pytest.mark.parametrize("ram", ["", "lots", "0"])
+def test_an_unreadable_memory_setting_falls_back_to_the_automatic_heap(ram, monkeypatch):
+    """메모리 설정을 읽을 수 없으면 비었을 때(module.toml 기본값)와 같은 자동 힙을 쓴다. minecraft도 같은 폴백이다"""
+    from zomboid import lifecycle
+    monkeypatch.setattr(lifecycle, "auto_heap_mb", lambda: 6 * 1024)
+    assert lifecycle._heap_size(ram) == "6g"

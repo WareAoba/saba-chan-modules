@@ -157,19 +157,17 @@ def _resolve_server_jar(config):
 
 def _java_memory(value):
     """ram 설정 → Java 힙 크기. "4G"·"1024M"·"512k"는 그대로, 예전에 저장된 숫자(GB)는 G로
-    (소수는 M으로: 0.5 → 512M). 비었으면 PC에 맞춘 자동값(공용 auto_heap_mb), 읽을 수 없으면 2G"""
-    if value is None or str(value).strip() == "":
-        heap = auto_heap_mb()
-        return f"{heap // 1024}G" if heap % 1024 == 0 else f"{heap}M"
-    text = str(value).strip()
+    (소수는 M으로: 0.5 → 512M). 비었거나 읽을 수 없으면 PC에 맞춘 자동값(공용 auto_heap_mb, module.toml 기본값 "")"""
+    text = "" if value is None else str(value).strip()
     if re.fullmatch(r"\d+[KMGkmg]", text):
         return text
     try:
         gb = float(text)
     except (ValueError, TypeError):
-        return "2G"
+        gb = 0
     if gb <= 0:
-        return "2G"
+        heap = auto_heap_mb()
+        return f"{heap // 1024}G" if heap % 1024 == 0 else f"{heap}M"
     return f"{int(gb)}G" if gb == int(gb) else f"{int(gb * 1024)}M"
 
 

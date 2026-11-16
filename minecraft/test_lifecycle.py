@@ -2367,3 +2367,33 @@ def test_an_unreadable_properties_file_is_an_error_not_empty_settings(tmp_path, 
 
     with pytest.raises(PermissionError):
         read_properties({"working_dir": str(tmp_path)})
+
+
+@pytest.mark.parametrize(("function", "config"), [
+    ("list_versions", {}),
+    ("get_version_details", {"version": "1.21.11"}),
+    ("install_server", {"version": "1.21.11", "install_dir": "."}),
+])
+def test_version_lookup_without_network_answers_a_translated_error(function, config, tmp_path, monkeypatch):
+    """Mojang 버전 목록을 받지 못하면 예외(데몬의 module_exception, 영어)가 아니라 locales 문구의 실패로 답한다"""
+    import urllib.error
+    from minecraft import lifecycle
+    monkeypatch.chdir(tmp_path)
+    server_types = sys.modules[lifecycle.ServerInstaller.__module__].server_types
+    with mock.patch.object(server_types, "_get_json", side_effect=urllib.error.URLError("offline")):
+        result = lifecycle.FUNCTIONS[function](config)
+    head = lifecycle.i18n.t("errors.version_manifest_failed", error="\0").split("\0")[0]
+    assert result["success"] is False
+    assert result["message"].startswith(head) and "offline" in result["message"]
+
+
+def test_a_console_line_the_daemon_cannot_send_is_a_translated_error(monkeypatch):
+    """데몬이 콘솔 한 줄을 보내지 못하면 locales 문구로 답하고 데몬의 거절 코드는 그대로 싣는다"""
+    import daemon_rcon
+    from minecraft import lifecycle
+    error = ConnectionError("no console")
+    error.error_code = "no_command_path"
+    monkeypatch.setattr(daemon_rcon, "daemon_stdin_command", mock.Mock(side_effect=error))
+    result = lifecycle.FUNCTIONS["command"]({"command": "say hi", "instance_id": "x"})
+    assert result == {"success": False, "error_code": "no_command_path",
+                      "message": lifecycle.i18n.t("errors.command_send_failed", error="no console")}

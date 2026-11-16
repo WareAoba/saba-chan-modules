@@ -212,6 +212,8 @@
     "stop": { "label": "정지", "description": "월드를 저장하고 서버를 정지합니다" }
   },
   "errors": {
+    "version_manifest_failed": "Mojang 버전 정보 받기 실패: {{error}}",
+    "command_send_failed": "명령 전송 실패: {{error}}",
     "backup_paths_failed": "백업할 플러그인 폴더 읽기 실패: {{error}}",
     "server_not_running": "서버 실행 중 아님. 먼저 서버를 시작해 주세요.",
     "timeout": "서버 응답 시간 초과. 서버 상태를 확인해 주세요.",

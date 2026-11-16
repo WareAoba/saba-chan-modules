@@ -1083,7 +1083,8 @@ def command(config):
     except PathOutside:
         raise
     except Exception as e:
-        return {"success": False, "message": str(e), "error_code": getattr(e, "error_code", None)}
+        return {"success": False, "message": i18n.t("errors.command_send_failed", error=str(e)),
+                "error_code": getattr(e, "error_code", None)}
     data = reply.get("data") if isinstance(reply, dict) else None
     answer = str(data.get("response") or "").strip() if is_gamerule and isinstance(data, dict) else ""
     return {"success": True, "message": answer or line}
@@ -1215,7 +1216,10 @@ def list_versions(config):
             only = server_types.installable_versions(server_type)
         except Exception as e:
             print(f"Could not list the versions {server_type} offers: {e}", file=sys.stderr)
-    manifest = ServerInstaller.fetch_version_manifest()
+    try:
+        manifest = ServerInstaller.fetch_version_manifest()
+    except ConnectionError as e:
+        return _version_lookup_failed(e)
     latest = None
     if typed:
         releases = [v["id"] for v in ServerInstaller.list_versions(per_page=10, only=only, manifest=manifest)["versions"]]
@@ -1245,11 +1249,19 @@ def get_version_details(config):
     if not version_id:
         return {"success": False, "message": i18n.t("errors.no_version")}
 
-    details = ServerInstaller.get_version_details(version_id)
+    try:
+        details = ServerInstaller.get_version_details(version_id)
+    except ConnectionError as e:
+        return _version_lookup_failed(e)
     if not details:
         return {"success": False, "message": i18n.t("errors.version_not_found", version=version_id)}
 
     return {"success": True, **details}
+
+
+def _version_lookup_failed(error):
+    """Mojang 버전 목록·정보를 받지 못했을 때의 답"""
+    return {"success": False, "message": i18n.t("errors.version_manifest_failed", error=str(error))}
 
 
 def install_server(config):
@@ -1283,14 +1295,17 @@ def install_server(config):
     server_type = (settings.get("server_type") or config.get("server_type")
                    or server_types.detect(install_dir).get("type") or "vanilla")
 
-    return ServerInstaller.install_server(
-        version_id=version_id,
-        install_dir=install_dir,
-        jar_name=jar_name,
-        accept_eula=do_eula,
-        initial_settings=initial_settings,
-        server_type=server_type,
-    )
+    try:
+        return ServerInstaller.install_server(
+            version_id=version_id,
+            install_dir=install_dir,
+            jar_name=jar_name,
+            accept_eula=do_eula,
+            initial_settings=initial_settings,
+            server_type=server_type,
+        )
+    except ConnectionError as e:
+        return _version_lookup_failed(e)
 
 
 # plugins/ 안에서 백업에서 뺄 것: 플러그인이 다시 그릴 수 있는 지도 타일 (경로 조각, 대소문자 무시)

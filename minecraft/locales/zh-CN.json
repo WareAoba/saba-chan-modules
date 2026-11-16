@@ -182,6 +182,8 @@
     "stop": { "label": "停止", "description": "正常停止服务器" }
   },
   "errors": {
+    "version_manifest_failed": "无法从 Mojang 获取版本信息：{{error}}",
+    "command_send_failed": "命令发送失败：{{error}}",
     "backup_paths_failed": "读取要备份的插件文件夹失败:{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
     "timeout": "服务器响应超时。请检查服务器状态。",

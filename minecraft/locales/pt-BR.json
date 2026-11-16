@@ -182,6 +182,8 @@
     "stop": { "label": "Parar", "description": "Parar o servidor corretamente" }
   },
   "errors": {
+    "version_manifest_failed": "Falha ao obter as informações de versão da Mojang: {{error}}",
+    "command_send_failed": "Falha ao enviar o comando: {{error}}",
     "backup_paths_failed": "Falha ao ler a pasta de plugins para o backup: {{error}}",
     "server_not_running": "Servidor não iniciado. Inicie o servidor primeiro.",
     "timeout": "Tempo de resposta do servidor esgotado. Verifique o estado do servidor.",

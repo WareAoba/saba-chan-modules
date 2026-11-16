@@ -185,6 +185,8 @@
     "stop": { "label": "停止", "description": "サーバーを正常に停止します" }
   },
   "errors": {
+    "version_manifest_failed": "Mojangからバージョン情報を取得できませんでした: {{error}}",
+    "command_send_failed": "コマンドの送信に失敗しました: {{error}}",
     "backup_paths_failed": "バックアップ対象のプラグインフォルダー読み込み失敗: {{error}}",
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
     "timeout": "サーバー応答タイムアウト。サーバーの状態を確認してください。",

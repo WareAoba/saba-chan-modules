@@ -135,7 +135,10 @@ class ServerInstaller:
             return None
 
         # Fetch version-specific metadata
-        meta = server_types._get_json(version_entry["url"])
+        try:
+            meta = server_types._get_json(version_entry["url"])
+        except Exception as e:
+            raise ConnectionError(f"Failed to fetch version metadata: {e}")
 
         server_dl = meta.get("downloads", {}).get("server")
         if not server_dl:

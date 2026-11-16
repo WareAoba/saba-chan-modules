@@ -182,6 +182,7 @@
     "stop": { "label": "Detener", "description": "Detener el servidor correctamente" }
   },
   "errors": {
+    "list_read_failed": "Error al leer {{file}}: {{error}}",
     "version_manifest_failed": "Error al obtener la información de versiones de Mojang: {{error}}",
     "command_send_failed": "Error al enviar el comando: {{error}}",
     "backup_paths_failed": "Error al leer la carpeta de plugins para la copia: {{error}}",

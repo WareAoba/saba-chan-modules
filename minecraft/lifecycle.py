@@ -815,10 +815,13 @@ def read_lists(config):
     lists = {}
     for list_id, name in _PLAYER_LISTS:
         try:
-            with open(os.path.join(working_dir, name), encoding="utf-8") as f:
+            with open(os.path.join(working_dir, name), encoding="utf-8-sig") as f:
                 entries = json.load(f)
-        except (OSError, ValueError):
-            entries = []
+        except FileNotFoundError:
+            entries = []  # 한 번도 켜지 않은 서버
+        except (OSError, ValueError) as e:
+            # 빈 목록으로 답하면 명단이 비어 보이고, 그 상태로 고치면 원래 항목을 잃는다
+            return {"success": False, "message": i18n.t("errors.list_read_failed", file=name, error=str(e))}
         found = [_list_entry(e) for e in entries] if isinstance(entries, list) else []
         lists[list_id] = [e for e in found if e]
     return {"success": True, "lists": lists}

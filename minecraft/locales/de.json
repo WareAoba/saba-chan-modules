@@ -182,6 +182,7 @@
     "stop": { "label": "Stoppen", "description": "Server ordnungsgemäß stoppen" }
   },
   "errors": {
+    "list_read_failed": "{{file}} konnte nicht gelesen werden: {{error}}",
     "version_manifest_failed": "Abrufen der Versionsinformationen von Mojang fehlgeschlagen: {{error}}",
     "command_send_failed": "Senden des Befehls fehlgeschlagen: {{error}}",
     "backup_paths_failed": "Lesen des Plugin-Ordners für die Sicherung fehlgeschlagen: {{error}}",

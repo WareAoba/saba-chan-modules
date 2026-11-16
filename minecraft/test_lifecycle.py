@@ -1166,13 +1166,21 @@ def test_read_lists_reads_the_whitelist_ops_and_bans_the_server_keeps(tmp_path):
     assert before == {name: (tmp_path / name).read_bytes() for name in files}
 
 
-def test_read_lists_treats_missing_or_broken_files_as_empty(tmp_path):
-    """한 번도 켜지 않은 서버에는 목록 파일이 없다. 읽을 수 없는 파일도 빈 목록이다"""
+def test_read_lists_treats_missing_files_as_empty_and_reads_a_bom(tmp_path):
+    """한 번도 켜지 않은 서버에는 목록 파일이 없다(빈 목록). 메모장이 BOM을 붙여 저장한 파일도 읽는다"""
     from minecraft import lifecycle
-    (tmp_path / "ops.json").write_text("{not json", encoding="utf-8")
-    (tmp_path / "whitelist.json").write_text('[{"uuid": "x"}, "junk", {"name": "Notch"}]', encoding="utf-8")
+    (tmp_path / "whitelist.json").write_text('[{"uuid": "x"}, "junk", {"name": "Notch"}]', encoding="utf-8-sig")
     seen = lifecycle.read_lists({"working_dir": str(tmp_path)})
     assert seen == {"success": True, "lists": {"whitelist": [{"name": "Notch"}], "ops": [], "banned": []}}
+
+
+def test_read_lists_fails_on_a_list_file_it_cannot_read(tmp_path):
+    """깨진 목록 파일을 빈 목록 성공으로 답하면 화면에 명단이 비어 보이고, 그 상태로 고치면 원래 항목을 잃는다"""
+    from minecraft import lifecycle
+    (tmp_path / "ops.json").write_text("{not json", encoding="utf-8")
+    seen = lifecycle.read_lists({"working_dir": str(tmp_path)})
+    assert seen["success"] is False
+    assert "ops.json" in seen["message"]
 
 
 def test_reset_preview_lists_each_scope_and_a_world_only_reset_keeps_the_rest(tmp_path):

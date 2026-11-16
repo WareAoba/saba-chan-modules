@@ -193,6 +193,7 @@
     "stop": { "label": "Stop", "description": "Gracefully stop the server" }
   },
   "errors": {
+    "list_read_failed": "Failed to read {{file}}: {{error}}",
     "version_manifest_failed": "Failed to get version info from Mojang: {{error}}",
     "command_send_failed": "Failed to send the command: {{error}}",
     "backup_paths_failed": "Backup plugin folder read failed: {{error}}",

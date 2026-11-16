@@ -182,6 +182,7 @@
     "stop": { "label": "Arrêter", "description": "Arrêter le serveur proprement" }
   },
   "errors": {
+    "list_read_failed": "Échec de la lecture de {{file}} : {{error}}",
     "version_manifest_failed": "Échec de la récupération des informations de version depuis Mojang : {{error}}",
     "command_send_failed": "Échec de l'envoi de la commande : {{error}}",
     "backup_paths_failed": "Échec de la lecture du dossier des plugins à sauvegarder : {{error}}",

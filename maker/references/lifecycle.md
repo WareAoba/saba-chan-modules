@@ -41,7 +41,7 @@ saba-chan `docs/architecture/02-modules.md` §2.5(이름마다 처음 제공한 
 
 ## 설정 (앱에서 고친 값 = 서버가 기대하는 값)
 
-- `[[settings.fields]]` 이름 ↔ 게임 파일 키는 각 설정의 **`file_key` 한 곳**에 두고, `configure`/`import_settings`/`read_properties`가 공용 `settings_to_file`·`settings_from_file`로 같이 쓴다. 코드에 따로 표를 두지 않는다.
+- `[[settings.fields]]` 이름 ↔ 게임 파일 키는 각 설정의 **`file_key` 한 곳**에 두고, `configure`/`import_settings`/`read_properties`가 공용 `settings_to_file`·`settings_from_file`로 같이 쓴다. 코드에 따로 표를 두지 않는다. `read_properties`·`import_settings`는 설정 이름만 돌려준다(게임 파일 키·설정 화면에 없는 키는 넣지 않는다. CLI `properties set`이 그 이름으로 쓴다, 적합성 키트가 잰다).
 - **그 형식의 공식 문법으로 읽고 쓴다.** 예: Java `.properties`는 `\:`·`\=` 이스케이프와 줄 끝 `\` 이어짐이 있다. 단순 `split("=")` 파서는 왕복할 때 값을 망가뜨린다. 인코딩·줄바꿈·키 대소문자·불리언 표기(`true`/`True`/`1`)·숫자 형식·따옴표·목록 구분자는 공식 기본 파일의 표기를 따른다.
 - **인코딩을 가정하지 않는다.** 동봉 기본 파일의 실제 인코딩(`inspect_dist.py`)으로 읽고, 읽은 인코딩·줄바꿈 그대로 다시 쓴다. UTF-8로만 읽으면 레거시 코드페이지 파일(테라리아 Windows `serverconfig.txt`는 cp1252, 주석에 0x92)에서 시작·설정 저장·가져오기가 모두 실패한다. 테스트에는 공식 파일의 원래 바이트를 쓴다.
 - 파일의 다른 키·주석·순서는 그대로 두고 바뀐 키만 고친다. 실행 전용 설정(JVM 인자 등)은 게임 파일에 쓰지 않는다.

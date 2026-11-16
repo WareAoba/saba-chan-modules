@@ -211,7 +211,7 @@ data_roots = ["{data_dir}", "{home}/MyGame"]
 ### 설정 화면: configure / import_settings
 
 - 게임 설정 파일에 없는 값(실행 방식, 메모리, Java 경로, 실행 인자로만 쓰는 값)은 `group = "saba-chan"`으로 선언한다. 데몬이 이 값들을 `configure`에 넘기지 않으므로 게임 파일에 잘못 쓰일 일이 없다. 진입 파일은 config 최상위에서 읽는다.
-- `module.toml` `[[settings.fields]]`의 `name`과 게임 설정 파일의 키를 표 하나(`_KEY_MAP` 같은 dict)로 잇고, `configure`(사바쨩 → 파일)와 `import_settings`(파일 → 사바쨩) 모두 이 표를 쓴다. 키가 늘면 표에 한 줄만 더한다.
+- `module.toml` `[[settings.fields]]`의 `name`과 게임 설정 파일의 키는 각 설정의 `file_key` 한 곳에서 잇고, `configure`(사바쨩 → 파일)는 공용 `settings_to_file`, `read_properties`·`import_settings`(파일 → 사바쨩)는 `settings_from_file`을 쓴다. 읽기 둘은 설정 이름만 돌려준다(설정 화면에 없는 키는 넣지 않는다).
 - 파일에서 읽은 문자열은 `load_setting_types(MODULE_DIR)` + `coerce_setting(value, type)`으로 필드 타입에 맞춘다(비밀번호처럼 숫자로 보이는 문자열은 바꾸지 않는다).
 - 목록 값처럼 게임 형식이 따로 있는 값은 쓸 때 바꾼다. 예: palworld `_LIST_KEYS`가 `PALBOX, RepairBench`를 `("PALBOX","RepairBench")`로 쓴다.
 - RCON 설정은 여기서도 늘 끈다(§1): `props.update(remote_access_values(MODULE_DIR, config))`.

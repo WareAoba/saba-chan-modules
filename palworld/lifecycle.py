@@ -654,7 +654,16 @@ def reset_properties(config):
     if not os.path.isfile(ini_path):
         return {"success": False, "message": i18n.t("reset.not_found")}
 
-    ok = _write_option_settings(ini_path, _default_settings())
+    defaults = _default_settings()
+    # 포트와 REST 비밀번호는 이 서버의 값이다: 기본값으로 쓰면 데몬이 파일을 다시 읽어 인스턴스 포트까지 되돌려
+    # 다른 서버와 겹치고, 데몬이 REST에 붙이는 비밀번호가 맞지 않는다
+    for key, ini_key in (("port", "PublicPort"), ("rest_port", "RESTAPIPort")):
+        if config_value(config, key):
+            defaults[ini_key] = str(config_value(config, key))
+    admin_password = _read_admin_password_from_ini(config)
+    if admin_password:
+        defaults["AdminPassword"] = admin_password
+    ok = _write_option_settings(ini_path, defaults)
     return {
         "success": ok,
         "message": i18n.t("reset.settings_success") if ok else i18n.t("reset.settings_failed"),

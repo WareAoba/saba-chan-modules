@@ -1165,3 +1165,17 @@ def test_reset_writes_the_official_defaults_shipped_with_the_module(tmp_path):
     open(ini, "w", encoding="utf-8").write('[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName="mine",ExpRate=3.000000)\n')
     assert lifecycle.reset_properties({"working_dir": str(tmp_path)})["success"]
     assert lifecycle._parse_option_settings(ini) == _load_default_ini_props()
+
+
+def test_reset_keeps_this_servers_ports_and_admin_password(tmp_path):
+    """설정 초기화 뒤에도 이 서버의 포트(config port·rest_port)와 REST 비밀번호는 그대로다. 기본값 8211·8212로 쓰면
+    데몬이 파일을 다시 읽어 인스턴스 포트까지 되돌리고, 같은 PC의 다른 Palworld 서버와 겹친다"""
+    from palworld import lifecycle
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    os.makedirs(os.path.dirname(ini))
+    open(ini, "w", encoding="utf-8").write('[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName="mine",'
+                                            'PublicPort=8300,RESTAPIPort=8301,AdminPassword="secret",ExpRate=3.000000)\n')
+    assert lifecycle.reset_properties({"working_dir": str(tmp_path), "port": 8300, "rest_port": 8301})["success"]
+    props = lifecycle._parse_option_settings(ini)
+    assert (props["PublicPort"], props["RESTAPIPort"], props["AdminPassword"]) == ("8300", "8301", "secret")
+    assert props["ExpRate"] == _load_default_ini_props()["ExpRate"]

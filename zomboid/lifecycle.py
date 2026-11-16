@@ -18,26 +18,18 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 from i18n import I18n
 
 import daemon_rcon
-from daemon_rcon import (PathOutside, safe_join, auto_heap_mb, daemon_stdin_command, enforce_remote_access, extension_required,
-                         graceful_stop, java_release_major, list_dir, rcon_access, read_key_values, remote_access_values,
-                         request_console, request_terminate,
-                         delete_paths, setting_defaults_to_file, stop_command,
+from daemon_rcon import (COMPACT_OBJECT_HEADERS, PathOutside, safe_join, safe_name, daemon_stdin_command, enforce_remote_access,
+                         graceful_stop, java_heap, java_release_major, list_dir, load_extension, player_capacity, rcon_access,
+                         read_key_values, remote_access_values, request_console, request_terminate,
+                         delete_paths, setting_default, setting_defaults_to_file, stop_command,
                          settings_from_file, settings_to_file, update_key_values)
 
 i18n = I18n(MODULE_DIR)
 
 
-def _setting_default(name):
-    """설정 기본값. 기본값은 module.toml 한 곳에만 둔다"""
-    import tomllib
-    with open(os.path.join(MODULE_DIR, "module.toml"), "rb") as f:
-        fields = tomllib.loads(f.read().decode("utf-8-sig")).get("settings", {}).get("fields", [])
-    return next((f.get("default") for f in fields if f.get("name") == name), None)
-
-
 def _server_name(config):
     """서버 이름 (-servername). 칸을 비우면 module.toml 기본값(PZ 기본 프로필 servertest)"""
-    return str(config.get("server_name") or _setting_default("server_name"))
+    return str(config.get("server_name") or setting_default(MODULE_DIR, "server_name"))
 
 
 def _cache_dir(config):
@@ -410,27 +402,12 @@ def _find_java(server_dir):
     return None
 
 
-def _heap_size(ram):
-    """설정한 메모리(GB 숫자) → JVM 크기 문자열("4g"). 비었거나 읽을 수 없으면 PC 메모리에 맞춘 자동값(공용 auto_heap_mb)"""
-    try:
-        gb = int(ram)
-    except (ValueError, TypeError):
-        gb = 0
-    if gb > 0:
-        return f"{gb}g"
-    mb = auto_heap_mb()
-    return f"{mb // 1024}g" if mb % 1024 == 0 else f"{mb}m"
-
-
-_COH_FLAG = "-XX:+UseCompactObjectHeaders"
-
-
 def _coh_flags(java_path, flags):
     """동봉 JRE가 Java 25 이상이면 Compact Object Headers(JEP 519, 힙 절약)를 켠다. 스크립트가 이미 정했으면 그대로 둔다"""
     java_home = os.path.dirname(os.path.dirname(java_path))
     if any("CompactObjectHeaders" in f for f in flags) or java_release_major(java_home) < 25:
         return []
-    return [_COH_FLAG]
+    return [COMPACT_OBJECT_HEADERS]
 
 
 # 게임 공식 실행 스크립트의 JVM 인자 (메모리·GC·라이브러리 경로 말고)
@@ -450,7 +427,7 @@ def _is_jvm_arg(arg):
 
 def _managed_jvm_arg(arg):
     """사바쨩이 정하는 JVM 인자: 공식 스크립트 인자, 메모리, GC, 라이브러리 경로, 데이터 폴더, Compact Object Headers"""
-    return (arg in _OFFICIAL_JVM_FLAGS or arg == "-Dzomboid.steam=0" or arg == _COH_FLAG
+    return (arg in _OFFICIAL_JVM_FLAGS or arg == "-Dzomboid.steam=0" or arg == COMPACT_OBJECT_HEADERS
             or arg.startswith(("-Xms", "-Xmx", "-Djava.library.path=", "-Ddeployment.user.cachedir="))
             or bool(re.fullmatch(r"-XX:\+Use\w+GC|-XX:[+-]ZGenerational", arg)))
 
@@ -609,7 +586,8 @@ def get_launch_command(config):
         return {"success": False, "message": i18n.t("errors.no_server_dir")}
     
     # 사용자 설정값. 비었으면 PC에 맞춘 자동값
-    heap = _heap_size(config.get("ram"))
+    # 설정 ram은 GB 숫자. 비었거나 읽을 수 없으면 PC 메모리에 맞춘 자동값 (minecraft와 같은 공용 java_heap)
+    heap = java_heap(config.get("ram"))
     server_name = _server_name(config)
     preview = bool(config.get("preview"))  # 미리보기는 파일·폴더를 만들거나 고치지 않는다
     if not preview:
@@ -841,7 +819,7 @@ def _only_profile(home):
         names = [f[:-4] for f in os.listdir(os.path.join(home, "Server")) if f.lower().endswith(".ini")]
     except OSError:
         return None
-    return names[0] if len(names) == 1 and names[0] != _setting_default("server_name") else None
+    return names[0] if len(names) == 1 and names[0] != setting_default(MODULE_DIR, "server_name") else None
 
 
 def import_settings(config):
@@ -858,7 +836,7 @@ def import_settings(config):
         profile = _only_profile(_zomboid_home(config))
         if profile:
             found["server_name"] = config["server_name"] = profile
-    if "server_name" in found and not _plain_server_name(found["server_name"]):
+    if "server_name" in found and not safe_name(found["server_name"]):
         # 스크립트의 이름이 프로필 폴더 밖을 가리키면 그 이름은 쓰지 않는다
         found.pop("server_name")
         config.pop("server_name", None)
@@ -957,12 +935,8 @@ _PLAYERS_HEAD_RE = re.compile(r"Players connected \((\d+)\)")
 def player_count(config):
     """접속자 (module.toml [status] players). 1분 갱신(players_detail 없음)에는 콘솔·RCON에 묻지 않는다:
     수는 데몬이 접속·퇴장 줄로 센다. 사용자가 목록을 물을 때만 `players`를 한 번 보낸다"""
-    try:
-        max_players = int(config.get("max_players") or 0)
-    except (TypeError, ValueError):
-        max_players = 0
     if not config.get("players_detail"):
-        return {"success": True, "max": max_players} if max_players else {"success": True}
+        return player_capacity(config)
     try:
         reply = daemon_stdin_command(config.get("instance_id", ""), "players", timeout=5)
     except PathOutside:
@@ -982,9 +956,7 @@ def player_count(config):
             if not rest.startswith("-"):
                 break
             names.append(rest[1:].strip())
-        result = {"success": True, "online": online}
-        if max_players:
-            result["max"] = max_players
+        result = {**player_capacity(config), "online": online}
         if len(names) == online:
             result["players"] = [{"name": n} for n in names]
         return result
@@ -1030,13 +1002,12 @@ def install_server(config):
         return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     # app_id는 module.toml [install]. 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하게 답한다
-    try:
-        from extensions.steamcmd import install_for_module
-    except ImportError:
-        return extension_required(i18n, "steamcmd")
+    steamcmd, missing = load_extension(i18n, "steamcmd")
+    if missing:
+        return missing
     # 정식으로 돌아갈 때도 브랜치 이름(public)을 적어 넘긴다: -beta 없이 받으면 받아 둔 브랜치에 머문다
-    result = install_for_module(MODULE_DIR, install_dir, beta=branch,
-                                executable="StartServer64.bat" if sys.platform == "win32" else "start-server.sh")
+    result = steamcmd.install_for_module(MODULE_DIR, install_dir, beta=branch,
+                                         executable="StartServer64.bat" if sys.platform == "win32" else "start-server.sh")
 
     if result.get("success"):
         settings_error = _write_initial_ini(config)
@@ -1063,18 +1034,13 @@ def _write_initial_ini(config):
         return {"success": False, "error_code": "settings_write_failed", "message": i18n.t("errors.settings_write_failed", error=str(e))}
 
 
-def _plain_server_name(name):
-    """폴더 하나를 가리키는 서버 이름인가: 구분자·'..'·드라이브(C:)가 없고, Windows가 잘라 내는 끝 공백·점이 없다"""
-    return bool(name) and name not in (".", "..") and not any(sep in name for sep in ("/", "\\", ":")) and name[-1] not in " ."
-
-
 def _reset_world_dir(config):
     """초기화가 지우는 이 서버의 월드 폴더 `<data folder>/Saves/Multiplayer/{servername}`. 이름이 안전하지 않으면 실패 응답(dict)"""
     server_name = _server_name(config)
     multiplayer = os.path.join(_zomboid_home(config), "Saves", "Multiplayer")
     saves_dir = os.path.join(multiplayer, server_name)
     # 이 서버의 월드 폴더 하나만 지운다 (이름에 구분자·'..'·드라이브(C:)가 있거나, Windows가 잘라 내는 끝 공백·점이 있으면 다른 서버의 월드까지 지울 수 있다)
-    if not _plain_server_name(server_name) or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
+    if not safe_name(server_name) or os.path.dirname(os.path.abspath(saves_dir)) != os.path.abspath(multiplayer):
         return {"success": False, "message": i18n.t("errors.invalid_server_name", name=server_name)}
     return str(safe_join(_zomboid_home(config), "Saves", "Multiplayer", server_name))
 

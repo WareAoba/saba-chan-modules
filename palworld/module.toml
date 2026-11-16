@@ -12,7 +12,7 @@ log_pattern = '(?P<level>Info|Warning|Error|Fatal|Debug)'
 
 [module.dependencies]
 # -0이 있어야 0.1.13-beta.N·rc.N 데몬도 받는다
-saba-core = ">=0.1.14-beta.2"
+saba-core = ">=0.1.14-beta.4"
 ext-steamcmd = ">=0.1.11"  # install_for_module이 install_path·executable_path를 붙인다
 ext-ue4-ini = ">=0.1.12"  # parse·write_option_settings가 섹션을 받는다
 

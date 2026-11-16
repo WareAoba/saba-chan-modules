@@ -247,7 +247,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 - `[install] method = "download"`: 모듈의 `list_versions` / `install_server`가 내려받는다(minecraft).
   - `install_server`는 config `install_dir`에 `server_executable`(받을 실행 파일 이름, 요청이 없으면 `[config] server_executable`)로 둔다. `get_installed_version`은 시작·점검과 같은 config(`server_executable` 전체 경로, `working_dir`)를 받는다.
 - `method = "steamcmd"` 같은 익스텐션 방식: 익스텐션이 설치를 맡고, 모듈은 `[install] requires_extensions`와 `[module.dependencies] ext-<id>`로 필요를 선언한다(zomboid, palworld).
-- 익스텐션은 `import extensions.<이름>`으로 쓰되 함수 안에서 import하고, 없으면 죽지 말고 `error_code: "extension_required"`, `missing_extensions: [...]`로 답한다(palworld `ExtensionMissing`).
+- 익스텐션은 함수 안에서 공용 `load_extension(i18n, "<id>")`로 불러오고, 없으면 죽지 말고 그 답(`error_code: "extension_required"`, `missing_extensions: [...]`)을 돌려준다(palworld `ExtensionMissing`).
 - 첫 설치에서 사용자가 고른 설정을 게임 파일에 쓰지 못하면 `success: false`, `error_code: "settings_write_failed"`, `message`로 답한다. 파일만 설치됐다고 성공으로 답하지 않는다.
 - 배포물에 여러 OS 폴더가 있으면 OS 폴더 이름으로 고른다. 실행 파일 이름 일치, 경로 길이, 첫 항목으로 고르지 않는다. 고른 폴더가 없거나 둘 이상이면 실패로 답한다.
 - 기존 설정·월드를 덮지 않는다. 동봉 예시 설정은 없을 때만 푼다.

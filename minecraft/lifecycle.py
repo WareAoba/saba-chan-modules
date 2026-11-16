@@ -23,9 +23,9 @@ from installer import ServerInstaller
 from java import JavaDetector, JavaDownloader, required_java
 from properties import EulaManager, ServerPropertiesManager, _default_properties
 import daemon_rcon
-from daemon_rcon import (PathOutside, auto_heap_mb, enforce_remote_access, graceful_stop, is_process_alive, rcon_access,
-                         request_console, request_terminate, safe_join, setting_file_keys, settings_from_file,
-                         settings_to_file, chat_reply, delete_paths, stop_command)
+from daemon_rcon import (COMPACT_OBJECT_HEADERS, PathOutside, enforce_remote_access, graceful_stop, is_process_alive, java_heap,
+                         rcon_access, request_console, request_terminate, safe_join, safe_name, setting_file_keys,
+                         settings_from_file, settings_to_file, chat_reply, delete_paths, stop_command)
 
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -155,22 +155,6 @@ def _resolve_server_jar(config):
     return jar
 
 
-def _java_memory(value):
-    """ram 설정 → Java 힙 크기. "4G"·"1024M"·"512k"는 그대로, 예전에 저장된 숫자(GB)는 G로
-    (소수는 M으로: 0.5 → 512M). 비었거나 읽을 수 없으면 PC에 맞춘 자동값(공용 auto_heap_mb, module.toml 기본값 "")"""
-    text = "" if value is None else str(value).strip()
-    if re.fullmatch(r"\d+[KMGkmg]", text):
-        return text
-    try:
-        gb = float(text)
-    except (ValueError, TypeError):
-        gb = 0
-    if gb <= 0:
-        heap = auto_heap_mb()
-        return f"{heap // 1024}G" if heap % 1024 == 0 else f"{heap}M"
-    return f"{int(gb)}G" if gb == int(gb) else f"{int(gb * 1024)}M"
-
-
 def _heap_mb(size):
     """"4G"·"1024M"·"512K" → MB"""
     number, unit = int(size[:-1]), size[-1].upper()
@@ -209,8 +193,6 @@ _LARGE_FLAGS = [f"{name}={_LARGE_HEAP_VALUES[name]}" if name in _LARGE_HEAP_VALU
                 for flag in _AIKAR_FLAGS for name in [flag.split("=")[0]]]
 # 설정 java_gc = zgc: 세대별 ZGC (JEP 439, Java 21에서 -XX:+ZGenerational, 23부터 기본 JEP 474). 그 전 Java는 G1 프로필로
 _ZGC_FLAGS = ["-XX:+UseZGC", "-XX:+AlwaysPreTouch", "-XX:+DisableExplicitGC", "-XX:+PerfDisableSharedMem"]
-# Compact Object Headers: Java 25에서 정식 기능 (JEP 519), 27부터 기본
-_COH_FLAG = "-XX:+UseCompactObjectHeaders"
 
 
 def _java_tuning(config, ram, java_major, user_args):
@@ -237,7 +219,7 @@ def _java_tuning(config, ram, java_major, user_args):
     else:
         flags = [f"-Xmx{ram}", f"-Xms{ram}", *([] if user_gc else _AIKAR_FLAGS)]
     if java_major >= 25:
-        flags.append(_COH_FLAG)
+        flags.append(COMPACT_OBJECT_HEADERS)
     return flags
 
 
@@ -417,7 +399,7 @@ def _option_name(arg):
     return re.sub(r"^-XX:[+-]", "-XX:", arg.split("=", 1)[0])
 
 
-_MANAGED_OPTIONS = {_option_name(f) for f in [*_AIKAR_FLAGS, *_LARGE_FLAGS, *_ZGC_FLAGS, _PERIODIC_GC_FLAG, _COH_FLAG,
+_MANAGED_OPTIONS = {_option_name(f) for f in [*_AIKAR_FLAGS, *_LARGE_FLAGS, *_ZGC_FLAGS, _PERIODIC_GC_FLAG, COMPACT_OBJECT_HEADERS,
                                               "-XX:+ZGenerational", *_CONSOLE_FLAGS, *_AIKAR_MARKERS]} - _UNLOCK_OPTIONS
 
 
@@ -498,7 +480,8 @@ def get_launch_command(config):
     """데몬이 띄울 서버 실행 명령"""
     java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
-    ram = _java_memory(config.get("ram"))
+    # 크기 단위가 붙은 값, 예전에 GB 숫자로 저장된 값, 비면 PC에 맞춘 자동값 (module.toml 기본값 "", 공용 java_heap)
+    ram = java_heap(config.get("ram"))
     working_dir = config.get("working_dir")
     extra_jvm_args = config.get("jvm_args", [])
 
@@ -719,7 +702,7 @@ def _reset_world_paths(config, props, working_path, keep):
     남길 항목과 겹치면 None"""
     name = props.get("level-name", "") or str(config.get("level_name") or "") or "world"
     parts = re.split(r"[\\/]", name)
-    if os.path.isabs(name) or any(p in ("", ".", "..") or ":" in p or p[-1] in " ." for p in parts):
+    if os.path.isabs(name) or not all(safe_name(p) for p in parts):
         return None
     if parts[0].casefold() in keep or parts[0].casefold().endswith(".jar"):
         return None

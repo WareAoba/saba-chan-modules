@@ -2446,9 +2446,3 @@ def test_start_is_refused_when_the_rcon_policy_cannot_be_saved(tmp_path):
     assert result["message"] == lifecycle.i18n.t("errors.properties_write_failed")
 
 
-@pytest.mark.parametrize("ram", ["", "lots", "0", "-2"])
-def test_an_unreadable_memory_setting_falls_back_to_the_automatic_heap(ram, monkeypatch):
-    """메모리 설정을 읽을 수 없으면 비었을 때(module.toml 기본값 "")와 같은 자동 힙을 쓴다. zomboid도 같은 폴백이다"""
-    from minecraft import lifecycle
-    monkeypatch.setattr(lifecycle, "auto_heap_mb", lambda: 6 * 1024)
-    assert lifecycle._java_memory(ram) == "6G"

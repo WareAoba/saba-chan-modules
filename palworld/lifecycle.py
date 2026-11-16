@@ -10,16 +10,9 @@ import traceback
 from i18n import I18n
 
 import daemon_rcon
-from daemon_rcon import (PathOutside, chat_reply, coerce_setting, config_value, daemon_rest, enforce_remote_access, extension_required,
-                         format_setting, graceful_stop, list_dir, load_setting_types, remote_access_values, safe_join, setting_file_keys)
-
-
-# UE4 INI parser (ue4-ini extension). Without it the module still answers;
-# functions that touch PalWorldSettings.ini return extension_required.
-try:
-    from extensions.ue4_ini import parse_option_settings, write_option_settings
-except ImportError:
-    parse_option_settings = write_option_settings = None
+from daemon_rcon import (PathOutside, chat_reply, coerce_setting, config_value, daemon_rest, enforce_remote_access,
+                         format_setting, graceful_stop, list_dir, load_extension, load_setting_types, player_capacity,
+                         remote_access_values, safe_join, setting_file_keys)
 
 # Initialize i18n
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -298,20 +291,12 @@ def _rest_client(config):
     return PalworldRestClient(instance_id)
 
 
-def _int_or_none(value):
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
-
 def player_count(config):
     """접속자 수 (module.toml [status] players). 데몬이 켜진 서버에 1분마다 부른다.
     1분 갱신(players_detail 없음)에는 REST를 부르지 않는다: 부를 때마다 서버 로그에 `REST accessed endpoint` 줄이 남는다.
     그때 수는 데몬이 접속·퇴장 줄로 센다(player_join/leave_patterns). 최대 인원만 알려 준다"""
     if not config.get("players_detail"):
-        max_players = _int_or_none(config_value(config, "max_players", None))
-        return {"success": True, "max": max_players} if max_players else {"success": True}
+        return player_capacity(config)
     client = _rest_client(config)
     if client is None:
         return {"success": False, "message": i18n.t("errors.player_list_failed", error="AdminPassword")}
@@ -392,11 +377,20 @@ def _get_settings_ini_path(config):
     return ini_path
 
 
-# UE4 INI parse/write delegated to extensions.ue4_ini
 class ExtensionMissing(Exception):
-    def __init__(self, extension):
-        super().__init__(extension)
-        self.extension = extension
+    """익스텐션이 없거나 꺼져 있다. reply는 공용 `extension_required` 답 (FUNCTIONS 감싸기가 그대로 돌려준다)"""
+
+    def __init__(self, reply):
+        super().__init__(reply["message"])
+        self.reply = reply
+
+
+def _ue4_ini():
+    """PalWorldSettings.ini를 읽고 쓰는 ue4-ini 익스텐션. 없어도 모듈은 답하고, INI를 만지는 함수만 extension_required로 답한다"""
+    ue4_ini, missing = load_extension(i18n, "ue4-ini")
+    if missing:
+        raise ExtensionMissing(missing)
+    return ue4_ini
 
 
 # PalWorldSettings.ini에서 설정이 든 섹션
@@ -404,9 +398,7 @@ _SECTION = "[/Script/Pal.PalGameWorldSettings]"
 
 
 def _parse_option_settings(ini_path):
-    if parse_option_settings is None:
-        raise ExtensionMissing("ue4-ini")
-    return parse_option_settings(ini_path, _SECTION)
+    return _ue4_ini().parse_option_settings(ini_path, _SECTION)
 
 
 def _option_line_unreadable(ini_path):
@@ -421,13 +413,12 @@ def _option_line_unreadable(ini_path):
 
 
 def _write_option_settings(ini_path, props):
-    if write_option_settings is None:
-        raise ExtensionMissing("ue4-ini")
+    ue4_ini = _ue4_ini()
     # 값 모양이 아니라 module.toml 필드 종류로 따옴표를 정한다: 숫자뿐인 비밀번호도 문자열, 열거형은 따옴표 없이
     keys, types = setting_file_keys(MODULE_DIR), load_setting_types(MODULE_DIR)
     quoted = {k for name, k in keys.items() if types.get(name) in ("text", "password")} - set(_LIST_KEYS)
     bare = {k for name, k in keys.items() if types.get(name) == "select"} | set(_LIST_KEYS)
-    return write_option_settings(ini_path, props, _SECTION, quoted_keys=quoted, bare_keys=bare)
+    return ue4_ini.write_option_settings(ini_path, props, _SECTION, quoted_keys=quoted, bare_keys=bare)
 
 
 def validate(config):
@@ -773,12 +764,11 @@ def install_server(config):
     if not install_dir:
         return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-    try:
-        from extensions.steamcmd import install_for_module
-    except ImportError:
-        return extension_required(i18n, "steamcmd")
-    result = install_for_module(MODULE_DIR, install_dir,
-                                executable="PalServer.exe" if sys.platform == "win32" else "PalServer.sh")
+    steamcmd, missing = load_extension(i18n, "steamcmd")
+    if missing:
+        return missing
+    result = steamcmd.install_for_module(MODULE_DIR, install_dir,
+                                         executable="PalServer.exe" if sys.platform == "win32" else "PalServer.sh")
 
     if result.get("success"):
         # 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성.
@@ -907,7 +897,7 @@ def _answering_missing_extension(fn):
         try:
             return fn(config)
         except ExtensionMissing as e:
-            return extension_required(i18n, e.extension)
+            return e.reply
     return call
 
 

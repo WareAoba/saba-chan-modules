@@ -828,7 +828,7 @@ def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_ext
         lifecycle.install_server({"install_dir": str(tmp_path / "server")})
     install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), executable=mock.ANY)
     assert _load_module_toml()["install"]["app_id"] == 2394010
-    monkeypatch.delattr(extensions.steamcmd, "install_for_module")
+    monkeypatch.setitem(sys.modules, "extensions.steamcmd", None)
     result = lifecycle.install_server({"install_dir": str(tmp_path / "server")})
     assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]
 

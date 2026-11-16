@@ -602,11 +602,11 @@ def test_admin_password_is_only_passed_before_the_server_database_exists(tmp_pat
 
 def test_steamcmd_extension_import_failure_does_not_search_for_an_executable(monkeypatch):
     import subprocess
+    import sys
     from zomboid import lifecycle
-    import extensions.steamcmd
 
     # 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하도록 extension_required로 답한다
-    monkeypatch.delattr(extensions.steamcmd, "install_for_module", raising=False)
+    monkeypatch.setitem(sys.modules, "extensions.steamcmd", None)
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
 
     result = lifecycle.install_server({"install_dir": "server", "settings": {}})
@@ -1123,7 +1123,7 @@ def _launchable_server(tmp_path, monkeypatch, java_version=None):
     return server
 
 
-@pytest.mark.parametrize("host_gb, heap", [(None, "8g"), (32, "8g"), (9.5, "8g"), (9, "4g"), (5.5, "4g"), (5, "3584m"), (3, "2g")])
+@pytest.mark.parametrize("host_gb, heap", [(None, "8G"), (32, "8G"), (9.5, "8G"), (9, "4G"), (5.5, "4G"), (5, "3584M"), (3, "2G")])
 def test_empty_memory_is_sized_for_this_pc(tmp_path, monkeypatch, host_gb, heap):
     """메모리를 비우면 데몬이 넘긴 PC 메모리로 정한다: 8G, PC 몫 1.5GB를 못 남기면 4G, 그것도 안 되면 PC − 1.5GB (2G 아래로는 안 내린다)"""
     from zomboid import lifecycle
@@ -1145,7 +1145,7 @@ def test_set_memory_is_used_as_is(tmp_path, monkeypatch):
 
     args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 12, "preview": True})["args"]
 
-    assert "-Xmx12g" in args
+    assert "-Xmx12G" in args
 
 
 @pytest.mark.parametrize("version, on", [("25.0.1", True), ("27", True), ("17.0.1", False), (None, False)])
@@ -1320,7 +1320,7 @@ def test_launch_drops_script_args_whose_variables_are_unknown(tmp_path, monkeypa
 
     assert not [a for a in args if "%" in a]
     assert "-adminusername" not in args
-    assert "-Dkeep=1" in args and "-Xmx6g" in args
+    assert "-Dkeep=1" in args and "-Xmx6G" in args
     assert args[args.index("-servername") + 1] == "pvp"
     assert args[args.index("-statistic") + 1] == "0"
 
@@ -1367,9 +1367,3 @@ def test_an_unreadable_ini_is_an_error_not_empty_settings(tmp_path, monkeypatch)
         lifecycle.read_properties({"cache_dir": str(tmp_path)})
 
 
-@pytest.mark.parametrize("ram", ["", "lots", "0"])
-def test_an_unreadable_memory_setting_falls_back_to_the_automatic_heap(ram, monkeypatch):
-    """메모리 설정을 읽을 수 없으면 비었을 때(module.toml 기본값)와 같은 자동 힙을 쓴다. minecraft도 같은 폴백이다"""
-    from zomboid import lifecycle
-    monkeypatch.setattr(lifecycle, "auto_heap_mb", lambda: 6 * 1024)
-    assert lifecycle._heap_size(ram) == "6g"

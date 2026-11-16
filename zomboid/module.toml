@@ -11,7 +11,7 @@ icon = "icon.png"
 log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
-saba-core = ">=0.1.14-beta.2"
+saba-core = ">=0.1.14-beta.4"
 ext-steamcmd = ">=0.1.11"  # install_for_module이 install_path·executable_path를 붙인다
 
 [permissions]

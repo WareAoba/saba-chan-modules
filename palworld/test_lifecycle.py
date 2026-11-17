@@ -80,6 +80,17 @@ def test_rest_connection_settings_are_declared_once_in_module_toml(tmp_path):
     assert lifecycle.get_credentials({"working_dir": str(tmp_path)}) == {"success": True, "rest_password": "from-setting"}
 
 
+def test_launch_takes_the_port_from_the_instance_only(tmp_path):
+    """게임 포트는 데몬이 준 인스턴스 포트로만 넘긴다. 없으면 `--port`를 붙이지 않아 게임이 PalWorldSettings.ini
+    PublicPort를 쓴다 (기본값 8211을 코드에 따로 두지 않는다)"""
+    from palworld import lifecycle
+    exe = tmp_path / "PalServer.exe"
+    exe.write_text("", encoding="utf-8")
+    base = {"server_executable": str(exe), "working_dir": str(tmp_path), "preview": True}
+    assert lifecycle.get_launch_command({**base, "port": 8300})["args"] == ["--port=8300"]
+    assert lifecycle.get_launch_command(base)["args"] == []
+
+
 def test_remote_access_values_are_declared_once_and_applied_at_every_step(tmp_path):
     """사바쨩이 정하는 원격 접속 값(REST 켜기, RCON 끄기)은 module.toml `[remote_access]` 한 곳에 있고,
     설정 저장·첫 설치·실행 전이 모두 그 값을 쓴다 (감사 A-02)"""
@@ -181,9 +192,8 @@ _EXPECTED_INTERNAL_ONLY_INI_KEYS = {"RCONEnabled", "RCONPort", "RESTAPIEnabled"}
 
 
 def _load_default_ini_props():
-    from extensions.ue4_ini import parse_option_settings
-    ini_path = os.path.join(MODULE_DIR, "DefaultPalWorldSettings.ini")
-    return parse_option_settings(ini_path)
+    from palworld import lifecycle
+    return lifecycle._parse_option_settings(os.path.join(MODULE_DIR, "DefaultPalWorldSettings.ini"))
 
 
 
@@ -366,6 +376,21 @@ def test_validate_accepts_daemon_server_executable_key(tmp_path):
     assert "NO_EXECUTABLE" not in codes and "EXECUTABLE_NOT_FOUND" not in codes
 
 
+def test_read_properties_answers_setting_names(tmp_path):
+    """read_properties도 import_settings처럼 설정 이름으로 답한다: CLI `properties show`에 보인 키를 `properties set`에 그대로 쓴다"""
+    from palworld.lifecycle import read_properties
+    platform_dir = "WindowsServer" if sys.platform == "win32" else "LinuxServer"
+    ini_dir = tmp_path / "Pal" / "Saved" / "Config" / platform_dir
+    ini_dir.mkdir(parents=True)
+    (ini_dir / "PalWorldSettings.ini").write_text(
+        "[/Script/Pal.PalGameWorldSettings]\n"
+        'OptionSettings=(ServerName="mine",ServerPlayerMaxNum=32,bIsPvP=True)\n', encoding="utf-8")
+    props = read_properties({"working_dir": str(tmp_path)})["properties"]
+    assert props["server_name"] == "mine"
+    assert props["max_players"] == 32
+    assert "ServerName" not in props
+
+
 def test_import_settings_keeps_string_fields(tmp_path):
     from palworld.lifecycle import import_settings
     platform_dir = "WindowsServer" if sys.platform == "win32" else "LinuxServer"
@@ -512,11 +537,12 @@ def test_reinstalling_for_an_update_keeps_the_users_settings(tmp_path, monkeypat
     install = str(tmp_path / "server")
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": install})["success"]
-        props = lifecycle.read_properties({"working_dir": install})["properties"]
+        ini = lifecycle._get_settings_ini_path({"working_dir": install})
+        props = lifecycle._parse_option_settings(ini)
         assert props["RESTAPIEnabled"] == "True", "a fresh install still gets the REST-enabled defaults"
         lifecycle.configure({"working_dir": install, "settings": {"server_name": "우리서버", "server_password": "secret"}})
         assert lifecycle.install_server({"install_dir": install})["success"]
-    props = lifecycle.read_properties({"working_dir": install})["properties"]
+    props = lifecycle._parse_option_settings(ini)
     assert props["ServerName"] == "우리서버"
     assert props["ServerPassword"] == "secret"
 
@@ -530,7 +556,7 @@ def test_a_new_server_starts_with_the_settings_chosen_when_creating_it(tmp_path,
     settings = {"server_name": "우리서버", "server_password": "secret", "max_players": 8, "managed_start": True}
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": True}):
         assert lifecycle.install_server({"install_dir": install, "settings": settings})["success"]
-    props = lifecycle.read_properties({"working_dir": install})["properties"]
+    props = lifecycle._parse_option_settings(lifecycle._get_settings_ini_path({"working_dir": install}))
     assert props["ServerName"] == "우리서버"
     assert props["ServerPassword"] == "secret"
     assert props["ServerPlayerMaxNum"] == "8"
@@ -800,9 +826,9 @@ def test_install_reads_the_steam_app_from_module_toml_and_asks_for_a_missing_ext
     from palworld import lifecycle
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
         lifecycle.install_server({"install_dir": str(tmp_path / "server")})
-    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"))
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), executable=mock.ANY)
     assert _load_module_toml()["install"]["app_id"] == 2394010
-    monkeypatch.delattr(extensions.steamcmd, "install_for_module")
+    monkeypatch.setitem(sys.modules, "extensions.steamcmd", None)
     result = lifecycle.install_server({"install_dir": str(tmp_path / "server")})
     assert result["error_code"] == "extension_required" and result["missing_extensions"] == ["steamcmd"]
 
@@ -1165,3 +1191,17 @@ def test_reset_writes_the_official_defaults_shipped_with_the_module(tmp_path):
     open(ini, "w", encoding="utf-8").write('[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName="mine",ExpRate=3.000000)\n')
     assert lifecycle.reset_properties({"working_dir": str(tmp_path)})["success"]
     assert lifecycle._parse_option_settings(ini) == _load_default_ini_props()
+
+
+def test_reset_keeps_this_servers_ports_and_admin_password(tmp_path):
+    """설정 초기화 뒤에도 이 서버의 포트(config port·rest_port)와 REST 비밀번호는 그대로다. 기본값 8211·8212로 쓰면
+    데몬이 파일을 다시 읽어 인스턴스 포트까지 되돌리고, 같은 PC의 다른 Palworld 서버와 겹친다"""
+    from palworld import lifecycle
+    ini = lifecycle._get_settings_ini_path({"working_dir": str(tmp_path)})
+    os.makedirs(os.path.dirname(ini))
+    open(ini, "w", encoding="utf-8").write('[/Script/Pal.PalGameWorldSettings]\nOptionSettings=(ServerName="mine",'
+                                            'PublicPort=8300,RESTAPIPort=8301,AdminPassword="secret",ExpRate=3.000000)\n')
+    assert lifecycle.reset_properties({"working_dir": str(tmp_path), "port": 8300, "rest_port": 8301})["success"]
+    props = lifecycle._parse_option_settings(ini)
+    assert (props["PublicPort"], props["RESTAPIPort"], props["AdminPassword"]) == ("8300", "8301", "secret")
+    assert props["ExpRate"] == _load_default_ini_props()["ExpRate"]

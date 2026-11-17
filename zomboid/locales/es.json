@@ -760,16 +760,6 @@
     "no_mappable_settings": "Ningún ajuste reconocido como ajuste del servidor",
     "command_sent": "Comando enviado a la consola: {{command}}"
   },
-  "rcon": {
-    "connecting": "Conectando a {{host}}:{{port}}...",
-    "connected": "¡Conectado!",
-    "authentication_failed": "Error de autenticación",
-    "authenticated": "¡Autenticado!",
-    "connection_failed": "Error de conexión: {{error}}",
-    "sending_command": "Enviando comando: {{command}}",
-    "response_received": "Respuesta recibida: {{response}}",
-    "command_failed": "El comando falló: {{error}}"
-  },
   "reset": {
     "label": "Restablecer mundo",
     "description": "Borra solo la partida del mundo y conserva los ajustes del servidor.",

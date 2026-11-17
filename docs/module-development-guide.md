@@ -20,7 +20,7 @@
 
 ## 1. 통신 경로: STDIN → REST → RCON
 
-- 게임 명령은 전부 데몬을 거친다. 게임이 지원하는 것 중 **서버 콘솔(stdin)**을 먼저, 없으면 게임의 **REST API**, 둘 다 없을 때만 **RCON**을 쓴다. 다른 경로가 있으면 RCON은 쓰지 않는다(`supported`에 넣지 않는다).
+- 게임 명령은 전부 데몬을 거친다. 게임이 지원하는 것 중 **서버 콘솔(stdin)**을 먼저, 없으면 게임의 **REST API**, 둘 다 없을 때만 **RCON**을 쓴다. REST가 있으면 RCON은 `supported`에 넣지 않는다. 콘솔 게임이 RCON도 받으면 `supported = ["stdin", "rcon"]`과 `rcon_port`를 적는다: 데몬은 관리형 시작을 끈 인스턴스(콘솔이 없다)에만 RCON을 쓴다(02-modules.md §1.2 RCON 정책, minecraft·zomboid).
 - 콘솔이나 REST가 있는 게임에 RCON 설정이 있으면 모듈이 실행 전·설정 저장·첫 설치 때마다 **끈다**. 끄는 값은 코드에 적지 않고 module.toml `[remote_access]` 한 곳에 적는다(saba-core 0.1.14-beta.2). 공용 `remote_access_values(MODULE_DIR, config)`가 그 값을 주고 `enforce_remote_access`가 실행 전에 파일과 다른 값만 쓴다. 예: minecraft `[remote_access.rcon] off = { enable-rcon = "false" }`, palworld `forced = { RESTAPIEnabled = "True", RCONEnabled = "False" }`, zomboid는 `RCONPassword`를 비운다. 관리형 시작을 끈 콘솔 게임(stdin이 없다)만 데몬이 준 포트·비밀번호로 RCON을 켠다(`[remote_access.rcon] on`·`port`·`password`).
 - **RCON만 받는 게임**(`supported = ["rcon"]`): `[protocols] rcon_port`(게임의 기본 RCON 포트)가 필수다. 데몬이 처음 시작할 때 인스턴스마다 포트와 무작위 비밀번호를 정해 인스턴스 폴더 `rcon.json`에 두고, 모듈 config에 `rcon_port`·`rcon_password`로 넘긴다. 모듈은 `get_launch_command`(또는 실행 전 준비)에서 이 값을 게임 설정에 쓰고, RCON을 127.0.0.1에서만 받게 한다. 데몬은 `127.0.0.1:<rcon_port>`에만 접속한다.
   - 콘솔 명령(`method = "console"`)과 정의에 없는 한 줄은 데몬이 RCON으로 보낸다. 모듈이 RCON 소켓을 직접 열지 않는다.
@@ -211,7 +211,7 @@ data_roots = ["{data_dir}", "{home}/MyGame"]
 ### 설정 화면: configure / import_settings
 
 - 게임 설정 파일에 없는 값(실행 방식, 메모리, Java 경로, 실행 인자로만 쓰는 값)은 `group = "saba-chan"`으로 선언한다. 데몬이 이 값들을 `configure`에 넘기지 않으므로 게임 파일에 잘못 쓰일 일이 없다. 진입 파일은 config 최상위에서 읽는다.
-- `module.toml` `[[settings.fields]]`의 `name`과 게임 설정 파일의 키를 표 하나(`_KEY_MAP` 같은 dict)로 잇고, `configure`(사바쨩 → 파일)와 `import_settings`(파일 → 사바쨩) 모두 이 표를 쓴다. 키가 늘면 표에 한 줄만 더한다.
+- `module.toml` `[[settings.fields]]`의 `name`과 게임 설정 파일의 키는 각 설정의 `file_key` 한 곳에서 잇고, `configure`(사바쨩 → 파일)는 공용 `settings_to_file`, `read_properties`·`import_settings`(파일 → 사바쨩)는 `settings_from_file`을 쓴다. 읽기 둘은 설정 이름만 돌려준다(설정 화면에 없는 키는 넣지 않는다).
 - 파일에서 읽은 문자열은 `load_setting_types(MODULE_DIR)` + `coerce_setting(value, type)`으로 필드 타입에 맞춘다(비밀번호처럼 숫자로 보이는 문자열은 바꾸지 않는다).
 - 목록 값처럼 게임 형식이 따로 있는 값은 쓸 때 바꾼다. 예: palworld `_LIST_KEYS`가 `PALBOX, RepairBench`를 `("PALBOX","RepairBench")`로 쓴다.
 - RCON 설정은 여기서도 늘 끈다(§1): `props.update(remote_access_values(MODULE_DIR, config))`.
@@ -247,7 +247,7 @@ inputs = [ { name = "message", type = "text", label = "Message", required = true
 - `[install] method = "download"`: 모듈의 `list_versions` / `install_server`가 내려받는다(minecraft).
   - `install_server`는 config `install_dir`에 `server_executable`(받을 실행 파일 이름, 요청이 없으면 `[config] server_executable`)로 둔다. `get_installed_version`은 시작·점검과 같은 config(`server_executable` 전체 경로, `working_dir`)를 받는다.
 - `method = "steamcmd"` 같은 익스텐션 방식: 익스텐션이 설치를 맡고, 모듈은 `[install] requires_extensions`와 `[module.dependencies] ext-<id>`로 필요를 선언한다(zomboid, palworld).
-- 익스텐션은 `import extensions.<이름>`으로 쓰되 함수 안에서 import하고, 없으면 죽지 말고 `error_code: "extension_required"`, `missing_extensions: [...]`로 답한다(palworld `ExtensionMissing`).
+- 익스텐션은 함수 안에서 공용 `load_extension(i18n, "<id>")`로 불러오고, 없으면 죽지 말고 그 답(`error_code: "extension_required"`, `missing_extensions: [...]`)을 돌려준다(palworld `ExtensionMissing`).
 - 첫 설치에서 사용자가 고른 설정을 게임 파일에 쓰지 못하면 `success: false`, `error_code: "settings_write_failed"`, `message`로 답한다. 파일만 설치됐다고 성공으로 답하지 않는다.
 - 배포물에 여러 OS 폴더가 있으면 OS 폴더 이름으로 고른다. 실행 파일 이름 일치, 경로 길이, 첫 항목으로 고르지 않는다. 고른 폴더가 없거나 둘 이상이면 실패로 답한다.
 - 기존 설정·월드를 덮지 않는다. 동봉 예시 설정은 없을 때만 푼다.
@@ -434,7 +434,7 @@ PC 실측을 위해 설치된 데몬 파일을 바꿔 넣었다면, 바꾸기 �
 - [ ] `FUNCTIONS`에 만든 함수가 다 있고, 모든 실패가 종료 코드 0 + `success: false` + 이유
 - [ ] `python lifecycle.py functions`가 FUNCTIONS 표의 이름을 돌려준다(`run_lifecycle`이면 자동)
 - [ ] 로그는 stderr로만
-- [ ] 콘솔·REST가 있으면 RCON은 끄고 `supported`에 `"rcon"`이 없다. RCON만 받는 게임이면 `supported = ["rcon"]`, `rcon_port`, 데몬이 준 `rcon_port`·`rcon_password`를 게임 설정에 쓰고 127.0.0.1에서만 받는다
+- [ ] REST가 있으면 `supported`에 `"rcon"`이 없다. 콘솔 게임이 RCON도 받으면 `supported = ["stdin", "rcon"]`과 `rcon_port`를 적고, 관리형 시작이면 실행 전에 RCON을 끈다. RCON만 받는 게임이면 `supported = ["rcon"]`, `rcon_port`, 데몬이 준 `rcon_port`·`rcon_password`를 게임 설정에 쓰고 127.0.0.1에서만 받는다
 - [ ] 콘솔이 있으면 `stop_command`를 선언했다. `managed: true`의 `stop`은 저장·종료 요청 뒤 바로 반환한다. non-managed만 데몬이 준 시간만큼 기다린 뒤 필요하면 강제 종료한다
 - [ ] 정상 종료를 요청할 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 답한다. 프로세스는 데몬이 준 `pid`만 다룬다
 - [ ] 사용자 이름 조각은 `safe_join`으로 경로에 붙인다. 넓은 예외 처리에서도 `PathOutside`를 다시 던진다

@@ -193,6 +193,9 @@
     "stop": { "label": "Stop", "description": "Gracefully stop the server" }
   },
   "errors": {
+    "list_read_failed": "Failed to read {{file}}: {{error}}",
+    "version_manifest_failed": "Failed to get version info from Mojang: {{error}}",
+    "command_send_failed": "Failed to send the command: {{error}}",
     "backup_paths_failed": "Backup plugin folder read failed: {{error}}",
     "server_not_running": "Server not running. Start the server first.",
     "timeout": "Server response timed out. Check the server status.",
@@ -268,16 +271,6 @@
   },
   "plugins": {
     "args_label": "Arguments"
-  },
-  "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}"
   },
   "reset": {
     "label": "Reset server",

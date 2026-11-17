@@ -11,8 +11,8 @@ icon = "icon.png"
 log_pattern = '^(?P<level>LOG|WARN|ERROR|DEBUG|FATAL)\s*:'
 
 [module.dependencies]
-saba-core = ">=0.1.14-beta.2"
-ext-steamcmd = ">=0.1.5"
+saba-core = ">=0.1.14-beta.4"
+ext-steamcmd = ">=0.1.11"  # install_for_module이 install_path·executable_path를 붙인다
 
 [permissions]
 network = true          # 서버 파일 내려받기, 포트 확인
@@ -34,7 +34,6 @@ off = { RCONPassword = "" }
 [config]
 # 큰 월드는 정지 때 저장이 30초(기본)를 넘는다: 저장 도중 강제 종료되지 않게
 stop_timeout = 120
-executable_path = ""
 server_executable = "StartServer64.bat"
 process_name = "java.exe"
 default_port = 16261

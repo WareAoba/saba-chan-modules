@@ -760,16 +760,6 @@
     "no_mappable_settings": "Aucun paramètre reconnu comme paramètre du serveur",
     "command_sent": "Commande envoyée à la console : {{command}}"
   },
-  "rcon": {
-    "connecting": "Connexion à {{host}}:{{port}}...",
-    "connected": "Connecté !",
-    "authentication_failed": "Échec de l'authentification",
-    "authenticated": "Authentifié !",
-    "connection_failed": "Échec de la connexion : {{error}}",
-    "sending_command": "Envoi de la commande : {{command}}",
-    "response_received": "Réponse reçue : {{response}}",
-    "command_failed": "Échec de la commande : {{error}}"
-  },
   "reset": {
     "label": "Réinitialiser le monde",
     "description": "Supprime seulement la sauvegarde du monde et conserve les paramètres du serveur.",

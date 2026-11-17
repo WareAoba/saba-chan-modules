@@ -11,11 +11,12 @@ saba-chan `docs/architecture/02-modules.md` §2.5(이름마다 처음 제공한 
 | `키=값` 설정 파일 | `read_key_values`, `update_key_values` (주석·순서·줄바꿈·인코딩을 지킨다) |
 | 정지 | `graceful_stop`, `request_console`, `request_terminate`, `stop_timeout` |
 | 내려받기·풀기 | `download`(`checksums=`, 틀리면 `ChecksumMismatch`), `safe_extract`, `progress` |
-| 경로 | `safe_join` (밖으로 나가면 `PathOutside`) |
+| 경로 | `safe_join` (밖으로 나가면 `PathOutside`), 사용자가 정한 이름(서버·월드·파일)은 먼저 `safe_name`(한 단계 조각인지, 0.1.14-beta.4) |
 | 로그 진단 | `diagnose_log(config, MODULE_DIR, i18n)` 한 줄(0.1.14-beta.2: `log_lines` → `files=` → `[launch] diagnose_files`). 그 아래 조각은 `load_diagnose_rules`, `diagnose_lines`, `tail_lines` |
 | 사바쨩이 정하는 RCON·REST 값 | `remote_access_values`, `enforce_remote_access`, `rcon_access` (module.toml `[remote_access]`, 0.1.14-beta.2) |
-| Java 서버 기본값 | `auto_heap_mb`(메모리를 비웠을 때의 힙), `java_release_major`(JRE 주 버전) (0.1.14-beta.2) |
-| 익스텐션이 없을 때의 답 | `extension_required(i18n, "<id>")` (0.1.14-beta.2) |
+| Java 서버 기본값 | `java_heap`(메모리 설정 → 힙 크기, 비우면 `auto_heap_mb`), `COMPACT_OBJECT_HEADERS`(Java 25 이상) (0.1.14-beta.4), `java_release_major`(JRE 주 버전) (0.1.14-beta.2) |
+| 익스텐션 불러오기 | `load_extension(i18n, "<id>")` → `(패키지, None)`, 없거나 꺼져 있으면 `(None, extension_required 답)` (0.1.14-beta.4) |
+| 설정 기본값·접속자 | `setting_default(MODULE_DIR, "<설정>")`(module.toml 기본값), `player_capacity(config)`(1분 갱신의 가벼운 `player_count` 답) (0.1.14-beta.4) |
 | 폴더 목록·JSON 받기 | `list_dir`(없는 폴더는 빈 목록, 못 읽으면 오류), `fetch_json` (0.1.14-beta.2) |
 | 파일 저장 | `atomic_write` |
 | 어느 게임에나 같은 문구 | `common_locales.json`(정지·설치 문구 등, 모듈 locales에 없을 때 쓰인다) |
@@ -32,7 +33,7 @@ saba-chan `docs/architecture/02-modules.md` §2.5(이름마다 처음 제공한 
 - `validate`: `issues[]`의 `severity: critical`이 시작을 막는다.
 - 서버 로컬 REST·소켓은 `daemon_rcon.loopback_http`/`loopback_exchange`로 연다(격리 실행에서도 데몬이 중계).
 - 인스턴스 REST(저장·정지 등)는 `daemon_rcon.daemon_rest`로 보낸다. 격리 실행에서도 데몬이 그 인스턴스 서버의 REST 포트로만 대신 보낸다. 콘솔 `daemon_stdin_command`는 격리 실행에서 `op_not_allowed`다(saba-chan 0.1.11부터. 그 전 데몬은 격리 실행에서 둘 다 막는다).
-- 익스텐션은 함수 안에서 `import extensions.<id>`, 없으면 공용 `extension_required(i18n, "<id>")`(`error_code: "extension_required"`, `missing_extensions[]`, 공용 문구)를 돌려준다. PATH의 도구로 대신 실행하지 않는다.
+- 익스텐션은 함수 안에서 `ext, missing = load_extension(i18n, "<id>")`로 불러오고, `missing`이 있으면 그대로 돌려준다(`error_code: "extension_required"`, `missing_extensions[]`, 공용 문구). PATH의 도구로 대신 실행하지 않는다.
 - 비밀값(관리자 비밀번호 등)을 실행 인자에 매번 싣지 않는다. 첫 생성에만 필요한 플래그는 그때만 붙인다.
 - 화면 문구·오류는 `I18n(MODULE_DIR).t(...)`, 키는 `locales/en.json`이 기준이고 ko를 반드시 채운다(10개 언어). `check.py` locales가 ko 누락을 잡는다.
 - 공용 `PathOutside`는 `ValueError`의 하위 클래스다. `except ValueError`가 경로 경계 위반까지 삼켜 "잘못된 이름" 같은 일반 실패로 바꾸지 않게, 그 앞에 `except PathOutside: raise`를 둔다(데몬이 경계 위반을 따로 다룬다).
@@ -41,7 +42,7 @@ saba-chan `docs/architecture/02-modules.md` §2.5(이름마다 처음 제공한 
 
 ## 설정 (앱에서 고친 값 = 서버가 기대하는 값)
 
-- `[[settings.fields]]` 이름 ↔ 게임 파일 키는 각 설정의 **`file_key` 한 곳**에 두고, `configure`/`import_settings`/`read_properties`가 공용 `settings_to_file`·`settings_from_file`로 같이 쓴다. 코드에 따로 표를 두지 않는다.
+- `[[settings.fields]]` 이름 ↔ 게임 파일 키는 각 설정의 **`file_key` 한 곳**에 두고, `configure`/`import_settings`/`read_properties`가 공용 `settings_to_file`·`settings_from_file`로 같이 쓴다. 코드에 따로 표를 두지 않는다. `read_properties`·`import_settings`는 설정 이름만 돌려준다(게임 파일 키·설정 화면에 없는 키는 넣지 않는다. CLI `properties set`이 그 이름으로 쓴다, 적합성 키트가 잰다).
 - **그 형식의 공식 문법으로 읽고 쓴다.** 예: Java `.properties`는 `\:`·`\=` 이스케이프와 줄 끝 `\` 이어짐이 있다. 단순 `split("=")` 파서는 왕복할 때 값을 망가뜨린다. 인코딩·줄바꿈·키 대소문자·불리언 표기(`true`/`True`/`1`)·숫자 형식·따옴표·목록 구분자는 공식 기본 파일의 표기를 따른다.
 - **인코딩을 가정하지 않는다.** 동봉 기본 파일의 실제 인코딩(`inspect_dist.py`)으로 읽고, 읽은 인코딩·줄바꿈 그대로 다시 쓴다. UTF-8로만 읽으면 레거시 코드페이지 파일(테라리아 Windows `serverconfig.txt`는 cp1252, 주석에 0x92)에서 시작·설정 저장·가져오기가 모두 실패한다. 테스트에는 공식 파일의 원래 바이트를 쓴다.
 - 파일의 다른 키·주석·순서는 그대로 두고 바뀐 키만 고친다. 실행 전용 설정(JVM 인자 등)은 게임 파일에 쓰지 않는다.
@@ -97,5 +98,5 @@ saba-chan `docs/architecture/02-modules.md` §2.5(이름마다 처음 제공한 
   곳을 실측으로 찾는다(테라리아: Windows zip의 `changelog.txt` 첫 줄 `Version 1.4.5.8 Changes`. Linux zip에는 이 파일이 없다).
   찾지 못하면 `success: false`로 답하고 이유를 조사 표에 적는다.
 - 실행 전제 런타임은 게임마다 다시 만들지 말고 익스텐션으로 둔다(XNA: `saba-chan-extensions/xna`). 모듈은 `[install] requires_extensions`와
-  `[module.dependencies] ext-<id>`로 선언하고, 함수 안에서 import한다. 없으면 설치는 `extension_required` + `missing_extensions`, 시작 전 확인은
+  `[module.dependencies] ext-<id>`로 선언하고, 함수 안에서 `load_extension`으로 불러온다. 없으면 설치는 `extension_required` + `missing_extensions`, 시작 전 확인은
   `severity: critical`로 막는다.

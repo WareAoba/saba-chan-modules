@@ -20,19 +20,15 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 from i18n import I18n
 
-from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, download, extension_required, fetch_json,
-                         format_setting, graceful_stop, progress, read_key_values, request_console, safe_extract, safe_join,
-                         setting_file_keys, settings_from_file, update_key_values, chat_reply, delete_paths,
-                         stop_command)
+from daemon_rcon import (PathOutside, config_value, daemon_stdin_command, download, fetch_json,
+                         format_setting, graceful_stop, load_extension, player_capacity, progress, read_key_values,
+                         request_console, safe_extract, safe_join, safe_name, setting_default, setting_file_keys,
+                         settings_from_file, update_key_values, chat_reply, delete_paths, stop_command)
 
 i18n = I18n(MODULE_DIR)
 
 
 CONFIG_FILE = "serverconfig.txt"
-DEFAULT_WORLD_NAME = "world"
-DEFAULT_PORT = 7777
-DEFAULT_BANLIST = "banlist.txt"
-DEFAULT_AUTOCREATE = "2"
 SERVER_NAMES_URL = "https://terraria.org/api/get/dedicated-servers-names"
 DOWNLOAD_URL = "https://terraria.org/api/download/pc-dedicated-server/{name}"
 # 서버 파일의 `playing` 답 마지막 줄(CLI.NoPlayers·OnePlayerConnected·PlayersConnected, 1.4.5.8 TerrariaServer.exe 12개 언어).
@@ -56,10 +52,6 @@ _PLAYING_LINE_RE = re.compile(r"^(.+) \(([^()]+)\)$")
 # 줄 앞 서버 프롬프트(줄바꿈 없이 찍힌 ": ", 의사 콘솔은 ":")
 _PROMPT_RE = re.compile(r"^:(?: |$)")
 
-# 이름 조각 검사: 빈 값·구분자·드라이브·Windows가 잘라 내는 끝 공백/점("."·".." 포함)
-_BAD_NAME_CHARS = set('/\\:*?"<>|')
-
-
 def _server_exe_name():
     """이 OS의 공식 서버 실행 파일 이름 (zip의 Windows/Linux 폴더)"""
     return "TerrariaServer.exe" if os.name == "nt" else "TerrariaServer.bin.x86_64"
@@ -67,15 +59,6 @@ def _server_exe_name():
 
 def _is_windows():
     return os.name == "nt"
-
-
-def _xna():
-    """XNA 익스텐션(Windows 서버의 실행 전제). 없거나 꺼져 있으면 None (데몬이 import를 막는다)"""
-    try:
-        import extensions.xna as xna
-    except ImportError:
-        return None
-    return xna
 
 
 def _working_dir(config):
@@ -98,11 +81,6 @@ def _executable(config):
     return ""
 
 
-def _check_name(name):
-    """경로 조각이 되는 이름이 안전한가 (한 단계, 구분자·드라이브·끝 공백/점 없음)"""
-    return bool(name) and not (set(name) & _BAD_NAME_CHARS) and name[-1] not in " ." and name.strip() == name
-
-
 def _world(config):
     """(월드 폴더, 월드 이름, 월드 파일). 모든 경로 계산이 이 함수 하나를 쓴다.
     이름이 안전하지 않으면 ValueError, 폴더 밖이면 PathOutside"""
@@ -111,16 +89,16 @@ def _world(config):
     if not os.path.isabs(world_dir):
         # 가져온 serverconfig.txt의 상대 경로는 서버 폴더 기준이다 (모듈 실행 폴더가 아니라)
         world_dir = os.path.join(working_dir, world_dir)
-    name = str(config_value(config, "world_name", "") or DEFAULT_WORLD_NAME)
-    if not _check_name(name):
+    name = str(config_value(config, "world_name", "") or setting_default(MODULE_DIR, "world_name"))
+    if not safe_name(name):
         raise ValueError(i18n.t("errors.invalid_world_name", name=name))
     world_file = str(safe_join(world_dir, f"{name}.wld"))
     return world_dir, name, world_file
 
 
 def _banlist_path(config):
-    name = str(config_value(config, "banlist", "") or DEFAULT_BANLIST)
-    if not _check_name(name):
+    name = str(config_value(config, "banlist", "") or setting_default(MODULE_DIR, "banlist"))
+    if not safe_name(name):
         raise ValueError(i18n.t("errors.invalid_banlist", name=name))
     return str(safe_join(_working_dir(config), name))
 
@@ -182,10 +160,10 @@ def validate(config):
         issues.append({"severity": "critical", "code": "executable_not_found",
                        "message": i18n.t("errors.executable_not_found")})
     if _is_windows():
-        xna = _xna()
-        if xna is None:
-            issues.append({"severity": "critical", "code": "extension_required",
-                           "message": extension_required(i18n, "xna")["message"]})
+        # XNA 재배포 파일은 익스텐션 xna가 서버 폴더에 넣는다 (Windows 서버의 실행 전제)
+        xna, missing = load_extension(i18n, "xna")
+        if missing:
+            issues.append({"severity": "critical", "code": "extension_required", "message": missing["message"]})
         elif not xna.present(_working_dir(config)):
             issues.append({"severity": "critical", "code": "xna_framework_missing",
                            "message": i18n.t("errors.xna_framework_missing")})
@@ -258,8 +236,8 @@ def get_launch_command(config):
             "world": world_file,
             "worldpath": world_dir,
             "worldname": name,
-            "autocreate": config_value(config, "autocreate", "") or DEFAULT_AUTOCREATE,
-            "port": config_value(config, "port", DEFAULT_PORT),
+            "autocreate": config_value(config, "autocreate", "") or setting_default(MODULE_DIR, "autocreate"),
+            "port": config_value(config, "port", setting_default(MODULE_DIR, "port")),
         }
         try:
             os.makedirs(world_dir, exist_ok=True)
@@ -331,13 +309,6 @@ def config_files(config):
     return {"success": True, "files": [os.path.abspath(_config_path(config))]}
 
 
-def _int_or_none(value):
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
-
 def _playing_count(line):
     for none, one, many in _PLAYING_COUNT:
         if line == none:
@@ -353,10 +324,9 @@ def _playing_count(line):
 def player_count(config):
     """접속자 (module.toml [status] players). 게임에 조회 API가 없어 목록은 콘솔 `playing`으로 읽는다.
     1분 갱신(players_detail 없음)에는 콘솔에 찍히지 않게 묻지 않는다. 그때 수는 데몬이 접속·퇴장 줄로 센다(0.1.11)"""
-    max_players = _int_or_none(config_value(config, "max_players", None))
     if not config.get("players_detail"):
         # 수는 데몬이 접속·퇴장 줄로 센다(player_join/leave_patterns). 최대 인원만 알려 준다
-        return {"success": True, "max": max_players} if max_players else {"success": True}
+        return player_capacity(config)
     try:
         reply = daemon_stdin_command(config.get("instance_id", ""), "playing", timeout=5)
     except PathOutside:
@@ -374,9 +344,7 @@ def player_count(config):
             continue
         count = _playing_count(line)
         if count is not None:
-            result = {"success": True, "online": count}
-            if max_players:
-                result["max"] = max_players
+            result = {**player_capacity(config), "online": count}
             if len(names) == count:
                 result["players"] = [{"name": n} for n in names]
             return result
@@ -557,9 +525,9 @@ def install_server(config):
             pass
 
     if _is_windows():
-        xna = _xna()
-        if xna is None:
-            return extension_required(i18n, "xna")
+        xna, missing = load_extension(i18n, "xna")
+        if missing:
+            return missing
         progress(90, i18n.t("messages.installing_xna"))
         try:
             xna.install(install_dir)

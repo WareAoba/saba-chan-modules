@@ -23,9 +23,9 @@ from installer import ServerInstaller
 from java import JavaDetector, JavaDownloader, required_java
 from properties import EulaManager, ServerPropertiesManager, _default_properties
 import daemon_rcon
-from daemon_rcon import (PathOutside, auto_heap_mb, enforce_remote_access, graceful_stop, is_process_alive, rcon_access,
-                         request_console, request_terminate, safe_join, setting_file_keys, settings_from_file,
-                         settings_to_file, chat_reply, delete_paths, stop_command)
+from daemon_rcon import (COMPACT_OBJECT_HEADERS, PathOutside, enforce_remote_access, graceful_stop, is_process_alive, java_heap,
+                         rcon_access, request_console, request_terminate, safe_join, safe_name, setting_file_keys,
+                         settings_from_file, settings_to_file, chat_reply, delete_paths, stop_command)
 
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +36,7 @@ class MinecraftPing:
     """Minecraft Server List Ping (SLP) protocol."""
 
     @staticmethod
-    def ping(host="127.0.0.1", port=25565, timeout=3):
+    def ping(host, port, timeout=3):
         """Ping a server and get status dict (players, version, motd) or None."""
         try:
             # 격리 실행(미확인 모듈)은 127.0.0.1에 닿지 못한다: 데몬이 이 인스턴스 포트로 대신 보낸다
@@ -155,24 +155,6 @@ def _resolve_server_jar(config):
     return jar
 
 
-def _java_memory(value):
-    """ram 설정 → Java 힙 크기. "4G"·"1024M"·"512k"는 그대로, 예전에 저장된 숫자(GB)는 G로
-    (소수는 M으로: 0.5 → 512M). 비었으면 PC에 맞춘 자동값(공용 auto_heap_mb), 읽을 수 없으면 2G"""
-    if value is None or str(value).strip() == "":
-        heap = auto_heap_mb()
-        return f"{heap // 1024}G" if heap % 1024 == 0 else f"{heap}M"
-    text = str(value).strip()
-    if re.fullmatch(r"\d+[KMGkmg]", text):
-        return text
-    try:
-        gb = float(text)
-    except (ValueError, TypeError):
-        return "2G"
-    if gb <= 0:
-        return "2G"
-    return f"{int(gb)}G" if gb == int(gb) else f"{int(gb * 1024)}M"
-
-
 def _heap_mb(size):
     """"4G"·"1024M"·"512K" → MB"""
     number, unit = int(size[:-1]), size[-1].upper()
@@ -211,8 +193,6 @@ _LARGE_FLAGS = [f"{name}={_LARGE_HEAP_VALUES[name]}" if name in _LARGE_HEAP_VALU
                 for flag in _AIKAR_FLAGS for name in [flag.split("=")[0]]]
 # 설정 java_gc = zgc: 세대별 ZGC (JEP 439, Java 21에서 -XX:+ZGenerational, 23부터 기본 JEP 474). 그 전 Java는 G1 프로필로
 _ZGC_FLAGS = ["-XX:+UseZGC", "-XX:+AlwaysPreTouch", "-XX:+DisableExplicitGC", "-XX:+PerfDisableSharedMem"]
-# Compact Object Headers: Java 25에서 정식 기능 (JEP 519), 27부터 기본
-_COH_FLAG = "-XX:+UseCompactObjectHeaders"
 
 
 def _java_tuning(config, ram, java_major, user_args):
@@ -239,7 +219,7 @@ def _java_tuning(config, ram, java_major, user_args):
     else:
         flags = [f"-Xmx{ram}", f"-Xms{ram}", *([] if user_gc else _AIKAR_FLAGS)]
     if java_major >= 25:
-        flags.append(_COH_FLAG)
+        flags.append(COMPACT_OBJECT_HEADERS)
     return flags
 
 
@@ -386,12 +366,15 @@ def _enforce_rcon_policy(working_dir, config=None):
 
     관리형 시작은 saba-runner가 쥔 콘솔(stdin)로 명령을 보낸다: RCON을 끈다. 관리형 시작을 끄면 콘솔이 없으므로
     데몬이 만든 포트·비밀번호(config `rcon_port`·`rcon_password`)로 RCON을 켠다. 접속 정보가 없으면 끈다.
+    값을 파일에 쓰지 못했으면 False
     """
     mgr = ServerPropertiesManager(working_dir)
     if not mgr.exists() and not rcon_access(config):
-        return  # server.properties will be generated on first run (defaults keep RCON off)
+        return True  # server.properties will be generated on first run (defaults keep RCON off)
     # 켤 때 파일이 없으면 기본값 위에 만든다 (ServerPropertiesManager.update)
-    enforce_remote_access(MODULE_DIR, config, mgr.read(), mgr.update)
+    written = []
+    enforce_remote_access(MODULE_DIR, config, mgr.read(), lambda changes: written.append(mgr.update(changes)))
+    return all(written)
 
 
 # 콘솔 입출력은 UTF-8로: 데몬은 stdin에 UTF-8을 쓰고 stdout을 UTF-8로 읽는다. JVM은 파이프의 문자 집합을
@@ -416,7 +399,7 @@ def _option_name(arg):
     return re.sub(r"^-XX:[+-]", "-XX:", arg.split("=", 1)[0])
 
 
-_MANAGED_OPTIONS = {_option_name(f) for f in [*_AIKAR_FLAGS, *_LARGE_FLAGS, *_ZGC_FLAGS, _PERIODIC_GC_FLAG, _COH_FLAG,
+_MANAGED_OPTIONS = {_option_name(f) for f in [*_AIKAR_FLAGS, *_LARGE_FLAGS, *_ZGC_FLAGS, _PERIODIC_GC_FLAG, COMPACT_OBJECT_HEADERS,
                                               "-XX:+ZGenerational", *_CONSOLE_FLAGS, *_AIKAR_MARKERS]} - _UNLOCK_OPTIONS
 
 
@@ -497,7 +480,8 @@ def get_launch_command(config):
     """데몬이 띄울 서버 실행 명령"""
     java_path = config.get("java_path", "java")
     server_jar = _resolve_server_jar(config)
-    ram = _java_memory(config.get("ram"))
+    # 크기 단위가 붙은 값, 예전에 GB 숫자로 저장된 값, 비면 PC에 맞춘 자동값 (module.toml 기본값 "", 공용 java_heap)
+    ram = java_heap(config.get("ram"))
     working_dir = config.get("working_dir")
     extra_jvm_args = config.get("jvm_args", [])
 
@@ -541,8 +525,9 @@ def get_launch_command(config):
     abs_working_dir = os.path.abspath(working_dir)
 
     # 미리보기(preview)는 아무 파일도 고치지 않는다
-    if not config.get("preview"):
-        _enforce_rcon_policy(abs_working_dir, config=config)
+    if not config.get("preview") and not _enforce_rcon_policy(abs_working_dir, config=config):
+        # RCON 값이 관리형 여부와 어긋난 채 뜨면 데몬이 명령을 보낼 길이 맞지 않는다: 띄우지 않고 알린다
+        return {"success": False, "message": i18n.t("errors.properties_write_failed")}
 
     return {
         "success": True,
@@ -630,18 +615,10 @@ def import_settings(config):
     if not result.get("success"):
         return result
 
-    raw_props = result.get("properties", {})
-    if not raw_props:
+    settings = result.get("properties", {})
+    if not settings:
         return {"success": True, "settings": found, "message": i18n.t("messages.no_properties_found"), **extra}
-
-    # 설정 화면에 없는 키는 이름 그대로 넘긴다. 있는 키는 스키마 타입대로만 바꾼다:
-    # 숫자 같은 비밀번호("000123")나 이름은 문자열 그대로
-    known = set(setting_file_keys(MODULE_DIR).values())
-    settings = {key: value for key, value in raw_props.items() if key not in known}
-    settings.update(settings_from_file(MODULE_DIR, raw_props))
-    settings.update(found)
-
-    return {"success": True, "settings": settings, **extra}
+    return {"success": True, "settings": {**settings, **found}, **extra}
 
 
 def config_files(config):
@@ -664,7 +641,7 @@ def instance_commands(config):
 
 
 def read_properties(config):
-    """Read current server.properties."""
+    """server.properties → {설정 이름: 값}. 설정 화면에 없는 키는 돌려주지 않는다"""
     working_dir = config.get("working_dir")
     if not working_dir:
         return {"success": False, "message": i18n.t("errors.no_working_dir")}
@@ -673,10 +650,10 @@ def read_properties(config):
     if not mgr.exists():
         return {
             "success": True, "exists": False,
-            "properties": _default_properties(),
+            "properties": settings_from_file(MODULE_DIR, _default_properties()),
             "message": i18n.t("messages.properties_using_defaults"),
         }
-    return {"success": True, "exists": True, "properties": mgr.read()}
+    return {"success": True, "exists": True, "properties": settings_from_file(MODULE_DIR, mgr.read())}
 
 
 def reset_properties(config):
@@ -725,7 +702,7 @@ def _reset_world_paths(config, props, working_path, keep):
     남길 항목과 겹치면 None"""
     name = props.get("level-name", "") or str(config.get("level_name") or "") or "world"
     parts = re.split(r"[\\/]", name)
-    if os.path.isabs(name) or any(p in ("", ".", "..") or ":" in p or p[-1] in " ." for p in parts):
+    if os.path.isabs(name) or not all(safe_name(p) for p in parts):
         return None
     if parts[0].casefold() in keep or parts[0].casefold().endswith(".jar"):
         return None
@@ -819,10 +796,13 @@ def read_lists(config):
     lists = {}
     for list_id, name in _PLAYER_LISTS:
         try:
-            with open(os.path.join(working_dir, name), encoding="utf-8") as f:
+            with open(os.path.join(working_dir, name), encoding="utf-8-sig") as f:
                 entries = json.load(f)
-        except (OSError, ValueError):
-            entries = []
+        except FileNotFoundError:
+            entries = []  # 한 번도 켜지 않은 서버
+        except (OSError, ValueError) as e:
+            # 빈 목록으로 답하면 명단이 비어 보이고, 그 상태로 고치면 원래 항목을 잃는다
+            return {"success": False, "message": i18n.t("errors.list_read_failed", file=name, error=str(e))}
         found = [_list_entry(e) for e in entries] if isinstance(entries, list) else []
         lists[list_id] = [e for e in found if e]
     return {"success": True, "lists": lists}
@@ -895,6 +875,11 @@ def stop(config):
     return graceful_stop(config, lambda: _request_stop(config), i18n, module_dir=MODULE_DIR)
 
 
+def _port(config):
+    """인스턴스 포트. 데몬이 주지 않았으면 module.toml 기본값"""
+    return int(config.get("port") or _default_properties()["server-port"])
+
+
 def _ping_host(config):
     """Server List Ping을 보낼 주소. server.properties `enable-status=false`면 서버가 답하지 않으므로 None"""
     props = ServerPropertiesManager(config.get("working_dir", "")).read() if config.get("working_dir") else {}
@@ -909,10 +894,9 @@ def status(config):
     """Enhanced status with Server List Ping."""
     try:
         pid = config.get("pid")
-        port = config.get("port", 25565)
         host = _ping_host(config)
 
-        ping_result = MinecraftPing.ping(host, int(port), timeout=3) if host else None
+        ping_result = MinecraftPing.ping(host, _port(config), timeout=3) if host else None
         if ping_result:
             players = ping_result.get("players", {})
             version = ping_result.get("version", {})
@@ -963,7 +947,7 @@ def player_count(config):
     if not host:
         # 핑에 답하지 않는 설정: 수는 모르지만 실패가 아니다 (실패로 답하면 데몬이 응답 없음으로 알린다)
         return {"success": True}
-    ping_result = MinecraftPing.ping(host, int(config.get("port", 25565)), timeout=3)
+    ping_result = MinecraftPing.ping(host, _port(config), timeout=3)
     if not ping_result:
         return {"success": False, "message": i18n.t("messages.server_starting_no_response")}
     players = ping_result.get("players")
@@ -1091,7 +1075,8 @@ def command(config):
     except PathOutside:
         raise
     except Exception as e:
-        return {"success": False, "message": str(e), "error_code": getattr(e, "error_code", None)}
+        return {"success": False, "message": i18n.t("errors.command_send_failed", error=str(e)),
+                "error_code": getattr(e, "error_code", None)}
     data = reply.get("data") if isinstance(reply, dict) else None
     answer = str(data.get("response") or "").strip() if is_gamerule and isinstance(data, dict) else ""
     return {"success": True, "message": answer or line}
@@ -1223,7 +1208,10 @@ def list_versions(config):
             only = server_types.installable_versions(server_type)
         except Exception as e:
             print(f"Could not list the versions {server_type} offers: {e}", file=sys.stderr)
-    manifest = ServerInstaller.fetch_version_manifest()
+    try:
+        manifest = ServerInstaller.fetch_version_manifest()
+    except ConnectionError as e:
+        return _version_lookup_failed(e)
     latest = None
     if typed:
         releases = [v["id"] for v in ServerInstaller.list_versions(per_page=10, only=only, manifest=manifest)["versions"]]
@@ -1253,11 +1241,19 @@ def get_version_details(config):
     if not version_id:
         return {"success": False, "message": i18n.t("errors.no_version")}
 
-    details = ServerInstaller.get_version_details(version_id)
+    try:
+        details = ServerInstaller.get_version_details(version_id)
+    except ConnectionError as e:
+        return _version_lookup_failed(e)
     if not details:
         return {"success": False, "message": i18n.t("errors.version_not_found", version=version_id)}
 
     return {"success": True, **details}
+
+
+def _version_lookup_failed(error):
+    """Mojang 버전 목록·정보를 받지 못했을 때의 답"""
+    return {"success": False, "message": i18n.t("errors.version_manifest_failed", error=str(error))}
 
 
 def install_server(config):
@@ -1291,14 +1287,17 @@ def install_server(config):
     server_type = (settings.get("server_type") or config.get("server_type")
                    or server_types.detect(install_dir).get("type") or "vanilla")
 
-    return ServerInstaller.install_server(
-        version_id=version_id,
-        install_dir=install_dir,
-        jar_name=jar_name,
-        accept_eula=do_eula,
-        initial_settings=initial_settings,
-        server_type=server_type,
-    )
+    try:
+        return ServerInstaller.install_server(
+            version_id=version_id,
+            install_dir=install_dir,
+            jar_name=jar_name,
+            accept_eula=do_eula,
+            initial_settings=initial_settings,
+            server_type=server_type,
+        )
+    except ConnectionError as e:
+        return _version_lookup_failed(e)
 
 
 # plugins/ 안에서 백업에서 뺄 것: 플러그인이 다시 그릴 수 있는 지도 타일 (경로 조각, 대소문자 무시)

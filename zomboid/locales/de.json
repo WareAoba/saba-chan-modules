@@ -760,16 +760,6 @@
     "no_mappable_settings": "Keine Einstellung als Servereinstellung erkannt",
     "command_sent": "Befehl an die Konsole gesendet: {{command}}"
   },
-  "rcon": {
-    "connecting": "Verbinde mit {{host}}:{{port}}...",
-    "connected": "Verbunden!",
-    "authentication_failed": "Authentifizierung fehlgeschlagen",
-    "authenticated": "Authentifiziert!",
-    "connection_failed": "Verbindung fehlgeschlagen: {{error}}",
-    "sending_command": "Sende Befehl: {{command}}",
-    "response_received": "Antwort erhalten: {{response}}",
-    "command_failed": "Befehl fehlgeschlagen: {{error}}"
-  },
   "reset": {
     "label": "Welt zurücksetzen",
     "description": "Löscht nur den Weltspielstand und behält die Servereinstellungen.",

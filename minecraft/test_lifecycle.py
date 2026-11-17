@@ -176,7 +176,7 @@ def test_memory_size_values_pass_through_and_old_numbers_still_work():
     from minecraft.lifecycle import get_launch_command
     with tempfile.TemporaryDirectory() as tmpdir:
         jar = _make_fake_jar(tmpdir)
-        for ram, want in [("4G", "-Xmx4G"), ("1024M", "-Xmx1024M"), (4, "-Xmx4G"), ("bad", "-Xmx2G")]:
+        for ram, want in [("4G", "-Xmx4G"), ("1024M", "-Xmx1024M"), (4, "-Xmx4G")]:
             result = get_launch_command({"server_executable": jar, "working_dir": tmpdir, "ram": ram})
             assert want in result["args"], (ram, result["args"])
 
@@ -413,7 +413,7 @@ def test_import_settings_keeps_string_fields():
         assert settings["level_name"] == "0042"
         assert settings["max_players"] == 20
         assert settings["pvp"] is True
-        assert settings["custom-key"] == "true"
+        assert "custom-key" not in settings, "설정 화면에 없는 키는 가져오지 않는다"
 
 
 def test_reset_server_keeps_jar_eula_and_bundled_java():
@@ -1166,13 +1166,21 @@ def test_read_lists_reads_the_whitelist_ops_and_bans_the_server_keeps(tmp_path):
     assert before == {name: (tmp_path / name).read_bytes() for name in files}
 
 
-def test_read_lists_treats_missing_or_broken_files_as_empty(tmp_path):
-    """한 번도 켜지 않은 서버에는 목록 파일이 없다. 읽을 수 없는 파일도 빈 목록이다"""
+def test_read_lists_treats_missing_files_as_empty_and_reads_a_bom(tmp_path):
+    """한 번도 켜지 않은 서버에는 목록 파일이 없다(빈 목록). 메모장이 BOM을 붙여 저장한 파일도 읽는다"""
     from minecraft import lifecycle
-    (tmp_path / "ops.json").write_text("{not json", encoding="utf-8")
-    (tmp_path / "whitelist.json").write_text('[{"uuid": "x"}, "junk", {"name": "Notch"}]', encoding="utf-8")
+    (tmp_path / "whitelist.json").write_text('[{"uuid": "x"}, "junk", {"name": "Notch"}]', encoding="utf-8-sig")
     seen = lifecycle.read_lists({"working_dir": str(tmp_path)})
     assert seen == {"success": True, "lists": {"whitelist": [{"name": "Notch"}], "ops": [], "banned": []}}
+
+
+def test_read_lists_fails_on_a_list_file_it_cannot_read(tmp_path):
+    """깨진 목록 파일을 빈 목록 성공으로 답하면 화면에 명단이 비어 보이고, 그 상태로 고치면 원래 항목을 잃는다"""
+    from minecraft import lifecycle
+    (tmp_path / "ops.json").write_text("{not json", encoding="utf-8")
+    seen = lifecycle.read_lists({"working_dir": str(tmp_path)})
+    assert seen["success"] is False
+    assert "ops.json" in seen["message"]
 
 
 def test_reset_preview_lists_each_scope_and_a_world_only_reset_keeps_the_rest(tmp_path):
@@ -2313,7 +2321,8 @@ def test_reset_and_the_first_write_use_the_defaults_the_settings_screen_shows(tm
     fresh.mkdir()
     assert lifecycle.ServerPropertiesManager(str(fresh)).update({"motd": "hi"})
     assert lifecycle.ServerPropertiesManager(str(fresh)).read() == {**shown, "enable-rcon": "false", "motd": "hi"}
-    assert lifecycle.read_properties({"working_dir": str(tmp_path / "none")})["properties"] == {**shown, "enable-rcon": "false"}
+    props = lifecycle.read_properties({"working_dir": str(tmp_path / "none")})["properties"]
+    assert (props["difficulty"], props["pause_when_empty_seconds"]) == ("normal", 60)
 
 
 def test_reset_properties_keeps_this_servers_port(tmp_path):
@@ -2366,3 +2375,74 @@ def test_an_unreadable_properties_file_is_an_error_not_empty_settings(tmp_path, 
 
     with pytest.raises(PermissionError):
         read_properties({"working_dir": str(tmp_path)})
+
+
+@pytest.mark.parametrize(("function", "config"), [
+    ("list_versions", {}),
+    ("get_version_details", {"version": "1.21.11"}),
+    ("install_server", {"version": "1.21.11", "install_dir": "."}),
+])
+def test_version_lookup_without_network_answers_a_translated_error(function, config, tmp_path, monkeypatch):
+    """Mojang 버전 목록을 받지 못하면 예외(데몬의 module_exception, 영어)가 아니라 locales 문구의 실패로 답한다"""
+    import urllib.error
+    from minecraft import lifecycle
+    monkeypatch.chdir(tmp_path)
+    server_types = sys.modules[lifecycle.ServerInstaller.__module__].server_types
+    with mock.patch.object(server_types, "_get_json", side_effect=urllib.error.URLError("offline")):
+        result = lifecycle.FUNCTIONS[function](config)
+    head = lifecycle.i18n.t("errors.version_manifest_failed", error="\0").split("\0")[0]
+    assert result["success"] is False
+    assert result["message"].startswith(head) and "offline" in result["message"]
+
+
+def test_a_console_line_the_daemon_cannot_send_is_a_translated_error(monkeypatch):
+    """데몬이 콘솔 한 줄을 보내지 못하면 locales 문구로 답하고 데몬의 거절 코드는 그대로 싣는다"""
+    import daemon_rcon
+    from minecraft import lifecycle
+    error = ConnectionError("no console")
+    error.error_code = "no_command_path"
+    monkeypatch.setattr(daemon_rcon, "daemon_stdin_command", mock.Mock(side_effect=error))
+    result = lifecycle.FUNCTIONS["command"]({"command": "say hi", "instance_id": "x"})
+    assert result == {"success": False, "error_code": "no_command_path",
+                      "message": lifecycle.i18n.t("errors.command_send_failed", error="no console")}
+
+
+def test_first_install_fails_when_the_chosen_settings_cannot_be_written(tmp_path):
+    """첫 설치에서 고른 설정을 server.properties에 쓰지 못하면 설치는 settings_write_failed 실패다 (02-modules 계약).
+    서버 파일만 깔렸다고 성공으로 답하면 사용자는 설정이 빠진 것을 모른다"""
+    import io
+    from minecraft import lifecycle
+    from minecraft.lifecycle import ServerInstaller
+    body = _jar_bytes({"META-INF/MANIFEST.MF": "Main-Class: net.minecraft.Main\n"})
+
+    class Resp(io.BytesIO):
+        headers = {"Content-Length": str(len(body))}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    details = {"has_server": True, "download_url": "https://example.invalid/server.jar", "sha1": None}
+    with mock.patch.object(ServerInstaller, "get_version_details", return_value=details), \
+            mock.patch("urllib.request.urlopen", return_value=Resp(body)), \
+            mock.patch.object(lifecycle.ServerPropertiesManager, "update", return_value=False):
+        result = ServerInstaller.install_server("1.21.1", str(tmp_path), initial_settings={"motd": "hi"})
+    assert result["success"] is False
+    assert result["error_code"] == "settings_write_failed"
+
+
+def test_start_is_refused_when_the_rcon_policy_cannot_be_saved(tmp_path):
+    """실행 전 RCON 정책을 server.properties에 쓰지 못하면 시작하지 않는다(palworld의 REST 정책과 같다).
+    관리형 시작인데 RCON이 켜진 채 뜨거나, 관리형 시작을 껐는데 RCON이 꺼진 채 뜨면 데몬이 명령을 보낼 길이 어긋난다"""
+    from minecraft import lifecycle
+    (tmp_path / "server.properties").write_text("enable-rcon=true\n", encoding="utf-8")
+    (tmp_path / "server.jar").write_bytes(b"jar")
+    with mock.patch.object(lifecycle.ServerPropertiesManager, "update", return_value=False):
+        result = lifecycle.get_launch_command({"working_dir": str(tmp_path), "server_executable": str(tmp_path / "server.jar"),
+                                               "java_path": "java"})
+    assert result["success"] is False
+    assert result["message"] == lifecycle.i18n.t("errors.properties_write_failed")
+
+

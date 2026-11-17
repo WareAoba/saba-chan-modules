@@ -14,7 +14,9 @@
 #           - 콘솔 명령을 받는 서버(대부분) → supported = ["stdin"]
 #           - REST API만 → supported = ["rest"]
 #           - 콘솔·REST가 모두 없고 RCON만 받는 서버 → supported = ["rcon"] + rcon_port
-#             (우선순위 stdin → rest → rcon. 다른 경로가 있으면 RCON은 선언하지 말고 lifecycle.py에서 끄세요)
+#           - 콘솔 서버가 RCON도 받으면 → supported = ["stdin", "rcon"] + rcon_port
+#             (관리형 시작을 끈 인스턴스에만 RCON을 쓴다. 그 밖에는 [remote_access]로 끈다)
+#             (우선순위 stdin → rest → rcon. REST가 있으면 RCON은 선언하지 말고 [remote_access]로 끄세요)
 #    3단계: [config]에서 실행 파일명, 프로세스명, 포트 채우기
 #           (작업관리자에서 서버 프로세스 이름을 확인하세요)
 #    4단계: [settings]에 GUI에서 조절할 항목 추가하기
@@ -44,7 +46,7 @@ log_pattern = '(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)'  # 로그 레벨 추출 �
 
 # 공용 SDK import 중 가장 새 SINCE 버전 이상을 선언합니다.
 [module.dependencies]
-saba-core = ">=0.1.14-beta.2"
+saba-core = ">=0.1.14-beta.4"
 
 # ── [protocols] 통신 프로토콜 ────────────────────────────────────
 #
@@ -115,7 +117,6 @@ interaction_mode = "console"            # "console" 또는 "commands"
 
 # ── [config] 기본 실행 설정 ──────────────────────────────────────
 [config]
-executable_path = ""                    # 기본 실행 파일 전체 경로 (설치 후 설정)
 server_executable = "MyGameServer.exe"  # 실행 파일명 (프로세스 탐지용)
 process_name = "MyGameServer"           # 프로세스 이름 (tasklist/pgrep 탐지용)
 default_port = 7777                     # 기본 게임 포트

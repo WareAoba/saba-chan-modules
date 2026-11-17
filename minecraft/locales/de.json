@@ -182,6 +182,9 @@
     "stop": { "label": "Stoppen", "description": "Server ordnungsgemäß stoppen" }
   },
   "errors": {
+    "list_read_failed": "{{file}} konnte nicht gelesen werden: {{error}}",
+    "version_manifest_failed": "Abrufen der Versionsinformationen von Mojang fehlgeschlagen: {{error}}",
+    "command_send_failed": "Senden des Befehls fehlgeschlagen: {{error}}",
     "backup_paths_failed": "Lesen des Plugin-Ordners für die Sicherung fehlgeschlagen: {{error}}",
     "server_not_running": "Server läuft nicht. Starte zuerst den Server.",
     "timeout": "Zeitüberschreitung der Serverantwort. Prüfe den Serverstatus.",
@@ -257,16 +260,6 @@
   },
   "plugins": {
     "args_label": "Argumente"
-  },
-  "rcon": {
-    "connecting": "Verbindung zu {{host}}:{{port}}...",
-    "connected": "Verbunden!",
-    "authentication_failed": "Authentifizierung fehlgeschlagen",
-    "authenticated": "Authentifiziert!",
-    "connection_failed": "Verbindung fehlgeschlagen: {{error}}",
-    "sending_command": "Befehl wird gesendet: {{command}}",
-    "response_received": "Antwort erhalten: {{response}}",
-    "command_failed": "Befehl fehlgeschlagen: {{error}}"
   },
   "reset": {
     "label": "Server zurücksetzen",

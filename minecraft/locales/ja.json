@@ -185,6 +185,9 @@
     "stop": { "label": "停止", "description": "サーバーを正常に停止します" }
   },
   "errors": {
+    "list_read_failed": "{{file}} を読み込めませんでした: {{error}}",
+    "version_manifest_failed": "Mojangからバージョン情報を取得できませんでした: {{error}}",
+    "command_send_failed": "コマンドの送信に失敗しました: {{error}}",
     "backup_paths_failed": "バックアップ対象のプラグインフォルダー読み込み失敗: {{error}}",
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
     "timeout": "サーバー応答タイムアウト。サーバーの状態を確認してください。",
@@ -260,16 +263,6 @@
   },
   "plugins": {
     "args_label": "引数"
-  },
-  "rcon": {
-    "connecting": "{{host}}:{{port}} に接続中...",
-    "connected": "接続されました!",
-    "authentication_failed": "認証に失敗しました",
-    "authenticated": "認証されました!",
-    "connection_failed": "接続に失敗しました: {{error}}",
-    "sending_command": "コマンドを送信しています: {{command}}",
-    "response_received": "レスポンスを受信しました: {{response}}",
-    "command_failed": "コマンド失敗: {{error}}"
   },
   "reset": {
     "label": "サーバー初期化",

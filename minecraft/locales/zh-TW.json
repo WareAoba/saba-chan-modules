@@ -182,6 +182,9 @@
     "stop": { "label": "停止", "description": "正常停止伺服器" }
   },
   "errors": {
+    "list_read_failed": "讀取 {{file}} 失敗：{{error}}",
+    "version_manifest_failed": "無法從 Mojang 取得版本資訊：{{error}}",
+    "command_send_failed": "指令傳送失敗：{{error}}",
     "backup_paths_failed": "讀取要備份的外掛資料夾失敗：{{error}}",
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
     "timeout": "伺服器回應逾時。檢查伺服器狀態。",
@@ -257,16 +260,6 @@
   },
   "plugins": {
     "args_label": "參數"
-  },
-  "rcon": {
-    "connecting": "正在連線 {{host}}:{{port}}...",
-    "connected": "已連線！",
-    "authentication_failed": "身分驗證失敗",
-    "authenticated": "已驗證！",
-    "connection_failed": "連線失敗：{{error}}",
-    "sending_command": "傳送命令：{{command}}",
-    "response_received": "收到回應：{{response}}",
-    "command_failed": "命令失敗：{{error}}"
   },
   "reset": {
     "label": "重設伺服器",

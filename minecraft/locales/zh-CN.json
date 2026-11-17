@@ -182,6 +182,9 @@
     "stop": { "label": "停止", "description": "正常停止服务器" }
   },
   "errors": {
+    "list_read_failed": "读取 {{file}} 失败：{{error}}",
+    "version_manifest_failed": "无法从 Mojang 获取版本信息：{{error}}",
+    "command_send_failed": "命令发送失败：{{error}}",
     "backup_paths_failed": "读取要备份的插件文件夹失败:{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
     "timeout": "服务器响应超时。请检查服务器状态。",
@@ -257,16 +260,6 @@
   },
   "plugins": {
     "args_label": "参数"
-  },
-  "rcon": {
-    "connecting": "正在连接 {{host}}:{{port}}...",
-    "connected": "已连接！",
-    "authentication_failed": "身份验证失败",
-    "authenticated": "已验证！",
-    "connection_failed": "连接失败：{{error}}",
-    "sending_command": "发送命令：{{command}}",
-    "response_received": "收到响应：{{response}}",
-    "command_failed": "命令失败：{{error}}"
   },
   "reset": {
     "label": "重置服务器",

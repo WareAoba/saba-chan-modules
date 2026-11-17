@@ -1,11 +1,13 @@
-# PR: 데몬·익스텐션과의 계약(conformance)만 본다. 데몬·익스텐션 저장소의 같은 이름
-#     브랜치와 맞춰 보는 시험이라 로컬에서 놓치기 쉽다.
-# 전체 (Actions 탭 workflow_dispatch): 모듈 단위 테스트도 돌린다 (클라우드 작업에서 매번 돌린다)
+# PR·수동 실행: 데몬·익스텐션과의 계약(conformance)과 모듈 단위 테스트.
+#     데몬·익스텐션 저장소에 같은 이름의 브랜치가 있으면 그것과 맞춰 본다.
 name: Check modules
 
 on:
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
@@ -14,8 +16,9 @@ concurrency:
 jobs:
   conformance:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # i18n.py, daemon_rcon.py: 데몬이 모듈에 넣어 주는 공용 파일.
       # 데몬 저장소에 같은 이름의 브랜치가 있으면 그것을 쓴다 (모듈과 데몬을 같이 바꾸는 작업)
       - name: Pick the saba-chan branch
@@ -29,7 +32,7 @@ jobs:
           else
             echo "ref=main" >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: WareAoba/saba-chan
           ref: ${{ steps.core.outputs.ref }}
@@ -47,19 +50,18 @@ jobs:
           else
             echo "ref=main" >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: WareAoba/saba-chan-extensions
           ref: ${{ steps.ext.outputs.ref }}
           path: saba-chan-extensions
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
       - run: pytest conformance -W default --shared-libs saba-chan/modules
       # 모듈 단위 테스트 (pytest.ini testpaths)
-      - if: github.event_name == 'workflow_dispatch'
-        run: pytest -q
+      - run: pytest -q
         env:
           SABA_RUNTIME_DIR: saba-chan/modules
           SABA_EXTENSIONS_DIR: saba-chan-extensions

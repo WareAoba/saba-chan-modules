@@ -230,7 +230,7 @@ type = "text"
 label = "Region"
 description = "Server region tag shown in the server browser"
 default = ""
-group = "communication"
+group = "network"
 
 [[settings.fields]]
 name = "use_auth"
@@ -240,7 +240,7 @@ type = "boolean"
 label = "Use Steam Auth"
 description = "Require Steam authentication to join the server"
 default = true
-group = "communication"
+group = "network"
 
 [[settings.fields]]
 name = "allow_client_mod"
@@ -250,7 +250,7 @@ type = "boolean"
 label = "Allow Client Mods"
 description = "Allow players to join with client-side mods enabled"
 default = true
-group = "communication"
+group = "admin"
 
 [[settings.fields]]
 name = "ban_list_url"
@@ -260,7 +260,7 @@ type = "text"
 label = "Ban List URL"
 description = "URL of the shared ban list applied to this server"
 default = "https://b.palworldgame.com/api/banlist.txt"
-group = "communication"
+group = "admin"
 
 [[settings.fields]]
 name = "show_player_list"
@@ -270,7 +270,7 @@ type = "boolean"
 label = "Show Player List"
 description = "Expose the connected player list via the REST API"
 default = false
-group = "communication"
+group = "admin"
 
 [[settings.fields]]
 name = "crossplay_platforms"
@@ -280,7 +280,7 @@ type = "text"
 label = "Crossplay Platforms"
 description = "Allowed crossplay platforms, e.g. (Steam,Xbox,PS5,Mac)"
 default = "(Steam,Xbox,PS5,Mac)"
-group = "communication"
+group = "network"
 
 [[settings.fields]]
 name = "chat_post_limit_per_minute"
@@ -351,7 +351,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "difficulty"
@@ -431,7 +431,7 @@ default = 1.0
 min = 0.5
 max = 2.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "pal_spawn_num_rate"
@@ -444,7 +444,7 @@ default = 1.0
 min = 0.5
 max = 3.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "pal_damage_rate_attack"
@@ -457,7 +457,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "pal_damage_rate_defense"
@@ -470,7 +470,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "pal_stomach_decrease_rate"
@@ -483,7 +483,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "pal_stamina_decrease_rate"
@@ -496,7 +496,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "pal_auto_hp_regen_rate"
@@ -509,7 +509,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "pal_auto_hp_regen_rate_in_sleep"
@@ -522,7 +522,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "player_damage_rate_attack"
@@ -535,7 +535,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "player_damage_rate_defense"
@@ -548,7 +548,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "player_stomach_decrease_rate"
@@ -561,7 +561,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "player_stamina_decrease_rate"
@@ -574,7 +574,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "player_auto_hp_regen_rate"
@@ -587,7 +587,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "player_auto_hp_regen_rate_in_sleep"
@@ -600,7 +600,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "build_object_damage_rate"
@@ -613,7 +613,7 @@ default = 1.0
 min = 0.5
 max = 3.0
 step = 0.1
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "build_object_deterioration_damage_rate"
@@ -626,7 +626,7 @@ default = 1.0
 min = 0.0
 max = 10.0
 step = 0.1
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "build_area_limit"
@@ -636,7 +636,7 @@ type = "boolean"
 label = "Building Area Limit"
 description = "Restrict building to a limited area around base camps"
 default = false
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "max_building_limit_num"
@@ -648,7 +648,7 @@ description = "Maximum number of buildable objects per base (0 = unlimited)"
 default = 0
 min = 0
 max = 100000
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "max_building_limit_num_per_player"
@@ -660,7 +660,7 @@ description = "Maximum number of buildable objects per player (0 = unlimited)"
 default = 0
 min = 0
 max = 100000
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "fishing_difficulty_rate"
@@ -673,7 +673,7 @@ default = 1.0
 min = 0.1
 max = 1.0
 step = 0.1
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "allow_enemy_camp_spawn_near_base_camp"
@@ -683,7 +683,7 @@ type = "boolean"
 label = "Enemy Camps Near Base"
 description = "Allow enemy camps to spawn near player base camps"
 default = false
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "base_camp_max_num_in_guild"
@@ -695,7 +695,7 @@ description = "Maximum number of base camps a single guild can own"
 default = 4
 min = 1
 max = 128
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "guild_rejoin_cooldown_minutes"
@@ -707,7 +707,7 @@ description = "Cooldown (minutes) before a player can rejoin a guild after leavi
 default = 0
 min = 0
 max = 10080
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "auto_reset_guild_no_online_players"
@@ -717,7 +717,7 @@ type = "boolean"
 label = "Auto-Disband Inactive Guilds"
 description = "Automatically reset guilds with no online members for a long time"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "auto_reset_guild_time_no_online_players"
@@ -730,7 +730,7 @@ default = 72.0
 min = 1.0
 max = 720.0
 step = 1.0
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "can_pickup_other_guild_death_penalty_drop"
@@ -740,7 +740,7 @@ type = "boolean"
 label = "Loot Other Guilds' Death Drops"
 description = "Allow players to pick up death-penalty drops from other guilds"
 default = false
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "enable_defense_other_guild_player"
@@ -750,7 +750,7 @@ type = "boolean"
 label = "Defend Against Other Guilds"
 description = "Allow base defenses to target players from other guilds"
 default = false
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "invisible_other_guild_base_camp_area_fx"
@@ -760,19 +760,19 @@ type = "boolean"
 label = "Hide Other Guilds' Base Camp FX"
 description = "Hide base camp area visual effects belonging to other guilds"
 default = false
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "drop_item_max_num_unko"
 restart_required = true
 file_key = "DropItemMaxNum_UNKO"
 type = "number"
-label = "UNKO Item Cap"
-description = "Maximum number of UNKO (poop) items in the world"
+label = "Poop Item Cap"
+description = "Maximum number of poop items in the world"
 default = 100
 min = 0
 max = 3000
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "drop_item_alive_max_hours"
@@ -785,17 +785,17 @@ default = 1.0
 min = 0.0
 max = 168.0
 step = 1.0
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "active_unko"
 restart_required = true
 file_key = "bActiveUNKO"
 type = "boolean"
-label = "Active UNKO"
-description = "Enable the UNKO (poop) item drop mechanic"
+label = "Poop Drops"
+description = "Enable poop item drops"
 default = false
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "physics_active_drop_item_max_num"
@@ -817,7 +817,7 @@ type = "boolean"
 label = "Fast Travel: Base Camps Only"
 description = "Restrict fast travel destinations to base camps only"
 default = false
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "is_start_location_select_by_map"
@@ -827,7 +827,7 @@ type = "boolean"
 label = "Select Start Location On Map"
 description = "Let new players pick their starting location on the map"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "exist_player_after_logout"
@@ -837,7 +837,7 @@ type = "boolean"
 label = "Keep Player Character After Logout"
 description = "Keep the player character present in the world after logging out"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "enable_non_login_penalty"
@@ -847,7 +847,7 @@ type = "boolean"
 label = "Offline Penalty"
 description = "Apply hunger/stamina penalties while a player is offline"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "enable_aim_assist_pad"
@@ -857,7 +857,7 @@ type = "boolean"
 label = "Aim Assist (Gamepad)"
 description = "Enable aim assist for gamepad players"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "enable_aim_assist_keyboard"
@@ -867,7 +867,7 @@ type = "boolean"
 label = "Aim Assist (Keyboard/Mouse)"
 description = "Enable aim assist for keyboard/mouse players"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "is_use_backup_save_data"
@@ -911,7 +911,7 @@ type = "boolean"
 label = "Allow Global Palbox Export"
 description = "Allow Pals to be exported from the global Palbox"
 default = true
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "allow_global_palbox_import"
@@ -921,7 +921,7 @@ type = "boolean"
 label = "Allow Global Palbox Import"
 description = "Allow Pals to be imported into the global Palbox"
 default = false
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "deny_technology_list"
@@ -931,7 +931,7 @@ type = "text"
 label = "Denied Technology List"
 description = "Comma-separated technology IDs disabled on this server, e.g. PALBOX,RepairBench"
 default = ""
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "block_respawn_time"
@@ -944,7 +944,7 @@ default = 5.0
 min = 0.0
 max = 300.0
 step = 1.0
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "respawn_penalty_duration_threshold"
@@ -957,7 +957,7 @@ default = 0.0
 min = 0.0
 max = 3600.0
 step = 1.0
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "respawn_penalty_time_scale"
@@ -970,7 +970,7 @@ default = 2.0
 min = 0.0
 max = 10.0
 step = 0.1
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "display_pvp_item_num_on_world_map_base_camp"
@@ -980,7 +980,7 @@ type = "boolean"
 label = "Show PvP Item Count (Base Camps)"
 description = "Show item counts for base camps on the world map in PvP mode"
 default = false
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "display_pvp_item_num_on_world_map_player"
@@ -990,7 +990,7 @@ type = "boolean"
 label = "Show PvP Item Count (Players)"
 description = "Show item counts for players on the world map in PvP mode"
 default = false
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "additional_drop_item_when_player_killing_in_pvp_mode_enabled"
@@ -1000,7 +1000,7 @@ type = "boolean"
 label = "Extra PvP Kill Drop"
 description = "Drop an additional item when a player kills another player in PvP mode"
 default = false
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "additional_drop_item_when_player_killing_in_pvp_mode"
@@ -1010,7 +1010,7 @@ type = "text"
 label = "Extra PvP Kill Drop Item"
 description = "Item ID dropped on a PvP kill (used when the toggle above is enabled)"
 default = "PlayerDropItem"
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "additional_drop_item_num_when_player_killing_in_pvp_mode"
@@ -1022,7 +1022,7 @@ description = "Number of the extra item dropped on a PvP kill"
 default = 1
 min = 0
 max = 100
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "allow_enhance_stat_health"
@@ -1032,7 +1032,7 @@ type = "boolean"
 label = "Allow Stat Enhance: Health"
 description = "Allow players to enhance the Health stat"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "allow_enhance_stat_attack"
@@ -1042,7 +1042,7 @@ type = "boolean"
 label = "Allow Stat Enhance: Attack"
 description = "Allow players to enhance the Attack stat"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "allow_enhance_stat_stamina"
@@ -1052,7 +1052,7 @@ type = "boolean"
 label = "Allow Stat Enhance: Stamina"
 description = "Allow players to enhance the Stamina stat"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "allow_enhance_stat_weight"
@@ -1062,7 +1062,7 @@ type = "boolean"
 label = "Allow Stat Enhance: Weight"
 description = "Allow players to enhance the Weight stat"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "allow_enhance_stat_work_speed"
@@ -1072,7 +1072,7 @@ type = "boolean"
 label = "Allow Stat Enhance: Work Speed"
 description = "Allow players to enhance the Work Speed stat"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "item_container_force_mark_dirty_interval"
@@ -1098,7 +1098,7 @@ default = 1.0
 min = 0.0
 max = 10.0
 step = 0.1
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "equipment_durability_damage_rate"
@@ -1111,7 +1111,7 @@ default = 1.0
 min = 0.0
 max = 10.0
 step = 0.1
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "randomizer_type"
@@ -1121,7 +1121,7 @@ type = "text"
 label = "Randomizer Type"
 description = "World randomizer mode (e.g. None, Region, Boss). Set before the world is first generated"
 default = "None"
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "randomizer_seed"
@@ -1131,7 +1131,7 @@ type = "text"
 label = "Randomizer Seed"
 description = "Seed used by the world randomizer. Set before the world is first generated"
 default = ""
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "randomizer_pal_level_random"
@@ -1141,7 +1141,7 @@ type = "boolean"
 label = "Randomize Pal Levels"
 description = "Randomize Pal levels when the world randomizer is active"
 default = false
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "hardcore"
@@ -1151,7 +1151,7 @@ type = "boolean"
 label = "Hardcore Mode"
 description = "Enable hardcore mode (harsher death consequences)"
 default = false
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "character_recreate_in_hardcore"
@@ -1161,7 +1161,7 @@ type = "boolean"
 label = "Recreate Character In Hardcore"
 description = "Allow recreating a character after death in hardcore mode"
 default = false
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "is_multiplay"
@@ -1171,7 +1171,7 @@ type = "boolean"
 label = "Multiplay Mode"
 description = "Enable the dedicated multiplay ruleset"
 default = false
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "enable_predator_boss_pal"
@@ -1181,7 +1181,7 @@ type = "boolean"
 label = "Predator Boss Pals"
 description = "Enable rare predator/boss Pal spawns"
 default = true
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "player_data_pal_storage_update_check_tick_interval"
@@ -1207,7 +1207,7 @@ default = 1.0
 min = 0.1
 max = 10.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "auto_transfer_master_check_interval_seconds"
@@ -1232,7 +1232,7 @@ description = "Days of guild master inactivity before ownership auto-transfers"
 default = 14
 min = 1
 max = 365
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "max_guilds_per_frame"
@@ -1254,7 +1254,7 @@ type = "boolean"
 label = "Show Builder Name On Buildings"
 description = "Display the owning player's name/UID on placed buildings"
 default = false
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "building_name_display_cache_ttl_seconds"
@@ -1278,7 +1278,7 @@ description = "Maximum number of dropped items in the world (0-3000)"
 default = 3000
 min = 0
 max = 3000
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "collection_drop_rate"
@@ -1291,7 +1291,7 @@ default = 1.0
 min = 0.5
 max = 3.0
 step = 0.1
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "collection_object_hp_rate"
@@ -1304,7 +1304,7 @@ default = 1.0
 min = 0.5
 max = 3.0
 step = 0.1
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "collection_object_respawn_speed_rate"
@@ -1317,7 +1317,7 @@ default = 1.0
 min = 0.5
 max = 3.0
 step = 0.1
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "enemy_drop_item_rate"
@@ -1330,7 +1330,7 @@ default = 1.0
 min = 0.5
 max = 3.0
 step = 0.1
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "pal_egg_default_hatching_time"
@@ -1343,7 +1343,7 @@ default = 1.0
 min = 0.0
 max = 240.0
 step = 1.0
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "enable_invader_enemy"
@@ -1353,7 +1353,7 @@ type = "boolean"
 label = "Raid Events"
 description = "Enable base raid events"
 default = true
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "guild_player_max_num"
@@ -1365,7 +1365,7 @@ description = "Maximum number of players in a guild (1-100)"
 default = 20
 min = 1
 max = 100
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "enable_player_to_player_damage"
@@ -1375,7 +1375,7 @@ type = "boolean"
 label = "Player vs Player Damage"
 description = "Allow players to damage each other"
 default = false
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "enable_friendly_fire"
@@ -1385,7 +1385,7 @@ type = "boolean"
 label = "Friendly Fire"
 description = "Allow guild members to damage each other"
 default = false
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "base_camp_worker_max_num"
@@ -1397,7 +1397,7 @@ description = "Maximum number of Pals working at a base (1-20)"
 default = 15
 min = 1
 max = 20
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "base_camp_max_num"
@@ -1409,7 +1409,7 @@ description = "Maximum number of base camps that can be built"
 default = 128
 min = 1
 max = 512
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "work_speed_rate"
@@ -1422,7 +1422,7 @@ default = 1.0
 min = 0.1
 max = 5.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "pal_lost"

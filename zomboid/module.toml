@@ -425,7 +425,7 @@ description = "Players with a ping above this value (ms) are kicked (100 = disab
 default = 400
 min = 100
 max = 2000
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "hours_for_loot_respawn"
@@ -437,7 +437,7 @@ description = "In-game hours before loot can respawn (0 = never)"
 default = 0
 min = 0
 max = 8760
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "max_items_for_loot_respawn"
@@ -449,7 +449,7 @@ description = "Max items in container before loot can respawn"
 default = 4
 min = 0
 max = 100
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "no_fire"
@@ -459,7 +459,7 @@ type = "boolean"
 label = "Disable Fire"
 description = "Disable all fire except campfires"
 default = false
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "player_safehouse"
@@ -469,7 +469,7 @@ type = "boolean"
 label = "Player Safehouses"
 description = "Allow players to claim safehouses"
 default = true
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "safehouse_allow_trespass"
@@ -479,7 +479,7 @@ type = "boolean"
 label = "Safehouse Trespassing"
 description = "Allow players who are not safehouse members to enter"
 default = true
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "safehouse_allow_loot"
@@ -489,7 +489,7 @@ type = "boolean"
 label = "Safehouse Looting"
 description = "Allow players who are not safehouse members to loot"
 default = true
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "safehouse_allow_respawn"
@@ -499,7 +499,7 @@ type = "boolean"
 label = "Safehouse Respawn"
 description = "Players respawn in their safehouse after death"
 default = false
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "faction"
@@ -509,7 +509,7 @@ type = "boolean"
 label = "Factions"
 description = "Allow creation and use of factions"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "allow_destruction_by_sledgehammer"
@@ -519,7 +519,7 @@ type = "boolean"
 label = "Sledgehammer Destruction"
 description = "Allow players to destroy world objects with sledgehammer"
 default = true
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "speed_limit"
@@ -532,7 +532,7 @@ default = 70.0
 min = 10.0
 max = 200.0
 step = 5.0
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "do_lua_checksum"
@@ -542,7 +542,7 @@ type = "boolean"
 label = "Lua Checksum"
 description = "Check that connected players' Lua files match the server's (disable if using client-side mods)"
 default = true
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "steam_vac"
@@ -552,7 +552,7 @@ type = "boolean"
 label = "Steam VAC"
 description = "Enable Valve Anti-Cheat"
 default = true
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "voice_enable"
@@ -562,7 +562,7 @@ type = "boolean"
 label = "Voice Chat"
 description = "Enable in-game voice chat"
 default = true
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "minutes_per_page"
@@ -575,7 +575,7 @@ default = 1.0
 min = 0.0
 max = 60.0
 step = 0.5
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "spawn_point"
@@ -585,7 +585,7 @@ type = "text"
 label = "Spawn Point"
 description = "Force all players to spawn at specific coordinates (x,y,z). Leave as 0,0,0 to use the Lua-based spawn regions (spawnregions.lua)"
 default = "0,0,0"
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "max_accounts_per_user"
@@ -597,7 +597,7 @@ description = "Maximum accounts a single Steam user may create (0 = unlimited)"
 default = 0
 min = 0
 max = 20
-group = "advanced"
+group = "admin"
 
 # ========== Safety / PVP Combat ==========
 
@@ -609,7 +609,7 @@ type = "boolean"
 label = "Show Safety Icon"
 description = "Show skull icon when a player has PvP safety toggled off"
 default = true
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "safety_toggle_timer"
@@ -621,7 +621,7 @@ description = "Time in minutes to switch between PvP on and off"
 default = 2
 min = 0
 max = 60
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "safety_cooldown_timer"
@@ -633,7 +633,7 @@ description = "Time in minutes before PvP safety can be toggled again"
 default = 3
 min = 0
 max = 60
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "pvp_melee_while_hit_reaction"
@@ -643,7 +643,7 @@ type = "boolean"
 label = "PVP Melee While Hit Reaction"
 description = "Allow melee attacks during hit reaction in PVP"
 default = false
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "pvp_melee_damage_modifier"
@@ -656,7 +656,7 @@ default = 30.0
 min = 0.0
 max = 500.0
 step = 5.0
-group = "advanced"
+group = "pvp"
 
 [[settings.fields]]
 name = "pvp_firearm_damage_modifier"
@@ -669,7 +669,7 @@ default = 50.0
 min = 0.0
 max = 500.0
 step = 5.0
-group = "advanced"
+group = "pvp"
 
 # ========== Player Behavior ==========
 
@@ -681,7 +681,7 @@ type = "boolean"
 label = "Mouse Over to See Name"
 description = "Require mouse hover to see player display names"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "hide_players_behind_you"
@@ -691,7 +691,7 @@ type = "boolean"
 label = "Hide Players Behind You"
 description = "Hide players that are behind your character"
 default = true
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "player_bump_player"
@@ -701,7 +701,7 @@ type = "boolean"
 label = "Player Collision"
 description = "Enable physical collision between players"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "player_respawn_with_self"
@@ -711,7 +711,7 @@ type = "boolean"
 label = "Respawn at Death"
 description = "Allow players to respawn at their place of death"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "player_respawn_with_other"
@@ -721,7 +721,7 @@ type = "boolean"
 label = "Respawn at Partner"
 description = "Allow spawning at a splitscreen partner's location"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "drop_off_whitelist_after_death"
@@ -731,7 +731,7 @@ type = "boolean"
 label = "Remove from Whitelist on Death"
 description = "Remove a player from the whitelist if their character dies"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "allow_non_ascii_username"
@@ -741,7 +741,7 @@ type = "boolean"
 label = "Allow Non-ASCII Usernames"
 description = "Allow usernames with non-ASCII characters"
 default = false
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "chat_streams"
@@ -751,7 +751,7 @@ type = "text"
 label = "Chat Streams"
 description = "Comma-separated list of enabled chat streams: s,r,a,w,y,sh,f,all"
 default = "s,r,a,w,y,sh,f,all"
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "player_save_on_damage"
@@ -773,7 +773,7 @@ type = "boolean"
 label = "Admin Safehouses"
 description = "Allow admins to claim safehouses"
 default = false
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "safehouse_allow_fire"
@@ -783,7 +783,7 @@ type = "boolean"
 label = "Safehouse Fire Damage"
 description = "Allow fire to damage safehouses"
 default = true
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "safehouse_day_survived_to_claim"
@@ -795,7 +795,7 @@ description = "Game-world days a player must survive before claiming a safehouse
 default = 0
 min = 0
 max = 365
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "safehouse_removal_time"
@@ -807,7 +807,7 @@ description = "Real-time hours before inactive members are removed from safehous
 default = 144
 min = 0
 max = 8760
-group = "advanced"
+group = "building"
 
 [[settings.fields]]
 name = "disable_safehouse_when_player_connected"
@@ -817,7 +817,7 @@ type = "boolean"
 label = "Disable Safehouse When Online"
 description = "Disable safehouse protection when any member is connected"
 default = false
-group = "advanced"
+group = "building"
 
 # ========== Faction (extended) ==========
 
@@ -831,7 +831,7 @@ description = "Game-world days a player must survive to create a faction"
 default = 0
 min = 0
 max = 365
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "faction_players_required_for_tag"
@@ -843,7 +843,7 @@ description = "Number of members required to display a faction tag"
 default = 1
 min = 1
 max = 100
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "allow_trade_ui"
@@ -853,7 +853,7 @@ type = "boolean"
 label = "Allow Trading"
 description = "Allow direct player-to-player trading"
 default = true
-group = "advanced"
+group = "player"
 
 # ========== Loot / World Cleanup ==========
 
@@ -865,7 +865,7 @@ type = "boolean"
 label = "Construction Blocks Loot Respawn"
 description = "Player constructions near containers prevent loot respawn"
 default = true
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "hours_for_world_item_removal"
@@ -878,7 +878,7 @@ default = 0.0
 min = 0.0
 max = 8760.0
 step = 1.0
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "world_item_removal_list"
@@ -888,7 +888,7 @@ type = "text"
 label = "World Item Removal List"
 description = "Comma-separated list of items to auto-remove when placed on ground"
 default = "Base.Vest,Base.Shirt,Base.Blouse,Base.Skirt,Base.Shoes"
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "blood_splat_lifespan_days"
@@ -900,7 +900,7 @@ description = "Days before blood splats fade away (0 = never)"
 default = 0
 min = 0
 max = 365
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "item_numbers_limit_per_container"
@@ -912,7 +912,7 @@ description = "Maximum items allowed per container (0 = unlimited)"
 default = 0
 min = 0
 max = 10000
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "trash_delete_all"
@@ -922,7 +922,7 @@ type = "boolean"
 label = "Delete All Trash"
 description = "Delete all trash items immediately"
 default = false
-group = "advanced"
+group = "item"
 
 [[settings.fields]]
 name = "remove_player_corpses_on_corpse_removal"
@@ -932,7 +932,7 @@ type = "boolean"
 label = "Remove Player Corpses"
 description = "Remove player corpses when corpse cleanup occurs"
 default = false
-group = "advanced"
+group = "world"
 
 # ========== Network / Steam ==========
 
@@ -946,7 +946,7 @@ description = "How often the server checks connection to players (seconds)"
 default = 10
 min = 1
 max = 60
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "deny_login_on_overloaded_server"
@@ -956,7 +956,7 @@ type = "boolean"
 label = "Deny Login When Overloaded"
 description = "Prevent new connections when server is overloaded"
 default = true
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "kick_fast_players"
@@ -966,7 +966,7 @@ type = "boolean"
 label = "Kick Speed Hackers"
 description = "Kick players moving faster than possible (may be buggy)"
 default = false
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "steam_port1"
@@ -979,7 +979,7 @@ description = "First Steam networking port"
 default = 8766
 min = 1024
 max = 65535
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "steam_port2"
@@ -992,7 +992,7 @@ description = "Second Steam networking port"
 default = 8767
 min = 1024
 max = 65535
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "steam_scoreboard"
@@ -1002,7 +1002,7 @@ type = "text"
 label = "Steam Scoreboard"
 description = "Show Steam names/avatars in player list (true/false/admin)"
 default = "true"
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "upnp"
@@ -1012,7 +1012,7 @@ type = "boolean"
 label = "UPnP"
 description = "Enable UPnP for automatic port forwarding"
 default = true
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "upnp_lease_time"
@@ -1024,7 +1024,7 @@ description = "UPnP port mapping lease time in seconds"
 default = 86400
 min = 0
 max = 604800
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "upnp_zero_lease_time_fallback"
@@ -1034,7 +1034,7 @@ type = "boolean"
 label = "UPnP Zero Lease Fallback"
 description = "Fall back to zero lease time if specific lease fails"
 default = true
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "upnp_force"
@@ -1044,7 +1044,7 @@ type = "boolean"
 label = "Force UPnP"
 description = "Force UPnP even if the router doesn't support it well"
 default = true
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "server_browser_announced_ip"
@@ -1054,7 +1054,7 @@ type = "text"
 label = "Announced IP"
 description = "Custom IP to announce in the server browser (leave empty for auto)"
 default = ""
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "use_tcp_for_map_downloads"
@@ -1064,7 +1064,7 @@ type = "boolean"
 label = "TCP Map Downloads"
 description = "Use TCP instead of UDP for map data downloads"
 default = false
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "physics_delay"
@@ -1089,7 +1089,7 @@ default = 40.0
 min = 1.0
 max = 200.0
 step = 5.0
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "car_engine_attraction_modifier"
@@ -1102,7 +1102,7 @@ default = 0.5
 min = 0.0
 max = 10.0
 step = 0.1
-group = "advanced"
+group = "mob"
 
 # ========== Co-op ==========
 
@@ -1116,7 +1116,7 @@ description = "Timeout in seconds for co-op server launch"
 default = 20
 min = 5
 max = 120
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "coop_master_ping_timeout"
@@ -1128,7 +1128,7 @@ description = "Timeout in seconds for co-op master ping"
 default = 60
 min = 10
 max = 300
-group = "advanced"
+group = "network"
 
 # ========== Voice Chat ==========
 
@@ -1142,7 +1142,7 @@ description = "Opus voice codec complexity (1-10, higher = better quality)"
 default = 5
 min = 1
 max = 10
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "voice_period"
@@ -1154,7 +1154,7 @@ description = "Voice frame period in milliseconds"
 default = 20
 min = 10
 max = 60
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "voice_sample_rate"
@@ -1166,7 +1166,7 @@ description = "Voice sample rate in Hz"
 default = 24000
 min = 8000
 max = 48000
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "voice_buffering"
@@ -1178,7 +1178,7 @@ description = "Voice buffering in milliseconds"
 default = 8000
 min = 1000
 max = 30000
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "voice_min_distance"
@@ -1191,7 +1191,7 @@ default = 10.0
 min = 0.0
 max = 100.0
 step = 1.0
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "voice_max_distance"
@@ -1204,7 +1204,7 @@ default = 300.0
 min = 10.0
 max = 1000.0
 step = 10.0
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "voice_3d"
@@ -1214,7 +1214,7 @@ type = "boolean"
 label = "3D Voice"
 description = "Enable 3D positional voice chat"
 default = true
-group = "advanced"
+group = "communication"
 
 # ========== Discord Integration ==========
 
@@ -1226,7 +1226,7 @@ type = "boolean"
 label = "Discord Integration"
 description = "Enable built-in Discord bot integration"
 default = false
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "discord_token"
@@ -1236,7 +1236,7 @@ type = "password"
 label = "Discord Token"
 description = "Discord bot token for integration"
 default = ""
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "discord_channel"
@@ -1246,7 +1246,7 @@ type = "text"
 label = "Discord Channel"
 description = "Discord channel name for server messages"
 default = ""
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "discord_channel_id"
@@ -1256,7 +1256,7 @@ type = "text"
 label = "Discord Channel ID"
 description = "Discord channel ID for server messages"
 default = ""
-group = "advanced"
+group = "integration"
 
 # ========== Radio Visibility ==========
 
@@ -1268,7 +1268,7 @@ type = "boolean"
 label = "Disable Radio (Staff)"
 description = "Hide radio frequency for staff members"
 default = false
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "disable_radio_admin"
@@ -1278,7 +1278,7 @@ type = "boolean"
 label = "Disable Radio (Admin)"
 description = "Hide radio frequency for admins"
 default = true
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "disable_radio_gm"
@@ -1288,7 +1288,7 @@ type = "boolean"
 label = "Disable Radio (GM)"
 description = "Hide radio frequency for game masters"
 default = true
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "disable_radio_overseer"
@@ -1298,7 +1298,7 @@ type = "boolean"
 label = "Disable Radio (Overseer)"
 description = "Hide radio frequency for overseers"
 default = false
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "disable_radio_moderator"
@@ -1308,7 +1308,7 @@ type = "boolean"
 label = "Disable Radio (Moderator)"
 description = "Hide radio frequency for moderators"
 default = false
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "disable_radio_invisible"
@@ -1318,7 +1318,7 @@ type = "boolean"
 label = "Disable Radio (Invisible)"
 description = "Hide radio frequency for invisible players"
 default = true
-group = "advanced"
+group = "communication"
 
 # ========== Client Filter ==========
 
@@ -1330,7 +1330,7 @@ type = "text"
 label = "Client Command Filter"
 description = "Filter rules for client commands (prefix + to allow, - to deny)"
 default = "-vehicle.*;+vehicle.damageWindow;+vehicle.fixPart;+vehicle.installPart;+vehicle.uninstallPart"
-group = "advanced"
+group = "admin"
 
 # ========== Zombie Performance ==========
 
@@ -1393,7 +1393,7 @@ type = "boolean"
 label = "Ban/Kick Sound"
 description = "Play a global sound when a player is banned or kicked"
 default = true
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "save_transaction_id"

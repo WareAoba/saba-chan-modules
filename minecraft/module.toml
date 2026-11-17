@@ -1210,7 +1210,6 @@ inputs = []
 
 [errors]
 server_not_running = "Server is not running. Please start the server first"
-timeout = "Server response timeout. Please check server status"
 internal_server_error = "Internal server error occurred"
 
 # ─── Aliases ──────────────────────────────────────────────────

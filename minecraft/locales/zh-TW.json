@@ -184,7 +184,6 @@
   "errors": {
     "backup_paths_failed": "讀取要備份的外掛資料夾失敗：{{error}}",
     "server_not_running": "伺服器未執行。請先啟動伺服器。",
-    "timeout": "伺服器回應逾時。檢查伺服器狀態。",
     "internal_server_error": "伺服器內部錯誤",
     "server_type_mismatch": "伺服器類型不符：設定為 '{{chosen}}'，伺服器檔案為 '{{detected}}'",
     "server_type_install_unsupported": "Saba-chan 無法安裝 '{{type}}' 伺服器。自行安裝後，透過「遷移現有伺服器」新增。",

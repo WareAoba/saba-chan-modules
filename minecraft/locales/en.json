@@ -195,7 +195,6 @@
   "errors": {
     "backup_paths_failed": "Backup plugin folder read failed: {{error}}",
     "server_not_running": "Server not running. Start the server first.",
-    "timeout": "Server response timed out. Check the server status.",
     "internal_server_error": "Internal server error",
     "server_type_mismatch": "Server type mismatch: setting is '{{chosen}}', server files are '{{detected}}'",
     "server_type_install_unsupported": "Saba-chan cannot install '{{type}}' servers. Install it yourself and add it with 'Import existing server'.",

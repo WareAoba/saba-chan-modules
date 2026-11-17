@@ -184,7 +184,6 @@
   "errors": {
     "backup_paths_failed": "读取要备份的插件文件夹失败:{{error}}",
     "server_not_running": "服务器未运行。请先启动服务器。",
-    "timeout": "服务器响应超时。请检查服务器状态。",
     "internal_server_error": "服务器内部错误",
     "server_type_mismatch": "服务器类型不一致:设置为“{{chosen}}”,服务器文件为“{{detected}}”",
     "server_type_install_unsupported": "Saba-chan 无法安装“{{type}}”服务器。请自行安装,然后通过“导入现有服务器”添加。",

@@ -1667,10 +1667,6 @@ inputs = []
 
 [errors]
 server_not_running = "Server is not running. Please start the server first"
-player_not_found = "Player not found. Please check the username"
-connection_refused = "Cannot connect to server. Please check that the server is running and the port is correct"
-timeout = "Server response timeout. Please check server status"
-java_not_found = "Could not find bundled Java — the server installation may be incomplete"
 
 [aliases]
 # 언어 없는 낱말(약어)만 둔다. 언어마다의 별명은 locales/<lang>.json "aliases"에 둔다 (그 언어로 답할 때만 맞춘다)

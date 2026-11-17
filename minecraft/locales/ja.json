@@ -187,7 +187,6 @@
   "errors": {
     "backup_paths_failed": "バックアップ対象のプラグインフォルダー読み込み失敗: {{error}}",
     "server_not_running": "サーバーが起動していません。先にサーバーを起動してください。",
-    "timeout": "サーバー応答タイムアウト。サーバーの状態を確認してください。",
     "internal_server_error": "サーバー内部エラー",
     "server_type_mismatch": "サーバー種類の不一致: 設定は '{{chosen}}'、サーバーファイルは '{{detected}}'",
     "server_type_install_unsupported": "サバちゃん は '{{type}}' サーバーをインストールできません。ご自身でインストールし、「既存サーバーの移行」で追加してください。",

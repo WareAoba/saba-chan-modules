@@ -1592,10 +1592,6 @@ inputs = [
 [errors]
 server_not_running = "Server is not running. Please start the server first"
 auth_failed = "Authentication failed: please check REST API username/password"
-player_not_found = "Player not found. Please check the nickname or SteamID"
-connection_refused = "Cannot connect to server. Please check server port and REST API settings"
-timeout = "Server response timeout. Please check server status"
-rest_api_disabled = "REST API is disabled. It will be auto-enabled on next server start."
 internal_server_error = "Internal server error occurred"
 
 [aliases]

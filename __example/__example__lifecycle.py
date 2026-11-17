@@ -95,7 +95,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 # PYTHONPATH로 넣어 주므로 모듈 폴더에 복사하지 않고 바로 import합니다.
 # 도우미 목록과 도입 버전은 saba-chan docs/architecture/02-modules.md §2.5(원본은 daemon_rcon.SINCE)에 있습니다.
 import daemon_rcon
-from daemon_rcon import (daemon_stdin_command, extension_required, graceful_stop, read_key_values, request_console,
+from daemon_rcon import (daemon_stdin_command, graceful_stop, load_extension, read_key_values, request_console,
                          request_terminate, run_lifecycle, settings_from_file, settings_to_file, stop_command, update_key_values)
 
 # i18n 초기화 — 이 모듈의 locales/ 폴더에서 번역 파일을 로드합니다
@@ -320,12 +320,11 @@ def install_server(config):
         return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
     # SteamCMD 예시: app_id·beta는 module.toml [install]에 한 번만 적습니다 (install_for_module이 읽습니다)
-    try:
-        from extensions.steamcmd import install_for_module
-    except ImportError:
-        # 익스텐션이 없거나 꺼져 있다: missing_extensions가 있어야 데몬이 설치·켜기 안내를 띄웁니다
-        return extension_required(i18n, "steamcmd")
-    result = install_for_module(MODULE_DIR, install_dir)
+    # 익스텐션이 없거나 꺼져 있으면 load_extension이 extension_required 답(missing_extensions)을 줍니다: 데몬이 설치·켜기 안내를 띄웁니다
+    steamcmd, missing = load_extension(i18n, "steamcmd")
+    if missing:
+        return missing
+    result = steamcmd.install_for_module(MODULE_DIR, install_dir)
     if result.get("success"):
         # 설치 후 초기 설정 적용
         configure(config)

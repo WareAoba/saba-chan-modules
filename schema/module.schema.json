@@ -245,13 +245,6 @@
             "null"
           ]
         },
-        "executable_path": {
-          "default": null,
-          "type": [
-            "string",
-            "null"
-          ]
-        },
         "kick_command": {
           "default": null,
           "description": "플레이어를 내보내는 `[commands.fields]` 이름 (첫 입력 닉네임, 둘째 입력이 있으면 이유)",

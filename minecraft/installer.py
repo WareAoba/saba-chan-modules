@@ -135,7 +135,10 @@ class ServerInstaller:
             return None
 
         # Fetch version-specific metadata
-        meta = server_types._get_json(version_entry["url"])
+        try:
+            meta = server_types._get_json(version_entry["url"])
+        except Exception as e:
+            raise ConnectionError(f"Failed to fetch version metadata: {e}")
 
         server_dl = meta.get("downloads", {}).get("server")
         if not server_dl:
@@ -310,7 +313,9 @@ class ServerInstaller:
             "size": downloaded,
             "java_major_version": details.get("java_major_version"),
         }
-        ServerInstaller._apply_first_settings(result, install_path, accept_eula, initial_settings)
+        failed = ServerInstaller._apply_first_settings(result, install_path, accept_eula, initial_settings)
+        if failed:
+            return failed
 
         # Download bundled Java if needed
         java_req = details.get("java_major_version")
@@ -343,7 +348,8 @@ class ServerInstaller:
 
     @staticmethod
     def _apply_first_settings(result, install_path, accept_eula, initial_settings):
-        """설치한 서버 폴더에 EULA 동의와 처음 설정(server.properties)을 쓰고 result에 적는다"""
+        """설치한 서버 폴더에 EULA 동의와 처음 설정(server.properties)을 쓰고 result에 적는다.
+        처음 설정을 쓰지 못하면 설치 실패 답(settings_write_failed), 아니면 None"""
         # Accept EULA if requested
         if accept_eula:
             ok = EulaManager.accept_eula(install_path)
@@ -365,8 +371,11 @@ class ServerInstaller:
                 # 원격 접속 값은 사바쨩이 정한다 (module.toml [remote_access]: 실행 전에 관리형 여부로 다시 맞춘다)
                 props.update(remote_access_values(MODULE_DIR))
 
-                mgr.update(props)
+                if not mgr.update(props):
+                    return {"success": False, "error_code": "settings_write_failed",
+                            "message": i18n.t("errors.properties_write_failed")}
             result["settings_applied"] = props is not None
+        return None
 
     # 공식 설치기 한 번에 주는 시간 (데몬의 설치 한도 30분 안. BuildTools는 실측 4분, 처음 받는 PC는 더 걸린다)
     INSTALLER_TIMEOUT = 1500
@@ -526,7 +535,9 @@ class ServerInstaller:
         # 1.17+ Forge·NeoForge는 실행 jar 없이 인자 파일로 뜬다 (server_types.launch_target)
         if jar_path:
             result["executable_path"] = jar_path
-        ServerInstaller._apply_first_settings(result, install_path, accept_eula, initial_settings)
+        failed = ServerInstaller._apply_first_settings(result, install_path, accept_eula, initial_settings)
+        if failed:
+            return failed
         result["message"] = i18n.t("messages.server_installed", version=version_id, path=install_path)
         return result
 

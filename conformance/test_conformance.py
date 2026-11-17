@@ -11,9 +11,10 @@
 6. 코드에서 쓰는 번역 키가 `locales/en.json`에 있고, 다른 언어 파일의 키가 en과 같다.
    en이 아닌 언어 파일에 en과 같은 문구(번역하지 않고 남긴 영어)가 많지 않다
 7. 명령마다 `risk`와 `description`이 있다
-8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다
+8. 바꾼 설정 값을 `configure`로 쓰고 `import_settings`로 읽으면 같은 값이다. `read_properties`·`import_settings`는
+   설정 이름만 돌려준다
 9. 콘솔 없는 서버의 일반 정지는 저장 후 종료를 요청하거나, 길이 없으면 죽이지 않고 `graceful_stop_unavailable`로 알린다
-10. `[protocols]`: rcon은 stdin·rest가 없을 때만, 그때 rcon_port
+10. `[protocols]`: rest가 있으면 rcon을 두지 않고, rcon을 두면 rcon_port
 """
 import ast
 import importlib.util
@@ -491,6 +492,27 @@ def test_settings_round_trip(module, shared_libs, tmp_path):
                          f"(게임 파일에 두지 않는 설정이면 group = \"saba-chan\"): {missing}")
     differ = [f"{k}: 썼음 {v!r} → 읽음 {back[k]!r}" for k, v in changed.items() if k in back and back[k] != v]
     assert not differ, "앱 값과 게임 파일 값이 다르다:\n" + "\n".join(differ)
+
+
+def test_settings_are_answered_by_setting_name(module, shared_libs, tmp_path):
+    """`read_properties`·`import_settings`는 설정 이름(`[[settings.fields]] name`)만 돌려준다. 게임 파일 키나
+    설정 화면에 없는 키를 돌려주면 CLI `properties show`에 보인 키를 `properties set`이 unknown_setting으로 거절하고,
+    가져오기가 쓰이지 않는 키를 module_settings에 쌓는다"""
+    table, _ = functions_table(module)
+    if not {"configure", "read_properties", "import_settings"} <= set(table or {}):
+        pytest.skip("configure·read_properties·import_settings 미지원")
+    names = {f.get("name") for f in (module.manifest.get("settings") or {}).get("fields", [])}
+    config = sandbox_config(tmp_path)
+    settings, _ = changed_setting_values((module.manifest.get("settings") or {}).get("fields", []), config["working_dir"])
+    instance = {**config, **settings}
+    written = call(module, shared_libs, "configure", {**instance, "settings": settings}, tmp_path)
+    if written.get("error_code") == "extension_required":
+        pytest.skip(f"익스텐션 필요: {written.get('missing_extensions')}")
+    for function, field in (("read_properties", "properties"), ("import_settings", "settings")):
+        answer = call(module, shared_libs, function, instance, tmp_path)
+        assert answer.get("success") is True, f"{function} 실패: {answer}"
+        unknown = sorted(set(answer.get(field) or {}) - names)
+        assert not unknown, f"{function}이 설정 이름이 아닌 키를 돌려준다: {unknown}"
 
 
 def test_kit_changes_every_kind_it_can():

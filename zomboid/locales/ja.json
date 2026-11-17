@@ -757,16 +757,6 @@
     "server_reset_complete": "サーバーのワールドデータを初期化しました",
     "command_sent": "コンソールにコマンドを送信しました: {{command}}"
   },
-  "rcon": {
-    "connecting": "{{host}}:{{port}} に接続中...",
-    "connected": "接続されました!",
-    "authentication_failed": "認証に失敗しました",
-    "authenticated": "認証されました!",
-    "connection_failed": "接続に失敗しました: {{error}}",
-    "sending_command": "コマンドを送信しています: {{command}}",
-    "response_received": "レスポンスを受信しました: {{response}}",
-    "command_failed": "コマンド失敗: {{error}}"
-  },
   "reset": {
     "label": "ワールド初期化",
     "description": "ワールドのセーブだけを削除し、サーバー設定は残します。",

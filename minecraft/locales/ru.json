@@ -182,6 +182,9 @@
     "stop": { "label": "Остановить", "description": "Корректно остановить сервер" }
   },
   "errors": {
+    "list_read_failed": "Не удалось прочитать {{file}}: {{error}}",
+    "version_manifest_failed": "Не удалось получить сведения о версиях от Mojang: {{error}}",
+    "command_send_failed": "Не удалось отправить команду: {{error}}",
     "backup_paths_failed": "Не удалось прочитать папку плагинов для резервной копии: {{error}}",
     "server_not_running": "Сервер не запущен. Сначала запустите сервер.",
     "internal_server_error": "Внутренняя ошибка сервера",
@@ -256,16 +259,6 @@
   },
   "plugins": {
     "args_label": "Аргументы"
-  },
-  "rcon": {
-    "connecting": "Подключение к {{host}}:{{port}}...",
-    "connected": "Подключено!",
-    "authentication_failed": "Ошибка аутентификации",
-    "authenticated": "Аутентификация успешна!",
-    "connection_failed": "Ошибка подключения: {{error}}",
-    "sending_command": "Отправка команды: {{command}}",
-    "response_received": "Ответ получен: {{response}}",
-    "command_failed": "Ошибка команды: {{error}}"
   },
   "reset": {
     "label": "Сброс сервера",

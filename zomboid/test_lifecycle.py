@@ -54,10 +54,10 @@ def test_defaults_for_a_new_server_come_from_module_toml(tmp_path):
     from zomboid import lifecycle
     with mock.patch.object(lifecycle.IniManager, "get_ini_path", return_value=str(tmp_path / "servertest.ini")):
         props = lifecycle.read_properties({})["properties"]
-    assert props["max_players"] == "16"
+    assert props["max_players"] == 16
     assert props["public_name"] == "My PZ Server"
-    assert props["pvp"] == "true"
-    assert props["speed_limit"] == "70"
+    assert props["pvp"] is True
+    assert props["speed_limit"] == 70
 
 
 def test_ini_key_map_no_duplicate_targets():
@@ -406,7 +406,7 @@ def test_commands_go_to_the_console():
     from unittest import mock
     from zomboid import lifecycle
     with mock.patch.object(lifecycle, "daemon_stdin_command", return_value={"data": {}}) as stdin:
-        result = lifecycle.command({"command_text": "players", "instance_id": "z"})
+        result = lifecycle.command({"command": "players", "instance_id": "z"})
     assert result["success"] is True
     stdin.assert_called_once_with("z", "players")
 
@@ -602,11 +602,11 @@ def test_admin_password_is_only_passed_before_the_server_database_exists(tmp_pat
 
 def test_steamcmd_extension_import_failure_does_not_search_for_an_executable(monkeypatch):
     import subprocess
+    import sys
     from zomboid import lifecycle
-    import extensions.steamcmd
 
     # 익스텐션이 없거나 꺼져 있으면(import 가드) 데몬이 켜기를 안내하도록 extension_required로 답한다
-    monkeypatch.delattr(extensions.steamcmd, "install_for_module", raising=False)
+    monkeypatch.setitem(sys.modules, "extensions.steamcmd", None)
     monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: pytest.fail("unexpected executable search"))
 
     result = lifecycle.install_server({"install_dir": "server", "settings": {}})
@@ -861,6 +861,19 @@ def test_import_reads_memory_profile_and_data_folder_from_the_start_script(tmp_p
     assert settings["max_players"] == 12
 
 
+def test_read_and_import_answer_only_setting_names(tmp_path):
+    """INI에 설정 화면에 없는 키가 있어도 read_properties·import_settings는 설정 이름만 돌려준다.
+    원본 키를 돌려주면 CLI `properties set`이 거절하고 module_settings에 쓰이지 않는 키가 쌓인다"""
+    from zomboid import lifecycle
+    ini = tmp_path / "servertest.ini"
+    lifecycle.IniManager.write(str(ini), {"MaxPlayers": "12", "NoSuchKey": "true"})
+    with mock.patch.object(lifecycle.IniManager, "get_ini_path", return_value=str(ini)):
+        props = lifecycle.read_properties({})["properties"]
+        settings = lifecycle.import_settings({})["settings"]
+    assert props == {"max_players": 12}
+    assert settings["max_players"] == 12 and "NoSuchKey" not in settings
+
+
 @pytest.mark.parametrize("profiles,expected", [(["pvp"], "pvp"), (["pvp", "servertest"], "servertest"), ([], "servertest")])
 def test_import_finds_the_only_existing_profile_when_the_script_names_none(tmp_path, monkeypatch, profiles, expected):
     from zomboid import lifecycle
@@ -971,7 +984,7 @@ def test_install_reads_the_steam_app_from_module_toml(tmp_path):
     from zomboid import lifecycle
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
         lifecycle.install_server({"install_dir": str(tmp_path / "server"), "use_beta": True})
-    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta=None)
+    install.assert_called_once_with(lifecycle.MODULE_DIR, str(tmp_path / "server"), beta=None, executable=mock.ANY)
     assert _load_module_toml()["install"]["app_id"] == 380870
 
 
@@ -1000,7 +1013,7 @@ def test_install_downloads_the_chosen_branch(tmp_path):
     for branch in ("unstable", "legacy41", "public"):
         with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
             lifecycle.install_server({"install_dir": server, "version": branch})
-        install.assert_called_once_with(lifecycle.MODULE_DIR, server, beta=branch)
+        install.assert_called_once_with(lifecycle.MODULE_DIR, server, beta=branch, executable=mock.ANY)
     with mock.patch("extensions.steamcmd.install_for_module", return_value={"success": False}) as install:
         refused = lifecycle.install_server({"install_dir": server, "version": "b42 -validate"})
     install.assert_not_called()
@@ -1110,7 +1123,7 @@ def _launchable_server(tmp_path, monkeypatch, java_version=None):
     return server
 
 
-@pytest.mark.parametrize("host_gb, heap", [(None, "8g"), (32, "8g"), (9.5, "8g"), (9, "4g"), (5.5, "4g"), (5, "3584m"), (3, "2g")])
+@pytest.mark.parametrize("host_gb, heap", [(None, "8G"), (32, "8G"), (9.5, "8G"), (9, "4G"), (5.5, "4G"), (5, "3584M"), (3, "2G")])
 def test_empty_memory_is_sized_for_this_pc(tmp_path, monkeypatch, host_gb, heap):
     """메모리를 비우면 데몬이 넘긴 PC 메모리로 정한다: 8G, PC 몫 1.5GB를 못 남기면 4G, 그것도 안 되면 PC − 1.5GB (2G 아래로는 안 내린다)"""
     from zomboid import lifecycle
@@ -1132,7 +1145,7 @@ def test_set_memory_is_used_as_is(tmp_path, monkeypatch):
 
     args = lifecycle.get_launch_command({"working_dir": str(server), "ram": 12, "preview": True})["args"]
 
-    assert "-Xmx12g" in args
+    assert "-Xmx12G" in args
 
 
 @pytest.mark.parametrize("version, on", [("25.0.1", True), ("27", True), ("17.0.1", False), (None, False)])
@@ -1307,7 +1320,7 @@ def test_launch_drops_script_args_whose_variables_are_unknown(tmp_path, monkeypa
 
     assert not [a for a in args if "%" in a]
     assert "-adminusername" not in args
-    assert "-Dkeep=1" in args and "-Xmx6g" in args
+    assert "-Dkeep=1" in args and "-Xmx6G" in args
     assert args[args.index("-servername") + 1] == "pvp"
     assert args[args.index("-statistic") + 1] == "0"
 
@@ -1352,3 +1365,5 @@ def test_an_unreadable_ini_is_an_error_not_empty_settings(tmp_path, monkeypatch)
 
     with pytest.raises(PermissionError):
         lifecycle.read_properties({"cache_dir": str(tmp_path)})
+
+

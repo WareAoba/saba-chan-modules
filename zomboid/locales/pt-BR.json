@@ -757,16 +757,6 @@
     "no_mappable_settings": "Nenhum item reconhecido como configuração do servidor",
     "command_sent": "Comando enviado ao console: {{command}}"
   },
-  "rcon": {
-    "connecting": "Conectando a {{host}}:{{port}}...",
-    "connected": "Conectado!",
-    "authentication_failed": "Falha na autenticação",
-    "authenticated": "Autenticado!",
-    "connection_failed": "Falha na conexão: {{error}}",
-    "sending_command": "Enviando comando: {{command}}",
-    "response_received": "Resposta recebida: {{response}}",
-    "command_failed": "Falha no comando: {{error}}"
-  },
   "reset": {
     "label": "Redefinir mundo",
     "description": "Apaga só o save do mundo e mantém as configurações do servidor.",

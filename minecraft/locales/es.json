@@ -182,6 +182,9 @@
     "stop": { "label": "Detener", "description": "Detener el servidor correctamente" }
   },
   "errors": {
+    "list_read_failed": "Error al leer {{file}}: {{error}}",
+    "version_manifest_failed": "Error al obtener la información de versiones de Mojang: {{error}}",
+    "command_send_failed": "Error al enviar el comando: {{error}}",
     "backup_paths_failed": "Error al leer la carpeta de plugins para la copia: {{error}}",
     "server_not_running": "Servidor no iniciado. Inicia primero el servidor.",
     "internal_server_error": "Error interno del servidor",
@@ -256,16 +259,6 @@
   },
   "plugins": {
     "args_label": "Argumentos"
-  },
-  "rcon": {
-    "connecting": "Conectando a {{host}}:{{port}}...",
-    "connected": "¡Conectado!",
-    "authentication_failed": "Autenticación fallida",
-    "authenticated": "¡Autenticado!",
-    "connection_failed": "Conexión fallida: {{error}}",
-    "sending_command": "Enviando comando: {{command}}",
-    "response_received": "Respuesta recibida: {{response}}",
-    "command_failed": "Comando fallido: {{error}}"
   },
   "reset": {
     "label": "Restablecer servidor",

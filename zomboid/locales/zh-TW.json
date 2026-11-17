@@ -757,16 +757,6 @@
     "server_reset_complete": "伺服器世界資料已重置",
     "command_sent": "已向主控台傳送指令：{{command}}"
   },
-  "rcon": {
-    "connecting": "正在連線至 {{host}}:{{port}}...",
-    "connected": "已連線！",
-    "authentication_failed": "認證失敗",
-    "authenticated": "已認證！",
-    "connection_failed": "連線失敗：{{error}}",
-    "sending_command": "正在傳送命令：{{command}}",
-    "response_received": "收到回應：{{response}}",
-    "command_failed": "命令失敗：{{error}}"
-  },
   "reset": {
     "label": "重設世界",
     "description": "只刪除世界存檔，保留伺服器設定。",

@@ -10,16 +10,9 @@ import traceback
 from i18n import I18n
 
 import daemon_rcon
-from daemon_rcon import (PathOutside, chat_reply, coerce_setting, config_value, daemon_rest, enforce_remote_access, extension_required,
-                         format_setting, graceful_stop, list_dir, load_setting_types, remote_access_values, safe_join, setting_file_keys)
-
-
-# UE4 INI parser (ue4-ini extension). Without it the module still answers;
-# functions that touch PalWorldSettings.ini return extension_required.
-try:
-    from extensions.ue4_ini import parse_option_settings, write_option_settings
-except ImportError:
-    parse_option_settings = write_option_settings = None
+from daemon_rcon import (PathOutside, chat_reply, coerce_setting, config_value, daemon_rest, enforce_remote_access,
+                         format_setting, graceful_stop, list_dir, load_extension, load_setting_types, player_capacity,
+                         remote_access_values, safe_join, setting_file_keys)
 
 # Initialize i18n
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -246,7 +239,7 @@ def get_launch_command(config):
             "message": i18n.t("errors.executable_not_found", path=executable)
         }
 
-    port = config.get("port", 8211)
+    port = config.get("port")
     working_dir = config.get("working_dir")
     if not working_dir:
         working_dir = os.path.dirname(os.path.abspath(executable))
@@ -262,7 +255,8 @@ def get_launch_command(config):
         return {"success": False, "error_code": "settings_unreadable",
                 "message": i18n.t("errors.settings_unreadable")}
 
-    args = [f"--port={port}"]
+    # 인스턴스 포트가 없으면 게임이 PalWorldSettings.ini PublicPort를 쓴다
+    args = [f"--port={port}"] if port else []
 
     # PalServer.exe는 실제 서버(Shipping-Cmd)를 띄우고 빠지는 런처다. 데몬(saba-runner)이
     # 실제 서버의 PID·종료 코드를 쥐도록 런처가 하는 그대로 실제 서버를 직접 띄운다.
@@ -297,20 +291,12 @@ def _rest_client(config):
     return PalworldRestClient(instance_id)
 
 
-def _int_or_none(value):
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
-
-
 def player_count(config):
     """접속자 수 (module.toml [status] players). 데몬이 켜진 서버에 1분마다 부른다.
     1분 갱신(players_detail 없음)에는 REST를 부르지 않는다: 부를 때마다 서버 로그에 `REST accessed endpoint` 줄이 남는다.
     그때 수는 데몬이 접속·퇴장 줄로 센다(player_join/leave_patterns). 최대 인원만 알려 준다"""
     if not config.get("players_detail"):
-        max_players = _int_or_none(config_value(config, "max_players", None))
-        return {"success": True, "max": max_players} if max_players else {"success": True}
+        return player_capacity(config)
     client = _rest_client(config)
     if client is None:
         return {"success": False, "message": i18n.t("errors.player_list_failed", error="AdminPassword")}
@@ -391,17 +377,28 @@ def _get_settings_ini_path(config):
     return ini_path
 
 
-# UE4 INI parse/write delegated to extensions.ue4_ini
 class ExtensionMissing(Exception):
-    def __init__(self, extension):
-        super().__init__(extension)
-        self.extension = extension
+    """익스텐션이 없거나 꺼져 있다. reply는 공용 `extension_required` 답 (FUNCTIONS 감싸기가 그대로 돌려준다)"""
+
+    def __init__(self, reply):
+        super().__init__(reply["message"])
+        self.reply = reply
+
+
+def _ue4_ini():
+    """PalWorldSettings.ini를 읽고 쓰는 ue4-ini 익스텐션. 없어도 모듈은 답하고, INI를 만지는 함수만 extension_required로 답한다"""
+    ue4_ini, missing = load_extension(i18n, "ue4-ini")
+    if missing:
+        raise ExtensionMissing(missing)
+    return ue4_ini
+
+
+# PalWorldSettings.ini에서 설정이 든 섹션
+_SECTION = "[/Script/Pal.PalGameWorldSettings]"
 
 
 def _parse_option_settings(ini_path):
-    if parse_option_settings is None:
-        raise ExtensionMissing("ue4-ini")
-    return parse_option_settings(ini_path)
+    return _ue4_ini().parse_option_settings(ini_path, _SECTION)
 
 
 def _option_line_unreadable(ini_path):
@@ -416,13 +413,12 @@ def _option_line_unreadable(ini_path):
 
 
 def _write_option_settings(ini_path, props):
-    if write_option_settings is None:
-        raise ExtensionMissing("ue4-ini")
+    ue4_ini = _ue4_ini()
     # 값 모양이 아니라 module.toml 필드 종류로 따옴표를 정한다: 숫자뿐인 비밀번호도 문자열, 열거형은 따옴표 없이
     keys, types = setting_file_keys(MODULE_DIR), load_setting_types(MODULE_DIR)
     quoted = {k for name, k in keys.items() if types.get(name) in ("text", "password")} - set(_LIST_KEYS)
     bare = {k for name, k in keys.items() if types.get(name) == "select"} | set(_LIST_KEYS)
-    return write_option_settings(ini_path, props, quoted_keys=quoted, bare_keys=bare)
+    return ue4_ini.write_option_settings(ini_path, props, _SECTION, quoted_keys=quoted, bare_keys=bare)
 
 
 def validate(config):
@@ -569,35 +565,30 @@ def _unquote(value):
     return val
 
 
-def import_settings(config):
-    """Read PalWorldSettings.ini and return settings in saba-chan key format.
-
-    Used during migration to import existing server settings into saba-chan.
-    Returns {"success": True, "settings": { saba_key: value, ... }}
-    """
-    result = read_properties(config)
-    if not result.get("success"):
-        return result
-
-    ini_props = result.get("properties", {})
-    if not ini_props:
-        return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
-
-    # INI key → saba-chan key (module.toml file_key)
+def _settings_from_ini(ini_props):
+    """PalWorldSettings.ini 값 {INI 키: 문자열} → {설정 이름: 값}. 설정 화면에 없는 키는 뺀다"""
     reverse_map = {v: k for k, v in setting_file_keys(MODULE_DIR).items()}
-
     types = load_setting_types(MODULE_DIR)
     settings = {}
     for ini_key, raw_value in ini_props.items():
         saba_key = reverse_map.get(ini_key)
         if saba_key is None:
             continue
-
         if ini_key in _LIST_KEYS:
             settings[saba_key] = _from_ini_list(raw_value)
             continue
         settings[saba_key] = coerce_setting(_unquote(raw_value), types.get(saba_key))
+    return settings
 
+
+def import_settings(config):
+    """PalWorldSettings.ini → {설정 이름: 값} (가져오기·live 설정)"""
+    result = read_properties(config)
+    if not result.get("success"):
+        return result
+    settings = result.get("properties", {})
+    if not settings:
+        return {"success": True, "settings": {}, "message": i18n.t("messages.no_properties_found")}
     return {"success": True, "settings": settings}
 
 
@@ -610,7 +601,7 @@ def config_files(config):
 
 
 def read_properties(config):
-    """Read current PalWorldSettings.ini."""
+    """PalWorldSettings.ini → {설정 이름: 값}. 파일이 없으면 서버 폴더의 DefaultPalWorldSettings.ini"""
     ini_path = _get_settings_ini_path(config)
     if not ini_path:
         return {"success": False, "message": i18n.t("errors.no_server_dir")}
@@ -627,11 +618,10 @@ def read_properties(config):
             default_path = str(safe_join(working_dir, "DefaultPalWorldSettings.ini"))
 
         if default_path and os.path.isfile(default_path):
-            props = _parse_option_settings(default_path)
             return {
                 "success": True,
                 "exists": False,
-                "properties": props,
+                "properties": _settings_from_ini(_parse_option_settings(default_path)),
                 "message": i18n.t("messages.using_defaults"),
             }
         return {
@@ -641,8 +631,7 @@ def read_properties(config):
             "message": i18n.t("errors.settings_not_found"),
         }
 
-    props = _parse_option_settings(ini_path)
-    return {"success": True, "exists": True, "properties": props}
+    return {"success": True, "exists": True, "properties": _settings_from_ini(_parse_option_settings(ini_path))}
 
 
 def reset_properties(config):
@@ -654,7 +643,16 @@ def reset_properties(config):
     if not os.path.isfile(ini_path):
         return {"success": False, "message": i18n.t("reset.not_found")}
 
-    ok = _write_option_settings(ini_path, _default_settings())
+    defaults = _default_settings()
+    # 포트와 REST 비밀번호는 이 서버의 값이다: 기본값으로 쓰면 데몬이 파일을 다시 읽어 인스턴스 포트까지 되돌려
+    # 다른 서버와 겹치고, 데몬이 REST에 붙이는 비밀번호가 맞지 않는다
+    for key, ini_key in (("port", "PublicPort"), ("rest_port", "RESTAPIPort")):
+        if config_value(config, key):
+            defaults[ini_key] = str(config_value(config, key))
+    admin_password = _read_admin_password_from_ini(config)
+    if admin_password:
+        defaults["AdminPassword"] = admin_password
+    ok = _write_option_settings(ini_path, defaults)
     return {
         "success": ok,
         "message": i18n.t("reset.settings_success") if ok else i18n.t("reset.settings_failed"),
@@ -766,26 +764,13 @@ def install_server(config):
     if not install_dir:
         return {"success": False, "message": i18n.t("errors.no_install_dir")}
 
-    os.makedirs(install_dir, exist_ok=True)
-
-    try:
-        from extensions.steamcmd import install_for_module
-    except ImportError:
-        return extension_required(i18n, "steamcmd")
-    try:
-        result = install_for_module(MODULE_DIR, install_dir)
-    except PathOutside:
-        raise
-    except Exception as e:
-        print(f"[Palworld] SteamCMD install failed: {e}", file=sys.stderr)
-        return {"success": False, "message": i18n.t("errors.install_failed", error=str(e))}
+    steamcmd, missing = load_extension(i18n, "steamcmd")
+    if missing:
+        return missing
+    result = steamcmd.install_for_module(MODULE_DIR, install_dir,
+                                         executable="PalServer.exe" if sys.platform == "win32" else "PalServer.sh")
 
     if result.get("success"):
-        exe_name = "PalServer.exe" if sys.platform == "win32" else "PalServer.sh"
-        exe_path = str(safe_join(install_dir, exe_name))
-        result["install_path"] = install_dir
-        result["executable_path"] = exe_path if os.path.exists(exe_path) else ""
-
         # 프로비저닝 마지막 단계: 기본 설정으로 PalWorldSettings.ini 생성.
         # 서버를 한 번도 실행하지 않으면 INI가 비어있어 REST API가 활성화되지 않음.
         # 기본 값 + 사바쨩이 정하는 원격 접속 값(module.toml [remote_access])을 미리 기록한다.
@@ -912,7 +897,7 @@ def _answering_missing_extension(fn):
         try:
             return fn(config)
         except ExtensionMissing as e:
-            return extension_required(i18n, e.extension)
+            return e.reply
     return call
 
 

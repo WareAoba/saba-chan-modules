@@ -309,8 +309,8 @@ def test_bad_world_names_are_refused(lc, tmp_path, name):
 def test_empty_world_name_falls_back_to_default(lc, tmp_path):
     server = _server(tmp_path, lc)
     world_dir, name, world_file = lc._world(_config(server, world_name=""))
-    assert name == lc.DEFAULT_WORLD_NAME
-    assert world_file == str(server / "Worlds" / f"{lc.DEFAULT_WORLD_NAME}.wld")
+    assert name == "world"
+    assert world_file == str(server / "Worlds" / "world.wld")
 
 
 def test_validate_flags_missing_executable(lc, tmp_path):

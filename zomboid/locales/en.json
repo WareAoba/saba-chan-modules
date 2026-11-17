@@ -295,16 +295,6 @@
     "server_reset_complete": "Server world data reset",
     "command_sent": "Command sent to the console: {{command}}"
   },
-  "rcon": {
-    "connecting": "Connecting to {{host}}:{{port}}...",
-    "connected": "Connected!",
-    "authentication_failed": "Authentication failed",
-    "authenticated": "Authenticated!",
-    "connection_failed": "Connection failed: {{error}}",
-    "sending_command": "Sending command: {{command}}",
-    "response_received": "Response received: {{response}}",
-    "command_failed": "Command failed: {{error}}"
-  },
   "reset": {
     "label": "Reset world",
     "description": "Deletes only the world save and keeps the server settings.",

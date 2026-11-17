@@ -187,7 +187,6 @@
     "command_send_failed": "Falha ao enviar o comando: {{error}}",
     "backup_paths_failed": "Falha ao ler a pasta de plugins para o backup: {{error}}",
     "server_not_running": "Servidor não iniciado. Inicie o servidor primeiro.",
-    "timeout": "Tempo de resposta do servidor esgotado. Verifique o estado do servidor.",
     "internal_server_error": "Erro interno do servidor",
     "server_type_mismatch": "Tipo de servidor incompatível: configurado '{{chosen}}', arquivos do servidor '{{detected}}'",
     "server_type_install_unsupported": "A Saba-chan não pode instalar servidores '{{type}}'. Instale o servidor você mesmo e adicione-o com 'Migrar servidor existente'.",

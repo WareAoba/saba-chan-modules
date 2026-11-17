@@ -187,7 +187,6 @@
     "command_send_failed": "Échec de l'envoi de la commande : {{error}}",
     "backup_paths_failed": "Échec de la lecture du dossier des plugins à sauvegarder : {{error}}",
     "server_not_running": "Le serveur n'est pas démarré. Démarrez d'abord le serveur.",
-    "timeout": "Délai de réponse du serveur dépassé. Vérifiez l'état du serveur.",
     "internal_server_error": "Erreur interne du serveur",
     "server_type_mismatch": "Type de serveur incohérent : défini sur '{{chosen}}', fichiers du serveur '{{detected}}'",
     "server_type_install_unsupported": "Saba-chan ne peut pas installer les serveurs '{{type}}'. Installez-le vous-même et ajoutez-le via 'Migration du serveur existant'.",

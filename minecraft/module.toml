@@ -81,7 +81,6 @@ install_subdir = "server"
 players = "player_count"
 
 [detection]
-process_patterns = ["java.exe", "java", "minecraft_server", "server.jar"]
 # cmd_patterns: java.exe 프로세스의 커맨드라인에서 Minecraft 서버를 식별하는 패턴
 # 같은 java.exe를 쓰는 다른 게임 서버(예: Zomboid)와 구분하기 위해 사용
 cmd_patterns = ["server.jar", "minecraft_server", "nogui", "net.minecraft", "paper-", "purpur-", "folia-", "fabric-server-launch", "net.minecraftforge", "net.neoforged"]
@@ -209,7 +208,7 @@ type = "boolean"
 label = "Accepts Transfers"
 description = "Allow connection transfer from other servers"
 default = false
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "allow_flight"
@@ -239,7 +238,7 @@ type = "boolean"
 label = "Broadcast Console to Ops"
 description = "Send console output to all online ops"
 default = true
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "bug_report_link"
@@ -249,7 +248,7 @@ type = "text"
 label = "Bug Report Link"
 description = "Custom bug report link"
 default = ""
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "difficulty"
@@ -280,7 +279,7 @@ type = "boolean"
 label = "Code of Conduct"
 description = "Enable code of conduct screen"
 default = false
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "enable_jmx_monitoring"
@@ -300,7 +299,7 @@ type = "boolean"
 label = "Enable Query"
 description = "Enable the GameSpy4 query protocol"
 default = false
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "enable_status"
@@ -310,7 +309,7 @@ type = "boolean"
 label = "Enable Status"
 description = "Show server in multiplayer server list"
 default = true
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "enforce_secure_profile"
@@ -320,7 +319,7 @@ type = "boolean"
 label = "Enforce Secure Profile"
 description = "Require Mojang-signed public key for players"
 default = true
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "enforce_whitelist"
@@ -341,7 +340,7 @@ description = "Distance at which mobs and other entities are sent to players, as
 default = 100
 min = 10
 max = 1000
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "force_gamemode"
@@ -351,7 +350,7 @@ type = "boolean"
 label = "Force Game Mode"
 description = "Force default gamemode on player join"
 default = false
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "function_permission_level"
@@ -363,7 +362,7 @@ description = "Default permission level for function commands (1-4)"
 default = 2
 min = 1
 max = 4
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "gamemode"
@@ -392,7 +391,7 @@ type = "text"
 label = "Generator Settings"
 description = "JSON settings for flat world generation"
 default = "{}"
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "hardcore"
@@ -411,7 +410,7 @@ type = "boolean"
 label = "Hide Online Players"
 description = "Hide player list from status response"
 default = false
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "initial_disabled_packs"
@@ -421,7 +420,7 @@ type = "text"
 label = "Initial Disabled Packs"
 description = "Comma-separated list of disabled datapacks"
 default = ""
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "initial_enabled_packs"
@@ -431,7 +430,7 @@ type = "text"
 label = "Initial Enabled Packs"
 description = "Comma-separated list of enabled datapacks"
 default = "vanilla"
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "level_name"
@@ -469,7 +468,7 @@ type = "boolean"
 label = "Log IPs"
 description = "Log player IP addresses"
 default = true
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "max_chained_neighbor_updates"
@@ -536,7 +535,7 @@ description = "Minimum packet size to compress (-1 to disable, 0 to compress all
 default = 256
 min = -1
 max = 65535
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "online_mode"
@@ -557,7 +556,7 @@ description = "Default permission level for ops (1-4)"
 default = 4
 min = 1
 max = 4
-group = "advanced"
+group = "admin"
 
 [[settings.fields]]
 name = "player_idle_timeout"
@@ -569,7 +568,7 @@ description = "Minutes before idle players are kicked (0 to disable)"
 default = 0
 min = 0
 max = 1440
-group = "advanced"
+group = "player"
 
 [[settings.fields]]
 name = "port"
@@ -604,7 +603,7 @@ type = "boolean"
 label = "Prevent Proxy Connections"
 description = "Block connections using VPN/proxy"
 default = false
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "pvp"
@@ -635,7 +634,7 @@ type = "boolean"
 label = "Management Server"
 description = "Enable the server management protocol (JSON-RPC over WebSocket)"
 default = false
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "management_server_host"
@@ -644,7 +643,7 @@ file_key = "management-server-host"
 type = "text"
 label = "Management Server Host"
 default = "localhost"
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "management_server_port"
@@ -655,7 +654,7 @@ label = "Management Server Port"
 default = 0
 min = 0
 max = 65535
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "management_server_secret"
@@ -663,7 +662,7 @@ restart_required = true
 file_key = "management-server-secret"
 type = "password"
 label = "Management Server Secret"
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "management_server_allowed_origins"
@@ -671,7 +670,7 @@ restart_required = true
 file_key = "management-server-allowed-origins"
 type = "text"
 label = "Management Server Allowed Origins"
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "management_server_tls_enabled"
@@ -680,7 +679,7 @@ file_key = "management-server-tls-enabled"
 type = "boolean"
 label = "Management Server TLS"
 default = true
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "management_server_tls_keystore"
@@ -688,7 +687,7 @@ restart_required = true
 file_key = "management-server-tls-keystore"
 type = "text"
 label = "Management Server TLS Keystore"
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "management_server_tls_keystore_password"
@@ -696,7 +695,7 @@ restart_required = true
 file_key = "management-server-tls-keystore-password"
 type = "password"
 label = "Management Server TLS Keystore Password"
-group = "advanced"
+group = "integration"
 
 [[settings.fields]]
 name = "query_port"
@@ -709,7 +708,7 @@ description = "Port for GameSpy4 query protocol"
 default = 25565
 min = 1024
 max = 65535
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "rate_limit"
@@ -721,7 +720,7 @@ description = "Max packets per second before disconnect (0 to disable)"
 default = 0
 min = 0
 max = 100000
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "region_file_compression"
@@ -742,7 +741,7 @@ type = "boolean"
 label = "Require Resource Pack"
 description = "Require players to accept the resource pack"
 default = false
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "resource_pack"
@@ -752,7 +751,7 @@ type = "text"
 label = "Resource Pack URL"
 description = "URL to a server resource pack"
 default = ""
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "resource_pack_id"
@@ -762,7 +761,7 @@ type = "text"
 label = "Resource Pack ID"
 description = "UUID for the resource pack"
 default = ""
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "resource_pack_prompt"
@@ -772,7 +771,7 @@ type = "text"
 label = "Resource Pack Prompt"
 description = "Custom message shown when resource pack is offered"
 default = ""
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "resource_pack_sha1"
@@ -782,7 +781,7 @@ type = "text"
 label = "Resource Pack SHA-1"
 description = "SHA-1 hash of the resource pack"
 default = ""
-group = "advanced"
+group = "world"
 
 [[settings.fields]]
 name = "server_ip"
@@ -792,7 +791,7 @@ type = "text"
 label = "Server IP"
 description = "IP address the server listens on (leave blank for all)"
 default = ""
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "simulation_distance"
@@ -815,7 +814,7 @@ type = "boolean"
 label = "Spawn Animals"
 description = "Allow animals to spawn"
 default = true
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "spawn_monsters"
@@ -827,7 +826,7 @@ type = "boolean"
 label = "Spawn Monsters"
 description = "Allow hostile mobs to spawn"
 default = true
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "spawn_npcs"
@@ -839,7 +838,7 @@ type = "boolean"
 label = "Spawn NPCs"
 description = "Allow villagers to spawn"
 default = true
-group = "advanced"
+group = "mob"
 
 [[settings.fields]]
 name = "spawn_protection"
@@ -862,7 +861,7 @@ description = "Heartbeat interval for server status (0 to disable)"
 default = 0
 min = 0
 max = 60
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "sync_chunk_writes"
@@ -882,7 +881,7 @@ type = "text"
 label = "Text Filtering Config"
 description = "Text filtering configuration"
 default = ""
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "text_filtering_version"
@@ -894,7 +893,7 @@ description = "Text filtering version"
 default = 0
 min = 0
 max = 100
-group = "advanced"
+group = "communication"
 
 [[settings.fields]]
 name = "use_native_transport"
@@ -904,7 +903,7 @@ type = "boolean"
 label = "Use Native Transport"
 description = "Use Linux optimized network transport"
 default = true
-group = "advanced"
+group = "network"
 
 [[settings.fields]]
 name = "view_distance"
@@ -1210,7 +1209,6 @@ inputs = []
 
 [errors]
 server_not_running = "Server is not running. Please start the server first"
-timeout = "Server response timeout. Please check server status"
 internal_server_error = "Internal server error occurred"
 
 # ─── Aliases ──────────────────────────────────────────────────

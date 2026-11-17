@@ -227,22 +227,6 @@ def test_all_ini_keys_exposed_in_gui_except_internal():
     assert not missing, f"GUI에 노출되지 않은 INI 옵션: {sorted(missing)}"
 
 
-def test_settings_groups_are_known():
-    """settings.fields의 group은 saba-chan/None/communication/advanced 중 하나여야 한다."""
-    cfg = _load_module_toml()
-    known_groups = {None, "saba-chan", "communication", "advanced"}
-    for f in cfg.get("settings", {}).get("fields", []):
-        assert f.get("group") in known_groups, f"{f['name']}: unknown group {f.get('group')!r}"
-
-
-def test_communication_and_advanced_groups_non_empty():
-    """통신 탭/고급 탭이 실제로 접을 수 있는 그룹으로 분리되어 있는지 확인."""
-    cfg = _load_module_toml()
-    fields = cfg.get("settings", {}).get("fields", [])
-    assert any(f.get("group") == "communication" for f in fields), "communication 그룹이 비어있음"
-    assert any(f.get("group") == "advanced" for f in fields), "advanced 그룹이 비어있음"
-
-
 # 5. 공개 API 방어 동작
 
 def test_get_launch_command_missing_executable():

@@ -346,16 +346,6 @@
             "type": "string"
           },
           "type": "array"
-        },
-        "process_patterns": {
-          "default": null,
-          "items": {
-            "type": "string"
-          },
-          "type": [
-            "array",
-            "null"
-          ]
         }
       },
       "type": "object"
@@ -665,7 +655,7 @@
     },
     "ModulePermissions": {
       "additionalProperties": false,
-      "description": "`[permissions]` — 모듈 Python 코드가 쓰는 능력 (M12). 선언하지 않은 능력을 코드에서 찾으면\n`saba-core module audit`과 `GET /api/module/:name/audit`이 알린다. 새 권한은 여기와\n`PERMISSIONS`, `modules/saba_audit.py` 표에 한 줄씩 더한다",
+      "description": "`[permissions]` — 모듈 Python 코드가 쓰는 능력. 선언하지 않은 능력을 코드에서 찾으면\n`saba-core module audit`과 `GET /api/module/:name/audit`이 알린다. 새 권한은 여기와\n`PERMISSIONS`, `modules/saba_audit.py` 표에 한 줄씩 더한다",
       "properties": {
         "dynamic_code": {
           "default": false,
@@ -1070,10 +1060,22 @@
         },
         "group": {
           "default": null,
-          "description": "\"basic\"(기본) | \"advanced\" | \"saba-chan\" 등",
-          "type": [
-            "string",
-            "null"
+          "description": "화면 묶음: 없음·\"basic\"(기본) | \"saba-chan\" | 공통 카테고리 (`SETTING_GROUPS`)",
+          "enum": [
+            "basic",
+            "saba-chan",
+            "player",
+            "world",
+            "mob",
+            "item",
+            "building",
+            "admin",
+            "pvp",
+            "communication",
+            "network",
+            "integration",
+            "advanced",
+            null
           ]
         },
         "install": {
@@ -1288,7 +1290,7 @@
     },
     "VisibleWhen": {
       "additionalProperties": false,
-      "description": "`visible_when = { field, equals }` 또는 `{ field, in = [...] }` (06 §8.2)",
+      "description": "`visible_when = { field, equals }` 또는 `{ field, in = [...] }`",
       "properties": {
         "equals": true,
         "field": {
@@ -1339,7 +1341,7 @@
         }
       ],
       "default": null,
-      "description": "[backup] 월드·세이브 백업 (A2)"
+      "description": "[backup] 월드·세이브 백업"
     },
     "commands": {
       "anyOf": [
@@ -1415,7 +1417,7 @@
           "type": "null"
         }
       ],
-      "description": "[launch] 실행 관련 선언 (C8b)"
+      "description": "[launch] 실행 관련 선언"
     },
     "lists": {
       "default": [],
@@ -1450,11 +1452,11 @@
         "network": false,
         "spawn_process": false
       },
-      "description": "[permissions] 모듈 코드가 쓰는 능력 (M12)"
+      "description": "[permissions] 모듈 코드가 쓰는 능력"
     },
     "presets": {
       "default": [],
-      "description": "[[presets]] 추천 설정 묶음 (I1-b)",
+      "description": "[[presets]] 추천 설정 묶음",
       "items": {
         "$ref": "#/definitions/ModulePreset"
       },
@@ -1471,7 +1473,7 @@
       ]
     },
     "queries": {
-      "description": "[[queries]] 읽기 전용 조회 (X-2)",
+      "description": "[[queries]] 읽기 전용 조회",
       "items": {
         "$ref": "#/definitions/QueryToml"
       },

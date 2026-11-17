@@ -1,0 +1,7 @@
+# GitHub Actions 판 갱신 PR (saba-chan과 같은 주기)
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

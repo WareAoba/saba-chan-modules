@@ -161,8 +161,18 @@ def requirement():
     return found.group(1) if found else None
 
 
+VERSION = r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?"
+
+
 def version_tuple(text):
-    return tuple(int(n) for n in re.findall(r"\d+", text)[:3])
+    """SemVer 순서 (saba_audit.sdk_version과 같은 규칙): 미리보기는 정식보다 앞서고, 미리보기끼리는 조각마다
+    (숫자 < 글자, 숫자는 크기로) 비교한다 (beta.3 < beta.4 < beta.10 < rc.1 < 정식)"""
+    found = re.search(VERSION, text)
+    if not found:
+        return ()
+    release, separator, prerelease = found.group(0).partition("-")
+    tags = tuple((0, int(tag), "") if tag.isdigit() else (1, 0, tag) for tag in prerelease.split(".")) if separator else ()
+    return tuple(int(part) for part in release.split(".")) + (not separator, tags)
 
 
 def compat_gate(installed, needed):
@@ -180,7 +190,7 @@ def saba_core_version(saba_core):
         done = subprocess.run([saba_core, "--version"], capture_output=True, stdin=subprocess.DEVNULL, text=True, timeout=20)
     except (OSError, subprocess.TimeoutExpired):
         return None
-    found = re.search(r"\d+\.\d+\.\d+", done.stdout)
+    found = re.search(VERSION, done.stdout)
     return found.group(0) if found else None
 
 

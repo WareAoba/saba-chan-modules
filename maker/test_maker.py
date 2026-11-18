@@ -583,6 +583,18 @@ def test_check_compat_compares_saba_core_versions(installed, status):
     assert check.compat_gate(installed, ">=0.1.10")["status"] == status
 
 
+@pytest.mark.parametrize("installed, status", [("0.1.14-beta.3", "fail"), ("0.1.14-beta.4", "ok"), ("0.1.14-beta.10", "ok"),
+                                               ("0.1.14-rc.1", "ok"), ("0.1.14", "ok"), ("0.1.13", "fail")])
+def test_check_compat_orders_prerelease_versions(installed, status):
+    assert check.compat_gate(installed, ">=0.1.14-beta.4")["status"] == status
+
+
+def test_check_keeps_the_prerelease_of_the_saba_core_version(monkeypatch):
+    monkeypatch.setattr(check.subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, "saba-core 0.1.14-beta.3\n", ""))
+
+    assert check.saba_core_version("saba-core") == "0.1.14-beta.3"
+
+
 def test_check_takes_paths_from_the_app(tmp_path):
     cli = tmp_path / "cli.py"
     cli.write_text("import json, sys\nassert sys.argv[1:] == ['module', 'maker', '--json']\n"

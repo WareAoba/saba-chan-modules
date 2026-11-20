@@ -7,7 +7,7 @@
    - `saba-core module validate <game>` (데몬과 같은 파서)
    - `saba-core module audit <game>` (찾은 능력이 `[permissions]`와 맞는지)
    - 정적 관문: 틀 자리표시, 조사 표 출처 URL, 10개 언어와 ko 번역, 테스트 등록, 버전을 올리지 않았는지, 틀 예시가 아닌 하이라이트 규칙, download 설치의 `get_installed_version`, 선택 기능, 선언한 콘솔 명령이 서버 `help` 출력에 있는지(commands, `--help-output`)
-3. **손 확인**: 조사 표의 명령·설정이 모두 module.toml에 있는지, `help`에 있는 명령 중 옮기지 않은 것의 이유가 조사 표에 있는지, 모든 명령에 `risk`·`description`이 있는지, 설정 `type`이 6가지 안인지, lessons.md 표를 하나씩 지웠는지. `check.py`의 "직접 확인" 목록을 채운다.
+3. **손 확인**: 조사 표의 명령·설정이 모두 module.toml에 있는지, `help`에 있는 명령 중 옮기지 않은 것의 이유가 조사 표에 있는지, 모든 명령에 `risk`·`description`이 있는지, 설정 `type`이 스키마 버전이 허용하는 것인지(스키마 2는 `list`·`multiline` 포함), lessons.md 표를 하나씩 지웠는지. `check.py`의 "직접 확인" 목록을 채운다.
 4. **제작 환경 실측**(PR 전 필수): 실물 확인(research.md)을 끝낸 상태여야 한다. 그 위에서 진짜 데몬으로 사용자 흐름을 밟는다.
    ```
    python maker/check.py <game> --saba-core <saba-core> --trial [--accept-agreement <id>] [--extensions <saba-chan-extensions>]

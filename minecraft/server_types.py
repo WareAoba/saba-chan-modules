@@ -25,7 +25,7 @@ USER_AGENT = "saba-chan/1.0 (https://github.com/WareAoba/saba-chan)"
 
 # id → 성격. family: 플러그인/모드 폴더 판정에 쓴다 (bukkit = plugins/, mod = mods/)
 # install: install_server가 받을 수 있는 소스 (없으면 직접 설치한 서버를 가져와야 한다).
-# quilt·forge·neoforge·buildtools는 받은 jar가 서버가 아니라 공식 설치기다 (`installer_args`로 돌린다)
+# quilt·forge·neoforge·buildtools는 받은 jar가 서버가 아니라 공식 설치기다 (`ServerInstaller._install_with_installer`로 돌린다)
 SERVER_TYPES = {
     "vanilla":    {"family": None,     "install": "mojang"},
     "paper":      {"family": "bukkit", "install": "fill"},

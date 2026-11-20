@@ -649,7 +649,7 @@ def test_nickname_resolution_uses_the_sdk_player_list(monkeypatch):
 
 
 def test_numeric_nickname_is_looked_up_before_treating_it_as_an_id(monkeypatch):
-    """숫자만 있는 닉네임(예: 12345)도 목록에서 먼저 찾는다 — 없으면 ID로 보고 그대로 넘긴다 (리뷰 11-07)"""
+    """숫자만 있는 닉네임(예: 12345)도 목록에서 먼저 찾는다 — 없으면 ID로 보고 그대로 넘긴다"""
     from palworld import lifecycle
     players = {"players": [{"name": "12345", "userId": "steam_7"}]}
     rest = mock.Mock(return_value=_daemon_rest_response(players, "GET", "/v1/api/players"))
